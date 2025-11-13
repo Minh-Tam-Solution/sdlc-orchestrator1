@@ -1,6 +1,15 @@
 """
-SDLC Orchestrator - FastAPI Main Application
-Entry point for the backend API server
+FastAPI Main Application - SDLC Orchestrator Backend
+
+Version: 1.0.0
+Date: November 13, 2025
+Status: ACTIVE - STAGE 03 (BUILD)
+Authority: Backend Lead + CTO Approved
+Foundation: ADR-003 (API Strategy), ADR-004 (Microservices Architecture)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Entry point for the backend API server.
+Configures middleware, health checks, metrics, and API routes.
 """
 
 from fastapi import FastAPI
