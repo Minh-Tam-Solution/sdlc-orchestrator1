@@ -30,7 +30,11 @@ target_metadata = Base.metadata
 
 # Set database URL from settings if not already set in alembic.ini
 def get_url():
-    return config.get_main_option("sqlalchemy.url") or settings.DATABASE_URL
+    url = config.get_main_option("sqlalchemy.url") or settings.DATABASE_URL
+    # Convert asyncpg to psycopg2 for Alembic (sync driver)
+    if url and "postgresql+asyncpg" in url:
+        url = url.replace("postgresql+asyncpg", "postgresql+psycopg2")
+    return url
 
 
 def run_migrations_offline() -> None:

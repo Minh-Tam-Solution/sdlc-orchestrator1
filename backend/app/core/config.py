@@ -60,7 +60,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Database (PostgreSQL)
-    DATABASE_URL: str = "postgresql+asyncpg://sdlc:sdlc@localhost:5432/sdlc_orchestrator"
+    DATABASE_URL: str = "postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:5432/sdlc_orchestrator"
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 20
 

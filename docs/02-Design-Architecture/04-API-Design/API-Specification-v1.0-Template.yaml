@@ -1,0 +1,861 @@
+openapi: 3.0.3
+info:
+  title: SDLC Orchestrator API
+  version: 1.0.0
+  description: |
+    **SDLC Orchestrator** - Quality Gate Management Platform
+
+    This API provides endpoints for managing quality gates, evidence vault,
+    policy evaluation, and AI-augmented SDLC workflows.
+
+    **Key Features**:
+    - FR1: Quality Gate Management (19 Use Cases)
+    - FR2: Evidence Vault (SHA256 integrity)
+    - FR3: AI Context Engine (Multi-provider)
+    - FR4: Real-Time Dashboard (WebSocket)
+    - FR5: Policy Pack Library (110+ policies)
+
+    **Base URL**: https://api.sdlc-orchestrator.com/v1
+
+    **Authentication**: JWT Bearer Token
+
+    **Rate Limiting**: 1,000 requests/minute per user
+
+  contact:
+    name: SDLC Orchestrator API Support
+    email: api@sdlc-orchestrator.com
+    url: https://docs.sdlc-orchestrator.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.sdlc-orchestrator.com/v1
+    description: Production server
+  - url: https://staging-api.sdlc-orchestrator.com/v1
+    description: Staging server
+  - url: http://localhost:8000/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization (JWT, OAuth, MFA)
+  - name: Gates
+    description: Quality gate management (FR1)
+  - name: Evidence
+    description: Evidence vault operations (FR2)
+  - name: Policies
+    description: Policy pack library (FR5)
+  - name: Projects
+    description: Project and workspace management
+  - name: AI
+    description: AI Context Engine (FR3)
+  - name: Dashboards
+    description: Real-time dashboard data (FR4)
+  - name: Users
+    description: User and role management
+
+paths:
+  # ==================== AUTHENTICATION ====================
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login (JWT authentication)
+      description: |
+        Authenticate user with email/password and return JWT access token.
+
+        **Flow**:
+        1. User submits email + password
+        2. Backend validates credentials (bcrypt)
+        3. Generate JWT access token (1h expiry)
+        4. Generate refresh token (30-day expiry)
+        5. Return both tokens
+
+        **Success Criteria**: <100ms response time (p95)
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecureP@ssw0rd
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT access token (1h expiry)
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  refresh_token:
+                    type: string
+                    description: Refresh token (30-day expiry)
+                    example: a8f3d2b1c4e5f6g7h8i9j0k1l2m3n4o5
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    description: Access token expiry (seconds)
+                    example: 3600
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many login attempts (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: |
+        Use refresh token to obtain new access token without re-login.
+
+        **Use Case**: Access token expired (1h), user still active
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: a8f3d2b1c4e5f6g7h8i9j0k1l2m3n4o5
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    example: 3600
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: |
+        Invalidate current access token and refresh token.
+
+        **Implementation**: Add tokens to Redis blacklist (TTL = token expiry)
+      operationId: logoutUser
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: Logout successful
+        '401':
+          description: Unauthorized (invalid token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ==================== GATES (FR1) ====================
+
+  /gates:
+    get:
+      tags:
+        - Gates
+      summary: List quality gates
+      description: |
+        Retrieve paginated list of quality gates for current user's projects.
+
+        **Filters**: project_id, status, gate_type, stage
+        **Sort**: created_at, updated_at, gate_name
+        **Pagination**: limit (max 100), offset
+      operationId: listGates
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by project ID
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, ARCHIVED]
+          description: Filter by gate status
+        - name: gate_type
+          in: query
+          schema:
+            type: string
+            enum: [G0_1, G0_2, G1, G2, G3, G4, G5, G6, G7, G8, G9]
+          description: Filter by gate type
+        - name: stage
+          in: query
+          schema:
+            type: string
+            enum: [WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN]
+          description: Filter by SDLC stage
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Number of results per page
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: List of gates retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Gate'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags:
+        - Gates
+      summary: Create new quality gate
+      description: |
+        Create a new quality gate for a project.
+
+        **Use Case**: Team starts new feature, creates Gate G1 (Design Ready)
+
+        **Workflow**:
+        1. User creates gate (status = DRAFT)
+        2. User uploads evidence
+        3. User submits for approval (status = PENDING_APPROVAL)
+        4. Approvers review and approve/reject
+        5. Gate passes → next stage unlocked
+      operationId: createGate
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - gate_name
+                - gate_type
+                - project_id
+              properties:
+                gate_name:
+                  type: string
+                  example: "User Authentication - Gate G1 Design Ready"
+                gate_type:
+                  type: string
+                  enum: [G0_1, G0_2, G1, G2, G3, G4, G5, G6, G7, G8, G9]
+                  example: G1
+                stage:
+                  type: string
+                  enum: [WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN]
+                  example: WHAT
+                project_id:
+                  type: string
+                  format: uuid
+                  example: 123e4567-e89b-12d3-a456-426614174000
+                description:
+                  type: string
+                  example: "Gate to validate design readiness for user authentication feature"
+                approvers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        enum: [CTO, CPO, CEO, TECH_LEAD, SECURITY_LEAD]
+                        example: CTO
+                      user_id:
+                        type: string
+                        format: uuid
+                        example: 789e4567-e89b-12d3-a456-426614174111
+                metadata:
+                  type: object
+                  description: Custom metadata (JSONB)
+                  additionalProperties: true
+      responses:
+        '201':
+          description: Gate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /gates/{gate_id}:
+    get:
+      tags:
+        - Gates
+      summary: Get gate details
+      description: Retrieve detailed information about a specific gate
+      operationId: getGate
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: gate_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Gate details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    patch:
+      tags:
+        - Gates
+      summary: Update gate
+      description: Update gate details (name, description, metadata)
+      operationId: updateGate
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: gate_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                gate_name:
+                  type: string
+                description:
+                  type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: Gate updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gate'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    delete:
+      tags:
+        - Gates
+      summary: Delete gate (soft delete)
+      description: Soft delete gate (sets deleted_at timestamp)
+      operationId: deleteGate
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: gate_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Gate deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # ==================== EVIDENCE (FR2) ====================
+
+  /evidence:
+    post:
+      tags:
+        - Evidence
+      summary: Upload evidence file
+      description: |
+        Upload evidence file to Evidence Vault (MinIO S3).
+
+        **File Types**: PDF, MD, JSON, XML, HTML, PNG, JPG (any format)
+        **Max Size**: 100 MB per file
+        **Storage**: MinIO (S3-compatible)
+        **Integrity**: SHA256 hash calculated on upload
+      operationId: uploadEvidence
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - gate_id
+                - evidence_type
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Evidence file (any format)
+                gate_id:
+                  type: string
+                  format: uuid
+                  description: Associated gate ID
+                evidence_type:
+                  type: string
+                  enum: [TEST_RESULTS, COVERAGE_REPORT, SECURITY_SCAN, DOCUMENTATION, APPROVAL_EMAIL, OTHER]
+                  description: Type of evidence
+                description:
+                  type: string
+                  description: Evidence description
+                  example: "Unit test results for user authentication module"
+      responses:
+        '201':
+          description: Evidence uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evidence'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '413':
+          description: File too large (max 100 MB)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /evidence/{evidence_id}:
+    get:
+      tags:
+        - Evidence
+      summary: Download evidence file
+      description: Download evidence file from Evidence Vault
+      operationId: downloadEvidence
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: evidence_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Evidence file retrieved successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # ==================== POLICIES (FR5) ====================
+
+  /policies:
+    get:
+      tags:
+        - Policies
+      summary: List policy packs
+      description: |
+        Retrieve list of policy packs (pre-built + custom).
+
+        **Pre-built**: 110+ SDLC 4.9 policies (all 10 stages)
+        **Custom**: Project-specific policies
+      operationId: listPolicies
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [GLOBAL, PROJECT, CUSTOM]
+            default: GLOBAL
+        - name: stage
+          in: query
+          schema:
+            type: string
+            enum: [WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN]
+      responses:
+        '200':
+          description: List of policies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+# ==================== COMPONENTS ====================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT access token obtained from /auth/login endpoint.
+
+        **Format**: Authorization: Bearer <token>
+        **Expiry**: 1 hour
+        **Refresh**: Use /auth/refresh with refresh_token
+
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        full_name:
+          type: string
+          example: John Doe
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          example: https://avatars.githubusercontent.com/u/123456
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [ADMIN, MANAGER, APPROVER, DEVELOPER, VIEWER]
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-11-14T10:00:00Z
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-11-14T09:30:00Z
+
+    Gate:
+      type: object
+      properties:
+        gate_id:
+          type: string
+          format: uuid
+          example: 456e4567-e89b-12d3-a456-426614174001
+        gate_name:
+          type: string
+          example: "User Authentication - Gate G1 Design Ready"
+        gate_type:
+          type: string
+          enum: [G0_1, G0_2, G1, G2, G3, G4, G5, G6, G7, G8, G9]
+          example: G1
+        stage:
+          type: string
+          enum: [WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN]
+          example: WHAT
+        status:
+          type: string
+          enum: [DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, ARCHIVED]
+          example: DRAFT
+        project_id:
+          type: string
+          format: uuid
+          example: 789e4567-e89b-12d3-a456-426614174002
+        created_by:
+          type: string
+          format: uuid
+          example: 123e4567-e89b-12d3-a456-426614174000
+        exit_criteria:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: "G1-EC1"
+              description:
+                type: string
+                example: "TDD test cases written BEFORE code"
+              required:
+                type: boolean
+                example: true
+              status:
+                type: string
+                enum: [NOT_STARTED, IN_PROGRESS, COMPLETE]
+                example: IN_PROGRESS
+        approvals:
+          type: array
+          items:
+            type: object
+            properties:
+              approver_id:
+                type: string
+                format: uuid
+              role:
+                type: string
+                enum: [CTO, CPO, CEO, TECH_LEAD, SECURITY_LEAD]
+              status:
+                type: string
+                enum: [PENDING, APPROVED, REJECTED]
+              approved_at:
+                type: string
+                format: date-time
+                nullable: true
+              comments:
+                type: string
+                nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Evidence:
+      type: object
+      properties:
+        evidence_id:
+          type: string
+          format: uuid
+        gate_id:
+          type: string
+          format: uuid
+        file_name:
+          type: string
+          example: "test-results.xml"
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 1048576
+        file_type:
+          type: string
+          example: "application/xml"
+        evidence_type:
+          type: string
+          enum: [TEST_RESULTS, COVERAGE_REPORT, SECURITY_SCAN, DOCUMENTATION, APPROVAL_EMAIL, OTHER]
+        s3_bucket:
+          type: string
+          example: "evidence-vault"
+        s3_key:
+          type: string
+          example: "gates/456e4567-e89b-12d3-a456-426614174001/test-results.xml"
+        sha256_hash:
+          type: string
+          description: SHA256 integrity hash
+          example: "a8f3d2b1c4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+        uploaded_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    Policy:
+      type: object
+      properties:
+        policy_id:
+          type: string
+          format: uuid
+        policy_name:
+          type: string
+          example: "Gate G1 - Design Ready Policy"
+        policy_version:
+          type: string
+          example: "1.0.0"
+        stage:
+          type: string
+          enum: [WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN]
+        scope:
+          type: string
+          enum: [GLOBAL, PROJECT, CUSTOM]
+        rego_code:
+          type: string
+          description: OPA Rego policy code
+          example: |
+            package gates.g1
+            default allow = false
+            allow {
+              input.gate_type == "G1"
+              design_complete
+            }
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid credentials"
+        error_code:
+          type: string
+          example: "AUTH_001"
+        message:
+          type: string
+          example: "Email or password is incorrect"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-11-14T10:00:00Z"
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          example: 150
+        limit:
+          type: integer
+          description: Items per page
+          example: 20
+        offset:
+          type: integer
+          description: Current offset
+          example: 0
+        has_more:
+          type: boolean
+          description: More pages available
+          example: true
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized (missing or invalid token)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Unauthorized"
+            error_code: "AUTH_002"
+            message: "Missing or invalid JWT token"
+            timestamp: "2025-11-14T10:00:00Z"
+
+    ForbiddenError:
+      description: Forbidden (insufficient permissions)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Forbidden"
+            error_code: "AUTH_003"
+            message: "User does not have permission to perform this action"
+            timestamp: "2025-11-14T10:00:00Z"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Not Found"
+            error_code: "RES_001"
+            message: "Requested resource does not exist"
+            timestamp: "2025-11-14T10:00:00Z"
+
+    BadRequestError:
+      description: Bad request (validation error)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Bad Request"
+            error_code: "VAL_001"
+            message: "Validation failed: gate_name is required"
+            timestamp: "2025-11-14T10:00:00Z"
+
+security:
+  - BearerAuth: []

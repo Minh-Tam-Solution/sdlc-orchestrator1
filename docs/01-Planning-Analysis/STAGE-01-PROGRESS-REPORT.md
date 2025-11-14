@@ -328,7 +328,7 @@
 
 **Criteria**:
 - [ ] Legal review PASSED (AGPL containment approved) - **CRITICAL BLOCKER**
-- [x] 10 LOIs signed (beta teams committed) - **DONE (Stage 00)**
+- [x] Internal-first strategy approved (CEO decision Nov 14) - **DONE (Stage 00)**
 - [x] FR1-FR20 defined (functional requirements) - **DONE (25 FRs)**
 - [x] NFR1-NFR15 defined (non-functional requirements) - **DONE (17 NFRs)**
 - [x] Data model reviewed (CTO approval, no N+1 queries) - **PENDING CTO REVIEW**

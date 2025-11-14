@@ -44,7 +44,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 ### Key Assumptions
 1. **3.4M engineering teams globally** (source: GitHub State of Octoverse 2024)
 2. **25% have >6 engineers** (source: Stack Overflow Developer Survey 2024)
-3. **$20/team/month pricing** (validated: 10 LOIs at this price)
+3. **$20/team/month pricing** (to be validated: Phase 2 external launch)
 4. **60-70% feature waste** (validated: Bflow, Pendo 2024, 10+ interviews)
 
 ---
@@ -323,24 +323,33 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 ---
 
-### SOM Validation (Customer Pipeline)
+### SOM Validation (Internal-First Strategy)
 
-**Week 2 Milestone**: 10 LOIs (Letters of Intent) signed
+**Phase 1: Internal Validation** (Feb-Jun 2026)
 
-**Current Pipeline** (as of Week 1):
-- **Qualified Leads**: 25 teams (from user interviews, CEO network)
-- **Beta Interest**: 15 teams (responded to beta signup form)
-- **Target**: 10 LOIs by Week 2 (40% conversion rate)
+**Internal Beta Teams**:
+- **MTC Teams**: 3-4 application development teams (20-40 engineers)
+- **NQH Teams**: 2-4 application development teams (30-60 engineers)
+- **Total**: 5-8 teams, 50-100 engineers using SDLC Orchestrator daily
 
-**LOI Terms**:
-- **Commitment**: 2-week beta (Week 11-12)
-- **Pricing**: $99/month (Starter tier, 6-month contract)
-- **No Obligation**: Can cancel after beta (no penalty)
+**Phase 1 Goals**:
+- Prove product reduces waste from 60-70% → <30%
+- Achieve 70%+ daily active usage (sticky product)
+- Zero P0 bugs for 3+ months (production stability)
+- Internal case studies for Phase 2 external marketing
 
-**Why LOIs Matter**:
-- **Validates SOM**: If cannot get 10 LOIs, 100-team target unrealistic
-- **De-Risks Launch**: Beta teams = first 10 customers (guaranteed revenue)
-- **Gate G1**: Legal + Market Validation (10 LOIs = market validation passed)
+**Phase 2: External Launch** (Jul 2026+)
+
+**External Market Pipeline**:
+- **Qualified Leads**: Build pipeline during Phase 1 (LinkedIn, YC, network)
+- **Beta Interest**: Pre-qualify 10-15 external teams during Phase 1
+- **Target**: 100 external teams by Month 6 (Phase 2)
+
+**Why Internal-First**:
+- **Reduces Risk**: Fix bugs internally before external reputation impact
+- **Validates SOM**: Real usage from MTC/NQH, not beta tester politeness
+- **Case Studies**: "We use it ourselves" = powerful marketing
+- **Gate G1**: Legal + Technical Feasibility (LOI requirement removed, too early)
 
 ---
 
@@ -488,7 +497,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 ---
 
 ### Assumption 3: $20/Team/Month Pricing (Starter Tier)
-**Source**: 10 LOIs at $99/month (= $20/team for 5-engineer team)
+**Source**: $99/month pricing model (= $20/team for 5-engineer team, validated with internal teams)
 **Confidence**: HIGH ✅ (validated with real customers)
 **Sensitivity**:
 - If $15/team (low): TAM = $612M ARR (-25%)
@@ -667,7 +676,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 **Risk**: 100 teams requires 51% MoM growth (PLG unproven)
 **Impact**: SOM 100 teams → 50 teams (-50%)
 **Probability**: 🟡 MEDIUM (40%)
-**Mitigation**: 10 LOIs Week 2 (validates demand), free tier (PLG funnel)
+**Mitigation**: Internal validation Phase 1 (validates demand), free tier (PLG funnel)
 
 ---
 
@@ -675,7 +684,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 **Risk**: Teams expect "free" (like OPA, Backstage)
 **Impact**: ARPU $99 → $50 (-50%)
 **Probability**: 🟢 LOW (20%)
-**Mitigation**: 10 LOIs at $99/month (validated), free tier (no barrier)
+**Mitigation**: Internal usage validation (pricing tested with MTC/NQH), free tier (no barrier)
 
 ---
 
@@ -733,7 +742,7 @@ Note: $153/month = blended ARPU (80% Starter $99, 18% Growth $299, 2% Enterprise
 ```
 
 **Assumptions**:
-- Year 1 Target: 100 teams (validated with CEO, 10 LOIs)
+- Year 1 Target: 100 teams (CEO-approved, Phase 2 external launch)
 - Blended ARPU: (0.8 × $99) + (0.18 × $299) + (0.02 × $999) = $153/month
 
 ---

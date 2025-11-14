@@ -261,7 +261,7 @@
   - Beta incentives ($100 credit)
   - Early access to AI features
   - Direct influence on product roadmap
-- **Condition**: Beta recruitment plan by Week 6
+- **Condition**: Internal beta coordination with MTC/NQH teams by Week 6
 - **Status**: 🟡 PENDING
 
 **Concern 4: AI Prompt Quality** (Severity: MEDIUM)
@@ -425,7 +425,7 @@
 - Name: [CPO Name]
 - Date: November 7, 2025
 - Signature: ✅ APPROVED
-- Conditions: UX testing Week 8, Beta recruitment plan Week 6, AI prompt review Week 7
+- Conditions: UX testing Week 8, Internal beta coordination Week 6, AI prompt review Week 7
 
 **Chief Financial Officer**:
 - Name: [CFO Name]

@@ -98,7 +98,7 @@ This document visualizes **user journeys across SDLC 4.8 stages (Stage 00-09)** 
 **Step 5: View Next Gate (G0.2 - Market Validation)**
 - **US1.4**: EM views gate dependency chain (G0.1 → G0.2 → G1)
 - **Time**: 1 minute
-- **Success**: EM sees G0.2 criteria (10 LOIs signed, market sizing complete)
+- **Success**: EM sees G0.2 criteria (internal-first strategy, market sizing complete)
 
 ### Alternative Paths
 
@@ -277,7 +277,7 @@ This document visualizes **user journeys across SDLC 4.8 stages (Stage 00-09)** 
 
 1. **UX Lead Review** (validate user journeys)
 2. **Wireframe Creation** (Dashboard, VS Code Extension UI)
-3. **User Testing** (10 beta teams, Week 11)
+3. **Internal Beta Testing** (5-8 MTC/NQH teams, Week 11+)
 
 ---
 
