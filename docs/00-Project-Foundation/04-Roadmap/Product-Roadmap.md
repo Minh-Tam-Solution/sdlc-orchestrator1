@@ -32,9 +32,9 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 
 ### Timeline Overview
 **Total Duration**: 90 days (13 weeks)
-**Start Date**: January 20, 2025 (Week 1)
-**MVP Launch**: April 21, 2025 (Week 13)
-**First Revenue**: May 2025 (Week 14)
+**Start Date**: November 14, 2025 (Week 1)
+**MVP Launch**: February 10, 2026 (Week 13)
+**First Revenue**: February 2026 (Week 14)
 
 ### Investment Phasing
 | Phase | Duration | Investment | Gate |
@@ -61,11 +61,11 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 ### Market Window Analysis
 
 **Competitive Threat Timeline**:
-- **Q1 2025**: Jira/Linear likely experimenting with AI+Policy (internal prototypes)
-- **Q2 2025**: First competitive AI features may launch (basic, not SDLC-aware)
-- **Q3 2025**: If we don't launch, competitors will close gap
+- **Q4 2025**: Jira/Linear likely experimenting with AI+Policy (internal prototypes)
+- **Q1 2026**: First competitive AI features may launch (basic, not SDLC-aware)
+- **Q2 2026**: If we don't launch, competitors will close gap
 
-**First-Mover Advantage Window**: **6-9 months** (January-September 2025)
+**First-Mover Advantage Window**: **6-9 months** (November 2025 - July 2026)
 
 **Why NOT Faster (60 days)**:
 - Legal review requires 2 weeks (non-negotiable, AGPL risk)
@@ -73,7 +73,7 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 - Design Thinking requires 1 week (evidence-based, not assumptions)
 
 **Why NOT Slower (120 days)**:
-- Competitive risk: Linear/Jira may launch AI features Q2
+- Competitive risk: Linear/Jira may launch AI features Q1 2026
 - Financial risk: Burn $550K+ with no revenue validation
 - Team risk: 4-month project = morale fatigue without wins
 
@@ -122,7 +122,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ## 90-Day Development Timeline
 
-### Week 1 (January 20-24): Foundation
+### Week 1 (November 14-18, 2025): Foundation
 **Stage**: 00 (WHY - Project Foundation)
 **Team**: PM (1.0 FTE), Designer (0.5 FTE)
 **Investment**: $15K
@@ -150,7 +150,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 2 (January 27-31): Planning + Legal (CRITICAL)
+### Week 2 (November 21-25, 2025): Planning + Legal (CRITICAL)
 **Stage**: 01 (WHAT - Planning & Analysis)
 **Team**: Full team (8.5 FTE)
 **Investment**: $50K
@@ -183,7 +183,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 3-4 (February 3-14): Design + Architecture
+### Week 3-4 (November 28 - December 9, 2025): Design + Architecture
 **Stage**: 02 (HOW - Design & Architecture)
 **Team**: Full team (8.5 FTE)
 **Investment**: $75K
@@ -218,7 +218,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 5-10 (February 17 - March 28): Development (BUILD)
+### Week 5-10 (December 12, 2025 - January 20, 2026): Development (BUILD)
 **Stage**: 03 (BUILD - Development & Implementation)
 **Team**: Full team (8.5 FTE)
 **Investment**: $280K (50% of budget)
@@ -278,7 +278,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 11 (March 31 - April 4): Testing (BETA)
+### Week 11 (January 23-27, 2026): Testing (BETA)
 **Stage**: 04 (TEST - Testing & Quality Assurance)
 **Team**: Full team (8.5 FTE) + 10 beta teams
 **Investment**: $45K
@@ -325,7 +325,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 12 (April 7-11): Deployment (LAUNCH)
+### Week 12 (January 30 - February 3, 2026): Deployment (LAUNCH)
 **Stage**: 05 (DEPLOY - Deployment & Release)
 **Team**: Full team (8.5 FTE)
 **Investment**: $40K
@@ -369,7 +369,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Week 13 (April 14-18): Operations (FIRST REVENUE)
+### Week 13 (February 6-10, 2026): Operations (FIRST REVENUE)
 **Stage**: 06 (OPERATE - Operations & Maintenance)
 **Team**: Full team (8.5 FTE)
 **Investment**: $48K
@@ -397,10 +397,10 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - **Momentum**: $2K MRR Month 1 → $10K Month 3 → $50K Month 6 (if PMF true)
 
 **Revenue Model** (from Financial Model):
-- **Month 1** (April): 100 teams × $20 = $2K MRR
-- **Month 2** (May): 151 teams × $20 = $3K MRR (51% MoM growth)
-- **Month 3** (June): 228 teams × $20 = $4.6K MRR (51% MoM growth)
-- **Month 12** (March 2026): 1,000 teams × $20 = $20K MRR
+- **Month 1** (February 2026): 100 teams × $20 = $2K MRR
+- **Month 2** (March 2026): 151 teams × $20 = $3K MRR (51% MoM growth)
+- **Month 3** (April 2026): 228 teams × $20 = $4.6K MRR (51% MoM growth)
+- **Month 12** (January 2027): 1,000 teams × $20 = $20K MRR
 
 **Contingency Plan** (if G6 fails):
 - **<100 teams**: Extend GTM 2 weeks, lower price to $15/team (vs $20)
@@ -411,7 +411,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ## Quarterly Milestones (Year 1 Roadmap)
 
-### Q1 2025 (January-March): MVP Launch
+### Q4 2025 - Q1 2026 (November 2025 - February 2026): MVP Launch
 **Goal**: Launch MVP, validate PMF
 **Investment**: $553K
 **Team**: 8.5 FTE
@@ -433,15 +433,15 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Q2 2025 (April-June): Scale to $10K MRR
+### Q1 2026 (March-May 2026): Scale to $10K MRR
 **Goal**: Prove repeatable growth (100 → 454 teams)
 **Investment**: $150K (operations, GTM)
 **Team**: 10 FTE (hire 1 CSM, 1 Sales)
 
 **Milestones**:
-- Month 4 (April): 100 → 151 teams (+51% MoM)
-- Month 5 (May): 151 → 228 teams (+51% MoM)
-- Month 6 (June): 228 → 344 teams (+51% MoM)
+- Month 4 (May 2026): 100 → 151 teams (+51% MoM)
+- Month 5 (June 2026): 151 → 228 teams (+51% MoM)
+- Month 6 (July 2026): 228 → 344 teams (+51% MoM)
 
 **New Capabilities** (post-MVP):
 - GitHub Enterprise integration
@@ -457,7 +457,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Q3 2025 (July-September): Enterprise Ready
+### Q3 2026 (August-October 2026): Enterprise Ready
 **Goal**: Land first Enterprise deal ($999/month tier)
 **Investment**: $200K (SOC 2 Type II, SAML SSO)
 **Team**: 12 FTE (hire 1 Enterprise Engineer, 1 Security)
@@ -481,15 +481,15 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ---
 
-### Q4 2025 (October-December): Profitability Path
+### Q4 2026 (November 2026 - January 2027): Profitability Path
 **Goal**: Reach $50K MRR, breakeven in sight
 **Investment**: $250K (team scaling, international expansion)
 **Team**: 15 FTE (hire 2 Engineers, 1 PM)
 
 **Milestones**:
-- Month 10: $30K MRR
-- Month 11: $40K MRR
-- Month 12: $50K MRR (breakeven in Month 18 projected)
+- Month 10 (November 2026): $30K MRR
+- Month 11 (December 2026): $40K MRR
+- Month 12 (January 2027): $50K MRR (breakeven in Month 18 projected)
 
 **New Capabilities**:
 - Multi-language support (Spanish, Mandarin)
@@ -871,6 +871,7 @@ Week 1 (Foundation)
 
 **Version History**:
 - v1.0.0 (January 13, 2025): Initial roadmap (Stage 00 WHY focus)
+- v1.1.0 (November 13, 2025): Timeline adjusted to November 14, 2025 start date
 
 **Review Schedule**:
 - Weekly review (Fridays, PM + CEO)

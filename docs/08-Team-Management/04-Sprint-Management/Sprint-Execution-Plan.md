@@ -52,7 +52,7 @@ Outcome:
 
 ## 🚀 PHASE 1: FOUNDATION (WEEK 1-2)
 
-### **Sprint 1 (Week 1): Nov 18-22, 2025**
+### **Sprint 1 (Week 1): Nov 14-18, 2025**
 
 #### **Sprint Goal**: Setup development environment + authentication foundation
 
@@ -429,7 +429,7 @@ Sprint Goal Achievement:
 
 ---
 
-### **Sprint 2 (Week 2): Nov 25-29, 2025**
+### **Sprint 2 (Week 2): Nov 21-25, 2025**
 
 #### **Sprint Goal**: OAuth 2.0 integration + API key generation
 
@@ -743,19 +743,19 @@ Sprint Goal Achievement:
 
 ### **Phase 2: Gate Engine + Evidence Vault (Week 3-5)**
 
-**Sprint 3 (Week 3): Gate Engine Foundation**
+**Sprint 3 (Week 3): Nov 28 - Dec 2, 2025 - Gate Engine Foundation**
 - OPA integration (REST API adapter)
 - YAML → Rego compiler
 - Gate evaluation API (POST /api/v1/gates/evaluate)
 - 10 starter policy packs
 
-**Sprint 4 (Week 4): Evidence Vault**
+**Sprint 4 (Week 4): Dec 5-9, 2025 - Evidence Vault**
 - MinIO integration (S3 API adapter, AGPL-safe)
 - Evidence API (upload, retrieve, search)
 - SHA256 hashing + metadata storage
 - Audit trail (immutable logs)
 
-**Sprint 5 (Week 5): Design Thinking Workflow**
+**Sprint 5 (Week 5): Dec 12-16, 2025 - Design Thinking Workflow**
 - Interview system (WHY stage)
 - G0.1/G0.2 gates
 - BRD/PRD generator (AI-powered)
@@ -764,18 +764,18 @@ Sprint Goal Achievement:
 
 ### **Phase 3: GitHub + AI + Reporting (Week 6-8)**
 
-**Sprint 6 (Week 6): GitHub Bridge**
+**Sprint 6 (Week 6): Dec 19-23, 2025 - GitHub Bridge**
 - Issues → Projects sync (read-only)
 - PR → Evidence collection
 - GitHub Actions integration
 - **Checkpoint**: $2K team bonus ✅
 
-**Sprint 7 (Week 7): AI Context Engine**
+**Sprint 7 (Week 7): Dec 26-30, 2025 - AI Context Engine**
 - Multi-provider setup (Ollama, Claude, GPT, Gemini)
 - Stage-aware prompts (10 templates)
 - AI features (summaries, reviews)
 
-**Sprint 8 (Week 8): Reporting**
+**Sprint 8 (Week 8): Jan 2-6, 2026 - Reporting**
 - Report engine (metrics, charts)
 - PDF generation
 - Executive dashboards (CPO, CTO, CEO)
@@ -784,12 +784,12 @@ Sprint Goal Achievement:
 
 ### **Phase 4: Operate + VS Code Extension (Week 9-10)**
 
-**Sprint 9 (Week 9): Operate Module**
+**Sprint 9 (Week 9): Jan 9-13, 2026 - Operate Module**
 - Grafana Stack integration (iframe embed, AGPL-safe)
 - G5 gate checks (runbook, oncall, alerts)
 - Incident → RCA workflow
 
-**Sprint 10 (Week 10): VS Code Extension**
+**Sprint 10 (Week 10): Jan 16-20, 2026 - VS Code Extension**
 - Extension scaffold + authentication
 - Templates view + AI panel
 - Evidence submit + gate status
@@ -799,12 +799,12 @@ Sprint Goal Achievement:
 
 ### **Phase 5: Pilot + Hardening (Week 11-12)**
 
-**Sprint 11 (Week 11): Bflow Pilot**
+**Sprint 11 (Week 11): Jan 23-27, 2026 - Bflow Pilot**
 - Deploy to staging
 - Bflow team training + usage
 - Feedback collection + bug logging
 
-**Sprint 12 (Week 12): Hardening**
+**Sprint 12 (Week 12): Jan 30 - Feb 3, 2026 - Hardening**
 - Bug fixes (P0, P1)
 - Performance optimization
 - Security audit + fixes
@@ -813,7 +813,7 @@ Sprint Goal Achievement:
 
 ### **Phase 6: Launch (Week 13)**
 
-**Sprint 13 (Week 13): Production Launch**
+**Sprint 13 (Week 13): Feb 6-10, 2026 - Production Launch**
 - Production deployment
 - Documentation finalization
 - Launch announcement

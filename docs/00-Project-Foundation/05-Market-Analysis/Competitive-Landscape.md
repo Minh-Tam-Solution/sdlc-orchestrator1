@@ -534,12 +534,12 @@ Low SDLC-Awareness ───────┼─────── High SDLC-Aware
 
 ### Market Window: 6-9 Months
 
-**Q1 2025**: SDLC Orchestrator launches (first-mover)
-**Q2 2025**: Jira/Linear likely experimenting (internal prototypes)
-**Q3 2025**: Competitive features may launch (basic, not SDLC 4.8-aware)
-**Q4 2025**: Market crowded (must have 1K+ teams by then)
+**Q1 2026**: SDLC Orchestrator launches (February 10, 2026 - first-mover)
+**Q4 2025**: Jira/Linear likely experimenting (internal prototypes)
+**Q1 2026**: Competitive features may launch (basic, not SDLC 4.9-aware)
+**Q2 2026**: Market crowded (must have 1K+ teams by then)
 
-**Action**: Launch MVP April 2025 (Week 13), capture early adopters before competition
+**Action**: Launch MVP February 10, 2026 (Week 13), capture early adopters before competition
 
 ---
 
