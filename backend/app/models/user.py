@@ -96,6 +96,29 @@ class User(Base):
     api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
 
+    # Project Relationships
+    owned_projects = relationship("Project", back_populates="owner", foreign_keys="[Project.owner_id]")
+    project_memberships = relationship("ProjectMember", back_populates="user", foreign_keys="[ProjectMember.user_id]")
+
+    # Gate Relationships
+    created_gates = relationship("Gate", back_populates="creator", foreign_keys="[Gate.created_by]")
+    gate_approvals = relationship("GateApproval", back_populates="approver")
+
+    # Evidence Relationships
+    uploaded_evidence = relationship("GateEvidence", back_populates="uploader")
+
+    # AI Relationships
+    ai_requests = relationship("AIRequest", back_populates="user")
+
+    # Policy Relationships
+    custom_policies = relationship("CustomPolicy", back_populates="creator")
+
+    # Support Relationships
+    stage_transitions = relationship("StageTransition", back_populates="user")
+    webhooks = relationship("Webhook", back_populates="creator")
+    audit_logs = relationship("AuditLog", back_populates="user")
+    notifications = relationship("Notification", back_populates="user")
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, roles={[r.name for r in self.roles]})>"
 
