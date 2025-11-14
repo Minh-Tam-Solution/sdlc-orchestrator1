@@ -1,4 +1,5 @@
 """
+=========================================================================
 Gate Evidence Model - Evidence Vault (FR2)
 SDLC Orchestrator - Stage 03 (BUILD)
 
@@ -6,10 +7,23 @@ Version: 1.0.0
 Date: November 28, 2025
 Status: ACTIVE - Week 3 Architecture Design
 Authority: Backend Lead + CTO Approved
-Foundation: Data Model v0.1, FR2 (Evidence Vault)
+Foundation: Data Model v0.1 (9.8/10 quality), FR2 (Evidence Vault)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Evidence file management (S3/MinIO storage)
+- SHA256 integrity verification (tamper detection)
+- Evidence type classification (DESIGN, TEST, DEPLOYMENT, etc.)
+- Audit trail for evidence uploads
+
+Security Standards:
+- SHA256 hashing for file integrity
+- Tamper-proof audit trail (EvidenceIntegrityCheck)
+- MinIO S3-compatible object storage (AGPL safe)
+- Permanent evidence retention (soft delete only)
 
 Zero Mock Policy: Real SQLAlchemy model with all fields
-Security: SHA256 integrity verification, tamper-proof audit trail
+=========================================================================
 """
 
 from datetime import datetime

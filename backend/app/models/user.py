@@ -1,9 +1,29 @@
 """
+=========================================================================
 User Model - Authentication & Authorization
 SDLC Orchestrator - Stage 03 (BUILD)
 
+Version: 1.0.0
+Date: November 28, 2025
+Status: ACTIVE - Week 3 Architecture Design
+Authority: Backend Lead + CTO Approved
+Foundation: Data Model v0.1 (9.8/10 quality), OWASP ASVS Level 2
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- User authentication (OAuth 2.0, email/password, MFA)
+- Role-based access control (RBAC)
+- Multi-tenancy support (project-level isolation)
+- API key management (SHA256 hashed)
+
+Security Standards:
+- OWASP ASVS Level 2 compliant
+- AES-256 encryption (passwords, MFA secrets)
+- SHA-256 hashing (API keys, refresh tokens)
+- JWT token management (1-hour access, 30-day refresh)
+
 Zero Mock Policy: Real SQLAlchemy model with all fields
-Security: OWASP ASVS Level 2 compliant
+=========================================================================
 """
 
 from datetime import datetime

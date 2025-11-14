@@ -1,4 +1,5 @@
 """
+=========================================================================
 Support Models - Audit, Webhooks, Notifications, Stage Transitions
 SDLC Orchestrator - Stage 03 (BUILD)
 
@@ -7,9 +8,22 @@ Date: November 28, 2025
 Status: ACTIVE - Week 3 Architecture Design
 Authority: Backend Lead + CTO Approved
 Foundation: Data Model v0.1 (9.8/10 quality)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Stage transition tracking (WHY → WHAT → BUILD... progression)
+- GitHub/GitLab webhook integration (PR auto-collection)
+- Audit log (100% operation logging for compliance)
+- Notification system (Email, Slack alerts)
+
+Components:
+- StageTransition: SDLC stage progression tracking
+- Webhook: GitHub/GitLab integration for evidence auto-upload
+- AuditLog: System-wide audit trail (500K logs Year 1 capacity)
+- Notification: Email/Slack notification queue
 
 Zero Mock Policy: Real SQLAlchemy model with all fields
-Purpose: Supporting infrastructure for gates, webhooks, audit logs
+=========================================================================
 """
 
 from datetime import datetime

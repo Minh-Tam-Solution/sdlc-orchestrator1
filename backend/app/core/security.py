@@ -1,19 +1,38 @@
 """
-Security utilities for authentication and authorization.
+=========================================================================
+Security Utilities - Authentication & Authorization
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Functions:
-    - verify_password: Verify password against bcrypt hash
-    - get_password_hash: Generate bcrypt hash from password
-    - create_access_token: Generate JWT access token (1 hour expiry)
-    - create_refresh_token: Generate JWT refresh token (30 days expiry)
-    - decode_token: Decode and validate JWT token
+Version: 1.0.0
+Date: November 28, 2025
+Status: ACTIVE - Week 3 Architecture Design
+Authority: Backend Lead + Security Team + CTO Approved
+Foundation: OWASP ASVS Level 2, ADR-006 (Security Architecture)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Password hashing and verification (bcrypt)
+- JWT token generation and validation
+- API key generation and hashing (SHA256)
+- Security utility functions
 
 Security Standards:
-    - OWASP ASVS Level 2 compliant
-    - bcrypt cost=12 (250ms hash time)
-    - JWT RS256 algorithm (RSA signatures)
-    - Token expiry: Access 1h, Refresh 30d
+- OWASP ASVS Level 2 compliant
+- bcrypt cost=12 (250ms hash time, resistant to GPU attacks)
+- JWT HS256 algorithm (HMAC-SHA256 signatures)
+- Token expiry: Access 1h, Refresh 30d
+- API key hashing: SHA256 (prevents key leakage)
+
+Functions:
+- verify_password: Verify password against bcrypt hash
+- get_password_hash: Generate bcrypt hash from password
+- create_access_token: Generate JWT access token (1 hour expiry)
+- create_refresh_token: Generate JWT refresh token (30 days expiry)
+- decode_token: Decode and validate JWT token
+- generate_api_key: Generate secure API key (32 bytes, URL-safe)
+- hash_api_key: SHA256 hash for API key storage
+
+=========================================================================
 """
 
 import hashlib

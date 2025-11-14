@@ -1,4 +1,5 @@
 """
+=========================================================================
 Gate Approval Model - Multi-Approver Workflow (FR1)
 SDLC Orchestrator - Stage 03 (BUILD)
 
@@ -7,9 +8,21 @@ Date: November 28, 2025
 Status: ACTIVE - Week 3 Architecture Design
 Authority: Backend Lead + CTO Approved
 Foundation: Data Model v0.1 (9.8/10 quality), FR1 (Quality Gate Management)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Multi-approver workflow (CTO, CPO, CEO approval required)
+- Gate approval tracking (PENDING → APPROVED/REJECTED)
+- Approval comments and rationale
+- Rejection handling with feedback
+
+Business Logic:
+- All approvers must approve for gate to pass
+- Rejection blocks gate progression
+- Approval timestamps for audit trail
 
 Zero Mock Policy: Real SQLAlchemy model with all fields
-Business Logic: Multi-approver workflow (CTO, CPO, CEO)
+=========================================================================
 """
 
 from datetime import datetime

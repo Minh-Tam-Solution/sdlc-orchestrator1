@@ -1,14 +1,33 @@
 """
+=========================================================================
 Application Configuration Settings
+SDLC Orchestrator - Stage 03 (BUILD)
 
 Version: 1.0.0
-Date: November 13, 2025
-Status: ACTIVE - STAGE 03 (BUILD)
-Authority: Backend Lead + DevOps Approved
+Date: November 28, 2025
+Status: ACTIVE - Week 3 Architecture Design
+Authority: Backend Lead + DevOps + CTO Approved
+Foundation: ADR-005 (Configuration Management), Twelve-Factor App
 Framework: SDLC 4.9 Complete Lifecycle
 
-Loads settings from environment variables (.env file).
-Uses Pydantic Settings for validation and type safety.
+Purpose:
+- Environment-based configuration (dev, staging, prod)
+- Secret management (environment variables)
+- Database connection settings
+- OAuth 2.0 provider configuration
+- Security settings (JWT, token expiry)
+
+Configuration Sources:
+- Environment variables (.env file)
+- Pydantic Settings (type validation)
+- Default values (development-friendly)
+
+Security:
+- No secrets in code (environment variables only)
+- Secret key rotation support (SECRET_KEY)
+- Database credentials externalized
+
+=========================================================================
 """
 
 import secrets

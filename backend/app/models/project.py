@@ -1,4 +1,5 @@
 """
+=========================================================================
 Project Model - Project/Workspace Management
 SDLC Orchestrator - Stage 03 (BUILD)
 
@@ -7,9 +8,21 @@ Date: November 28, 2025
 Status: ACTIVE - Week 3 Architecture Design
 Authority: Backend Lead + CTO Approved
 Foundation: Data Model v0.1 (9.8/10 quality)
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Multi-tenancy (project-level data isolation)
+- Team collaboration (multiple members per project)
+- Gate organization (gates belong to projects)
+- Project-scoped role assignment
+
+Security Standards:
+- Row-Level Security (RLS) for multi-tenancy
+- Soft delete pattern (deleted_at timestamp)
+- Owner-based access control
 
 Zero Mock Policy: Real SQLAlchemy model with all fields
-Security: Row-Level Security (RLS) for multi-tenancy
+=========================================================================
 """
 
 from datetime import datetime
