@@ -35,15 +35,11 @@ Middleware Stack:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from prometheus_client import make_asgi_app
-import structlog
 
 from app.core.config import settings
-from app.core.logging import setup_logging
 
-# Setup structured logging
-setup_logging()
-logger = structlog.get_logger(__name__)
+# Import API routers
+from app.api.routes import auth, gates
 
 # Create FastAPI app
 app = FastAPI(
@@ -62,7 +58,7 @@ app = FastAPI(
 # CORS - Allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,12 +68,12 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # ============================================================================
-# Prometheus Metrics Endpoint
+# API Routes Registration
 # ============================================================================
 
-# Mount Prometheus metrics at /metrics
-metrics_app = make_asgi_app()
-app.mount("/metrics", metrics_app)
+# Register API v1 routers
+app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
+app.include_router(gates.router, prefix="/api/v1", tags=["Gates"])
 
 # ============================================================================
 # Health Check Endpoints
@@ -128,16 +124,15 @@ async def root():
 
 
 # ============================================================================
-# API Routes (TODO: Implement in Phase 1)
+# Week 3 Day 3: Authentication + Gates APIs Implemented ✅
+# Week 4 Day 4-5 TODO: Evidence + Policies + AI APIs
 # ============================================================================
 
-# from app.api import products, gates, evidence, policies, ai
-
-# app.include_router(products.router, prefix="/api/v1/products", tags=["products"])
-# app.include_router(gates.router, prefix="/api/v1/gates", tags=["gates"])
-# app.include_router(evidence.router, prefix="/api/v1/evidence", tags=["evidence"])
-# app.include_router(policies.router, prefix="/api/v1/policies", tags=["policies"])
-# app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
+# TODO Week 4:
+# from app.api.routes import evidence, policies, ai
+# app.include_router(evidence.router, prefix="/api/v1", tags=["Evidence"])
+# app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])
+# app.include_router(ai.router, prefix="/api/v1", tags=["AI"])
 
 # ============================================================================
 # Startup & Shutdown Events
@@ -153,12 +148,11 @@ async def startup_event():
     - Verify OPA availability
     - Initialize MinIO buckets
     """
-    logger.info(
-        "application_startup",
-        environment=settings.ENVIRONMENT,
-        debug=settings.DEBUG,
-    )
-    # TODO: Initialize connections
+    print("🚀 SDLC Orchestrator API started successfully!")
+    print(f"📊 OpenAPI docs: http://localhost:8000/api/docs")
+    print(f"🔐 Authentication endpoints: http://localhost:8000/api/v1/auth")
+    print(f"🚪 Gates endpoints: http://localhost:8000/api/v1/gates")
+    # TODO: Initialize connections (Redis, OPA, MinIO)
 
 
 @app.on_event("shutdown")
@@ -168,7 +162,7 @@ async def shutdown_event():
     - Close database connections
     - Close Redis connection
     """
-    logger.info("application_shutdown")
+    print("👋 SDLC Orchestrator API shutdown complete")
     # TODO: Cleanup connections
 
 

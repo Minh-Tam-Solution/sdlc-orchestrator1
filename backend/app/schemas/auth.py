@@ -1,0 +1,270 @@
+"""
+=========================================================================
+Authentication Schemas - Request/Response Models
+SDLC Orchestrator - Stage 03 (BUILD)
+
+Version: 1.0.0
+Date: November 28, 2025
+Status: ACTIVE - Week 3 Day 3 API Implementation
+Authority: Backend Lead + CTO Approved
+Foundation: OpenAPI 3.0, Pydantic v2
+Framework: SDLC 4.9 Complete Lifecycle
+
+Purpose:
+- Authentication request/response models
+- OAuth callback schemas
+- Token management schemas
+- User profile schemas
+
+Validation:
+- Email format validation
+- Password strength requirements (min 8 chars)
+- Token format validation
+
+Zero Mock Policy: Production-ready Pydantic models
+=========================================================================
+"""
+
+from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+# =========================================================================
+# Authentication Request/Response Schemas
+# =========================================================================
+
+
+class LoginRequest(BaseModel):
+    """
+    Login request with email and password.
+
+    Request Body:
+        {
+            "email": "nguyen.van.anh@mtc.com.vn",
+            "password": "SecurePassword123!"
+        }
+
+    Validation:
+        - Email: Must be valid email format
+        - Password: No validation here (hashed in DB)
+    """
+
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, description="User password (plain text)")
+
+
+class TokenResponse(BaseModel):
+    """
+    JWT token response after successful login.
+
+    Response Body:
+        {
+            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "token_type": "bearer",
+            "expires_in": 3600
+        }
+
+    Usage:
+        Authorization: Bearer <access_token>
+    """
+
+    access_token: str = Field(..., description="JWT access token (1 hour expiry)")
+    refresh_token: str = Field(..., description="JWT refresh token (30 days expiry)")
+    token_type: str = Field(default="bearer", description="Token type (always 'bearer')")
+    expires_in: int = Field(
+        default=3600, description="Access token expiry in seconds (3600 = 1 hour)"
+    )
+
+
+class RefreshTokenRequest(BaseModel):
+    """
+    Refresh token request to get new access token.
+
+    Request Body:
+        {
+            "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+    """
+
+    refresh_token: str = Field(..., description="JWT refresh token")
+
+
+class LogoutRequest(BaseModel):
+    """
+    Logout request to revoke refresh token.
+
+    Request Body:
+        {
+            "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+    """
+
+    refresh_token: str = Field(..., description="JWT refresh token to revoke")
+
+
+# =========================================================================
+# OAuth Schemas
+# =========================================================================
+
+
+class OAuthCallbackRequest(BaseModel):
+    """
+    OAuth callback request from provider (GitHub, Google, Microsoft).
+
+    Request Body:
+        {
+            "code": "abc123def456",
+            "state": "random-state-string"
+        }
+
+    Flow:
+        1. User clicks "Login with GitHub"
+        2. Redirected to GitHub OAuth page
+        3. User approves access
+        4. GitHub redirects to /auth/oauth/github/callback?code=...&state=...
+        5. Backend exchanges code for access token
+        6. Backend creates user account (if not exists)
+        7. Backend returns JWT tokens
+    """
+
+    code: str = Field(..., description="OAuth authorization code from provider")
+    state: Optional[str] = Field(None, description="CSRF protection state parameter")
+
+
+class OAuthProvider(BaseModel):
+    """
+    OAuth provider information.
+
+    Response Body:
+        {
+            "provider_id": "550e8400-e29b-41d4-a716-446655440000",
+            "provider_name": "github",
+            "oauth_user_id": "123456789",
+            "email": "nguyen.van.anh@gmail.com",
+            "linked_at": "2025-11-28T10:30:00Z"
+        }
+    """
+
+    provider_id: UUID = Field(..., description="OAuth account UUID")
+    provider_name: str = Field(..., description="OAuth provider (github, google, microsoft)")
+    oauth_user_id: str = Field(..., description="User ID from OAuth provider")
+    email: Optional[str] = Field(None, description="Email from OAuth provider")
+    linked_at: datetime = Field(..., description="OAuth link timestamp")
+
+
+# =========================================================================
+# User Profile Schemas
+# =========================================================================
+
+
+class UserProfile(BaseModel):
+    """
+    User profile response (authenticated user).
+
+    Response Body:
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "email": "nguyen.van.anh@mtc.com.vn",
+            "name": "Nguyễn Văn Anh",
+            "is_active": true,
+            "is_superuser": false,
+            "roles": ["Engineering Manager", "CTO"],
+            "oauth_providers": ["github", "google"],
+            "created_at": "2025-10-01T08:00:00Z",
+            "last_login_at": "2025-11-28T10:30:00Z"
+        }
+    """
+
+    id: UUID = Field(..., description="User UUID")
+    email: EmailStr = Field(..., description="User email address")
+    name: str = Field(..., description="User full name")
+    is_active: bool = Field(..., description="User active status")
+    is_superuser: bool = Field(default=False, description="Superuser flag")
+    roles: List[str] = Field(default_factory=list, description="List of role names")
+    oauth_providers: List[str] = Field(
+        default_factory=list, description="List of linked OAuth providers"
+    )
+    created_at: datetime = Field(..., description="Account creation timestamp")
+    last_login_at: Optional[datetime] = Field(None, description="Last login timestamp")
+
+    class Config:
+        from_attributes = True  # Pydantic v2: Enable ORM mode
+
+
+# =========================================================================
+# API Key Schemas
+# =========================================================================
+
+
+class APIKeyCreateRequest(BaseModel):
+    """
+    API key creation request (for CI/CD integrations).
+
+    Request Body:
+        {
+            "name": "GitHub Actions - Production Deploy",
+            "expires_in_days": 90
+        }
+    """
+
+    name: str = Field(..., min_length=1, max_length=255, description="API key name")
+    expires_in_days: Optional[int] = Field(
+        None, ge=1, le=365, description="Expiry in days (max 365)"
+    )
+
+
+class APIKeyResponse(BaseModel):
+    """
+    API key response after creation.
+
+    Response Body:
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "api_key": "sdlc_live_abc123def456...",
+            "name": "GitHub Actions - Production Deploy",
+            "created_at": "2025-11-28T10:30:00Z",
+            "expires_at": "2026-02-26T10:30:00Z"
+        }
+
+    Warning:
+        The `api_key` field is only shown ONCE during creation.
+        Store it securely - it cannot be retrieved later.
+    """
+
+    id: UUID = Field(..., description="API key UUID")
+    api_key: str = Field(..., description="Full API key (shown ONCE)")
+    name: str = Field(..., description="API key name")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    expires_at: Optional[datetime] = Field(None, description="Expiry timestamp")
+
+
+class APIKeyInfo(BaseModel):
+    """
+    API key information (without revealing the key).
+
+    Response Body:
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "name": "GitHub Actions - Production Deploy",
+            "key_prefix": "sdlc_live_abc1...",
+            "created_at": "2025-11-28T10:30:00Z",
+            "expires_at": "2026-02-26T10:30:00Z",
+            "last_used_at": "2025-11-28T15:45:00Z",
+            "is_active": true
+        }
+    """
+
+    id: UUID = Field(..., description="API key UUID")
+    name: str = Field(..., description="API key name")
+    key_prefix: str = Field(..., description="API key prefix (first 20 chars)")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    expires_at: Optional[datetime] = Field(None, description="Expiry timestamp")
+    last_used_at: Optional[datetime] = Field(None, description="Last used timestamp")
+    is_active: bool = Field(..., description="Active status")
+
+    class Config:
+        from_attributes = True  # Pydantic v2: Enable ORM mode

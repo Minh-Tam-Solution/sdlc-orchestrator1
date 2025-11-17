@@ -40,13 +40,10 @@ import secrets
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
-
-# Password hashing context (bcrypt, cost=12)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 
 # JWT Algorithm
 ALGORITHM = "HS256"  # HMAC SHA-256 (symmetric key)
@@ -70,7 +67,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         >>> verify_password("wrongpassword", hash)
         False
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
 def get_password_hash(password: str) -> str:
@@ -95,7 +92,7 @@ def get_password_hash(password: str) -> str:
         >>> hash[:7]
         '$2b$12$'
     """
-    return pwd_context.hash(password)
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
 
 
 def create_access_token(subject: str | dict, expires_delta: Optional[timedelta] = None) -> str:
