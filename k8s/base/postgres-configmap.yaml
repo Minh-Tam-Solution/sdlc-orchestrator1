@@ -1,0 +1,310 @@
+---
+# =========================================================================
+# PostgreSQL ConfigMaps - Configuration Files + Init Scripts
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: Database Architect + DevOps Lead + CTO Approved
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - PostgreSQL performance tuning configuration (postgresql.conf)
+# - Database initialization scripts (schema creation, seed data)
+# - Postgres Exporter query definitions (custom metrics for Prometheus)
+#
+# Zero Mock Policy: Production-ready PostgreSQL configuration
+# =========================================================================
+
+---
+# ConfigMap: PostgreSQL Configuration (postgresql.conf overrides)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database-config
+
+data:
+  postgresql.conf: |
+    # =========================================================================
+    # PostgreSQL 15.5 Configuration - Performance Tuning for SDLC Orchestrator
+    # =========================================================================
+
+    # CONNECTION SETTINGS
+    listen_addresses = '*'                    # Listen on all interfaces
+    port = 5432                               # Default PostgreSQL port
+    max_connections = 200                     # Max simultaneous connections (PgBouncer recommended)
+    superuser_reserved_connections = 3        # Reserved for superuser
+
+    # MEMORY SETTINGS (for 8GB RAM pod)
+    shared_buffers = 2GB                      # 25% of system memory
+    effective_cache_size = 6GB                # 75% of system memory
+    maintenance_work_mem = 512MB              # For VACUUM, CREATE INDEX
+    work_mem = 10MB                           # Per-query sort/hash memory (200 connections * 10MB = 2GB)
+    wal_buffers = 16MB                        # Write-ahead log buffers
+
+    # QUERY PLANNER SETTINGS
+    random_page_cost = 1.1                    # SSD storage (default 4.0 for HDD)
+    effective_io_concurrency = 200            # Concurrent I/O operations (SSD)
+    default_statistics_target = 100           # Query planning statistics
+
+    # WRITE PERFORMANCE
+    wal_level = replica                       # Enable streaming replication
+    max_wal_senders = 10                      # Max replication connections
+    max_replication_slots = 10                # Max replication slots
+    wal_keep_size = 1GB                       # Keep 1GB of WAL for replicas
+    checkpoint_completion_target = 0.9        # Spread checkpoints over 90% of time
+    checkpoint_timeout = 10min                # Checkpoint every 10 minutes
+    max_wal_size = 2GB                        # Max WAL size before checkpoint
+    min_wal_size = 512MB                      # Min WAL size to keep
+
+    # LOGGING (for debugging + audit)
+    logging_collector = on                    # Enable log collection
+    log_directory = 'pg_log'                  # Log directory
+    log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'  # Log filename pattern
+    log_rotation_age = 1d                     # Rotate logs daily
+    log_rotation_size = 100MB                 # Rotate logs at 100MB
+    log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '  # Log line format
+    log_timezone = 'UTC'                      # Log timezone
+
+    # Log slow queries (> 500ms)
+    log_min_duration_statement = 500          # Log queries slower than 500ms
+    log_checkpoints = on                      # Log checkpoint activity
+    log_connections = on                      # Log new connections
+    log_disconnections = on                   # Log disconnections
+    log_lock_waits = on                       # Log lock waits
+
+    # AUTOVACUUM (automatic table maintenance)
+    autovacuum = on                           # Enable autovacuum
+    autovacuum_max_workers = 4                # Max autovacuum workers
+    autovacuum_naptime = 1min                 # Autovacuum check interval
+    autovacuum_vacuum_threshold = 50          # Min rows before vacuum
+    autovacuum_analyze_threshold = 50         # Min rows before analyze
+    autovacuum_vacuum_scale_factor = 0.1      # % of table size before vacuum
+    autovacuum_analyze_scale_factor = 0.05    # % of table size before analyze
+
+    # LOCALE + ENCODING
+    lc_messages = 'en_US.UTF-8'
+    lc_monetary = 'en_US.UTF-8'
+    lc_numeric = 'en_US.UTF-8'
+    lc_time = 'en_US.UTF-8'
+    default_text_search_config = 'pg_catalog.english'
+
+    # TIMEZONE
+    timezone = 'UTC'                          # Always use UTC for consistency
+
+    # SECURITY
+    password_encryption = scram-sha-256       # Use SCRAM-SHA-256 (more secure than MD5)
+    ssl = off                                 # TLS handled by Kubernetes service mesh (Istio/Linkerd)
+
+---
+# ConfigMap: PostgreSQL Init Scripts (schema creation, seed data)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-initdb
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database-init
+
+data:
+  # Script 1: Create extensions (executed on first startup)
+  01-extensions.sql: |
+    -- Enable PostgreSQL extensions
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";      -- UUID generation functions
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";        -- Encryption functions
+    CREATE EXTENSION IF NOT EXISTS "pg_trgm";         -- Trigram text search
+    CREATE EXTENSION IF NOT EXISTS "btree_gin";       -- GIN index support for btree types
+    CREATE EXTENSION IF NOT EXISTS "btree_gist";      -- GIST index support for btree types
+
+  # Script 2: Create custom functions (executed on first startup)
+  02-functions.sql: |
+    -- Function: Update updated_at timestamp automatically
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = NOW();
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- Function: Generate random API key (32 chars hex)
+    CREATE OR REPLACE FUNCTION generate_api_key()
+    RETURNS VARCHAR(64) AS $$
+    BEGIN
+        RETURN encode(gen_random_bytes(32), 'hex');
+    END;
+    $$ LANGUAGE plpgsql;
+
+  # Script 3: Performance monitoring views (executed on first startup)
+  03-monitoring.sql: |
+    -- View: Active queries (for debugging slow queries)
+    CREATE OR REPLACE VIEW active_queries AS
+    SELECT
+        pid,
+        usename AS username,
+        datname AS database,
+        state,
+        query,
+        age(clock_timestamp(), query_start) AS query_duration
+    FROM pg_stat_activity
+    WHERE state != 'idle'
+      AND query NOT ILIKE '%pg_stat_activity%'
+    ORDER BY query_start ASC;
+
+    -- View: Table sizes (for monitoring storage usage)
+    CREATE OR REPLACE VIEW table_sizes AS
+    SELECT
+        schemaname,
+        tablename,
+        pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total_size,
+        pg_size_pretty(pg_relation_size(schemaname||'.'||tablename)) AS data_size,
+        pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename) - pg_relation_size(schemaname||'.'||tablename)) AS external_size
+    FROM pg_tables
+    WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+    ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+
+    -- View: Index usage statistics (for identifying unused indexes)
+    CREATE OR REPLACE VIEW index_usage AS
+    SELECT
+        schemaname,
+        tablename,
+        indexname,
+        idx_scan AS index_scans,
+        pg_size_pretty(pg_relation_size(indexrelid)) AS index_size
+    FROM pg_stat_user_indexes
+    ORDER BY idx_scan ASC;
+
+---
+# ConfigMap: Postgres Exporter Queries (custom metrics for Prometheus)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-exporter-config
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: monitoring
+
+data:
+  queries.yaml: |
+    # Postgres Exporter Custom Queries
+    # Exposes custom PostgreSQL metrics to Prometheus
+
+    # Query: Database size metrics (per database)
+    pg_database:
+      query: |
+        SELECT
+          datname AS database,
+          pg_database_size(datname) AS size_bytes,
+          numbackends AS active_connections
+        FROM pg_database
+        WHERE datname NOT IN ('template0', 'template1')
+      metrics:
+        - database:
+            usage: LABEL
+            description: "Database name"
+        - size_bytes:
+            usage: GAUGE
+            description: "Database size in bytes"
+        - active_connections:
+            usage: GAUGE
+            description: "Number of active connections to database"
+
+    # Query: Table size metrics (top 20 largest tables)
+    pg_table_sizes:
+      query: |
+        SELECT
+          schemaname AS schema,
+          tablename AS table,
+          pg_total_relation_size(schemaname||'.'||tablename) AS total_size_bytes,
+          pg_relation_size(schemaname||'.'||tablename) AS data_size_bytes,
+          (pg_total_relation_size(schemaname||'.'||tablename) - pg_relation_size(schemaname||'.'||tablename)) AS external_size_bytes
+        FROM pg_tables
+        WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
+        ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
+        LIMIT 20
+      metrics:
+        - schema:
+            usage: LABEL
+            description: "Schema name"
+        - table:
+            usage: LABEL
+            description: "Table name"
+        - total_size_bytes:
+            usage: GAUGE
+            description: "Total table size in bytes (data + indexes)"
+        - data_size_bytes:
+            usage: GAUGE
+            description: "Table data size in bytes"
+        - external_size_bytes:
+            usage: GAUGE
+            description: "External size in bytes (indexes, TOAST)"
+
+    # Query: Slow query count (queries > 500ms in last 5 minutes)
+    pg_slow_queries:
+      query: |
+        SELECT
+          datname AS database,
+          COUNT(*) AS slow_query_count
+        FROM pg_stat_activity
+        WHERE state = 'active'
+          AND query_start < NOW() - INTERVAL '500 milliseconds'
+          AND query NOT ILIKE '%pg_stat_activity%'
+        GROUP BY datname
+      metrics:
+        - database:
+            usage: LABEL
+            description: "Database name"
+        - slow_query_count:
+            usage: GAUGE
+            description: "Number of slow queries (>500ms) currently running"
+
+    # Query: Replication lag (for replica monitoring)
+    pg_replication_lag:
+      query: |
+        SELECT
+          client_addr AS replica_ip,
+          application_name AS replica_name,
+          state,
+          sent_lsn,
+          write_lsn,
+          flush_lsn,
+          replay_lsn,
+          COALESCE(EXTRACT(EPOCH FROM (NOW() - pg_last_xact_replay_timestamp())), 0) AS lag_seconds
+        FROM pg_stat_replication
+      metrics:
+        - replica_ip:
+            usage: LABEL
+            description: "Replica IP address"
+        - replica_name:
+            usage: LABEL
+            description: "Replica application name"
+        - state:
+            usage: LABEL
+            description: "Replication state"
+        - lag_seconds:
+            usage: GAUGE
+            description: "Replication lag in seconds"
+
+    # Query: Lock wait metrics (blocked queries)
+    pg_locks:
+      query: |
+        SELECT
+          mode,
+          COUNT(*) AS lock_count
+        FROM pg_locks
+        WHERE NOT granted
+        GROUP BY mode
+      metrics:
+        - mode:
+            usage: LABEL
+            description: "Lock mode"
+        - lock_count:
+            usage: GAUGE
+            description: "Number of locks waiting in this mode"

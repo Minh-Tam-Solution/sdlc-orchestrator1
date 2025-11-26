@@ -1,0 +1,263 @@
+---
+# =========================================================================
+# Redis Deployment - Caching + Session Storage
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: DevOps Lead + Backend Lead + CTO Approved
+# Foundation: Redis 7.2, Deployment for stateless caching
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Session storage (JWT token blacklist, refresh tokens)
+# - API response caching (reduce PostgreSQL load)
+# - Rate limiting data (per-user API quotas)
+#
+# Features:
+# - Persistent storage optional (for production persistence)
+# - Redis Sentinel for HA (future: add replica + sentinel)
+# - Redis Exporter for Prometheus metrics
+#
+# Zero Mock Policy: Production-ready Redis configuration
+# =========================================================================
+
+---
+# Service for Redis (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: sdlc-orchestrator-redis
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "7.2"
+
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9121"
+    prometheus.io/path: "/metrics"
+
+spec:
+  type: ClusterIP
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+
+    - name: metrics  # Redis Exporter
+      port: 9121
+      targetPort: 9121
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: sdlc-orchestrator-redis
+
+---
+# Deployment for Redis (single replica, stateless caching)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: sdlc-orchestrator-redis
+    app.kubernetes.io/component: cache
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "7.2"
+
+spec:
+  replicas: 1  # Single replica (change to 3 for HA with Sentinel)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: sdlc-orchestrator-redis
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/instance: sdlc-orchestrator-redis
+        app.kubernetes.io/component: cache
+        app.kubernetes.io/part-of: sdlc-orchestrator-platform
+        app.kubernetes.io/version: "7.2"
+
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+
+    spec:
+      securityContext:
+        runAsUser: 999  # redis user
+        runAsGroup: 999
+        fsGroup: 999
+        runAsNonRoot: true
+
+      containers:
+        - name: redis
+          image: redis:7.2-alpine
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - redis-server
+            - /usr/local/etc/redis/redis.conf
+
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+
+          volumeMounts:
+            - name: redis-config
+              mountPath: /usr/local/etc/redis/redis.conf
+              subPath: redis.conf
+              readOnly: true
+
+            - name: redis-data
+              mountPath: /data
+
+        # Sidecar: Redis Exporter (Prometheus metrics)
+        - name: redis-exporter
+          image: oliver006/redis_exporter:v1.55.0-alpine
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: REDIS_ADDR
+              value: "localhost:6379"
+
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: password
+
+          ports:
+            - name: metrics
+              containerPort: 9121
+              protocol: TCP
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9121
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+      volumes:
+        - name: redis-config
+          configMap:
+            name: redis-config
+
+        - name: redis-data
+          emptyDir: {}  # Use emptyDir for development (PVC for production)
+
+---
+# ConfigMap: Redis Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache-config
+
+data:
+  redis.conf: |
+    # Redis 7.2 Configuration - SDLC Orchestrator
+    bind 0.0.0.0
+    port 6379
+    protected-mode yes
+    requirepass ${REDIS_PASSWORD}
+
+    # Persistence (RDB snapshots)
+    save 900 1        # Save after 900s if 1 key changed
+    save 300 10       # Save after 300s if 10 keys changed
+    save 60 10000     # Save after 60s if 10000 keys changed
+    stop-writes-on-bgsave-error yes
+    rdbcompression yes
+    rdbchecksum yes
+    dbfilename dump.rdb
+    dir /data
+
+    # Maxmemory policy
+    maxmemory 512mb
+    maxmemory-policy allkeys-lru  # Evict least recently used keys
+
+    # Append-only file (AOF) - more durable than RDB
+    appendonly no  # Disabled for caching (enable for session storage persistence)
+    appendfilename "appendonly.aof"
+    appendfsync everysec
+
+    # Slow log (queries > 10ms)
+    slowlog-log-slower-than 10000
+    slowlog-max-len 128
+
+    # Client output buffer limits
+    client-output-buffer-limit normal 0 0 0
+    client-output-buffer-limit replica 256mb 64mb 60
+    client-output-buffer-limit pubsub 32mb 8mb 60
+
+    # TCP settings
+    tcp-backlog 511
+    timeout 300
+    tcp-keepalive 300
+
+    # Other settings
+    databases 16
+    loglevel notice
+    always-show-logo no

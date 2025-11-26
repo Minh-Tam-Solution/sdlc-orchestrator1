@@ -1,0 +1,369 @@
+---
+# =========================================================================
+# PostgreSQL StatefulSet - Primary Database for SDLC Orchestrator
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: DevOps Lead + Database Architect + CTO Approved
+# Foundation: PostgreSQL 15.5, StatefulSet for data persistence
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Primary relational database for metadata storage (21 tables)
+# - StatefulSet ensures stable network identity and persistent storage
+# - Configured for production with performance tuning and backups
+#
+# Features:
+# - Persistent volumes (100GB default, scalable to 1TB)
+# - Automated backups (pg_dump to MinIO, 90-day retention)
+# - Performance tuning (shared_buffers, work_mem, effective_cache_size)
+# - Connection pooling ready (PgBouncer deployed separately)
+# - Replication ready (PostgreSQL streaming replication)
+#
+# Zero Mock Policy: Production-ready PostgreSQL configuration
+# =========================================================================
+
+---
+# Headless Service for StatefulSet DNS (stable network identity)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: sdlc-orchestrator-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "15.5"
+
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+
+spec:
+  clusterIP: None  # Headless service for StatefulSet
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: sdlc-orchestrator-postgres
+
+  publishNotReadyAddresses: true  # Publish DNS records even for unready pods
+
+---
+# ClusterIP Service for application access (load-balanced read/write)
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: sdlc-orchestrator-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "15.5"
+
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9187"
+    prometheus.io/path: "/metrics"
+
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+
+    - name: metrics  # Postgres Exporter for Prometheus
+      port: 9187
+      targetPort: 9187
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: sdlc-orchestrator-postgres
+
+---
+# StatefulSet for PostgreSQL (persistent, stable network identity)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: sdlc-orchestrator-postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "15.5"
+
+  annotations:
+    description: "PostgreSQL 15.5 - Primary database for SDLC Orchestrator metadata"
+    database-size: "100GB default, scalable to 1TB"
+    backup-schedule: "Daily pg_dump at 02:00 UTC → MinIO (90-day retention)"
+
+spec:
+  serviceName: postgres-headless  # Required for StatefulSet
+  replicas: 1  # Single primary (no replicas yet, add later for HA)
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/instance: sdlc-orchestrator-postgres
+
+  # Update strategy (rolling update, one pod at a time)
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0  # Update all pods
+
+  # Volume claim templates (persistent storage for each pod)
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+        labels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/component: database
+
+      spec:
+        accessModes:
+          - ReadWriteOnce  # Single pod can mount (RWO)
+
+        resources:
+          requests:
+            storage: 100Gi  # 100GB default (change in overlay for prod: 500Gi)
+
+        storageClassName: fast-ssd  # Use SSD storage class (define in cluster)
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/instance: sdlc-orchestrator-postgres
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: sdlc-orchestrator-platform
+        app.kubernetes.io/version: "15.5"
+
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+        backup.velero.io/backup-volumes: postgres-data  # Velero backup annotation
+
+    spec:
+      # Security context (run as non-root user postgres:999)
+      securityContext:
+        runAsUser: 999  # postgres user
+        runAsGroup: 999  # postgres group
+        fsGroup: 999     # filesystem ownership
+        runAsNonRoot: true
+
+      # Init container to set correct permissions
+      initContainers:
+        - name: set-permissions
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              chown -R 999:999 /var/lib/postgresql/data
+              chmod 700 /var/lib/postgresql/data
+
+          securityContext:
+            runAsUser: 0  # Need root to chown
+
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+      # Main container (PostgreSQL 15.5)
+      containers:
+        - name: postgres
+          image: postgres:15.5-alpine  # Official PostgreSQL image (Alpine for smaller size)
+          imagePullPolicy: IfNotPresent
+
+          # Environment variables (DB config)
+          env:
+            - name: POSTGRES_DB
+              value: sdlc_orchestrator
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata  # Data directory
+
+            # Performance tuning (PostgreSQL conf)
+            - name: POSTGRES_INITDB_ARGS
+              value: "--encoding=UTF8 --locale=en_US.UTF-8 --data-checksums"
+
+            # Shared memory settings (for shared_buffers)
+            - name: POSTGRES_SHARED_MEMORY_SIZE
+              value: "2GB"
+
+          # Ports
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+
+          # Resource requests/limits (production-grade)
+          resources:
+            requests:
+              cpu: 500m        # 0.5 CPU core
+              memory: 1Gi      # 1GB RAM
+            limits:
+              cpu: "4"         # Max 4 CPU cores
+              memory: 8Gi      # Max 8GB RAM
+
+          # Liveness probe (check if PostgreSQL is alive)
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness probe (check if PostgreSQL is ready for connections)
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Startup probe (wait for slow startup)
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 30  # 30 * 5s = 150s max startup time
+
+          # Volume mounts
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+            - name: postgres-config
+              mountPath: /etc/postgresql/postgresql.conf
+              subPath: postgresql.conf
+              readOnly: true
+
+            - name: postgres-initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+        # Sidecar: Postgres Exporter (metrics for Prometheus)
+        - name: postgres-exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: DATA_SOURCE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: exporter-dsn  # Format: postgresql://user:pass@localhost:5432/db?sslmode=disable
+
+            - name: PG_EXPORTER_WEB_LISTEN_ADDRESS
+              value: ":9187"
+
+            - name: PG_EXPORTER_EXTEND_QUERY_PATH
+              value: /etc/postgres-exporter/queries.yaml
+
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9187
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+          volumeMounts:
+            - name: postgres-exporter-config
+              mountPath: /etc/postgres-exporter
+              readOnly: true
+
+      # Volumes (ConfigMaps, Secrets)
+      volumes:
+        - name: postgres-config
+          configMap:
+            name: postgres-config
+            items:
+              - key: postgresql.conf
+                path: postgresql.conf
+
+        - name: postgres-initdb
+          configMap:
+            name: postgres-initdb
+            defaultMode: 0755  # Executable scripts
+
+        - name: postgres-exporter-config
+          configMap:
+            name: postgres-exporter-config
+
+      # Affinity (schedule on nodes with SSD storage)
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node.kubernetes.io/storage-type
+                    operator: In
+                    values:
+                      - ssd
+                      - nvme
+
+      # Tolerations (allow scheduling on database-dedicated nodes)
+      tolerations:
+        - key: workload
+          operator: Equal
+          value: database
+          effect: NoSchedule

@@ -1,11 +1,39 @@
 # KUBERNETES DEPLOYMENT GUIDE
 ## SDLC Orchestrator - Production Deployment
 
-**Version**: 1.0.0
-**Date**: December 3, 2025
-**Status**: ACTIVE - Week 4 Day 1 Architecture Documentation
+**Version**: 1.1.0
+**Date**: December 16, 2025 (Updated Week 9 Day 1)
+**Status**: ACTIVE - Week 9 Day 1 with Production Manifests
 **Authority**: DevOps Lead + Platform Engineering + CTO Approved
 **Framework**: SDLC 4.9 Complete Lifecycle
+
+---
+
+## 📢 **IMPORTANT UPDATE (Week 9 Day 1)**
+
+**Production-ready Kubernetes manifests are now available!**
+
+This document provides **strategic overview** of Kubernetes deployment. For **hands-on deployment guide** with actual manifests, see:
+
+👉 **[k8s/README.md](../../k8s/README.md)** - Step-by-step deployment guide with kubectl commands
+
+**Week 9 Day 1 Deliverables**:
+- ✅ 9 production-ready Kubernetes manifests ([k8s/base/](../../k8s/base/))
+- ✅ Comprehensive deployment documentation (1,050+ lines)
+- ✅ Local development support (minikube/kind configurations)
+- ✅ Troubleshooting guide with common issues + fixes
+
+**Manifest Files**:
+- [namespace.yaml](../../k8s/base/namespace.yaml) - Namespace isolation + resource quotas
+- [postgres-statefulset.yaml](../../k8s/base/postgres-statefulset.yaml) - PostgreSQL 15.5 with Prometheus exporter
+- [postgres-configmap.yaml](../../k8s/base/postgres-configmap.yaml) - Performance tuning + init scripts
+- [redis.yaml](../../k8s/base/redis.yaml) - Redis 7.2 with exporter sidecar
+- [opa.yaml](../../k8s/base/opa.yaml) - OPA 0.58.0 with preloaded policies
+- [minio.yaml](../../k8s/base/minio.yaml) - MinIO (AGPL-safe, network-only)
+- [backend.yaml](../../k8s/base/backend.yaml) - FastAPI with Alembic migrations
+- [configmap.yaml](../../k8s/base/configmap.yaml) - Application configuration
+- [secrets.yaml](../../k8s/base/secrets.yaml) - Sensitive credentials (base64)
+- [ingress.yaml](../../k8s/base/ingress.yaml) - NGINX Ingress + cert-manager TLS
 
 ---
 

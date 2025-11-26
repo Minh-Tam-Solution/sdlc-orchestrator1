@@ -1,0 +1,203 @@
+---
+# =========================================================================
+# FastAPI Backend Deployment - SDLC Orchestrator Main API
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: Backend Lead + DevOps Lead + CTO Approved
+# Foundation: FastAPI 0.104+, Python 3.11+, Production-ready
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Main SDLC Orchestrator API (9 endpoints production-ready)
+# - Authentication, Gates, Evidence, Policies management
+# - Integration with PostgreSQL, Redis, OPA, MinIO
+#
+# Features:
+# - Horizontal scaling (3 replicas default, scale to 10+)
+# - Alembic init container (database migrations)
+# - Health checks (liveness + readiness probes)
+# - Prometheus metrics (/metrics endpoint)
+# - CORS configuration (development + production)
+#
+# Zero Mock Policy: Production-ready FastAPI application
+# =========================================================================
+
+---
+# Service for FastAPI Backend (ClusterIP)
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/instance: sdlc-orchestrator-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "1.0.0"
+
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/instance: sdlc-orchestrator-backend
+
+---
+# Deployment for FastAPI Backend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/instance: sdlc-orchestrator-backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "1.0.0"
+
+spec:
+  replicas: 3  # 3 replicas for HA (scale to 10+ for production)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+      app.kubernetes.io/instance: sdlc-orchestrator-backend
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/instance: sdlc-orchestrator-backend
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: sdlc-orchestrator-platform
+        app.kubernetes.io/version: "1.0.0"
+
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+
+      initContainers:
+        - name: alembic-migrate
+          image: sdlc-orchestrator-backend:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cd /app/backend
+              alembic upgrade head
+
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+
+      containers:
+        - name: backend
+          image: sdlc-orchestrator-backend:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - uvicorn
+            - app.main:app
+            - --host=0.0.0.0
+            - --port=8000
+            - --workers=4
+
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          envFrom:
+            - configMapRef:
+                name: backend-config
+            - secretRef:
+                name: backend-secret
+
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health?ready=1
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - backend
+                topologyKey: kubernetes.io/hostname

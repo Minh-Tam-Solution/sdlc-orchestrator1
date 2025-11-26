@@ -1,0 +1,209 @@
+---
+# =========================================================================
+# Kubernetes Namespace - SDLC Orchestrator
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: DevOps Lead + CTO Approved
+# Foundation: Kubernetes 1.28+, Multi-tenancy isolation
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Namespace isolation for SDLC Orchestrator resources
+# - Resource quotas and limits enforcement
+# - Network policies for security isolation
+#
+# Deployment Targets:
+# - Development: sdlc-orchestrator-dev
+# - Staging: sdlc-orchestrator-staging
+# - Production: sdlc-orchestrator-prod
+#
+# Zero Mock Policy: Production-ready Kubernetes manifests
+# =========================================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: sdlc-orchestrator
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    environment: production
+    managed-by: kubectl
+
+  annotations:
+    description: "SDLC Orchestrator - First Governance-First Platform on SDLC 4.9"
+    maintainer: "DevOps Team <devops@mtc.com.vn>"
+    sdlc-stage: "Stage 03 (BUILD)"
+    sdlc-week: "Week 9 Day 1"
+    compliance: "OWASP ASVS Level 2, SOC 2 Type II"
+
+---
+# Resource Quota - Limit namespace resource consumption
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sdlc-orchestrator-quota
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: sdlc-orchestrator
+    app.kubernetes.io/component: resource-quota
+
+spec:
+  hard:
+    # Compute resources
+    requests.cpu: "20"          # Max 20 CPU cores requested
+    requests.memory: 40Gi        # Max 40GB memory requested
+    limits.cpu: "40"             # Max 40 CPU cores limit
+    limits.memory: 80Gi          # Max 80GB memory limit
+
+    # Storage resources
+    requests.storage: 500Gi      # Max 500GB persistent storage
+    persistentvolumeclaims: "20" # Max 20 PVCs
+
+    # Object counts
+    pods: "50"                   # Max 50 pods
+    services: "20"               # Max 20 services
+    configmaps: "30"             # Max 30 configmaps
+    secrets: "30"                # Max 30 secrets
+
+  scopeSelector:
+    matchExpressions:
+      - operator: In
+        scopeName: PriorityClass
+        values: ["high", "medium", "low"]
+
+---
+# Limit Range - Default resource limits for pods
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: sdlc-orchestrator-limits
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: sdlc-orchestrator
+    app.kubernetes.io/component: limit-range
+
+spec:
+  limits:
+    # Pod limits
+    - type: Pod
+      max:
+        cpu: "8"        # Max 8 CPU cores per pod
+        memory: 16Gi    # Max 16GB memory per pod
+      min:
+        cpu: 100m       # Min 100 milliCPU per pod
+        memory: 128Mi   # Min 128MB memory per pod
+
+    # Container limits (default if not specified)
+    - type: Container
+      default:
+        cpu: 500m       # Default CPU limit: 500 milliCPU
+        memory: 512Mi   # Default memory limit: 512MB
+      defaultRequest:
+        cpu: 250m       # Default CPU request: 250 milliCPU
+        memory: 256Mi   # Default memory request: 256MB
+      max:
+        cpu: "4"        # Max 4 CPU cores per container
+        memory: 8Gi     # Max 8GB memory per container
+      min:
+        cpu: 50m        # Min 50 milliCPU per container
+        memory: 64Mi    # Min 64MB memory per container
+
+    # Persistent Volume Claims
+    - type: PersistentVolumeClaim
+      max:
+        storage: 100Gi  # Max 100GB per PVC
+      min:
+        storage: 1Gi    # Min 1GB per PVC
+
+---
+# Network Policy - Restrict inter-pod communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sdlc-orchestrator-netpol
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: sdlc-orchestrator
+    app.kubernetes.io/component: network-policy
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: sdlc-orchestrator-platform
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules - Allow traffic from specific sources
+  ingress:
+    # Allow traffic from Ingress controller
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000  # FastAPI backend port
+
+    # Allow inter-pod communication within namespace
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: sdlc-orchestrator-platform
+      ports:
+        - protocol: TCP
+          port: 5432  # PostgreSQL
+        - protocol: TCP
+          port: 6379  # Redis
+        - protocol: TCP
+          port: 8181  # OPA
+        - protocol: TCP
+          port: 9000  # MinIO API
+        - protocol: TCP
+          port: 9001  # MinIO Console
+        - protocol: TCP
+          port: 3000  # Grafana
+
+  # Egress rules - Allow traffic to specific destinations
+  egress:
+    # Allow DNS lookups
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53  # DNS
+
+    # Allow internet access (for external APIs: GitHub, Anthropic, OpenAI)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS
+        - protocol: TCP
+          port: 80   # HTTP
+
+    # Allow inter-pod communication within namespace
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/part-of: sdlc-orchestrator-platform
+      ports:
+        - protocol: TCP
+          port: 5432  # PostgreSQL
+        - protocol: TCP
+          port: 6379  # Redis
+        - protocol: TCP
+          port: 8181  # OPA
+        - protocol: TCP
+          port: 9000  # MinIO API
+        - protocol: TCP
+          port: 3000  # Grafana

@@ -1,0 +1,261 @@
+---
+# =========================================================================
+# MinIO StatefulSet - Evidence Vault Storage (AGPL-Safe)
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 9 Day 1
+#
+# Version: 1.0.0
+# Date: December 16, 2025
+# Status: ACTIVE - Week 9 Day 1 Kubernetes Deployment
+# Authority: DevOps Lead + Backend Lead + CTO + Legal Approved
+# Foundation: MinIO LATEST (AGPL v3 License) - NETWORK-ONLY ACCESS
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Evidence Vault storage (FR2) - S3-compatible object storage
+# - Store evidence files (documents, images, code snippets, test reports)
+# - SHA256 integrity verification + audit trail
+#
+# AGPL CONTAINMENT (CRITICAL):
+# - Network-only access via HTTP S3 API (NO SDK imports)
+# - Separate Docker container (NO code linking)
+# - Backend uses python-requests (NOT minio-py SDK)
+# - Legal compliance: AGPL-safe architecture (ADR-004)
+#
+# Features:
+# - Persistent storage (200Gi default, scalable to 2TB)
+# - MinIO Console (web UI for bucket management)
+# - Prometheus metrics exporter
+# - Multi-bucket support (gate-evidence, policy-docs, backups)
+#
+# Zero Mock Policy: Production-ready MinIO configuration
+# =========================================================================
+
+---
+# Headless Service for StatefulSet DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-headless
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: sdlc-orchestrator-minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "latest"
+
+spec:
+  clusterIP: None
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+
+    - name: console
+      port: 9001
+      targetPort: 9001
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: sdlc-orchestrator-minio
+
+  publishNotReadyAddresses: true
+
+---
+# ClusterIP Service for application access
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: sdlc-orchestrator-minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "latest"
+
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9000"
+    prometheus.io/path: "/minio/v2/metrics/cluster"
+
+spec:
+  type: ClusterIP
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+
+    - name: console
+      port: 9001
+      targetPort: 9001
+      protocol: TCP
+
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: sdlc-orchestrator-minio
+
+---
+# StatefulSet for MinIO (persistent storage)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: minio
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: sdlc-orchestrator-minio
+    app.kubernetes.io/component: storage
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+    app.kubernetes.io/version: "latest"
+
+  annotations:
+    agpl-containment: "network-only-access"
+    legal-status: "approved"
+    license: "AGPL v3 (isolated via network-only access)"
+
+spec:
+  serviceName: minio-headless
+  replicas: 1  # Single node (change to 4 for distributed mode)
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/instance: sdlc-orchestrator-minio
+
+  updateStrategy:
+    type: RollingUpdate
+
+  volumeClaimTemplates:
+    - metadata:
+        name: minio-data
+        labels:
+          app.kubernetes.io/name: minio
+          app.kubernetes.io/component: storage
+
+      spec:
+        accessModes:
+          - ReadWriteOnce
+
+        resources:
+          requests:
+            storage: 200Gi  # 200GB default (change to 2Ti for production)
+
+        storageClassName: fast-ssd
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        app.kubernetes.io/instance: sdlc-orchestrator-minio
+        app.kubernetes.io/component: storage
+        app.kubernetes.io/part-of: sdlc-orchestrator-platform
+        app.kubernetes.io/version: "latest"
+
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+        backup.velero.io/backup-volumes: minio-data
+
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              minio server /data --console-address :9001
+
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-user
+
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-password
+
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+
+            - name: MINIO_BROWSER
+              value: "on"
+
+            - name: MINIO_DOMAIN
+              value: "minio.sdlc-orchestrator.svc.cluster.local"
+
+          ports:
+            - name: api
+              containerPort: 9000
+              protocol: TCP
+
+            - name: console
+              containerPort: 9001
+              protocol: TCP
+
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /minio/health/ready
+              port: 9000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 10
+            failureThreshold: 3
+
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: node.kubernetes.io/storage-type
+                    operator: In
+                    values:
+                      - ssd
+                      - nvme
+
+      tolerations:
+        - key: workload
+          operator: Equal
+          value: storage
+          effect: NoSchedule
