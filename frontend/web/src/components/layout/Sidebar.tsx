@@ -1,0 +1,107 @@
+/**
+ * File: frontend/web/src/components/layout/Sidebar.tsx
+ * Version: 1.0.0
+ * Status: ACTIVE - STAGE 03 (BUILD)
+ * Date: 2025-11-27
+ * Authority: Frontend Lead + CTO Approved
+ * Foundation: SDLC 4.9 Complete Lifecycle, Zero Mock Policy
+ *
+ * Description:
+ * Sidebar navigation component for SDLC Orchestrator dashboard.
+ * Provides navigation to main sections: Dashboard, Projects, Evidence, Policies.
+ */
+
+import { Link, useLocation } from 'react-router-dom'
+import { cn } from '@/lib/utils'
+
+interface NavItem {
+  title: string
+  href: string
+  icon: React.ReactNode
+}
+
+const navItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    href: '/',
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Projects',
+    href: '/projects',
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Evidence Vault',
+    href: '/evidence',
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Policies',
+    href: '/policies',
+    icon: (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  },
+]
+
+/**
+ * Sidebar component
+ *
+ * @returns Sidebar navigation
+ */
+export default function Sidebar() {
+  const location = useLocation()
+
+  return (
+    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card">
+      {/* Logo */}
+      <div className="flex h-16 items-center border-b px-6">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <span className="font-semibold">SDLC Orchestrator</span>
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="space-y-1 p-4">
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              )}
+            >
+              {item.icon}
+              {item.title}
+            </Link>
+          )
+        })}
+      </nav>
+    </aside>
+  )
+}

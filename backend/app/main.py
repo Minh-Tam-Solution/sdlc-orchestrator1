@@ -45,7 +45,7 @@ from app.middleware.rate_limiter import RateLimiterMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 
 # Import API routers
-from app.api.routes import auth, evidence, gates, policies
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects
 
 # Create FastAPI app
 app = FastAPI(
@@ -94,6 +94,8 @@ app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
 app.include_router(gates.router, prefix="/api/v1", tags=["Gates"])
 app.include_router(evidence.router, prefix="/api/v1", tags=["Evidence"])
 app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])
+app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
+app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
 
 # ============================================================================
 # Health Check Endpoints

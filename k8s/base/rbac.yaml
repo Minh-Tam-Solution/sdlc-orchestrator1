@@ -1,0 +1,176 @@
+---
+# =========================================================================
+# RBAC - Role-Based Access Control for SDLC Orchestrator
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 12 Hardening
+#
+# Version: 1.0.0
+# Date: November 27, 2025
+# Status: ACTIVE - Week 12 Production Hardening
+# Authority: DevOps Lead + Security Lead + CTO Approved
+# Foundation: Kubernetes RBAC, Least-Privilege Principle
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Define ServiceAccounts for each workload
+# - Enforce least-privilege access to Kubernetes API
+# - Comply with SOC 2 Type I access control requirements
+#
+# Zero Mock Policy: Production-ready RBAC configuration
+# =========================================================================
+
+---
+# ServiceAccount for Backend API
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-backend
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+
+automountServiceAccountToken: false
+
+---
+# ServiceAccount for PostgreSQL
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-postgres
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: service-account
+
+automountServiceAccountToken: false
+
+---
+# ServiceAccount for Redis
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-redis
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: service-account
+
+automountServiceAccountToken: false
+
+---
+# ServiceAccount for MinIO
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-minio
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/component: service-account
+
+automountServiceAccountToken: false
+
+---
+# ServiceAccount for OPA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sdlc-opa
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: opa
+    app.kubernetes.io/component: service-account
+
+automountServiceAccountToken: false
+
+---
+# Role for Backend - Read-only access to ConfigMaps (for config reloading)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backend-role
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: rbac
+
+rules:
+  # Allow reading ConfigMaps for dynamic config
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "watch", "list"]
+    resourceNames: ["backend-config"]
+
+---
+# RoleBinding for Backend
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backend-rolebinding
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: rbac
+
+subjects:
+  - kind: ServiceAccount
+    name: sdlc-backend
+    namespace: sdlc-orchestrator
+
+roleRef:
+  kind: Role
+  name: backend-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# PodSecurityPolicy (deprecated in 1.25+, but included for older clusters)
+# Use Pod Security Standards (PSS) for Kubernetes 1.25+
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: sdlc-restricted
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfiles: "runtime/default"
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: "runtime/default"
+
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+
+  # Required to prevent escalation to root
+  requiredDropCapabilities:
+    - ALL
+
+  # Volumes that can be used
+  volumes:
+    - "configMap"
+    - "emptyDir"
+    - "projected"
+    - "secret"
+    - "downwardAPI"
+    - "persistentVolumeClaim"
+
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+
+  runAsUser:
+    rule: MustRunAsNonRoot
+
+  seLinux:
+    rule: RunAsAny
+
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+      - min: 1
+        max: 65535
+
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+      - min: 1
+        max: 65535
+
+  readOnlyRootFilesystem: true

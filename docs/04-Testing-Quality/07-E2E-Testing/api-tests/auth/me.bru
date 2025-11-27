@@ -1,0 +1,53 @@
+meta {
+  name: Get Current User
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has user id", function() {
+    expect(res.body).to.have.property("id");
+  });
+
+  test("Response has email", function() {
+    expect(res.body).to.have.property("email");
+  });
+
+  test("Response has full_name", function() {
+    expect(res.body).to.have.property("full_name");
+  });
+
+  test("User is active", function() {
+    expect(res.body.is_active).to.equal(true);
+  });
+}
+
+docs {
+  # Get Current User
+
+  Returns the currently authenticated user's profile.
+
+  ## Prerequisites
+  - Must run "Login" request first to get accessToken
+
+  ## Response Fields
+  - **id**: User UUID
+  - **email**: User's email
+  - **full_name**: User's display name
+  - **is_active**: Account status
+  - **is_superuser**: Admin privileges flag
+}

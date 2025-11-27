@@ -1,0 +1,275 @@
+---
+# =========================================================================
+# NetworkPolicies - Zero Trust Network Security
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 12 Hardening
+#
+# Version: 1.0.0
+# Date: November 27, 2025
+# Status: ACTIVE - Week 12 Production Hardening
+# Authority: DevOps Lead + Security Lead + CTO Approved
+# Foundation: Kubernetes NetworkPolicy, Zero Trust Architecture
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Enforce least-privilege network access between services
+# - Comply with SOC 2 Type I network segmentation requirements
+# - Block unauthorized lateral movement
+#
+# Zero Mock Policy: Production-ready network security
+# =========================================================================
+
+---
+# Default deny all ingress traffic (Zero Trust baseline)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+
+spec:
+  podSelector: {}  # Apply to all pods
+  policyTypes:
+    - Ingress
+
+---
+# Backend API - Allow ingress from Ingress controller only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  ingress:
+    # Allow from Ingress controller (external traffic)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+
+    # Allow from Prometheus for metrics scraping
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - protocol: TCP
+          port: 8000
+
+  egress:
+    # Allow to PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow to Redis
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+
+    # Allow to OPA
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: opa
+      ports:
+        - protocol: TCP
+          port: 8181
+
+    # Allow to MinIO
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      ports:
+        - protocol: TCP
+          port: 9000
+
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# PostgreSQL - Allow ingress from backend only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    # Allow from backend
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Allow from Prometheus for metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9187
+
+---
+# Redis - Allow ingress from backend only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    # Allow from backend
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: backend
+      ports:
+        - protocol: TCP
+          port: 6379
+
+    # Allow from Prometheus for metrics
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - protocol: TCP
+          port: 9121
+
+---
+# OPA - Allow ingress from backend only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: opa-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: opa
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    # Allow from backend
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: backend
+      ports:
+        - protocol: TCP
+          port: 8181
+
+---
+# MinIO - Allow ingress from backend only (AGPL containment)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: minio-ingress
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+  annotations:
+    agpl-containment: "network-only-access"
+
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+
+  policyTypes:
+    - Ingress
+
+  ingress:
+    # Allow from backend (S3 API access)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: backend
+      ports:
+        - protocol: TCP
+          port: 9000
+
+    # Allow MinIO console access from admin namespace (optional)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: admin
+      ports:
+        - protocol: TCP
+          port: 9001

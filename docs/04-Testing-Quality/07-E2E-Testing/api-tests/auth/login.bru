@@ -1,0 +1,70 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("accessToken", res.body.access_token);
+    bru.setVar("refreshToken", res.body.refresh_token);
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has access_token", function() {
+    expect(res.body).to.have.property("access_token");
+  });
+
+  test("Response has refresh_token", function() {
+    expect(res.body).to.have.property("refresh_token");
+  });
+
+  test("Token type is bearer", function() {
+    expect(res.body.token_type).to.equal("bearer");
+  });
+}
+
+docs {
+  # Login API
+
+  Authenticates a user with email and password.
+
+  ## Request
+  - **email**: User's email address
+  - **password**: User's password
+
+  ## Response
+  - **access_token**: JWT token for API authentication (1 hour expiry)
+  - **refresh_token**: Token for refreshing access (30 days expiry)
+  - **token_type**: Always "bearer"
+  - **expires_in**: Token expiry in seconds
+
+  ## Test Accounts
+  | Role | Email | Password |
+  |------|-------|----------|
+  | Admin | admin@sdlc-orchestrator.io | Admin@123 |
+  | CTO | cto@bflow.vn | password123 |
+  | Dev | dev@bflow.vn | password123 |
+}

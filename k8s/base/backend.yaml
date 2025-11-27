@@ -97,11 +97,18 @@ spec:
         prometheus.io/port: "8000"
 
     spec:
+      # Pod-level security context (SOC 2 Type I compliance)
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Service account for fine-grained RBAC
+      serviceAccountName: sdlc-backend
+      automountServiceAccountToken: false
 
       initContainers:
         - name: alembic-migrate
@@ -133,6 +140,14 @@ spec:
         - name: backend
           image: sdlc-orchestrator-backend:latest
           imagePullPolicy: IfNotPresent
+
+          # Container-level security context (hardened)
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
 
           command:
             - uvicorn
@@ -188,6 +203,24 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 3
             failureThreshold: 30
+
+          # Volume mounts for read-only root filesystem
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /app/.cache
+
+      # Volumes for temporary files (required for read-only root filesystem)
+      volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 100Mi
+        - name: cache
+          emptyDir:
+            medium: Memory
+            sizeLimit: 50Mi
 
       affinity:
         podAntiAffinity:

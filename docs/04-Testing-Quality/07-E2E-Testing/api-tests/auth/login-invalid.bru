@@ -1,0 +1,43 @@
+meta {
+  name: Login - Invalid Credentials
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "admin@sdlc-orchestrator.io",
+    "password": "wrongpassword"
+  }
+}
+
+tests {
+  test("Status code is 401", function() {
+    expect(res.status).to.equal(401);
+  });
+
+  test("Error message is returned", function() {
+    expect(res.body).to.have.property("detail");
+  });
+}
+
+docs {
+  # Login - Invalid Credentials Test
+
+  Tests that login fails with incorrect password.
+
+  ## Expected Behavior
+  - Returns 401 Unauthorized
+  - Returns error detail message
+  - Does not return any tokens
+}

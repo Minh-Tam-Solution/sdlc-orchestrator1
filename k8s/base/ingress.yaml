@@ -52,11 +52,13 @@ metadata:
     nginx.ingress.kubernetes.io/limit-rps: "100"
     nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
 
-    # CORS (handled by FastAPI, but backup at ingress level)
+    # CORS - Restricted to specific origins (SOC 2 compliance)
+    # IMPORTANT: Update cors-allow-origin with your actual frontend domain
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://app.sdlc-orchestrator.com"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, X-Request-ID"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
 
     # Timeouts
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
@@ -69,12 +71,15 @@ metadata:
     # WebSocket Support (for real-time dashboard updates - future)
     nginx.ingress.kubernetes.io/websocket-services: "backend"
 
-    # Security Headers
+    # Security Headers (OWASP ASVS Level 2 compliance)
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "X-Frame-Options: DENY";
       more_set_headers "X-Content-Type-Options: nosniff";
       more_set_headers "X-XSS-Protection: 1; mode=block";
       more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Permissions-Policy: geolocation=(), microphone=(), camera=()";
+      more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.sdlc-orchestrator.com; frame-ancestors 'none'";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
 
 spec:
   tls:
@@ -95,7 +100,7 @@ spec:
                 port:
                   number: 8000
 
-          # Health Check Endpoint
+          # Health Check Endpoint (public - for load balancers)
           - path: /health
             pathType: Exact
             backend:
@@ -104,14 +109,9 @@ spec:
                 port:
                   number: 8000
 
-          # Metrics Endpoint (restrict access in production)
-          - path: /metrics
-            pathType: Exact
-            backend:
-              service:
-                name: backend
-                port:
-                  number: 8000
+          # NOTE: /metrics endpoint is NOT exposed publicly
+          # Prometheus scrapes metrics internally via ClusterIP service
+          # This prevents information disclosure (SOC 2 compliance)
 
           # OpenAPI Documentation
           - path: /docs

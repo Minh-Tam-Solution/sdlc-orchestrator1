@@ -1,0 +1,70 @@
+meta {
+  name: Get Project by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/projects/{{projectId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has project id", function() {
+    expect(res.body).to.have.property("id");
+  });
+
+  test("Response has name", function() {
+    expect(res.body).to.have.property("name");
+  });
+
+  test("Response has gates array", function() {
+    expect(res.body).to.have.property("gates");
+    expect(res.body.gates).to.be.an("array");
+  });
+
+  test("Each gate has required fields", function() {
+    if (res.body.gates.length > 0) {
+      const gate = res.body.gates[0];
+      expect(gate).to.have.property("id");
+      expect(gate).to.have.property("gate_name");
+      expect(gate).to.have.property("gate_type");
+      expect(gate).to.have.property("stage");
+      expect(gate).to.have.property("status");
+    }
+  });
+}
+
+docs {
+  # Get Project by ID
+
+  Returns detailed information about a specific project including all its gates.
+
+  ## Prerequisites
+  - Run "List Projects" first to get a valid projectId
+
+  ## Path Parameters
+  - **projectId**: UUID of the project
+
+  ## Response Fields
+  - **id**: Project UUID
+  - **name**: Project name
+  - **description**: Project description
+  - **current_stage**: Highest stage with gates
+  - **gates**: Array of gate objects
+    - **id**: Gate UUID
+    - **gate_name**: Gate identifier
+    - **gate_type**: Type of gate (PROBLEM_DEFINITION, SOLUTION_DIVERSITY, etc.)
+    - **stage**: SDLC stage
+    - **status**: Gate status
+    - **description**: Gate description
+}

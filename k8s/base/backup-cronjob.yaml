@@ -1,0 +1,326 @@
+---
+# =========================================================================
+# Backup CronJobs - PostgreSQL & MinIO Disaster Recovery
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 12 Hardening
+#
+# Version: 1.0.0
+# Date: November 27, 2025
+# Status: ACTIVE - Week 12 Production Hardening
+# Authority: DevOps Lead + Database Architect + CTO Approved
+# Foundation: Kubernetes CronJob, pg_dump, mc (MinIO Client)
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Automated daily backups of PostgreSQL database
+# - Automated daily backups of MinIO evidence files
+# - 90-day retention policy (SOC 2 compliance)
+# - Disaster recovery capability (RTO 4h, RPO 24h)
+#
+# Zero Mock Policy: Production-ready backup configuration
+# =========================================================================
+
+---
+# ConfigMap for backup scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: scripts
+
+data:
+  # PostgreSQL backup script
+  postgres-backup.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    # Configuration
+    BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+    BACKUP_FILE="postgres_backup_${BACKUP_DATE}.sql.gz"
+    BACKUP_BUCKET="sdlc-backups"
+    RETENTION_DAYS=90
+
+    echo "[$(date)] Starting PostgreSQL backup..."
+
+    # Create backup using pg_dump
+    PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
+      -h postgres \
+      -U "${POSTGRES_USER}" \
+      -d "${POSTGRES_DB}" \
+      --format=plain \
+      --no-owner \
+      --no-privileges \
+      | gzip > "/tmp/${BACKUP_FILE}"
+
+    # Upload to MinIO backup bucket
+    mc alias set backup http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+    mc cp "/tmp/${BACKUP_FILE}" "backup/${BACKUP_BUCKET}/postgres/${BACKUP_FILE}"
+
+    # Verify upload
+    if mc ls "backup/${BACKUP_BUCKET}/postgres/${BACKUP_FILE}" > /dev/null 2>&1; then
+      echo "[$(date)] Backup uploaded successfully: ${BACKUP_FILE}"
+    else
+      echo "[$(date)] ERROR: Backup upload failed!"
+      exit 1
+    fi
+
+    # Cleanup old backups (retention policy)
+    echo "[$(date)] Cleaning up backups older than ${RETENTION_DAYS} days..."
+    mc rm --recursive --force --older-than "${RETENTION_DAYS}d" "backup/${BACKUP_BUCKET}/postgres/" || true
+
+    # Cleanup local temp file
+    rm -f "/tmp/${BACKUP_FILE}"
+
+    echo "[$(date)] PostgreSQL backup completed successfully!"
+
+  # MinIO evidence backup script (sync to secondary bucket/storage)
+  minio-backup.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+    SOURCE_BUCKET="gate-evidence"
+    BACKUP_BUCKET="sdlc-backups"
+
+    echo "[$(date)] Starting MinIO evidence backup..."
+
+    # Configure MinIO client
+    mc alias set source http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+
+    # Mirror evidence bucket to backup location
+    mc mirror --preserve --overwrite \
+      "source/${SOURCE_BUCKET}" \
+      "source/${BACKUP_BUCKET}/evidence-mirror/"
+
+    echo "[$(date)] Evidence backup completed successfully!"
+
+  # Restore script (for disaster recovery)
+  postgres-restore.sh: |
+    #!/bin/bash
+    set -euo pipefail
+
+    if [ -z "${BACKUP_FILE:-}" ]; then
+      echo "ERROR: BACKUP_FILE environment variable is required"
+      exit 1
+    fi
+
+    BACKUP_BUCKET="sdlc-backups"
+
+    echo "[$(date)] Starting PostgreSQL restore from ${BACKUP_FILE}..."
+
+    # Download backup from MinIO
+    mc alias set backup http://minio:9000 "${MINIO_ACCESS_KEY}" "${MINIO_SECRET_KEY}"
+    mc cp "backup/${BACKUP_BUCKET}/postgres/${BACKUP_FILE}" "/tmp/restore.sql.gz"
+
+    # Restore database
+    gunzip -c "/tmp/restore.sql.gz" | PGPASSWORD="${POSTGRES_PASSWORD}" psql \
+      -h postgres \
+      -U "${POSTGRES_USER}" \
+      -d "${POSTGRES_DB}"
+
+    echo "[$(date)] PostgreSQL restore completed successfully!"
+
+---
+# CronJob: PostgreSQL Daily Backup (02:00 UTC)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: postgres-backup
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+
+spec:
+  schedule: "0 2 * * *"  # Daily at 02:00 UTC
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 3600  # 1 hour timeout
+
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: postgres-backup
+            app.kubernetes.io/component: backup
+
+        spec:
+          restartPolicy: OnFailure
+
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+
+          containers:
+            - name: backup
+              image: postgres:15.5-alpine
+              imagePullPolicy: IfNotPresent
+
+              command:
+                - /bin/bash
+                - /scripts/postgres-backup.sh
+
+              env:
+                - name: POSTGRES_HOST
+                  value: postgres
+                - name: POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: username
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: password
+                - name: POSTGRES_DB
+                  value: sdlc_orchestrator
+                - name: MINIO_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-user
+                - name: MINIO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-password
+
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false  # Need write for temp files
+                capabilities:
+                  drop:
+                    - ALL
+
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: tmp
+                  mountPath: /tmp
+
+          volumes:
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+            - name: tmp
+              emptyDir:
+                sizeLimit: 10Gi
+
+---
+# CronJob: MinIO Evidence Backup (03:00 UTC)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: minio-backup
+  namespace: sdlc-orchestrator
+  labels:
+    app.kubernetes.io/name: backup
+    app.kubernetes.io/component: minio-backup
+    app.kubernetes.io/part-of: sdlc-orchestrator-platform
+
+spec:
+  schedule: "0 3 * * *"  # Daily at 03:00 UTC
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      activeDeadlineSeconds: 7200  # 2 hour timeout
+
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: minio-backup
+            app.kubernetes.io/component: backup
+
+        spec:
+          restartPolicy: OnFailure
+
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+
+          containers:
+            - name: backup
+              image: minio/mc:latest
+              imagePullPolicy: IfNotPresent
+
+              command:
+                - /bin/bash
+                - /scripts/minio-backup.sh
+
+              env:
+                - name: MINIO_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-user
+                - name: MINIO_SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: minio-secret
+                      key: root-password
+
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: false
+                capabilities:
+                  drop:
+                    - ALL
+
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+
+          volumes:
+            - name: scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+
+---
+# PodDisruptionBudget for backup jobs (optional)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backup-pdb
+  namespace: sdlc-orchestrator
+
+spec:
+  minAvailable: 0  # Backups can be interrupted
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backup

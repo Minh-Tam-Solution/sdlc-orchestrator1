@@ -1,0 +1,67 @@
+meta {
+  name: Recent Gates
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/dashboard/recent-gates
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("Returns max 5 gates", function() {
+    expect(res.body.length).to.be.at.most(5);
+  });
+
+  test("Each gate has required fields", function() {
+    if (res.body.length > 0) {
+      const gate = res.body[0];
+      expect(gate).to.have.property("id");
+      expect(gate).to.have.property("gate_name");
+      expect(gate).to.have.property("project_name");
+      expect(gate).to.have.property("status");
+      expect(gate).to.have.property("updated_at");
+    }
+  });
+
+  test("Status is valid value", function() {
+    const validStatuses = ["passed", "failed", "pending"];
+    res.body.forEach(gate => {
+      expect(validStatuses).to.include(gate.status);
+    });
+  });
+}
+
+docs {
+  # Recent Gate Activity
+
+  Returns the most recent gate evaluations across all projects.
+
+  ## Query Parameters
+  - **limit**: Maximum number of gates to return (default: 5)
+
+  ## Response Fields
+  Each gate object includes:
+  - **id**: Gate UUID
+  - **gate_name**: Gate identifier (e.g., "G0.1", "G1")
+  - **project_name**: Name of the project
+  - **status**: "passed", "failed", or "pending"
+  - **updated_at**: Last update timestamp (ISO 8601)
+
+  ## Ordering
+  Results are sorted by updated_at DESC (most recent first)
+}

@@ -1,0 +1,299 @@
+# =========================================================================
+# GitHub Actions Workflow - Code Quality & Linting
+# SDLC Orchestrator - Stage 04 (SHIP) - Week 9 Day 2
+#
+# Version: 1.0.0
+# Date: December 17, 2025
+# Status: ACTIVE - Week 9 Day 2 CI/CD Pipeline
+# Authority: DevOps Lead + Backend Lead + Frontend Lead + CTO Approved
+# Foundation: GitHub Actions, ruff, mypy, ESLint, Prettier
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Purpose:
+# - Automated code quality checks on every push and PR
+# - Backend: ruff (linting), mypy (type checking), black (formatting)
+# - Frontend: ESLint (linting), Prettier (formatting), TypeScript compiler
+# - Enforce Zero Mock Policy (ban "TODO", "mock", placeholders)
+# - AGPL containment validation (detect MinIO/Grafana SDK imports)
+#
+# Triggers:
+# - Push to main, develop, feature/* branches
+# - Pull requests to main, develop
+#
+# Zero Mock Policy: Production-ready code quality enforcement
+# =========================================================================
+
+name: Code Quality & Linting
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'hotfix/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  # Allow manual workflow dispatch
+  workflow_dispatch:
+
+# Cancel in-progress runs for same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # Backend Linting (Python 3.11+)
+  # =========================================================================
+  backend-lint:
+    name: Backend Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      # Setup Python 3.11
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      # Install dependencies
+      - name: Install Python dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff mypy black bandit
+
+      # Run ruff (linting)
+      - name: Run ruff linter
+        run: |
+          cd backend
+          ruff check app/ tests/ --output-format=github
+
+      # Run mypy (type checking)
+      - name: Run mypy type checker
+        run: |
+          cd backend
+          mypy app/ --strict --pretty --show-error-codes
+
+      # Run black (formatting check)
+      - name: Check code formatting with black
+        run: |
+          cd backend
+          black --check app/ tests/
+
+      # Enforce Zero Mock Policy
+      - name: Enforce Zero Mock Policy
+        run: |
+          cd backend
+          echo "Checking for banned mock patterns..."
+
+          # Search for TODO comments
+          if grep -r "# TODO" app/ tests/ --exclude-dir=__pycache__; then
+            echo "❌ ERROR: Found TODO comments (violates Zero Mock Policy)"
+            exit 1
+          fi
+
+          # Search for mock return values
+          if grep -r "return.*mock" app/ --exclude-dir=__pycache__; then
+            echo "❌ ERROR: Found mock return values (violates Zero Mock Policy)"
+            exit 1
+          fi
+
+          # Search for placeholder pass statements
+          if grep -rE "^\s*pass\s*#.*implement" app/ --exclude-dir=__pycache__; then
+            echo "❌ ERROR: Found placeholder pass statements (violates Zero Mock Policy)"
+            exit 1
+          fi
+
+          echo "✅ Zero Mock Policy: PASS"
+
+      # AGPL Containment Validation
+      - name: AGPL Containment Validation
+        run: |
+          cd backend
+          echo "Checking for AGPL library imports..."
+
+          # Check for MinIO SDK imports (AGPL contamination)
+          if grep -r "from minio import" app/ --exclude-dir=__pycache__; then
+            echo "❌ ERROR: Found MinIO SDK import (AGPL violation)"
+            exit 1
+          fi
+
+          # Check for Grafana SDK imports (AGPL contamination)
+          if grep -r "from grafana" app/ --exclude-dir=__pycache__; then
+            echo "❌ ERROR: Found Grafana SDK import (AGPL violation)"
+            exit 1
+          fi
+
+          echo "✅ AGPL Containment: PASS (network-only access enforced)"
+
+      # Security check with bandit
+      - name: Security check with bandit
+        run: |
+          cd backend
+          bandit -r app/ -f json -o bandit-report.json || true
+          bandit -r app/ -ll -ii
+
+  # =========================================================================
+  # Frontend Linting (TypeScript, React)
+  # =========================================================================
+  frontend-lint:
+    name: Frontend Code Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Node.js 20.x
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
+
+      # Install dependencies
+      - name: Install npm dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      # Run ESLint
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
+
+      # Run Prettier (formatting check)
+      - name: Check code formatting with Prettier
+        run: |
+          cd frontend
+          npm run format:check
+
+      # TypeScript compiler check
+      - name: TypeScript type check
+        run: |
+          cd frontend
+          npm run type-check
+
+      # Enforce Zero Mock Policy (Frontend)
+      - name: Enforce Zero Mock Policy (Frontend)
+        run: |
+          cd frontend
+          echo "Checking for banned mock patterns..."
+
+          # Search for TODO comments
+          if grep -r "// TODO" src/ --exclude-dir=node_modules; then
+            echo "❌ ERROR: Found TODO comments (violates Zero Mock Policy)"
+            exit 1
+          fi
+
+          # Search for mock data
+          if grep -r "mock.*data" src/ --exclude-dir=node_modules --exclude="*.test.*"; then
+            echo "❌ ERROR: Found mock data (violates Zero Mock Policy)"
+            exit 1
+          fi
+
+          echo "✅ Zero Mock Policy: PASS"
+
+  # =========================================================================
+  # License Compliance Check
+  # =========================================================================
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Python for backend license check
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Backend license scan
+      - name: Backend License Scan
+        run: |
+          cd backend
+          pip install pip-licenses
+          pip-licenses --format=json --output-file=licenses-backend.json
+
+          # Check for AGPL licenses
+          if pip-licenses | grep -i "agpl"; then
+            echo "❌ ERROR: AGPL license detected in Python dependencies"
+            exit 1
+          fi
+
+          echo "✅ Backend License Check: PASS"
+
+      # Setup Node.js for frontend license check
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Frontend license scan
+      - name: Frontend License Scan
+        run: |
+          cd frontend
+          npm ci
+          npx license-checker --json --out licenses-frontend.json
+
+          # Check for AGPL licenses
+          if npx license-checker --summary | grep -i "agpl"; then
+            echo "❌ ERROR: AGPL license detected in npm dependencies"
+            exit 1
+          fi
+
+          echo "✅ Frontend License Check: PASS"
+
+  # =========================================================================
+  # Summary Report
+  # =========================================================================
+  lint-summary:
+    name: Lint Summary
+    runs-on: ubuntu-latest
+    needs: [backend-lint, frontend-lint, license-check]
+    if: always()
+
+    steps:
+      - name: Lint Summary Report
+        run: |
+          echo "=========================================="
+          echo "Code Quality & Linting Summary"
+          echo "=========================================="
+          echo ""
+          echo "Backend Lint: ${{ needs.backend-lint.result }}"
+          echo "Frontend Lint: ${{ needs.frontend-lint.result }}"
+          echo "License Check: ${{ needs.license-check.result }}"
+          echo ""
+
+          if [[ "${{ needs.backend-lint.result }}" == "success" ]] && \
+             [[ "${{ needs.frontend-lint.result }}" == "success" ]] && \
+             [[ "${{ needs.license-check.result }}" == "success" ]]; then
+            echo "✅ All lint checks passed!"
+            exit 0
+          else
+            echo "❌ Some lint checks failed"
+            exit 1
+          fi

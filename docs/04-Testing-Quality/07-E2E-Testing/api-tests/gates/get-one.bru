@@ -1,0 +1,54 @@
+meta {
+  name: Get Gate by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates/{{gateId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Gate has all required fields", function() {
+    expect(res.body).to.have.property("id");
+    expect(res.body).to.have.property("gate_name");
+    expect(res.body).to.have.property("gate_type");
+    expect(res.body).to.have.property("project_id");
+    expect(res.body).to.have.property("stage");
+    expect(res.body).to.have.property("status");
+    expect(res.body).to.have.property("description");
+  });
+}
+
+docs {
+  # Get Gate by ID
+
+  Returns detailed information about a specific gate.
+
+  ## Prerequisites
+  - Run "List Gates" first to get a valid gateId
+
+  ## Path Parameters
+  - **gateId**: UUID of the gate
+
+  ## Response Fields
+  - **id**: Gate UUID
+  - **gate_name**: Gate identifier
+  - **gate_type**: Type of gate
+  - **project_id**: Parent project UUID
+  - **stage**: SDLC stage
+  - **status**: Current status
+  - **description**: Gate description
+  - **created_at**: Creation timestamp
+  - **updated_at**: Last update timestamp
+}

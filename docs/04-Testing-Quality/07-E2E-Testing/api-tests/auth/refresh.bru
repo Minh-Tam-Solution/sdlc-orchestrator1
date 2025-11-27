@@ -1,0 +1,50 @@
+meta {
+  name: Refresh Token
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/auth/refresh
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "refresh_token": "{{refreshToken}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setVar("accessToken", res.body.access_token);
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("New access_token is returned", function() {
+    expect(res.body).to.have.property("access_token");
+  });
+}
+
+docs {
+  # Refresh Token
+
+  Exchanges a refresh token for a new access token.
+
+  ## Prerequisites
+  - Must have a valid refresh_token from login
+
+  ## Use Case
+  - Call this when access_token expires (after 1 hour)
+  - Automatically updates accessToken variable for subsequent requests
+}

@@ -1,0 +1,64 @@
+meta {
+  name: Dashboard Stats
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/dashboard/stats
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has total_projects", function() {
+    expect(res.body).to.have.property("total_projects");
+    expect(res.body.total_projects).to.be.a("number");
+  });
+
+  test("Response has active_gates", function() {
+    expect(res.body).to.have.property("active_gates");
+    expect(res.body.active_gates).to.be.a("number");
+  });
+
+  test("Response has pending_approvals", function() {
+    expect(res.body).to.have.property("pending_approvals");
+    expect(res.body.pending_approvals).to.be.a("number");
+  });
+
+  test("Response has pass_rate", function() {
+    expect(res.body).to.have.property("pass_rate");
+    expect(res.body.pass_rate).to.be.a("number");
+    expect(res.body.pass_rate).to.be.within(0, 100);
+  });
+}
+
+docs {
+  # Dashboard Statistics
+
+  Returns aggregate statistics for the dashboard.
+
+  ## Response Fields
+  - **total_projects**: Total number of active projects
+  - **active_gates**: Gates with PENDING or IN_PROGRESS status
+  - **pending_approvals**: Gates awaiting approval (PENDING_APPROVAL)
+  - **pass_rate**: Percentage of approved gates (0-100)
+
+  ## Expected Values (with seed data)
+  ```json
+  {
+    "total_projects": 3,
+    "active_gates": 3,
+    "pending_approvals": 3,
+    "pass_rate": 100
+  }
+  ```
+}

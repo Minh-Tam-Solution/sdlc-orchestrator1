@@ -1,0 +1,79 @@
+meta {
+  name: List Projects
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/projects
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.length > 0) {
+    bru.setVar("projectId", res.body[0].id);
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("Each project has required fields", function() {
+    if (res.body.length > 0) {
+      const project = res.body[0];
+      expect(project).to.have.property("id");
+      expect(project).to.have.property("name");
+      expect(project).to.have.property("description");
+      expect(project).to.have.property("current_stage");
+      expect(project).to.have.property("gate_status");
+      expect(project).to.have.property("progress");
+    }
+  });
+
+  test("Gate status is valid value", function() {
+    const validStatuses = ["passed", "failed", "pending", "not_started"];
+    res.body.forEach(project => {
+      expect(validStatuses).to.include(project.gate_status);
+    });
+  });
+
+  test("Progress is between 0 and 100", function() {
+    res.body.forEach(project => {
+      expect(project.progress).to.be.within(0, 100);
+    });
+  });
+}
+
+docs {
+  # List Projects
+
+  Returns all projects accessible to the current user.
+
+  ## Query Parameters
+  - **skip**: Number of records to skip (default: 0)
+  - **limit**: Maximum records to return (default: 100)
+
+  ## Response Fields
+  - **id**: Project UUID
+  - **name**: Project name
+  - **description**: Project description
+  - **current_stage**: Highest stage with gates (e.g., "WHY", "WHAT", "HOW")
+  - **gate_status**: Overall project status ("passed", "failed", "pending", "not_started")
+  - **progress**: Completion percentage (0-100)
+  - **created_at**: Creation timestamp
+  - **updated_at**: Last update timestamp
+
+  ## Expected (with seed data)
+  3 projects: BFlow, NQH, MTC
+}

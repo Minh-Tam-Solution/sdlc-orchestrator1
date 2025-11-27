@@ -1,0 +1,74 @@
+meta {
+  name: Create Gate
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "gate_name": "G-TEST",
+    "gate_type": "TEST_GATE",
+    "project_id": "{{projectId}}",
+    "stage": "VERIFY",
+    "description": "Test gate created by API test"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("newGateId", res.body.id);
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("Gate has id", function() {
+    expect(res.body).to.have.property("id");
+  });
+
+  test("Gate name matches", function() {
+    expect(res.body.gate_name).to.equal("G-TEST");
+  });
+
+  test("Gate status is PENDING", function() {
+    expect(res.body.status).to.equal("PENDING");
+  });
+}
+
+docs {
+  # Create Gate
+
+  Creates a new gate for a project.
+
+  ## Prerequisites
+  - Run "List Projects" first to get a valid projectId
+
+  ## Request Body
+  - **gate_name**: Unique gate identifier (e.g., "G2", "G3")
+  - **gate_type**: Type of gate (PROBLEM_DEFINITION, DESIGN_READY, etc.)
+  - **project_id**: UUID of the parent project
+  - **stage**: SDLC stage (WHY, WHAT, HOW, BUILD, VERIFY, etc.)
+  - **description**: Description of the gate
+
+  ## Response
+  Returns the created gate with:
+  - **id**: Newly created gate UUID
+  - **status**: Always "PENDING" for new gates
+}

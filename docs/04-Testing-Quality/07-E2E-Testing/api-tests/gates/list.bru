@@ -1,0 +1,59 @@
+meta {
+  name: List Gates
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.length > 0) {
+    bru.setVar("gateId", res.body[0].id);
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("Each gate has required fields", function() {
+    if (res.body.length > 0) {
+      const gate = res.body[0];
+      expect(gate).to.have.property("id");
+      expect(gate).to.have.property("gate_name");
+      expect(gate).to.have.property("project_id");
+      expect(gate).to.have.property("status");
+    }
+  });
+}
+
+docs {
+  # List Gates
+
+  Returns all gates across all projects.
+
+  ## Query Parameters
+  - **project_id**: Filter by project (optional)
+  - **status**: Filter by status (optional)
+  - **stage**: Filter by SDLC stage (optional)
+
+  ## Response Fields
+  - **id**: Gate UUID
+  - **gate_name**: Gate identifier (e.g., "G0.1", "G1", "G2")
+  - **project_id**: Associated project UUID
+  - **stage**: SDLC stage (WHY, WHAT, HOW, BUILD, etc.)
+  - **status**: Gate status (PENDING, PENDING_APPROVAL, APPROVED, REJECTED)
+}

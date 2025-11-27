@@ -1,0 +1,86 @@
+---
+# =========================================================================
+# Kustomize Base Configuration
+# SDLC Orchestrator - Stage 03 (BUILD) - Week 12 Hardening
+#
+# Version: 1.0.0
+# Date: November 27, 2025
+# Status: ACTIVE - Week 12 Production Hardening
+# Authority: DevOps Lead + CTO Approved
+# Framework: SDLC 4.9 Complete Lifecycle
+#
+# Usage:
+#   kubectl apply -k k8s/base/              # Deploy base configuration
+#   kubectl apply -k k8s/overlays/staging/  # Deploy to staging
+#   kubectl apply -k k8s/overlays/prod/     # Deploy to production
+#
+# Zero Mock Policy: Production-ready Kustomize configuration
+# =========================================================================
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sdlc-orchestrator
+
+# Common labels applied to all resources
+commonLabels:
+  app.kubernetes.io/part-of: sdlc-orchestrator-platform
+  app.kubernetes.io/managed-by: kustomize
+
+# Resources to include
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # RBAC & Security
+  - rbac.yaml
+  - network-policies.yaml
+
+  # Configuration
+  - configmap.yaml
+  - secrets.yaml
+
+  # Database
+  - postgres-configmap.yaml
+  - postgres-statefulset.yaml
+
+  # Cache
+  - redis.yaml
+
+  # Object Storage (AGPL containment)
+  - minio.yaml
+
+  # Policy Engine
+  - opa.yaml
+
+  # Backend API
+  - backend.yaml
+
+  # Ingress & Networking
+  - ingress.yaml
+
+  # Backup & DR
+  - backup-cronjob.yaml
+
+# Images (can be overridden in overlays)
+images:
+  - name: sdlc-orchestrator-backend
+    newTag: latest
+  - name: postgres
+    newTag: "15.5-alpine"
+  - name: redis
+    newTag: "7.2-alpine"
+  - name: minio/minio
+    newTag: latest
+  - name: openpolicyagent/opa
+    newTag: latest
+
+# ConfigMap generator (optional, for environment-specific configs)
+configMapGenerator:
+  - name: app-config
+    literals:
+      - APP_ENV=production
+      - LOG_LEVEL=INFO
+      - PYTHONDONTWRITEBYTECODE=1
+    options:
+      disableNameSuffixHash: true
