@@ -384,7 +384,7 @@
 ### Internal-First Strategy (CEO Approved Nov 14)
 
 **Phase 1: Internal Validation** (Feb-Jun 2026)
-- Target: 5-8 MTC/NQH internal teams
+- Target: 5-8 MTS/NQH internal teams
 - Revenue: $0 MRR (internal only, no sales)
 - Success Metrics:
   - 70%+ daily usage (teams use platform daily)
@@ -439,7 +439,7 @@
 - 95%+ test coverage (Zero Mock Policy enforced)
 
 **Business Metrics** (CEO-Owned):
-- 5-8 MTC/NQH teams onboarded (Week 11)
+- 5-8 MTS/NQH teams onboarded (Week 11)
 - 3+ case studies (proven ROI for Phase 2)
 - $0 MRR (internal only, no revenue Phase 1)
 - YC Seed readiness (Jul 2026 external launch)

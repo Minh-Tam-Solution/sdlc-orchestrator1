@@ -261,7 +261,7 @@
   - Beta incentives ($100 credit)
   - Early access to AI features
   - Direct influence on product roadmap
-- **Condition**: Internal beta coordination with MTC/NQH teams by Week 6
+- **Condition**: Internal beta coordination with MTS/NQH teams by Week 6
 - **Status**: 🟡 PENDING
 
 **Concern 4: AI Prompt Quality** (Severity: MEDIUM)

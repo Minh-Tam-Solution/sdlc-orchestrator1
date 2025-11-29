@@ -1,0 +1,69 @@
+meta {
+  name: List Evidence
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/evidence?gate_id={{bflowG01GateId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("Evidence has required fields", function() {
+    if (res.body.length > 0) {
+      const evidence = res.body[0];
+      expect(evidence).to.have.property("id");
+      expect(evidence).to.have.property("title");
+      expect(evidence).to.have.property("evidence_type");
+      expect(evidence).to.have.property("file_name");
+      expect(evidence).to.have.property("file_size");
+      expect(evidence).to.have.property("sha256_hash");
+    }
+  });
+
+  test("Evidence type is valid", function() {
+    const validTypes = ["DOCUMENT", "CODE", "DATA", "DIAGRAM", "REPORT", "VIDEO"];
+    res.body.forEach(e => {
+      expect(validTypes).to.include(e.evidence_type);
+    });
+  });
+}
+
+docs {
+  # List Evidence for Gate
+
+  Returns all evidence files associated with a specific gate.
+
+  ## Query Parameters
+  - **gate_id**: Gate UUID (required)
+  - **evidence_type**: Filter by type (optional)
+
+  ## Response Fields
+  - **id**: Evidence UUID
+  - **title**: Evidence title
+  - **evidence_type**: DOCUMENT, CODE, DATA, DIAGRAM, REPORT, VIDEO
+  - **file_name**: Original file name
+  - **file_size**: Size in bytes
+  - **sha256_hash**: SHA256 hash for integrity verification
+  - **uploaded_by**: User ID who uploaded
+  - **created_at**: Upload timestamp
+
+  ## Expected (with seed data)
+  Gate G0.1 (BFlow): 2 evidence files
+  - Problem Statement Document (DOCUMENT)
+  - User Survey Results (DATA)
+}

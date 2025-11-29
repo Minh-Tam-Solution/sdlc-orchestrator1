@@ -1,0 +1,264 @@
+# SDLC Orchestrator - Docker Compose Staging
+# Environment: STAGING (Pre-Production)
+# Date: 2025-11-29
+# Gate: G4 Internal Beta
+
+services:
+  # ============================================================================
+  # PostgreSQL - Primary Database (Staging)
+  # ============================================================================
+  postgres:
+    image: postgres:15.5-alpine
+    container_name: sdlc-staging-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: sdlc_orchestrator_staging
+      POSTGRES_USER: sdlc_staging_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdlc_staging_user -d sdlc_orchestrator_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # Redis - Caching + Sessions (Staging)
+  # ============================================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: sdlc-staging-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    ports:
+      - "6379:6379"
+    volumes:
+      - staging_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # MinIO - S3-Compatible Object Storage (Staging)
+  # ============================================================================
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: sdlc-staging-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - staging_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-staging-network
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: sdlc-staging-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/evidence-vault --ignore-existing;
+      /usr/bin/mc mb myminio/orchdocs --ignore-existing;
+      /usr/bin/mc mb myminio/reports --ignore-existing;
+      echo 'Staging MinIO buckets initialized';
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # Open Policy Agent (OPA) - Gate Engine (Staging)
+  # ============================================================================
+  opa:
+    image: openpolicyagent/opa:0.58.0
+    platform: linux/amd64
+    container_name: sdlc-staging-opa
+    restart: unless-stopped
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./policy-packs/rego:/policies:ro
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # FastAPI Backend (Staging)
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sdlc-staging-backend
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://sdlc_staging_user:${POSTGRES_PASSWORD}@postgres:5432/sdlc_orchestrator_staging
+
+      # JWT (Production-grade secret)
+      SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY required - min 32 chars}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_HOURS: 1
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+
+      # MinIO S3
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: evidence-vault
+      MINIO_SECURE: "false"
+
+      # OPA
+      OPA_URL: http://opa:8181
+
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+
+      # App - STAGING
+      ENVIRONMENT: staging
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://staging.sdlc-orchestrator.io}
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      opa:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # React Frontend (Staging)
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend/web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: sdlc-staging-frontend
+    restart: unless-stopped
+    ports:
+      - "4000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # Prometheus (Staging Monitoring)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: sdlc-staging-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - staging_prometheus_data:/prometheus
+    networks:
+      - sdlc-staging-network
+
+  # ============================================================================
+  # Node Exporter (Staging Metrics)
+  # ============================================================================
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: sdlc-staging-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9100/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sdlc-staging-network
+
+# ============================================================================
+# Volumes (Staging - isolated from dev)
+# ============================================================================
+volumes:
+  staging_postgres_data:
+    driver: local
+  staging_redis_data:
+    driver: local
+  staging_minio_data:
+    driver: local
+  staging_prometheus_data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  sdlc-staging-network:
+    driver: bridge
+    name: sdlc-staging-network

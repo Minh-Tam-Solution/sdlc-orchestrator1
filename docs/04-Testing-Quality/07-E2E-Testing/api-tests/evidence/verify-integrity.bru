@@ -1,0 +1,67 @@
+meta {
+  name: Verify Evidence Integrity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/evidence/{{evidenceG01Id}}/verify
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Has integrity_status field", function() {
+    expect(res.body).to.have.property("integrity_status");
+  });
+
+  test("Integrity status is VERIFIED or FAILED", function() {
+    expect(["VERIFIED", "FAILED"]).to.include(res.body.integrity_status);
+  });
+
+  test("Has hash comparison fields", function() {
+    expect(res.body).to.have.property("stored_hash");
+    expect(res.body).to.have.property("calculated_hash");
+    expect(res.body).to.have.property("verified_at");
+  });
+
+  test("For valid evidence, hashes should match", function() {
+    if (res.body.integrity_status === "VERIFIED") {
+      expect(res.body.stored_hash).to.equal(res.body.calculated_hash);
+    }
+  });
+}
+
+docs {
+  # Verify Evidence Integrity
+
+  Verifies the integrity of an evidence file by recalculating SHA256 hash
+  and comparing with stored hash.
+
+  ## Path Parameters
+  - **evidence_id**: Evidence UUID
+
+  ## Response Fields
+  - **evidence_id**: Evidence UUID
+  - **integrity_status**: VERIFIED or FAILED
+  - **stored_hash**: Original SHA256 hash stored at upload
+  - **calculated_hash**: SHA256 hash calculated from current file
+  - **verified_at**: Verification timestamp
+
+  ## Use Cases
+  - Audit trail verification
+  - Detect file tampering
+  - Compliance reporting (SOC 2, HIPAA)
+
+  ## Expected
+  - Seed data evidence should return VERIFIED
+  - Tampered files return FAILED (alert triggered)
+}

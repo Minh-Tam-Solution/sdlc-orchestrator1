@@ -1,0 +1,233 @@
+# =============================================================================
+# SDLC Orchestrator - Docker Compose Production
+# =============================================================================
+# Environment: PRODUCTION (NQH Infrastructure 192.168.0.223)
+# Date: 2025-11-29
+# Status: IT ADMIN APPROVED
+# Port Range: 8300-8399 (SDLC Platform)
+# Public URLs:
+#   - Frontend: https://sdlc.nqh.vn (port 8310)
+#   - Backend API: https://sdlc-api.nqh.vn (port 8300)
+# =============================================================================
+
+services:
+  # ============================================================================
+  # PostgreSQL - Primary Database (Production - Port 5450)
+  # ============================================================================
+  postgres:
+    image: postgres:15.5-alpine
+    container_name: sdlc-prod-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: sdlc_orchestrator
+      POSTGRES_USER: sdlc_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5450:5432"
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sdlc_user -d sdlc_orchestrator"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-prod-network
+
+  # ============================================================================
+  # Redis - Caching + Sessions (Production - Port 6395)
+  # ============================================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: sdlc-prod-redis
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    ports:
+      - "6395:6379"
+    volumes:
+      - prod_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-prod-network
+
+  # ============================================================================
+  # MinIO - S3-Compatible Object Storage (Production - Ports 9010/9011)
+  # ============================================================================
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: sdlc-prod-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    volumes:
+      - prod_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-prod-network
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: sdlc-prod-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      /usr/bin/mc mb myminio/evidence-vault --ignore-existing;
+      /usr/bin/mc mb myminio/orchdocs --ignore-existing;
+      /usr/bin/mc mb myminio/reports --ignore-existing;
+      echo 'Production MinIO buckets initialized';
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    networks:
+      - sdlc-prod-network
+
+  # ============================================================================
+  # Open Policy Agent (OPA) - Gate Engine (Production - Port 8185)
+  # ============================================================================
+  opa:
+    image: openpolicyagent/opa:0.58.0
+    platform: linux/amd64
+    container_name: sdlc-prod-opa
+    restart: always
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    ports:
+      - "8185:8181"
+    volumes:
+      - ./policy-packs/rego:/policies:ro
+    networks:
+      - sdlc-prod-network
+
+  # ============================================================================
+  # FastAPI Backend (Production - Port 8300)
+  # Public URL: https://sdlc-api.nqh.vn
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sdlc-prod-backend
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment:
+      # Database (Port 5450 internal → 5432)
+      DATABASE_URL: postgresql+asyncpg://sdlc_user:${POSTGRES_PASSWORD}@postgres:5432/sdlc_orchestrator
+
+      # JWT (Production-grade secret)
+      SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY required - min 32 chars}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_HOURS: 1
+      REFRESH_TOKEN_EXPIRE_DAYS: 30
+
+      # MinIO S3 (Internal port 9000)
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: evidence-vault
+      MINIO_SECURE: "false"
+
+      # OPA (Internal port 8181)
+      OPA_URL: http://opa:8181
+
+      # Redis (Internal port 6379)
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+
+      # App - PRODUCTION
+      ENVIRONMENT: production
+      DEBUG: "false"
+      LOG_LEVEL: INFO
+      ALLOWED_ORIGINS: https://sdlc.nqh.vn,https://sdlc-api.nqh.vn
+
+      # OAuth (Production URLs)
+      OAUTH_REDIRECT_URL: https://sdlc.nqh.vn/auth/callback
+      GITHUB_OAUTH_REDIRECT_URL: https://sdlc.nqh.vn/auth/github/callback
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+
+    ports:
+      - "8300:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      opa:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - sdlc-prod-network
+
+  # ============================================================================
+  # React Frontend (Production - Port 8310)
+  # Public URL: https://sdlc.nqh.vn
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend/web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://sdlc-api.nqh.vn
+    container_name: sdlc-prod-frontend
+    restart: always
+    ports:
+      - "8310:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - sdlc-prod-network
+
+# ============================================================================
+# Volumes (Production - isolated, persistent)
+# ============================================================================
+volumes:
+  prod_postgres_data:
+    driver: local
+  prod_redis_data:
+    driver: local
+  prod_minio_data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  sdlc-prod-network:
+    driver: bridge
+    name: sdlc-prod-network

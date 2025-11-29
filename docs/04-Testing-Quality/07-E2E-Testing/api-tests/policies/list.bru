@@ -1,0 +1,90 @@
+meta {
+  name: List Policies
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/policies
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.length > 0) {
+    bru.setVar("policyId", res.body[0].id);
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response is an array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("Has at least 10 active policies", function() {
+    const activePolicies = res.body.filter(p => p.is_active);
+    expect(activePolicies.length).to.be.at.least(10);
+  });
+
+  test("Policy has required fields", function() {
+    if (res.body.length > 0) {
+      const policy = res.body[0];
+      expect(policy).to.have.property("id");
+      expect(policy).to.have.property("name");
+      expect(policy).to.have.property("description");
+      expect(policy).to.have.property("stage");
+      expect(policy).to.have.property("is_active");
+      expect(policy).to.have.property("version");
+    }
+  });
+
+  test("Stage values are valid SDLC stages", function() {
+    const validStages = ["WHY", "WHAT", "HOW", "BUILD", "VERIFY", "RELEASE", "OPERATE", "RETIRE"];
+    res.body.forEach(policy => {
+      expect(validStages).to.include(policy.stage);
+    });
+  });
+
+  test("All expected stages have policies", function() {
+    const stages = [...new Set(res.body.map(p => p.stage))];
+    expect(stages).to.include("WHY");
+    expect(stages).to.include("WHAT");
+    expect(stages).to.include("HOW");
+    expect(stages).to.include("VERIFY");
+  });
+}
+
+docs {
+  # List Policies
+
+  Returns all policies available in the system.
+
+  ## Query Parameters
+  - **is_active**: Filter by active status (optional)
+  - **stage**: Filter by SDLC stage (optional)
+
+  ## Response Fields
+  - **id**: Policy UUID
+  - **name**: Policy name (snake_case)
+  - **description**: Human-readable description
+  - **stage**: SDLC stage (WHY, WHAT, HOW, BUILD, VERIFY, etc.)
+  - **is_active**: Whether policy is enforced
+  - **version**: Policy version (semver)
+  - **created_by**: User who created policy
+  - **created_at**: Creation timestamp
+
+  ## Expected (with seed data)
+  10 active policies across stages:
+  - WHY: 3 (problem_statement, user_research, solution_alternatives)
+  - WHAT: 3 (frd, api_spec, data_model)
+  - HOW: 2 (architecture_doc, security_baseline)
+  - VERIFY: 2 (test_coverage, no_critical_bugs)
+}

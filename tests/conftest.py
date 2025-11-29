@@ -61,9 +61,10 @@ from app.models.policy import Policy
 fake = Faker()
 
 # Test database URL (isolated from development)
+# Port configurable via TEST_DATABASE_URL env var (default: postgres:5432 for Docker)
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:5432/sdlc_orchestrator_test"
+    "postgresql+asyncpg://sdlc_user:changeme_secure_password@postgres:5432/sdlc_orchestrator_test"
 )
 
 # Create async engine for tests (NullPool to avoid connection issues)

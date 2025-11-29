@@ -18,14 +18,14 @@ import { defineConfig, devices } from '@playwright/test'
  */
 export default defineConfig({
   testDir: './e2e',
-  /* Run tests in files in parallel */
+  /* Run tests in files in parallel - limited workers to avoid session conflicts */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 2 : 1,
+  /* Limit workers to avoid session/auth race conditions */
+  workers: process.env.CI ? 1 : 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
@@ -34,7 +34,8 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    /* Configurable via BASE_URL env var. Defaults: Docker staging=:4000, dev server=:5173 */
+    baseURL: process.env.BASE_URL || (process.env.SKIP_WEB_SERVER ? `http://localhost:${process.env.FRONTEND_PORT || '4000'}` : `http://localhost:${process.env.VITE_DEV_PORT || '5173'}`),
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -79,7 +80,7 @@ export default defineConfig({
     ? undefined
     : {
         command: 'npm run dev',
-        url: 'http://localhost:5173',
+        url: `http://localhost:${process.env.VITE_DEV_PORT || '5173'}`,
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000,
       },

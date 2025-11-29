@@ -89,7 +89,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Database (PostgreSQL)
-    DATABASE_URL: str = "postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:5432/sdlc_orchestrator"
+    # Port configurable via DATABASE_URL env var (default: 5432)
+    DATABASE_URL: str = "postgresql+asyncpg://sdlc_user:changeme_secure_password@postgres:5432/sdlc_orchestrator"
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 20
 
@@ -99,9 +100,11 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    # Port configurable via REDIS_URL env var (default: 6379)
+    REDIS_URL: str = "redis://redis:6379/0"
 
     # MinIO (S3-Compatible Storage)
+    # Port configurable via MINIO_ENDPOINT env var (default: 9000)
     MINIO_ENDPOINT: str = "minio:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin_changeme"
@@ -109,26 +112,40 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = False  # Use HTTPS (False for local dev)
 
     # OPA (Open Policy Agent)
+    # Port configurable via OPA_URL env var (default: 8181)
     OPA_URL: str = "http://opa:8181"
 
     # OAuth 2.0 Providers
     GITHUB_CLIENT_ID: Optional[str] = None
     GITHUB_CLIENT_SECRET: Optional[str] = None
+    GITHUB_WEBHOOK_SECRET: Optional[str] = None  # For webhook signature validation
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     MICROSOFT_CLIENT_ID: Optional[str] = None
     MICROSOFT_CLIENT_SECRET: Optional[str] = None
 
-    # OAuth Redirect URLs
+    # OAuth Redirect URLs (configurable via env vars)
     OAUTH_REDIRECT_URL: str = "http://localhost:3000/auth/callback"
+    GITHUB_OAUTH_REDIRECT_URL: str = "http://localhost:3000/auth/github/callback"
 
-    # CORS
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+    # CORS (configurable via ALLOWED_ORIGINS env var)
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:4000,http://localhost:5173,http://localhost:8000"
 
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse ALLOWED_ORIGINS into list"""
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+
+    @property
+    def ACCESS_TOKEN_EXPIRE_MINUTES(self) -> int:
+        """Access token expiry in minutes"""
+        return self.ACCESS_TOKEN_EXPIRE_HOURS * 60
+
+    @property
+    def REFRESH_TOKEN_EXPIRE_TIMEDELTA(self):
+        """Refresh token expiry as timedelta"""
+        from datetime import timedelta
+        return timedelta(days=self.REFRESH_TOKEN_EXPIRE_DAYS)
 
     class Config:
         env_file = ".env"

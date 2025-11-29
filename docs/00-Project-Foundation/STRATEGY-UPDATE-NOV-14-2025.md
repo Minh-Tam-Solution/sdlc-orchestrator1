@@ -20,7 +20,7 @@
 |--------|--------------|-------------------------------|
 | **MVP Launch** | February 10, 2026 (external) | February 10, 2026 (internal only) |
 | **First Revenue** | February 2026 ($2K MRR) | July 2026+ (after 4-6 months validation) |
-| **Beta Users** | 10 external teams (LOIs) | 5-8 MTC/NQH internal teams |
+| **Beta Users** | 10 external teams (LOIs) | 5-8 MTS/NQH internal teams |
 | **Gate G1 Criteria** | Legal + 10 LOIs | Legal + FRD + Data Model (skip LOIs) |
 | **Phase 1** | N/A | Feb-Jun 2026: Internal validation ($0 MRR) |
 | **Phase 2** | N/A | Jul 2026+: External market launch |
@@ -35,7 +35,7 @@
 > "SDLC Orchestrator đầu tiên là sử dụng nội bộ trong MTS và NQH để quản trị các team phát triển ứng dụng, làm tốt được điều đó thì mới đưa ra thị trường, nên việc đưa ra thị trường là giai đoạn 2 nhé"
 
 **Translation**:
-> "SDLC Orchestrator will first be used internally within MTC and NQH to manage application development teams. Only after successful internal implementation will it be released to the market (Stage 2)."
+> "SDLC Orchestrator will first be used internally within MTS and NQH to manage application development teams. Only after successful internal implementation will it be released to the market (Stage 2)."
 
 ### Strategic Benefits
 
@@ -69,7 +69,7 @@
 ### Phase 1: Internal Validation (February-June 2026)
 
 **Timeline**: 4-6 months post-MVP  
-**Target**: MTC + NQH internal application development teams  
+**Target**: MTS + NQH internal application development teams  
 **Scope**: 5-8 teams, 50-100 engineers total  
 **Revenue**: $0 MRR (internal use only, no billing)
 
@@ -102,7 +102,7 @@
 **Revenue**: $2K MRR Month 1 → $20K MRR Month 12
 
 **Go-to-Market Strategy**:
-- **Proof Points**: MTC/NQH case studies (real waste reduction data)
+- **Proof Points**: MTS/NQH case studies (real waste reduction data)
 - **Sales Pitch**: "We've used it internally for 6 months, reduced waste by X%"
 - **Marketing**: Product Hunt, Hacker News, YC Demo Day
 - **Pricing**: Validated with internal teams ($20/team/month sweet spot)
@@ -144,10 +144,10 @@
 ### Gate G4 (Week 11 - Jan 23-27, 2026) - UPDATED
 
 **Original**: Market Validation with 10 external beta teams  
-**NEW**: Internal Validation with 5-8 MTC/NQH teams
+**NEW**: Internal Validation with 5-8 MTS/NQH teams
 
 **NEW Exit Criteria**:
-- ✅ 5-8 MTC/NQH internal teams onboarded (50-100 engineers total)
+- ✅ 5-8 MTS/NQH internal teams onboarded (50-100 engineers total)
 - ✅ **70%+ Daily Active Usage** (sticky product validation)
 - ✅ **NPS 50+** from internal users (quality benchmark)
 - ✅ Zero P0 bugs (system-breaking)
@@ -229,7 +229,7 @@
 - Same quality standards
 
 **Week 11 (Internal Beta)**: ✅ EASIER
-- Internal teams (MTC/NQH) vs external recruitment
+- Internal teams (MTS/NQH) vs external recruitment
 - Faster feedback loop (same office)
 - More forgiving users (we're on same team)
 
@@ -296,17 +296,17 @@
 1. ✅ **Product Roadmap Updated** (Internal-First strategy documented)
 2. ⏳ **Update Stage 01 Documents** (remove external LOI references)
 3. ⏳ **Communicate to Team** (strategy change memo)
-4. ⏳ **Coordinate with MTC/NQH** (identify 5-8 internal teams for Week 11 beta)
+4. ⏳ **Coordinate with MTS/NQH** (identify 5-8 internal teams for Week 11 beta)
 
 ### Week 2 (Nov 21-25, 2025)
 
 1. ⏳ **Gate G1 Focus**: Legal + FRD + Data Model (skip LOI requirement)
-2. ⏳ **Internal Team Coordination**: Brief MTC/NQH leads on Week 11 beta plans
+2. ⏳ **Internal Team Coordination**: Brief MTS/NQH leads on Week 11 beta plans
 3. ⏳ **Metrics Planning**: Define "waste reduction" measurement methodology
 
 ### Week 11 (Jan 23-27, 2026)
 
-1. ⏳ **Internal Beta Launch**: Onboard 5-8 MTC/NQH teams
+1. ⏳ **Internal Beta Launch**: Onboard 5-8 MTS/NQH teams
 2. ⏳ **Daily Feedback Sessions**: Collect usage data, bug reports
 3. ⏳ **NPS Survey**: Measure internal user satisfaction
 
@@ -320,7 +320,7 @@
 ### Phase 2 (Jul 2026+)
 
 1. ⏳ **External Launch**: Product Hunt, Hacker News, YC outreach
-2. ⏳ **Sales Enablement**: "We use it ourselves" pitch with MTC/NQH case studies
+2. ⏳ **Sales Enablement**: "We use it ourselves" pitch with MTS/NQH case studies
 3. ⏳ **Revenue Growth**: Target $2K MRR Month 1 → $20K MRR Month 12
 
 ---
@@ -336,7 +336,7 @@
 ### Risk 2: Internal Teams Don't Adopt (<70% usage)
 
 **Impact**: No case studies for external launch  
-**Mitigation**: MTC/NQH teams already aware of waste problem (validated in interviews)  
+**Mitigation**: MTS/NQH teams already aware of waste problem (validated in interviews)  
 **Contingency**: Extend Phase 1 by 2 weeks, gather more feedback, improve UX
 
 ### Risk 3: Internal Feedback Too Polite (Not Real)
@@ -355,12 +355,12 @@
 **Message**: 
 - Strategy change from external to internal-first launch
 - Week 1-10 unchanged (same technical deliverables)
-- Week 11 internal beta easier (MTC/NQH teams, faster feedback)
+- Week 11 internal beta easier (MTS/NQH teams, faster feedback)
 - Week 13+ focus on internal validation ($0 MRR Phase 1)
 
-### MTC/NQH Leadership (Week 2)
+### MTS/NQH Leadership (Week 2)
 
-**Audience**: MTC CTO, NQH CTO, Team Leads  
+**Audience**: MTS CTO, NQH CTO, Team Leads  
 **Message**:
 - SDLC Orchestrator will launch internally Feb 2026
 - Need 5-8 application development teams for beta (Week 11+)

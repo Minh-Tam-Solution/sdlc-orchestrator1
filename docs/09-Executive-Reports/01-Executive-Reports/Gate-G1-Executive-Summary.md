@@ -18,7 +18,7 @@
 
 ### Strategic Context
 
-Following CEO-approved **Internal-First Strategy** (Phase 1: Feb-Jun 2026, zero external revenue, 5-8 MTC/NQH teams as beta users). Week 2 completed ahead of schedule with exceptional quality (9.7/10 average).
+Following CEO-approved **Internal-First Strategy** (Phase 1: Feb-Jun 2026, zero external revenue, 5-8 MTS/NQH teams as beta users). Week 2 completed ahead of schedule with exceptional quality (9.7/10 average).
 
 ---
 
@@ -214,7 +214,7 @@ CREATE INDEX idx_users_is_active ON users(is_active) WHERE deleted_at IS NULL; -
 ### Internal-First Strategy (CEO-Approved Nov 14, 2025)
 
 **Phase 1: Internal Validation** (Feb 2026 - Jun 2026)
-- **Target Users**: 5-8 MTC/NQH internal teams
+- **Target Users**: 5-8 MTS/NQH internal teams
 - **MRR**: $0 (free for internal teams)
 - **Focus**: Product validation, UX refinement, policy library expansion
 - **Success Criteria**: 80%+ user satisfaction, <5 critical bugs/month

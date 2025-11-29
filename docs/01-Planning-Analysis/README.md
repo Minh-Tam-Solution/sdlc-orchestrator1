@@ -75,7 +75,7 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 
 **Criteria**:
 - [ ] Legal review PASSED (AGPL containment approved)
-- [x] Internal-first strategy approved (5-8 MTC/NQH teams for Phase 1)
+- [x] Internal-first strategy approved (5-8 MTS/NQH teams for Phase 1)
 - [ ] FR1-FR20 defined (functional requirements)
 - [ ] NFR1-NFR15 defined (non-functional requirements)
 - [ ] Data model reviewed (CTO approval, no N+1 queries)
@@ -127,7 +127,7 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 - [ ] CTO review (data model, API specs approved)
 - [ ] Backend Lead review (API specs, schema migrations planned)
 - [ ] QA Lead review (test strategy defined based on requirements)
-- [x] Internal-first strategy (5-8 MTC/NQH teams, Phase 1 validation)
+- [x] Internal-first strategy (5-8 MTS/NQH teams, Phase 1 validation)
 
 ---
 

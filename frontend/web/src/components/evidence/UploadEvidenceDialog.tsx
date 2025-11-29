@@ -1,17 +1,26 @@
 /**
  * File: frontend/web/src/components/evidence/UploadEvidenceDialog.tsx
- * Version: 1.0.0
+ * Version: 2.0.0
  * Status: ACTIVE - STAGE 03 (BUILD)
- * Date: 2025-11-27
+ * Date: November 28, 2025
  * Authority: Frontend Lead + CTO Approved
- * Foundation: SDLC 4.9 Complete Lifecycle, Zero Mock Policy
+ * Foundation: Sprint 18 - Evidence Integration
+ * Framework: SDLC 4.9 Complete Lifecycle
  *
  * Description:
  * Dialog for uploading evidence files to a gate.
- * Supports file selection and evidence type categorization.
+ * Features:
+ * - Drag-and-drop file upload zone
+ * - File selection via button
+ * - Evidence type categorization
+ * - Upload progress indicator
+ *
+ * SDLC 4.9 Compliance:
+ * - Pillar 1: Zero Mock Policy (Real API calls)
+ * - Pillar 3: Quality Governance (Type hints)
  */
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Dialog,
@@ -72,7 +81,9 @@ export default function UploadEvidenceDialog({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dropZoneRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
   // Upload evidence mutation
@@ -112,10 +123,67 @@ export default function UploadEvidenceDialog({
     setSelectedFile(null)
     setError(null)
     setUploadProgress(0)
+    setIsDragOver(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
   }
+
+  // Validate file size and set it
+  const validateAndSetFile = useCallback((file: File) => {
+    // Check file size (100MB limit)
+    if (file.size > 100 * 1024 * 1024) {
+      setError('File size must be less than 100MB')
+      return false
+    }
+    setSelectedFile(file)
+    setError(null)
+    return true
+  }, [])
+
+  // Drag and drop handlers
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (uploadMutation.isPending) return
+    setIsDragOver(true)
+  }, [uploadMutation.isPending])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Only set isDragOver to false if we're leaving the drop zone entirely
+    const rect = dropZoneRef.current?.getBoundingClientRect()
+    if (rect) {
+      const { clientX, clientY } = e
+      if (
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom
+      ) {
+        setIsDragOver(false)
+      }
+    }
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    if (uploadMutation.isPending) return
+
+    const files = e.dataTransfer.files
+    if (files.length > 0 && files[0]) {
+      validateAndSetFile(files[0])
+    }
+  }, [uploadMutation.isPending, validateAndSetFile])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -177,10 +245,29 @@ export default function UploadEvidenceDialog({
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            {/* File selection */}
+            {/* Drag and drop zone */}
             <div className="grid gap-2">
               <Label htmlFor="file">File *</Label>
-              <div className="flex items-center gap-2">
+              <div
+                ref={dropZoneRef}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => !uploadMutation.isPending && fileInputRef.current?.click()}
+                className={`
+                  relative flex flex-col items-center justify-center
+                  border-2 border-dashed rounded-lg p-6 cursor-pointer
+                  transition-all duration-200 ease-in-out
+                  ${isDragOver
+                    ? 'border-primary bg-primary/10'
+                    : selectedFile
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
+                  }
+                  ${uploadMutation.isPending ? 'pointer-events-none opacity-60' : ''}
+                `}
+              >
                 <input
                   ref={fileInputRef}
                   id="file"
@@ -189,30 +276,64 @@ export default function UploadEvidenceDialog({
                   disabled={uploadMutation.isPending}
                   className="hidden"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadMutation.isPending}
-                  className="w-full justify-start text-muted-foreground"
-                >
-                  {selectedFile ? (
-                    <span className="text-foreground truncate">
-                      {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                {selectedFile ? (
+                  <div className="flex flex-col items-center text-center">
+                    <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
+                      <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <p className="font-medium text-foreground truncate max-w-full">
+                      {selectedFile.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatFileSize(selectedFile.size)}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="mt-2 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedFile(null)
+                        if (fileInputRef.current) fileInputRef.current.value = ''
+                      }}
+                      disabled={uploadMutation.isPending}
+                    >
+                      <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-center">
+                    <div className={`h-12 w-12 rounded-full flex items-center justify-center mb-3 ${
+                      isDragOver ? 'bg-primary/20' : 'bg-muted'
+                    }`}>
+                      <svg
+                        className={`h-6 w-6 ${isDragOver ? 'text-primary' : 'text-muted-foreground'}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                       </svg>
-                      Choose file...
-                    </span>
-                  )}
-                </Button>
+                    </div>
+                    <p className="font-medium text-foreground">
+                      {isDragOver ? 'Drop file here' : 'Drag & drop file here'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      or click to browse
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Maximum file size: 100MB
+                    </p>
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Maximum file size: 100MB
-              </p>
             </div>
 
             {/* Evidence Type */}

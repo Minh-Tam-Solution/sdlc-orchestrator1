@@ -22,12 +22,14 @@ Zero Mock Policy: 100% COMPLIANCE (tests against real running server)
 =========================================================================
 """
 
+import os
 import requests
 import time
 from io import BytesIO
 
 # Base URL (assumes FastAPI server is running)
-BASE_URL = "http://localhost:8000"
+# Configurable via API_BASE_URL env var (default: http://localhost:8000)
+BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 API_V1 = f"{BASE_URL}/api/v1"
 
 # ============================================================================

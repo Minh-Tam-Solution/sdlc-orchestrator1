@@ -1,0 +1,83 @@
+meta {
+  name: Get Policy Detail
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/policies/{{policyProblemStatementId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Has policy details", function() {
+    expect(res.body).to.have.property("id");
+    expect(res.body).to.have.property("name");
+    expect(res.body).to.have.property("description");
+    expect(res.body).to.have.property("stage");
+    expect(res.body).to.have.property("rego_code");
+    expect(res.body).to.have.property("version");
+  });
+
+  test("Name matches expected", function() {
+    expect(res.body.name).to.equal("problem_statement_required");
+  });
+
+  test("Stage is WHY", function() {
+    expect(res.body.stage).to.equal("WHY");
+  });
+
+  test("Rego code is valid", function() {
+    const rego = res.body.rego_code;
+    expect(rego).to.include("package sdlc");
+    expect(rego).to.include("default allow = false");
+    expect(rego).to.include("allow {");
+  });
+}
+
+docs {
+  # Get Policy Detail
+
+  Returns detailed information about a specific policy, including Rego code.
+
+  ## Path Parameters
+  - **policy_id**: Policy UUID
+
+  ## Response Fields
+  - **id**: Policy UUID
+  - **name**: Policy name (snake_case)
+  - **description**: Human-readable description
+  - **stage**: SDLC stage
+  - **rego_code**: Full Rego policy code
+  - **is_active**: Whether policy is enforced
+  - **version**: Policy version
+  - **created_by**: Creator user ID
+  - **created_at**: Creation timestamp
+  - **updated_at**: Last update timestamp
+
+  ## Rego Code Structure
+  ```rego
+  package sdlc.why.problem
+
+  default allow = false
+
+  allow {
+    count(input.evidence) > 0
+    some e in input.evidence
+    e.type == "DOCUMENT"
+    contains(lower(e.title), "problem")
+  }
+  ```
+
+  ## Expected
+  problem_statement_required policy with WHY stage
+}

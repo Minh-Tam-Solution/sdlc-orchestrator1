@@ -1,0 +1,100 @@
+meta {
+  name: Evaluate Policies
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/policies/evaluate
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "gate_id": "{{bflowG1GateId}}",
+    "input_data": {
+      "evidence": [
+        {"type": "DOCUMENT", "title": "Functional Requirements Document"},
+        {"type": "CODE", "file_name": "openapi.yaml"},
+        {"type": "DIAGRAM", "title": "Data Model ERD"}
+      ]
+    }
+  }
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Has overall result", function() {
+    expect(res.body).to.have.property("result");
+    expect(["PASS", "FAIL"]).to.include(res.body.result);
+  });
+
+  test("Has policy counts", function() {
+    expect(res.body).to.have.property("passed_policies");
+    expect(res.body).to.have.property("failed_policies");
+    expect(res.body.passed_policies).to.be.a("number");
+    expect(res.body.failed_policies).to.be.a("number");
+  });
+
+  test("Has details array", function() {
+    expect(res.body).to.have.property("details");
+    expect(res.body.details).to.be.an("array");
+  });
+
+  test("Each detail has policy name and result", function() {
+    res.body.details.forEach(detail => {
+      expect(detail).to.have.property("policy");
+      expect(detail).to.have.property("result");
+      expect(["PASS", "FAIL", "SKIP"]).to.include(detail.result);
+    });
+  });
+
+  test("With correct evidence, all WHAT stage policies pass", function() {
+    const whatPolicies = res.body.details.filter(d =>
+      ["frd_required", "api_spec_required", "data_model_required"].includes(d.policy)
+    );
+    whatPolicies.forEach(p => {
+      expect(p.result).to.equal("PASS");
+    });
+  });
+}
+
+docs {
+  # Evaluate Policies for Gate
+
+  Evaluates all applicable policies for a gate against provided input data.
+  This is used before submitting a gate for approval.
+
+  ## Request Body
+  - **gate_id**: Gate UUID to evaluate
+  - **input_data**: Object with evidence and other context
+    - **evidence**: Array of evidence metadata
+
+  ## Response Fields
+  - **result**: Overall result (PASS/FAIL)
+  - **passed_policies**: Count of passed policies
+  - **failed_policies**: Count of failed policies
+  - **details**: Array of individual policy results
+    - **policy**: Policy name
+    - **result**: PASS, FAIL, or SKIP
+    - **message**: Human-readable result message
+
+  ## OPA Integration
+  - Policies are evaluated via OPA REST API
+  - Rego code defines policy logic
+  - Each policy returns boolean allow/deny
+
+  ## Expected
+  With complete WHAT stage evidence:
+  - frd_required: PASS
+  - api_spec_required: PASS
+  - data_model_required: PASS
+}

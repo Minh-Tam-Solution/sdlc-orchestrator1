@@ -1,0 +1,46 @@
+meta {
+  name: Logout
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/auth/logout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Has success message", function() {
+    expect(res.body).to.have.property("message");
+    expect(res.body.message).to.include("logged out");
+  });
+}
+
+docs {
+  # Logout
+
+  Invalidates the current user's refresh token and logs them out.
+
+  ## Authorization
+  - Requires valid Bearer token
+
+  ## Response
+  - **message**: Success message
+
+  ## Side Effects
+  - Refresh token invalidated on server
+  - User must re-authenticate to get new tokens
+  - Audit log entry created
+
+  ## Expected
+  Successful logout with message
+}

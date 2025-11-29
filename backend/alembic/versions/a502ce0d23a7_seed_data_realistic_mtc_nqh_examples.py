@@ -1,32 +1,31 @@
 """
 =========================================================================
-Seed Data Migration - Realistic MTC/NQH/BFlow Examples
+Seed Data Migration - NQH-Bot Platform Team (Real Data)
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Version: 1.0.0
-Date: November 28, 2025
-Status: ACTIVE - Week 3 Day 2 Architecture Design
+Version: 3.0.0
+Date: November 29, 2025
+Status: ACTIVE - Week 13 E2E Testing
 Authority: CPO + Backend Lead + CTO Approved
-Foundation: Data Model v0.1 (9.8/10), CPO Validation (Day 2 50% Complete)
-Framework: SDLC 4.9 Complete Lifecycle
+Foundation: SDLC 4.9.1 Complete Lifecycle
+Framework: Zero Mock Policy - Real NQH Team Data
 
 Purpose:
-- Realistic seed data for Week 10/11 internal beta testing
-- 3 real projects (MTC Internal Tool, NQH E-commerce, BFlow Automation)
-- Waste reduction metrics (before/after: 65% → 17%)
-- Vietnamese team member names (real MTC/NQH teams)
+- Real NQH-Bot Platform team data for E2E testing
+- Reflects actual organizational structure:
+  * CEO: Tai Dang (taidt@mtsolution.com.vn) - leads 2 teams
+  * CPO: Dung Luong (dunglt@mtsolution.com.vn)
+  * CTO: Hiep Dinh (dvhiep@nqh.com.vn)
+  * Local Team Lead: Endior (dangtt1971@gmail.com)
+  * Remote Team Lead: Ms Hang Le (ltmhang@nqh.com.vn)
+- 5 real projects from NQH-Bot Platform development
 - 13 system roles (CEO, CTO, CPO, EM, TL, DEV, QA, etc.)
 - 3 AI providers (Claude Sonnet 4.5, GPT-4o, Gemini 2.0 Flash)
-- Gate status examples (PASS, IN_PROGRESS, PENDING)
-- Evidence files with realistic sizes and descriptions
+- 19 gates across projects (13 APPROVED, 4 PENDING, 2 DRAFT)
 
-CPO Validation:
-- Priority: HIGHEST (make-or-break for Week 10/11)
-- Impact: 2.7x higher adoption with realistic data
-- Quality Target: 9.5/10
-- Deadline: End of Day 2 (Nov 29)
+Synchronized with: docs/04-Testing-Quality/07-E2E-Testing/DEMO-SEED-DATA.sql
 
-Zero Mock Policy: Real data with actual Vietnamese names, metrics, projects
+Zero Mock Policy: Real team data with actual emails, projects, gates
 =========================================================================
 
 Revision ID: a502ce0d23a7
@@ -34,8 +33,8 @@ Revises: dce31118ffb7
 Create Date: 2025-11-14 16:51:24.497047
 """
 from datetime import datetime, timedelta
+import json
 from typing import Sequence, Union
-from uuid import uuid4
 
 from alembic import op
 import sqlalchemy as sa
@@ -50,41 +49,57 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """
-    Insert realistic seed data for MTC/NQH/BFlow projects.
+    Insert NQH-Bot Platform team seed data.
 
     Data Includes:
     - 13 SDLC system roles (CEO, CTO, CPO, EM, TL, DEV, QA, DevOps, Security, PM, BA, CIO, CFO)
-    - 15 Vietnamese team members (MTC: 6, NQH: 5, BFlow: 4)
-    - 3 realistic projects with waste metrics
-    - 9 gates (3 per project: G0.1, G0.2, G1)
-    - 27 gate approvals (3 approvers per gate)
+    - 12 users (1 admin + 11 NQH-Bot Platform team members)
+    - 5 active projects (NQH-Bot Platform + modules)
+    - 19 gates (13 APPROVED, 4 PENDING, 2 DRAFT)
+    - 16 gate approvals
     - 3 AI providers (Claude, GPT-4o, Gemini)
     """
     conn = op.get_bind()
 
     # =========================================================================
     # 1. ROLES (13 system roles)
+    # Using fixed UUIDs for consistency with DEMO-SEED-DATA.sql
     # =========================================================================
+
+    # Fixed role IDs for consistent reference
+    ceo_role_id = "r0000000-0000-0000-0000-000000000001"
+    cto_role_id = "r0000000-0000-0000-0000-000000000002"
+    cpo_role_id = "r0000000-0000-0000-0000-000000000003"
+    cio_role_id = "r0000000-0000-0000-0000-000000000004"
+    cfo_role_id = "r0000000-0000-0000-0000-000000000005"
+    em_role_id = "r0000000-0000-0000-0000-000000000006"
+    tl_role_id = "r0000000-0000-0000-0000-000000000007"
+    dev_role_id = "r0000000-0000-0000-0000-000000000008"
+    qa_role_id = "r0000000-0000-0000-0000-000000000009"
+    devops_role_id = "r0000000-0000-0000-0000-000000000010"
+    security_role_id = "r0000000-0000-0000-0000-000000000011"
+    pm_role_id = "r0000000-0000-0000-0000-000000000012"
+    ba_role_id = "r0000000-0000-0000-0000-000000000013"
 
     roles_data = [
         # C-Suite (5 roles)
-        {'id': str(uuid4()), 'name': 'ceo', 'display_name': 'Chief Executive Officer', 'description': 'Final approval authority, strategic alignment, budget decisions, go/no-go gates', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'cto', 'display_name': 'Chief Technology Officer', 'description': 'Technical architecture review, security standards, performance requirements', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'cpo', 'display_name': 'Chief Product Officer', 'description': 'Product strategy, user experience, business value validation', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'cio', 'display_name': 'Chief Information Officer', 'description': 'IT infrastructure, data governance, compliance oversight', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'cfo', 'display_name': 'Chief Financial Officer', 'description': 'Budget approval, financial controls, cost management', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': ceo_role_id, 'name': 'ceo', 'display_name': 'Chief Executive Officer', 'description': 'Final approval authority, strategic alignment, budget decisions, go/no-go gates', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': cto_role_id, 'name': 'cto', 'display_name': 'Chief Technology Officer', 'description': 'Technical architecture review, security standards, performance requirements', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': cpo_role_id, 'name': 'cpo', 'display_name': 'Chief Product Officer', 'description': 'Product strategy, user experience, business value validation', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': cio_role_id, 'name': 'cio', 'display_name': 'Chief Information Officer', 'description': 'IT infrastructure, data governance, compliance oversight', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': cfo_role_id, 'name': 'cfo', 'display_name': 'Chief Financial Officer', 'description': 'Budget approval, financial controls, cost management', 'is_active': True, 'created_at': datetime.utcnow()},
 
         # Engineering (6 roles)
-        {'id': str(uuid4()), 'name': 'em', 'display_name': 'Engineering Manager', 'description': 'Team leadership, project planning, gate submissions, resource allocation', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'tl', 'display_name': 'Tech Lead', 'description': 'Technical decisions, code review, architecture design, mentorship', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'dev', 'display_name': 'Developer', 'description': 'Code implementation, unit testing, evidence upload, SDLC execution', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'qa', 'display_name': 'QA Engineer', 'description': 'Test planning, quality gates, bug tracking, test automation', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'devops', 'display_name': 'DevOps Engineer', 'description': 'CI/CD pipelines, deployment automation, infrastructure management', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'security', 'display_name': 'Security Engineer', 'description': 'Security review, vulnerability scanning, compliance verification', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': em_role_id, 'name': 'em', 'display_name': 'Engineering Manager', 'description': 'Team leadership, project planning, gate submissions, resource allocation', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': tl_role_id, 'name': 'tl', 'display_name': 'Tech Lead', 'description': 'Technical decisions, code review, architecture design, mentorship', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': dev_role_id, 'name': 'dev', 'display_name': 'Developer', 'description': 'Code implementation, unit testing, evidence upload, SDLC execution', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': qa_role_id, 'name': 'qa', 'display_name': 'QA Engineer', 'description': 'Test planning, quality gates, bug tracking, test automation', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': devops_role_id, 'name': 'devops', 'display_name': 'DevOps Engineer', 'description': 'CI/CD pipelines, deployment automation, infrastructure management', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': security_role_id, 'name': 'security', 'display_name': 'Security Engineer', 'description': 'Security review, vulnerability scanning, compliance verification', 'is_active': True, 'created_at': datetime.utcnow()},
 
         # Product & Business (2 roles)
-        {'id': str(uuid4()), 'name': 'pm', 'display_name': 'Product Manager', 'description': 'Requirements definition, roadmap planning, stakeholder communication', 'is_active': True, 'created_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'name': 'ba', 'display_name': 'Business Analyst', 'description': 'Data analysis, metrics tracking, business intelligence, reporting', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': pm_role_id, 'name': 'pm', 'display_name': 'Product Manager', 'description': 'Requirements definition, roadmap planning, stakeholder communication', 'is_active': True, 'created_at': datetime.utcnow()},
+        {'id': ba_role_id, 'name': 'ba', 'display_name': 'Business Analyst', 'description': 'Data analysis, metrics tracking, business intelligence, reporting', 'is_active': True, 'created_at': datetime.utcnow()},
     ]
 
     # Insert roles
@@ -93,55 +108,68 @@ def upgrade() -> None:
             text("""
                 INSERT INTO roles (id, name, display_name, description, is_active, created_at)
                 VALUES (:id, :name, :display_name, :description, :is_active, :created_at)
+                ON CONFLICT (id) DO NOTHING
             """),
             role
         )
 
-    # Store role IDs for later use
-    ceo_role_id = roles_data[0]['id']
-    cto_role_id = roles_data[1]['id']
-    cpo_role_id = roles_data[2]['id']
-    cio_role_id = roles_data[3]['id']
-    cfo_role_id = roles_data[4]['id']
-    em_role_id = roles_data[5]['id']
-    tl_role_id = roles_data[6]['id']
-    dev_role_id = roles_data[7]['id']
-    qa_role_id = roles_data[8]['id']
-    devops_role_id = roles_data[9]['id']
-    security_role_id = roles_data[10]['id']
-    pm_role_id = roles_data[11]['id']
-    ba_role_id = roles_data[12]['id']
-
     # =========================================================================
-    # 2. USERS (15 Vietnamese team members)
+    # 2. USERS (12 users: 1 admin + 11 NQH-Bot Platform team)
     # =========================================================================
 
-    # Password hash for "password123" (bcrypt, cost=12)
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
-    password_hash = pwd_context.hash("password123")
+    # Pre-computed password hash for "password123" (bcrypt, cost=12)
+    password_hash = "$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu"
+
+    # Pre-computed password hash for "Admin@123" (bcrypt, cost=12) - for admin user
+    admin_password_hash = "$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm"
+
+    # Fixed user IDs for consistent reference
+    admin_user_id = "a0000000-0000-0000-0000-000000000001"
+    ceo_user_id = "b0000000-0000-0000-0000-000000000001"  # Tai Dang
+    cpo_user_id = "b0000000-0000-0000-0000-000000000002"  # Dung Luong
+    cto_user_id = "b0000000-0000-0000-0000-000000000003"  # Hiep Dinh
+    local_tl_user_id = "b0000000-0000-0000-0000-000000000004"  # Endior
+    remote_tl_user_id = "b0000000-0000-0000-0000-000000000005"  # Hang Le
+    local_dev1_user_id = "b0000000-0000-0000-0000-000000000006"
+    local_dev2_user_id = "b0000000-0000-0000-0000-000000000007"
+    remote_dev1_user_id = "b0000000-0000-0000-0000-000000000008"
+    remote_dev2_user_id = "b0000000-0000-0000-0000-000000000009"
+    qa_lead_user_id = "b0000000-0000-0000-0000-000000000010"
+    inactive_user_id = "b0000000-0000-0000-0000-000000000011"
 
     users_data = [
-        # MTC Team (6 members)
-        {'id': str(uuid4()), 'email': 'nguyen.van.anh@mtc.com.vn', 'name': 'Nguyễn Văn Anh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'tran.thi.binh@mtc.com.vn', 'name': 'Trần Thị Bình', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'le.van.cuong@mtc.com.vn', 'name': 'Lê Văn Cường', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'pham.thi.dao@mtc.com.vn', 'name': 'Phạm Thị Đào', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'hoang.van.em@mtc.com.vn', 'name': 'Hoàng Văn Em', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'do.thi.phuong@mtc.com.vn', 'name': 'Đỗ Thị Phương', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+        # System Admin User (for E2E tests and initial setup)
+        {'id': admin_user_id, 'email': 'admin@sdlc-orchestrator.io', 'name': 'System Administrator', 'password_hash': admin_password_hash, 'is_active': True, 'is_superuser': True, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
 
-        # NQH Team (5 members)
-        {'id': str(uuid4()), 'email': 'nguyen.van.giang@nqh.vn', 'name': 'Nguyễn Văn Giang', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'tran.thi.hoa@nqh.vn', 'name': 'Trần Thị Hoa', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'le.van.khoa@nqh.vn', 'name': 'Lê Văn Khoa', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'pham.thi.lan@nqh.vn', 'name': 'Phạm Thị Lan', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'hoang.van.minh@nqh.vn', 'name': 'Hoàng Văn Minh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+        # NQH-Bot Platform Team - REAL team structure
+        # CEO - Tai Dang (leads both Local + Remote teams)
+        {'id': ceo_user_id, 'email': 'taidt@mtsolution.com.vn', 'name': 'Tai Dang', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
 
-        # BFlow Team (4 members)
-        {'id': str(uuid4()), 'email': 'nguyen.van.nam@bflow.io', 'name': 'Nguyễn Văn Nam', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'tran.thi.oanh@bflow.io', 'name': 'Trần Thị Oanh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'le.van.phuc@bflow.io', 'name': 'Lê Văn Phúc', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
-        {'id': str(uuid4()), 'email': 'pham.thi.quynh@bflow.io', 'name': 'Phạm Thị Quỳnh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+        # CPO - Dung Luong (Product strategy, business gates approval)
+        {'id': cpo_user_id, 'email': 'dunglt@mtsolution.com.vn', 'name': 'Dung Luong', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # CTO - Hiep Dinh (Technical authority, G2/G3 gates approval)
+        {'id': cto_user_id, 'email': 'dvhiep@nqh.com.vn', 'name': 'Hiep Dinh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # Local Team Lead - Endior
+        {'id': local_tl_user_id, 'email': 'dangtt1971@gmail.com', 'name': 'Endior', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # Remote Team Lead - Ms Hang Le
+        {'id': remote_tl_user_id, 'email': 'ltmhang@nqh.com.vn', 'name': 'Hang Le', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # Local Team Developers
+        {'id': local_dev1_user_id, 'email': 'local.dev1@nqh.com.vn', 'name': 'Local Dev 1', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+        {'id': local_dev2_user_id, 'email': 'local.dev2@nqh.com.vn', 'name': 'Local Dev 2', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # Remote Team Developers
+        {'id': remote_dev1_user_id, 'email': 'remote.dev1@nqh.com.vn', 'name': 'Remote Dev 1', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+        {'id': remote_dev2_user_id, 'email': 'remote.dev2@nqh.com.vn', 'name': 'Remote Dev 2', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # QA Lead
+        {'id': qa_lead_user_id, 'email': 'qa.lead@nqh.com.vn', 'name': 'QA Lead', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
+
+        # Inactive User (for testing inactive account scenarios)
+        {'id': inactive_user_id, 'email': 'inactive@nqh.com.vn', 'name': 'Inactive User', 'password_hash': password_hash, 'is_active': False, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
     ]
 
     # Insert users
@@ -152,64 +180,72 @@ def upgrade() -> None:
                                  mfa_enabled, created_at, updated_at)
                 VALUES (:id, :email, :name, :password_hash, :is_active, :is_superuser,
                         :mfa_enabled, :created_at, :updated_at)
+                ON CONFLICT (id) DO NOTHING
             """),
             user
         )
 
-    # Store user IDs (MTC team)
-    mtc_em_id = users_data[0]['id']  # Nguyễn Văn Anh - Engineering Manager
-    mtc_tl_id = users_data[1]['id']  # Trần Thị Bình - Tech Lead
-    mtc_dev_id = users_data[2]['id']  # Lê Văn Cường - Developer
-    mtc_qa_id = users_data[3]['id']  # Phạm Thị Đào - QA Engineer
-    mtc_cto_id = users_data[4]['id']  # Hoàng Văn Em - CTO
-    mtc_cpo_id = users_data[5]['id']  # Đỗ Thị Phương - CPO
-
-    # NQH team
-    nqh_tl_id = users_data[6]['id']  # Nguyễn Văn Giang - Tech Lead
-    nqh_dev_id = users_data[7]['id']  # Trần Thị Hoa - Full-Stack Developer
-    nqh_devops_id = users_data[8]['id']  # Lê Văn Khoa - DevOps Engineer
-    nqh_pm_id = users_data[9]['id']  # Phạm Thị Lan - Product Manager
-    nqh_ceo_id = users_data[10]['id']  # Hoàng Văn Minh - CEO
-
-    # BFlow team
-    bflow_em_id = users_data[11]['id']  # Nguyễn Văn Nam - Engineering Manager
-    bflow_dev_id = users_data[12]['id']  # Trần Thị Oanh - Senior Developer
-    bflow_cto_id = users_data[13]['id']  # Lê Văn Phúc - CTO
-    bflow_cpo_id = users_data[14]['id']  # Phạm Thị Quỳnh - CPO
-
     # =========================================================================
-    # 3. PROJECTS (3 realistic projects with waste metrics)
+    # 3. PROJECTS (5 active + 1 archived)
     # =========================================================================
+
+    # Fixed project IDs for consistent reference
+    main_project_id = "c0000000-0000-0000-0000-000000000001"  # NQH-Bot Platform
+    analytics_project_id = "c0000000-0000-0000-0000-000000000002"  # Analytics Module
+    nlp_project_id = "c0000000-0000-0000-0000-000000000003"  # NLP Engine
+    crm_project_id = "c0000000-0000-0000-0000-000000000004"  # CRM Integration
+    mobile_project_id = "c0000000-0000-0000-0000-000000000005"  # Mobile App
+    archived_project_id = "c0000000-0000-0000-0000-000000000006"  # Archived PoC
 
     projects_data = [
         {
-            'id': str(uuid4()),
-            'name': 'MTC Internal Tool - SDLC Automation',
-            'slug': 'mtc-sdlc-automation',
-            'description': 'Internal developer productivity tool for MTC Solution. Automates SDLC workflows, reduces manual quality gate approvals from 3 days to 2 hours. Waste reduction: 65% → 17%. Target: 95% test coverage, zero deployment failures.',
-            'owner_id': mtc_em_id,
+            'id': main_project_id,
+            'name': 'NQH-Bot Platform',
+            'slug': 'nqh-bot-platform',
+            'description': 'AI-powered chatbot platform for enterprise automation. Multi-channel support (Telegram, Zalo, Facebook), Vietnamese NLP, CRM integration. Led by CEO Tai Dang with Local + Remote teams.',
+            'owner_id': ceo_user_id,
             'is_active': True,
-            'created_at': datetime.utcnow() - timedelta(days=45),
+            'created_at': datetime(2025, 9, 1, 9, 0, 0),
             'updated_at': datetime.utcnow(),
         },
         {
-            'id': str(uuid4()),
-            'name': 'NQH E-commerce Platform - Phase 2',
-            'slug': 'nqh-ecommerce-phase-2',
-            'description': 'E-commerce platform upgrade for NQH Technology. Add AI product recommendations, payment gateway integration (VNPay, Momo), real-time inventory sync. Conversion rate: 2.3% → 4.5%. Cart abandonment: 68% → 45%. Target: <200ms API response time, 99.9% uptime.',
-            'owner_id': nqh_tl_id,
+            'id': analytics_project_id,
+            'name': 'NQH-Bot Analytics Module',
+            'slug': 'nqh-bot-analytics',
+            'description': 'Real-time analytics dashboard for bot performance. Conversation metrics, user engagement, response time tracking. Handled by Remote Team.',
+            'owner_id': remote_tl_user_id,
             'is_active': True,
-            'created_at': datetime.utcnow() - timedelta(days=30),
+            'created_at': datetime(2025, 10, 15, 10, 0, 0),
             'updated_at': datetime.utcnow(),
         },
         {
-            'id': str(uuid4()),
-            'name': 'BFlow Workflow Automation - v3.0',
-            'slug': 'bflow-workflow-automation-v3',
-            'description': 'Workflow automation platform for BFlow. Visual workflow designer, 50+ pre-built templates, Zapier-style integrations. Learning curve: 2 hours → <5 min. Target: 10K workflows/month, non-technical user friendly.',
-            'owner_id': bflow_em_id,
+            'id': nlp_project_id,
+            'name': 'NQH-Bot NLP Engine',
+            'slug': 'nqh-bot-nlp-engine',
+            'description': 'Vietnamese NLP processing engine. Intent detection, entity extraction, sentiment analysis. Uses Ollama + Claude fallback. Handled by Local Team.',
+            'owner_id': local_tl_user_id,
             'is_active': True,
-            'created_at': datetime.utcnow() - timedelta(days=20),
+            'created_at': datetime(2025, 10, 1, 8, 0, 0),
+            'updated_at': datetime.utcnow(),
+        },
+        {
+            'id': crm_project_id,
+            'name': 'NQH-Bot CRM Integration',
+            'slug': 'nqh-bot-crm',
+            'description': 'CRM integration module. Sync conversations to Salesforce/HubSpot, lead scoring, customer 360 view. Joint effort Local + Remote teams.',
+            'owner_id': cto_user_id,
+            'is_active': True,
+            'created_at': datetime(2025, 8, 15, 9, 0, 0),
+            'updated_at': datetime.utcnow(),
+        },
+        {
+            'id': mobile_project_id,
+            'name': 'NQH-Bot Mobile App',
+            'slug': 'nqh-bot-mobile',
+            'description': 'Mobile companion app for bot management. Push notifications, quick replies, admin dashboard. React Native cross-platform.',
+            'owner_id': cpo_user_id,
+            'is_active': True,
+            'created_at': datetime.utcnow(),
             'updated_at': datetime.utcnow(),
         },
     ]
@@ -220,34 +256,56 @@ def upgrade() -> None:
             text("""
                 INSERT INTO projects (id, name, slug, description, owner_id, is_active, created_at, updated_at)
                 VALUES (:id, :name, :slug, :description, :owner_id, :is_active, :created_at, :updated_at)
+                ON CONFLICT (id) DO UPDATE SET updated_at = NOW()
             """),
             project
         )
 
-    mtc_project_id = projects_data[0]['id']
-    nqh_project_id = projects_data[1]['id']
-    bflow_project_id = projects_data[2]['id']
-
     # =========================================================================
-    # 4. PROJECT MEMBERS (Assign team members to projects)
+    # 4. PROJECT MEMBERS
     # =========================================================================
 
     project_members_data = [
-        # MTC Project Team
-        {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_em_id, 'role': 'owner', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
-        {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_tl_id, 'role': 'member', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
-        {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_dev_id, 'role': 'member', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
-        {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_qa_id, 'role': 'member', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
+        # NQH-Bot Platform Main Project (CEO + CTO + CPO + Both TLs + All Devs)
+        {'id': 'd0000000-0000-0000-0000-000000000001', 'project_id': main_project_id, 'user_id': ceo_user_id, 'role': 'owner', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000002', 'project_id': main_project_id, 'user_id': cpo_user_id, 'role': 'admin', 'invited_by': ceo_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000003', 'project_id': main_project_id, 'user_id': cto_user_id, 'role': 'admin', 'invited_by': ceo_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000004', 'project_id': main_project_id, 'user_id': local_tl_user_id, 'role': 'admin', 'invited_by': ceo_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000005', 'project_id': main_project_id, 'user_id': remote_tl_user_id, 'role': 'admin', 'invited_by': ceo_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000006', 'project_id': main_project_id, 'user_id': local_dev1_user_id, 'role': 'member', 'invited_by': local_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000007', 'project_id': main_project_id, 'user_id': local_dev2_user_id, 'role': 'member', 'invited_by': local_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000008', 'project_id': main_project_id, 'user_id': remote_dev1_user_id, 'role': 'member', 'invited_by': remote_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000009', 'project_id': main_project_id, 'user_id': remote_dev2_user_id, 'role': 'member', 'invited_by': remote_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000010', 'project_id': main_project_id, 'user_id': qa_lead_user_id, 'role': 'member', 'invited_by': ceo_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
 
-        # NQH Project Team
-        {'id': str(uuid4()), 'project_id': nqh_project_id, 'user_id': nqh_tl_id, 'role': 'owner', 'invited_by': nqh_tl_id, 'invited_at': datetime.utcnow() - timedelta(days=30), 'joined_at': datetime.utcnow() - timedelta(days=30), 'created_at': datetime.utcnow() - timedelta(days=30)},
-        {'id': str(uuid4()), 'project_id': nqh_project_id, 'user_id': nqh_dev_id, 'role': 'member', 'invited_by': nqh_tl_id, 'invited_at': datetime.utcnow() - timedelta(days=30), 'joined_at': datetime.utcnow() - timedelta(days=30), 'created_at': datetime.utcnow() - timedelta(days=30)},
-        {'id': str(uuid4()), 'project_id': nqh_project_id, 'user_id': nqh_devops_id, 'role': 'member', 'invited_by': nqh_tl_id, 'invited_at': datetime.utcnow() - timedelta(days=30), 'joined_at': datetime.utcnow() - timedelta(days=30), 'created_at': datetime.utcnow() - timedelta(days=30)},
-        {'id': str(uuid4()), 'project_id': nqh_project_id, 'user_id': nqh_pm_id, 'role': 'member', 'invited_by': nqh_tl_id, 'invited_at': datetime.utcnow() - timedelta(days=30), 'joined_at': datetime.utcnow() - timedelta(days=30), 'created_at': datetime.utcnow() - timedelta(days=30)},
+        # NQH-Bot Analytics Module (Remote Team)
+        {'id': 'd0000000-0000-0000-0000-000000000011', 'project_id': analytics_project_id, 'user_id': remote_tl_user_id, 'role': 'owner', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000012', 'project_id': analytics_project_id, 'user_id': remote_dev1_user_id, 'role': 'member', 'invited_by': remote_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000013', 'project_id': analytics_project_id, 'user_id': remote_dev2_user_id, 'role': 'member', 'invited_by': remote_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000014', 'project_id': analytics_project_id, 'user_id': ceo_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
 
-        # BFlow Project Team
-        {'id': str(uuid4()), 'project_id': bflow_project_id, 'user_id': bflow_em_id, 'role': 'owner', 'invited_by': bflow_em_id, 'invited_at': datetime.utcnow() - timedelta(days=20), 'joined_at': datetime.utcnow() - timedelta(days=20), 'created_at': datetime.utcnow() - timedelta(days=20)},
-        {'id': str(uuid4()), 'project_id': bflow_project_id, 'user_id': bflow_dev_id, 'role': 'member', 'invited_by': bflow_em_id, 'invited_at': datetime.utcnow() - timedelta(days=20), 'joined_at': datetime.utcnow() - timedelta(days=20), 'created_at': datetime.utcnow() - timedelta(days=20)},
+        # NQH-Bot NLP Engine (Local Team)
+        {'id': 'd0000000-0000-0000-0000-000000000015', 'project_id': nlp_project_id, 'user_id': local_tl_user_id, 'role': 'owner', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000016', 'project_id': nlp_project_id, 'user_id': local_dev1_user_id, 'role': 'member', 'invited_by': local_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000017', 'project_id': nlp_project_id, 'user_id': local_dev2_user_id, 'role': 'member', 'invited_by': local_tl_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000018', 'project_id': nlp_project_id, 'user_id': cto_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+
+        # NQH-Bot CRM Integration (CTO + Both Teams)
+        {'id': 'd0000000-0000-0000-0000-000000000019', 'project_id': crm_project_id, 'user_id': cto_user_id, 'role': 'owner', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000020', 'project_id': crm_project_id, 'user_id': local_tl_user_id, 'role': 'admin', 'invited_by': cto_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000021', 'project_id': crm_project_id, 'user_id': remote_tl_user_id, 'role': 'admin', 'invited_by': cto_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000022', 'project_id': crm_project_id, 'user_id': qa_lead_user_id, 'role': 'member', 'invited_by': cto_user_id, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+
+        # NQH-Bot Mobile App (CPO + Selected team)
+        {'id': 'd0000000-0000-0000-0000-000000000023', 'project_id': mobile_project_id, 'user_id': cpo_user_id, 'role': 'owner', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000024', 'project_id': mobile_project_id, 'user_id': ceo_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+
+        # Platform Admin access to all projects
+        {'id': 'd0000000-0000-0000-0000-000000000025', 'project_id': main_project_id, 'user_id': admin_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000026', 'project_id': analytics_project_id, 'user_id': admin_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000027', 'project_id': nlp_project_id, 'user_id': admin_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000028', 'project_id': crm_project_id, 'user_id': admin_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
+        {'id': 'd0000000-0000-0000-0000-000000000029', 'project_id': mobile_project_id, 'user_id': admin_user_id, 'role': 'admin', 'invited_by': None, 'invited_at': datetime.utcnow(), 'joined_at': datetime.utcnow(), 'created_at': datetime.utcnow()},
     ]
 
     for member in project_members_data:
@@ -255,6 +313,7 @@ def upgrade() -> None:
             text("""
                 INSERT INTO project_members (id, project_id, user_id, role, invited_by, invited_at, joined_at, created_at)
                 VALUES (:id, :project_id, :user_id, :role, :invited_by, :invited_at, :joined_at, :created_at)
+                ON CONFLICT (id) DO NOTHING
             """),
             member
         )
@@ -264,26 +323,17 @@ def upgrade() -> None:
     # =========================================================================
 
     user_roles_data = [
-        # MTC team roles
-        {'user_id': mtc_em_id, 'role_id': em_role_id},
-        {'user_id': mtc_tl_id, 'role_id': tl_role_id},
-        {'user_id': mtc_dev_id, 'role_id': dev_role_id},
-        {'user_id': mtc_qa_id, 'role_id': qa_role_id},
-        {'user_id': mtc_cto_id, 'role_id': cto_role_id},
-        {'user_id': mtc_cpo_id, 'role_id': cpo_role_id},
-
-        # NQH team roles
-        {'user_id': nqh_tl_id, 'role_id': tl_role_id},
-        {'user_id': nqh_dev_id, 'role_id': dev_role_id},
-        {'user_id': nqh_devops_id, 'role_id': devops_role_id},
-        {'user_id': nqh_pm_id, 'role_id': pm_role_id},
-        {'user_id': nqh_ceo_id, 'role_id': ceo_role_id},
-
-        # BFlow team roles
-        {'user_id': bflow_em_id, 'role_id': em_role_id},
-        {'user_id': bflow_dev_id, 'role_id': dev_role_id},
-        {'user_id': bflow_cto_id, 'role_id': cto_role_id},
-        {'user_id': bflow_cpo_id, 'role_id': cpo_role_id},
+        # NQH-Bot Platform team roles
+        {'user_id': ceo_user_id, 'role_id': ceo_role_id},
+        {'user_id': cpo_user_id, 'role_id': cpo_role_id},
+        {'user_id': cto_user_id, 'role_id': cto_role_id},
+        {'user_id': local_tl_user_id, 'role_id': tl_role_id},
+        {'user_id': remote_tl_user_id, 'role_id': tl_role_id},
+        {'user_id': local_dev1_user_id, 'role_id': dev_role_id},
+        {'user_id': local_dev2_user_id, 'role_id': dev_role_id},
+        {'user_id': remote_dev1_user_id, 'role_id': dev_role_id},
+        {'user_id': remote_dev2_user_id, 'role_id': dev_role_id},
+        {'user_id': qa_lead_user_id, 'role_id': qa_role_id},
     ]
 
     for user_role in user_roles_data:
@@ -291,6 +341,7 @@ def upgrade() -> None:
             text("""
                 INSERT INTO user_roles (user_id, role_id)
                 VALUES (:user_id, :role_id)
+                ON CONFLICT DO NOTHING
             """),
             user_role
         )
@@ -301,52 +352,49 @@ def upgrade() -> None:
 
     ai_providers_data = [
         {
-            'id': str(uuid4()),
-            'provider_name': 'Anthropic',  # Fixed: name → provider_name
-            'provider_type': 'claude',  # Fixed: anthropic → claude (matches model enum)
+            'id': 'p0000000-0000-0000-0000-000000000001',
+            'provider_name': 'Anthropic',
+            'provider_type': 'claude',
             'model_name': 'claude-sonnet-4-5-20250929',
-            'api_key_encrypted': '',  # Fixed: NOT NULL constraint, use empty string
-            'cost_per_1k_input_tokens': 0.003,  # Fixed: $3/MTok = $0.003/1K tokens
-            'cost_per_1k_output_tokens': 0.015,  # Fixed: $15/MTok = $0.015/1K tokens
+            'api_key_encrypted': '',
+            'cost_per_1k_input_tokens': 0.003,
+            'cost_per_1k_output_tokens': 0.015,
             'max_tokens': 8192,
-            'temperature': 0.7,  # Added: Default temperature
-            'priority': 1,  # Added: Highest priority (Claude for complex reasoning)
-            
+            'temperature': 0.7,
+            'priority': 1,
             'is_active': True,
             'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow(),  # Added: Required by model
+            'updated_at': datetime.utcnow(),
         },
         {
-            'id': str(uuid4()),
-            'provider_name': 'OpenAI',  # Fixed: name → provider_name
-            'provider_type': 'gpt',  # Fixed: openai → gpt (matches model enum)
+            'id': 'p0000000-0000-0000-0000-000000000002',
+            'provider_name': 'OpenAI',
+            'provider_type': 'gpt',
             'model_name': 'gpt-4o-2024-11-20',
-            'api_key_encrypted': '',  # Fixed: NOT NULL constraint, use empty string
-            'cost_per_1k_input_tokens': 0.0025,  # Fixed: $2.50/MTok = $0.0025/1K
-            'cost_per_1k_output_tokens': 0.010,  # Fixed: $10/MTok = $0.010/1K
+            'api_key_encrypted': '',
+            'cost_per_1k_input_tokens': 0.0025,
+            'cost_per_1k_output_tokens': 0.010,
             'max_tokens': 16384,
-            'temperature': 0.7,  # Added: Default temperature
-            'priority': 2,  # Added: Second priority (GPT-4o for code generation)
-            
+            'temperature': 0.7,
+            'priority': 2,
             'is_active': True,
             'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow(),  # Added: Required by model
+            'updated_at': datetime.utcnow(),
         },
         {
-            'id': str(uuid4()),
-            'provider_name': 'Google',  # Fixed: name → provider_name
-            'provider_type': 'gemini',  # Fixed: google → gemini (matches model enum)
+            'id': 'p0000000-0000-0000-0000-000000000003',
+            'provider_name': 'Google',
+            'provider_type': 'gemini',
             'model_name': 'gemini-2.0-flash-exp',
-            'api_key_encrypted': '',  # Fixed: NOT NULL constraint, use empty string
-            'cost_per_1k_input_tokens': 0.000075,  # Fixed: $0.075/MTok = $0.000075/1K
-            'cost_per_1k_output_tokens': 0.0003,  # Fixed: $0.30/MTok = $0.0003/1K
+            'api_key_encrypted': '',
+            'cost_per_1k_input_tokens': 0.000075,
+            'cost_per_1k_output_tokens': 0.0003,
             'max_tokens': 8192,
-            'temperature': 0.7,  # Added: Default temperature
-            'priority': 3,  # Added: Lowest priority (Gemini for bulk tasks)
-            
+            'temperature': 0.7,
+            'priority': 3,
             'is_active': True,
             'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow(),  # Added: Required by model
+            'updated_at': datetime.utcnow(),
         },
     ]
 
@@ -361,168 +409,316 @@ def upgrade() -> None:
                         :api_key_encrypted, :cost_per_1k_input_tokens,
                         :cost_per_1k_output_tokens, :max_tokens, :temperature,
                         :priority, :is_active, :created_at, :updated_at)
+                ON CONFLICT (id) DO NOTHING
             """),
             provider
         )
 
     # =========================================================================
-    # 7. GATES (9 gates: 3 per project - G0.1, G0.2, G1)
+    # 7. GATES (19 gates across 5 projects)
     # =========================================================================
 
     gates_data = [
-        # MTC Project Gates
+        # NQH-Bot Platform Main (WHY → WHAT → HOW complete, BUILD in progress)
         {
-            'id': str(uuid4()),
-            'project_id': mtc_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000001',
+            'project_id': main_project_id,
             'gate_name': 'G0.1',
-            'gate_type': 'FOUNDATION_READY',
+            'gate_type': 'PROBLEM_DEFINITION',
             'stage': 'WHY',
             'status': 'APPROVED',
-            'created_by': mtc_tl_id,
-            'exit_criteria': [],  # Added: Required JSONB field (empty for approved gates)
-            'created_at': datetime.utcnow() - timedelta(days=40),
-            'updated_at': datetime.utcnow() - timedelta(days=37),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=37),
-            'description': 'Foundation Ready - MTC Internal Tool project kickoff. Business case: Reduce manual SDLC overhead from 3 days to 2 hours per release (65% → 17% waste).',
+            'created_by': ceo_user_id,
+            'exit_criteria': ['Problem statement documented', 'User personas defined (5 types)', 'Market research: $2B VN chatbot market'],
+            'created_at': datetime(2025, 9, 5, 10, 0, 0),
+            'updated_at': datetime(2025, 9, 10, 15, 0, 0),
+            'approved_at': datetime(2025, 9, 10, 15, 0, 0),
+            'description': 'Problem validated: Enterprise chatbots have 40% failure rate in Vietnamese NLP, 70% user drop-off in complex workflows.',
         },
         {
-            'id': str(uuid4()),
-            'project_id': mtc_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000002',
+            'project_id': main_project_id,
             'gate_name': 'G0.2',
             'gate_type': 'SOLUTION_DIVERSITY',
             'stage': 'WHY',
             'status': 'APPROVED',
-            'created_by': mtc_tl_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=35),
-            'updated_at': datetime.utcnow() - timedelta(days=32),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=32),
-            'description': 'Solution Diversity - Evaluated 3 approaches: (1) Backstage plugin, (2) Standalone SaaS, (3) Open Policy Agent integration. Selected: Standalone SaaS with OPA.',
+            'created_by': ceo_user_id,
+            'exit_criteria': ['5 solution alternatives evaluated', 'ROI: 300% Year 1', 'Ollama vs Claude cost analysis complete'],
+            'created_at': datetime(2025, 9, 10, 10, 0, 0),
+            'updated_at': datetime(2025, 9, 15, 16, 0, 0),
+            'approved_at': datetime(2025, 9, 15, 16, 0, 0),
+            'description': '5 solutions evaluated: Multi-channel bot with Vietnamese NLP selected. Ollama local AI for cost reduction.',
         },
         {
-            'id': str(uuid4()),
-            'project_id': mtc_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000003',
+            'project_id': main_project_id,
             'gate_name': 'G1',
-            'gate_type': 'DESIGN_READY',
+            'gate_type': 'PLANNING_COMPLETE',
             'stage': 'WHAT',
             'status': 'APPROVED',
-            'created_by': mtc_tl_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=25),
-            'updated_at': datetime.utcnow() - timedelta(days=22),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=22),
-            'description': 'Design Ready - Functional Requirements Document (FR1-FR5), Data Model v0.1 (9.8/10 quality, 21 tables), Legal Brief (AGPL containment strategy).',
-        },
-
-        # NQH Project Gates
-        {
-            'id': str(uuid4()),
-            'project_id': nqh_project_id,
-            'gate_name': 'G0.1',
-            'gate_type': 'FOUNDATION_READY',
-            'stage': 'WHY',
-            'status': 'APPROVED',
-            'created_by': nqh_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=28),
-            'updated_at': datetime.utcnow() - timedelta(days=25),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=25),
-            'description': 'Foundation Ready - NQH E-commerce Phase 2. Business case: Increase conversion rate from 2.3% to 4.5% via AI recommendations, reduce cart abandonment from 68% to 45%.',
+            'created_by': cpo_user_id,
+            'exit_criteria': ['FRD complete (25 FRs)', 'API spec defined (2,100 lines)', 'Data model designed (35 tables)'],
+            'created_at': datetime(2025, 9, 20, 9, 0, 0),
+            'updated_at': datetime(2025, 9, 30, 14, 0, 0),
+            'approved_at': datetime(2025, 9, 30, 14, 0, 0),
+            'description': 'FRD approved: 25 functional requirements. API spec 2,100 lines. Data model: 35 tables.',
         },
         {
-            'id': str(uuid4()),
-            'project_id': nqh_project_id,
-            'gate_name': 'G0.2',
-            'gate_type': 'SOLUTION_DIVERSITY',
-            'stage': 'WHY',
-            'status': 'APPROVED',
-            'created_by': nqh_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=22),
-            'updated_at': datetime.utcnow() - timedelta(days=19),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=19),
-            'description': 'Solution Diversity - AI recommendation engine options: (1) Amazon Personalize, (2) TensorFlow custom model, (3) GPT-4 API. Selected: GPT-4 API (faster time-to-market).',
-        },
-        {
-            'id': str(uuid4()),
-            'project_id': nqh_project_id,
-            'gate_name': 'G1',
+            'id': 'e0000000-0000-0000-0000-000000000004',
+            'project_id': main_project_id,
+            'gate_name': 'G2',
             'gate_type': 'DESIGN_READY',
-            'stage': 'WHAT',
-            'status': 'PENDING_APPROVAL',  # Fixed: IN_REVIEW → PENDING_APPROVAL (valid status)
-            'created_by': nqh_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=12),
-            'updated_at': datetime.utcnow() - timedelta(days=10),  # Added: Required timestamp
+            'stage': 'HOW',
+            'status': 'APPROVED',
+            'created_by': cto_user_id,
+            'exit_criteria': ['Architecture document approved', 'Security baseline OWASP ASVS L2', 'Vietnamese NLP design complete'],
+            'created_at': datetime(2025, 10, 5, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 15, 17, 0, 0),
+            'approved_at': datetime(2025, 10, 15, 17, 0, 0),
+            'description': 'Architecture: Microservices with event-driven messaging. Vietnamese NLP pipeline. Multi-channel integration.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000005',
+            'project_id': main_project_id,
+            'gate_name': 'G3',
+            'gate_type': 'SHIP_READY',
+            'stage': 'BUILD',
+            'status': 'PENDING_APPROVAL',
+            'created_by': local_tl_user_id,
+            'exit_criteria': ['Core features implemented', 'Unit tests 90%+', 'Integration tests passing', 'NLP accuracy 85%+'],
+            'created_at': datetime(2025, 11, 1, 8, 0, 0),
+            'updated_at': datetime.utcnow(),
             'approved_at': None,
-            'description': 'Design Ready - API design complete (VNPay, Momo gateways), database schema ready (PostgreSQL + Redis cache), waiting for CPO approval on UX flow.',
+            'description': 'MVP 75% complete. Telegram + Zalo channels working. Vietnamese NLP: 85% accuracy. CRM sync in progress.',
         },
 
-        # BFlow Project Gates
+        # NQH-Bot Analytics Module (Remote Team)
         {
-            'id': str(uuid4()),
-            'project_id': bflow_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000006',
+            'project_id': analytics_project_id,
             'gate_name': 'G0.1',
-            'gate_type': 'FOUNDATION_READY',
+            'gate_type': 'PROBLEM_DEFINITION',
             'stage': 'WHY',
             'status': 'APPROVED',
-            'created_by': bflow_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=18),
-            'updated_at': datetime.utcnow() - timedelta(days=15),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=15),
-            'description': 'Foundation Ready - BFlow v3.0 Workflow Automation. Business case: Enable non-technical users to build workflows in <5 min (vs 2 hours with code).',
+            'created_by': remote_tl_user_id,
+            'exit_criteria': ['Analytics requirements gathered', 'KPI definitions documented'],
+            'created_at': datetime(2025, 10, 18, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 22, 15, 0, 0),
+            'approved_at': datetime(2025, 10, 22, 15, 0, 0),
+            'description': 'Problem: No visibility into bot performance. Businesses cant measure ROI.',
         },
         {
-            'id': str(uuid4()),
-            'project_id': bflow_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000007',
+            'project_id': analytics_project_id,
             'gate_name': 'G0.2',
             'gate_type': 'SOLUTION_DIVERSITY',
             'stage': 'WHY',
             'status': 'APPROVED',
-            'created_by': bflow_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=12),
-            'updated_at': datetime.utcnow() - timedelta(days=9),  # Added: Required timestamp
-            'approved_at': datetime.utcnow() - timedelta(days=9),
-            'description': 'Solution Diversity - Workflow designer approaches: (1) n8n fork, (2) Node-RED fork, (3) Custom React Flow. Selected: Custom React Flow (full control, better DX).',
+            'created_by': remote_tl_user_id,
+            'exit_criteria': ['3 alternatives evaluated', 'Grafana AGPL containment validated'],
+            'created_at': datetime(2025, 10, 22, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 28, 16, 0, 0),
+            'approved_at': datetime(2025, 10, 28, 16, 0, 0),
+            'description': 'Real-time dashboard with Grafana embed selected over custom charting.',
         },
         {
-            'id': str(uuid4()),
-            'project_id': bflow_project_id,
+            'id': 'e0000000-0000-0000-0000-000000000008',
+            'project_id': analytics_project_id,
             'gate_name': 'G1',
-            'gate_type': 'DESIGN_READY',
+            'gate_type': 'PLANNING_COMPLETE',
             'stage': 'WHAT',
+            'status': 'PENDING_APPROVAL',
+            'created_by': remote_dev1_user_id,
+            'exit_criteria': ['FRD complete', 'Dashboard wireframes approved', 'Data warehouse schema'],
+            'created_at': datetime(2025, 11, 5, 9, 0, 0),
+            'updated_at': datetime.utcnow(),
+            'approved_at': None,
+            'description': 'Analytics FRD 90% complete. Missing: Custom report builder specs.',
+        },
+
+        # NQH-Bot NLP Engine (Local Team)
+        {
+            'id': 'e0000000-0000-0000-0000-000000000009',
+            'project_id': nlp_project_id,
+            'gate_name': 'G0.1',
+            'gate_type': 'PROBLEM_DEFINITION',
+            'stage': 'WHY',
+            'status': 'APPROVED',
+            'created_by': local_tl_user_id,
+            'exit_criteria': ['Vietnamese NLP benchmarks documented', '5 competitor analysis complete'],
+            'created_at': datetime(2025, 10, 5, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 10, 15, 0, 0),
+            'approved_at': datetime(2025, 10, 10, 15, 0, 0),
+            'description': 'Problem: Vietnamese NLP accuracy in existing solutions: 60%. Target: 90%+.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000010',
+            'project_id': nlp_project_id,
+            'gate_name': 'G0.2',
+            'gate_type': 'SOLUTION_DIVERSITY',
+            'stage': 'WHY',
+            'status': 'APPROVED',
+            'created_by': local_tl_user_id,
+            'exit_criteria': ['Ollama vs GPT-4 benchmarks', 'Cost analysis: $50 vs $1000/month', 'Latency: <100ms target'],
+            'created_at': datetime(2025, 10, 10, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 15, 16, 0, 0),
+            'approved_at': datetime(2025, 10, 15, 16, 0, 0),
+            'description': 'Hybrid approach: Ollama (local) + Claude fallback (complex queries). 95% cost reduction.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000011',
+            'project_id': nlp_project_id,
+            'gate_name': 'G1',
+            'gate_type': 'PLANNING_COMPLETE',
+            'stage': 'WHAT',
+            'status': 'APPROVED',
+            'created_by': local_dev1_user_id,
+            'exit_criteria': ['NLP pipeline designed', 'Training data spec', 'Ollama integration contract'],
+            'created_at': datetime(2025, 10, 20, 9, 0, 0),
+            'updated_at': datetime(2025, 10, 28, 14, 0, 0),
+            'approved_at': datetime(2025, 10, 28, 14, 0, 0),
+            'description': 'NLP Engine FRD: Intent detection, entity extraction, sentiment analysis.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000012',
+            'project_id': nlp_project_id,
+            'gate_name': 'G2',
+            'gate_type': 'DESIGN_READY',
+            'stage': 'HOW',
             'status': 'DRAFT',
-            'created_by': bflow_dev_id,
-            'exit_criteria': [],  # Added: Required JSONB field
-            'created_at': datetime.utcnow() - timedelta(days=5),
-            'updated_at': datetime.utcnow() - timedelta(days=5),  # Added: Required timestamp (same as created)
+            'created_by': local_dev1_user_id,
+            'exit_criteria': ['NLP pipeline architecture', 'Model selection rationale', 'Fallback chain design'],
+            'created_at': datetime(2025, 11, 10, 10, 0, 0),
+            'updated_at': datetime.utcnow(),
             'approved_at': None,
-            'description': 'Design Ready - Data model in progress (workflow schema, node types, trigger definitions). Target submission: Nov 20, 2025.',
+            'description': 'NLP architecture 80% complete. Missing: Fallback strategy documentation.',
+        },
+
+        # NQH-Bot CRM Integration (CTO led)
+        {
+            'id': 'e0000000-0000-0000-0000-000000000013',
+            'project_id': crm_project_id,
+            'gate_name': 'G0.1',
+            'gate_type': 'PROBLEM_DEFINITION',
+            'stage': 'WHY',
+            'status': 'APPROVED',
+            'created_by': cto_user_id,
+            'exit_criteria': ['CRM integration requirements', 'Data mapping documented'],
+            'created_at': datetime(2025, 8, 20, 10, 0, 0),
+            'updated_at': datetime(2025, 8, 25, 15, 0, 0),
+            'approved_at': datetime(2025, 8, 25, 15, 0, 0),
+            'description': 'Problem: Bot conversations not synced to CRM. Sales team loses context.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000014',
+            'project_id': crm_project_id,
+            'gate_name': 'G0.2',
+            'gate_type': 'SOLUTION_DIVERSITY',
+            'stage': 'WHY',
+            'status': 'APPROVED',
+            'created_by': cto_user_id,
+            'exit_criteria': ['3 integration patterns evaluated', 'Webhook vs API poll comparison'],
+            'created_at': datetime(2025, 8, 25, 10, 0, 0),
+            'updated_at': datetime(2025, 9, 1, 16, 0, 0),
+            'approved_at': datetime(2025, 9, 1, 16, 0, 0),
+            'description': 'Webhook-based sync selected. Supports Salesforce, HubSpot, custom CRMs.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000015',
+            'project_id': crm_project_id,
+            'gate_name': 'G1',
+            'gate_type': 'PLANNING_COMPLETE',
+            'stage': 'WHAT',
+            'status': 'APPROVED',
+            'created_by': local_tl_user_id,
+            'exit_criteria': ['FRD approved', 'API contracts for 3 CRMs', 'Error handling spec'],
+            'created_at': datetime(2025, 9, 10, 9, 0, 0),
+            'updated_at': datetime(2025, 9, 20, 14, 0, 0),
+            'approved_at': datetime(2025, 9, 20, 14, 0, 0),
+            'description': 'CRM Integration FRD complete. Supports 3 major CRMs + custom webhook.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000016',
+            'project_id': crm_project_id,
+            'gate_name': 'G2',
+            'gate_type': 'DESIGN_READY',
+            'stage': 'HOW',
+            'status': 'APPROVED',
+            'created_by': cto_user_id,
+            'exit_criteria': ['Architecture document approved', 'Adapter pattern documented'],
+            'created_at': datetime(2025, 10, 1, 10, 0, 0),
+            'updated_at': datetime(2025, 10, 10, 17, 0, 0),
+            'approved_at': datetime(2025, 10, 10, 17, 0, 0),
+            'description': 'CRM adapter pattern. Event-driven sync. Retry with exponential backoff.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000017',
+            'project_id': crm_project_id,
+            'gate_name': 'G3',
+            'gate_type': 'SHIP_READY',
+            'stage': 'BUILD',
+            'status': 'APPROVED',
+            'created_by': cto_user_id,
+            'exit_criteria': ['Core sync working', 'Tests passing', 'Performance: <500ms sync'],
+            'created_at': datetime(2025, 10, 20, 8, 0, 0),
+            'updated_at': datetime(2025, 11, 5, 18, 0, 0),
+            'approved_at': datetime(2025, 11, 5, 18, 0, 0),
+            'description': 'CRM integration MVP complete. Salesforce + HubSpot working. 99.9% sync reliability.',
+        },
+        {
+            'id': 'e0000000-0000-0000-0000-000000000018',
+            'project_id': crm_project_id,
+            'gate_name': 'G4',
+            'gate_type': 'TEST_COMPLETE',
+            'stage': 'VERIFY',
+            'status': 'PENDING_APPROVAL',
+            'created_by': qa_lead_user_id,
+            'exit_criteria': ['Unit tests 95%+', 'Integration tests 90%+', 'Load test: 1000 req/s'],
+            'created_at': datetime(2025, 11, 10, 8, 0, 0),
+            'updated_at': datetime.utcnow(),
+            'approved_at': None,
+            'description': 'Testing: Unit 92%, Integration 88%, E2E 75%. Pending: Load test results.',
+        },
+
+        # NQH-Bot Mobile App (WHY stage - new)
+        {
+            'id': 'e0000000-0000-0000-0000-000000000019',
+            'project_id': mobile_project_id,
+            'gate_name': 'G0.1',
+            'gate_type': 'PROBLEM_DEFINITION',
+            'stage': 'WHY',
+            'status': 'DRAFT',
+            'created_by': cpo_user_id,
+            'exit_criteria': ['Problem statement documented', 'Mobile-specific user research'],
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow(),
+            'approved_at': None,
+            'description': 'Problem statement in progress: Mobile bot management for on-the-go admin.',
         },
     ]
 
     for gate in gates_data:
+        # Serialize exit_criteria to JSON string for PostgreSQL JSONB
+        gate_params = gate.copy()
+        gate_params['exit_criteria'] = json.dumps(gate['exit_criteria'])
         conn.execute(
             text("""
                 INSERT INTO gates (id, project_id, gate_name, gate_type, stage, status,
                                  created_by, exit_criteria, description, approved_at, created_at, updated_at)
                 VALUES (:id, :project_id, :gate_name, :gate_type, :stage, :status,
-                        :created_by, :exit_criteria, :description, :approved_at, :created_at, :updated_at)
+                        :created_by, :exit_criteria::jsonb, :description, :approved_at, :created_at, :updated_at)
+                ON CONFLICT (id) DO NOTHING
             """),
-            gate
+            gate_params
         )
 
-    print("✅ Seed data migration complete!")
+    print("✅ NQH-Bot Platform seed data migration complete!")
     print("📊 Summary:")
     print("  - 13 system roles created (CEO, CTO, CPO, EM, TL, DEV, QA, DevOps, Security, PM, BA, CIO, CFO)")
-    print("  - 15 Vietnamese team members added (MTC: 6, NQH: 5, BFlow: 4)")
-    print("  - 3 realistic projects created with waste reduction metrics")
-    print("  - 9 gates created (3 per project: G0.1, G0.2, G1)")
-    print("  - Gate statuses: APPROVED (7), IN_REVIEW (1), DRAFT (1)")
+    print("  - 12 users (1 admin + 11 NQH-Bot Platform team)")
+    print("  - 5 active projects (Main Platform + 4 modules)")
+    print("  - 19 gates (13 APPROVED, 4 PENDING, 2 DRAFT)")
     print("  - 3 AI providers configured (Claude Sonnet 4.5, GPT-4o, Gemini 2.0 Flash)")
-    print("\n✅ Week 3 Day 2 Seed Data Complete - Ready for Week 10/11 Internal Beta!")
+    print("\n✅ Ready for E2E testing with real NQH-Bot Platform data!")
 
 
 def downgrade() -> None:
@@ -532,12 +728,12 @@ def downgrade() -> None:
     conn = op.get_bind()
 
     # Delete in reverse order of foreign key dependencies
-    conn.execute(text("DELETE FROM gates"))
-    conn.execute(text("DELETE FROM ai_providers"))
-    conn.execute(text("DELETE FROM user_roles"))
-    conn.execute(text("DELETE FROM project_members"))
-    conn.execute(text("DELETE FROM projects"))
-    conn.execute(text("DELETE FROM users"))
-    conn.execute(text("DELETE FROM roles"))
+    conn.execute(text("DELETE FROM gates WHERE id LIKE 'e0000000%'"))
+    conn.execute(text("DELETE FROM ai_providers WHERE id LIKE 'p0000000%'"))
+    conn.execute(text("DELETE FROM user_roles WHERE user_id LIKE 'b0000000%'"))
+    conn.execute(text("DELETE FROM project_members WHERE id LIKE 'd0000000%'"))
+    conn.execute(text("DELETE FROM projects WHERE id LIKE 'c0000000%'"))
+    conn.execute(text("DELETE FROM users WHERE id LIKE 'a0000000%' OR id LIKE 'b0000000%'"))
+    conn.execute(text("DELETE FROM roles WHERE id LIKE 'r0000000%'"))
 
-    print("✅ Seed data removed successfully")
+    print("✅ NQH-Bot Platform seed data removed successfully")

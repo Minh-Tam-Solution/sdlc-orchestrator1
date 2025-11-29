@@ -29,7 +29,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import uuid4
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -52,6 +52,10 @@ class Project(Base):
         - description: Project description
         - owner_id: Foreign key to User (project owner)
         - is_active: Project status (True by default, False = archived)
+        - github_repo_id: GitHub repository ID (Sprint 15)
+        - github_repo_full_name: Full repository name (owner/repo) (Sprint 15)
+        - github_sync_status: Sync status (pending, syncing, synced, error) (Sprint 15)
+        - github_synced_at: Last sync timestamp (Sprint 15)
         - created_at: Project creation timestamp
         - updated_at: Last update timestamp
         - deleted_at: Soft delete timestamp
@@ -98,6 +102,12 @@ class Project(Base):
 
     # Project Status
     is_active = Column(Boolean, default=True, nullable=False, index=True)
+
+    # GitHub Integration (Sprint 15)
+    github_repo_id = Column(Integer, nullable=True, index=True)
+    github_repo_full_name = Column(String(500), nullable=True)
+    github_sync_status = Column(String(50), nullable=True, default="pending")  # pending, syncing, synced, error
+    github_synced_at = Column(DateTime, nullable=True)
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

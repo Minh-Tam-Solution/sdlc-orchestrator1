@@ -318,3 +318,140 @@ export const SDLC_STAGES = [
 
 export type SDLCStageCode = typeof SDLC_STAGES[number]['code']
 export type SDLCStageName = typeof SDLC_STAGES[number]['name']
+
+// =========================================================================
+// GITHUB INTEGRATION TYPES
+// =========================================================================
+
+// GitHub OAuth Types
+export interface GitHubOAuthURLResponse {
+  authorization_url: string
+  state: string
+}
+
+export interface GitHubOAuthCallbackRequest {
+  code: string
+  state: string
+}
+
+export interface GitHubOAuthCallbackResponse {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
+  github_connected: boolean
+  user_id: string
+  email: string
+  name: string | null
+  avatar_url: string | null
+}
+
+export interface GitHubConnectionStatus {
+  connected: boolean
+  github_username: string | null
+  github_avatar: string | null
+  scopes: string[]
+  connected_at: string | null
+  rate_limit: GitHubRateLimitInfo | null
+}
+
+export interface GitHubRateLimitInfo {
+  limit: number
+  remaining: number
+  reset: string
+  used: number
+}
+
+// GitHub Repository Types
+export interface GitHubRepositoryOwner {
+  login: string
+  id: number
+  avatar_url: string | null
+  type: 'User' | 'Organization'
+}
+
+export interface GitHubRepository {
+  id: number
+  name: string
+  full_name: string
+  description: string | null
+  html_url: string
+  clone_url: string | null
+  default_branch: string
+  language: string | null
+  private: boolean
+  fork: boolean
+  stargazers_count: number
+  forks_count: number
+  open_issues_count: number
+  owner: GitHubRepositoryOwner
+  created_at: string | null
+  updated_at: string | null
+  pushed_at: string | null
+}
+
+export interface GitHubRepositoryListResponse {
+  repositories: GitHubRepository[]
+  total: number
+  page: number
+  per_page: number
+}
+
+export interface GitHubRepositoryContents {
+  name: string
+  path: string
+  type: 'file' | 'dir'
+  size: number
+  sha: string
+  download_url: string | null
+}
+
+export interface GitHubRepositoryLanguages {
+  languages: Record<string, number>
+  primary_language: string | null
+}
+
+export interface GitHubAnalysisResult {
+  project_type: string
+  languages: Record<string, number>
+  recommended_policy_pack: 'lite' | 'standard' | 'enterprise'
+  stage_mappings: Array<{
+    folder: string
+    stage: string
+  }>
+}
+
+// GitHub Sync Types
+export interface GitHubSyncRequest {
+  github_repo_id: number
+  github_repo_full_name: string
+  project_name?: string
+  auto_setup?: boolean
+}
+
+export interface GitHubSyncResponse {
+  project_id: string
+  project_name: string
+  project_slug: string
+  github_repo_id: number
+  github_repo_full_name: string
+  sync_status: 'synced' | 'syncing' | 'error'
+  synced_at: string
+}
+
+// GitHub Webhook Types
+export interface GitHubWebhookEvent {
+  event_type: string
+  repository: Record<string, unknown>
+  sender: Record<string, unknown>
+  action: string | null
+  timestamp: string
+  data: Record<string, unknown>
+}
+
+export interface GitHubWebhookResponse {
+  received: boolean
+  event_type: string
+  repository: string
+  message: string
+}

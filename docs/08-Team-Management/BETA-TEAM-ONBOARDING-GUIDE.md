@@ -5,7 +5,7 @@
 **Status**: ACTIVE - Week 13 Production Launch
 **Authority**: PM + CPO
 **Framework**: SDLC 4.9 Complete Lifecycle
-**Target Audience**: Internal MTC/NQH Beta Teams (5-8 teams)
+**Target Audience**: Internal MTS/NQH Beta Teams (5-8 teams)
 
 ---
 
@@ -36,7 +36,21 @@ Your feedback will help us refine the product before public release.
 3. Complete MFA setup (optional but recommended)
 4. You'll be redirected to the Dashboard
 
-### Step 3: Create Your First Project
+### Step 3: Connect GitHub Repository (Recommended)
+
+1. Click "Connect GitHub" in the onboarding wizard
+2. Authorize SDLC Orchestrator to access your repositories (read-only)
+3. Select a repository from the list
+4. The system will automatically:
+   - Analyze your repository structure
+   - Detect project type (FastAPI, React, Node, etc.)
+   - Recommend a policy pack (Lite/Standard/Enterprise)
+   - Map folders to SDLC 4.9 stages
+   - Create your first project
+
+**Alternative**: You can also create a project manually without GitHub connection.
+
+### Step 4: Create Your First Project (Manual)
 
 1. Click "Projects" in the sidebar
 2. Click "New Project" button
@@ -46,7 +60,7 @@ Your feedback will help us refine the product before public release.
    - **Repository URL**: GitHub repo (optional)
 4. Click "Create"
 
-### Step 4: Set Up Your First Gate
+### Step 5: Set Up Your First Gate
 
 1. Go to your project
 2. Click "Gates" tab
@@ -58,7 +72,7 @@ Your feedback will help us refine the product before public release.
    - G2: Design Ready
 5. Click "Create Gate"
 
-### Step 5: Submit Evidence
+### Step 6: Submit Evidence
 
 1. Go to your gate
 2. Click "Upload Evidence"

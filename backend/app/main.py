@@ -45,7 +45,7 @@ from app.middleware.rate_limiter import RateLimiterMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 
 # Import API routers
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github
 
 # Create FastAPI app
 app = FastAPI(
@@ -96,6 +96,7 @@ app.include_router(evidence.router, prefix="/api/v1", tags=["Evidence"])
 app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
 app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
+app.include_router(github.router, prefix="/api/v1", tags=["GitHub"])
 
 # ============================================================================
 # Health Check Endpoints
@@ -117,18 +118,81 @@ async def health_check():
 @app.get("/health/ready")
 async def readiness_check():
     """
-    Readiness check - verifies all dependencies are available
-    TODO: Add checks for PostgreSQL, Redis, OPA, MinIO
+    Readiness check - verifies all dependencies are available.
+
+    Checks:
+    - PostgreSQL: SELECT 1 query
+    - Redis: PING command
+    - OPA: /health endpoint
+    - MinIO: HEAD bucket
+
+    Returns:
+        200 OK if all dependencies are healthy
+        503 Service Unavailable if any dependency is down
     """
-    return {
-        "status": "ready",
-        "dependencies": {
-            "postgres": "connected",  # TODO: Implement actual check
-            "redis": "connected",  # TODO: Implement actual check
-            "opa": "connected",  # TODO: Implement actual check
-            "minio": "connected",  # TODO: Implement actual check
-        },
+    from sqlalchemy import text
+    from app.db.session import AsyncSessionLocal
+    from app.utils.redis import get_redis_client
+    from app.services.opa_service import opa_service
+    from app.services.minio_service import minio_service
+
+    dependencies = {}
+    all_healthy = True
+
+    # Check PostgreSQL
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        dependencies["postgres"] = {"status": "connected", "healthy": True}
+    except Exception as e:
+        dependencies["postgres"] = {"status": "disconnected", "healthy": False, "error": str(e)}
+        all_healthy = False
+
+    # Check Redis
+    try:
+        redis = await get_redis_client()
+        await redis.ping()
+        dependencies["redis"] = {"status": "connected", "healthy": True}
+    except Exception as e:
+        dependencies["redis"] = {"status": "disconnected", "healthy": False, "error": str(e)}
+        all_healthy = False
+
+    # Check OPA
+    try:
+        health = opa_service.health_check()
+        if health.get("healthy"):
+            dependencies["opa"] = {"status": "connected", "healthy": True, "version": health.get("version")}
+        else:
+            dependencies["opa"] = {"status": "unhealthy", "healthy": False, "error": health.get("error")}
+            all_healthy = False
+    except Exception as e:
+        dependencies["opa"] = {"status": "disconnected", "healthy": False, "error": str(e)}
+        all_healthy = False
+
+    # Check MinIO
+    try:
+        minio_service.client.head_bucket(Bucket=minio_service.bucket_name)
+        dependencies["minio"] = {"status": "connected", "healthy": True, "bucket": minio_service.bucket_name}
+    except Exception as e:
+        error_msg = str(e)
+        # Bucket not existing is OK - it will be created on startup
+        if "404" in error_msg or "NoSuchBucket" in error_msg:
+            dependencies["minio"] = {"status": "connected", "healthy": True, "bucket": f"{minio_service.bucket_name} (will be created)"}
+        else:
+            dependencies["minio"] = {"status": "disconnected", "healthy": False, "error": error_msg}
+            all_healthy = False
+
+    from fastapi.responses import JSONResponse
+
+    response_data = {
+        "status": "ready" if all_healthy else "not_ready",
+        "dependencies": dependencies,
     }
+
+    if all_healthy:
+        return response_data
+    else:
+        return JSONResponse(status_code=503, content=response_data)
 
 
 @app.get("/")
@@ -181,11 +245,16 @@ async def startup_event():
     - Verify OPA availability
     - Initialize MinIO buckets
     """
-    print("🚀 SDLC Orchestrator API started successfully!")
-    print(f"📊 OpenAPI docs: http://localhost:8000/api/docs")
-    print(f"🔐 Authentication endpoints: http://localhost:8000/api/v1/auth")
-    print(f"🚪 Gates endpoints: http://localhost:8000/api/v1/gates")
-    
+    import os
+    api_host = os.getenv("API_HOST", "localhost")
+    api_port = os.getenv("API_PORT", "8000")
+    print("🚀 SDLC Orchestrator API starting...")
+    print(f"📊 OpenAPI docs: http://{api_host}:{api_port}/api/docs")
+    print(f"🔐 Authentication endpoints: http://{api_host}:{api_port}/api/v1/auth")
+    print(f"🚪 Gates endpoints: http://{api_host}:{api_port}/api/v1/gates")
+
+    startup_errors = []
+
     # Initialize Redis connection (Week 5 Day 1 - P1 Features)
     try:
         from app.utils.redis import get_redis_client
@@ -194,9 +263,47 @@ async def startup_event():
         print("✅ Redis connected (rate limiting enabled)")
     except Exception as e:
         print(f"⚠️  Redis connection failed (rate limiting disabled): {e}")
-    
-    # TODO: Verify OPA availability
-    # TODO: Initialize MinIO buckets
+        # Redis is optional - don't add to startup_errors
+
+    # Verify OPA availability (Sprint 14 - TD-02)
+    try:
+        from app.services.opa_service import opa_service
+        health = opa_service.health_check()
+        if health.get("healthy"):
+            print(f"✅ OPA connected (version: {health.get('version', 'unknown')})")
+        else:
+            error_msg = f"OPA unhealthy: {health.get('error', 'unknown error')}"
+            print(f"❌ {error_msg}")
+            startup_errors.append(error_msg)
+    except Exception as e:
+        error_msg = f"OPA connection failed: {e}"
+        print(f"❌ {error_msg}")
+        startup_errors.append(error_msg)
+
+    # Initialize MinIO buckets (Sprint 14 - TD-02)
+    try:
+        from app.services.minio_service import minio_service
+        minio_service.ensure_bucket_exists()
+        print(f"✅ MinIO connected (bucket: {minio_service.bucket_name})")
+    except Exception as e:
+        error_msg = f"MinIO initialization failed: {e}"
+        print(f"❌ {error_msg}")
+        startup_errors.append(error_msg)
+
+    # Fail fast if critical dependencies unavailable
+    if startup_errors:
+        print("\n" + "=" * 60)
+        print("❌ STARTUP FAILED - Critical dependencies unavailable:")
+        for error in startup_errors:
+            print(f"   - {error}")
+        print("=" * 60 + "\n")
+        # In production, we might want to exit here
+        # For development, we continue with warnings
+        if not settings.DEBUG:
+            import sys
+            sys.exit(1)
+    else:
+        print("\n✅ SDLC Orchestrator API started successfully!")
 
 
 @app.on_event("shutdown")

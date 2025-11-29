@@ -1,0 +1,79 @@
+meta {
+  name: Evaluate Gate
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates/{{bflowG3GateId}}/evaluate
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Returns gate_id", function() {
+    expect(res.body).to.have.property("gate_id");
+  });
+
+  test("Returns evaluation status", function() {
+    expect(res.body).to.have.property("status");
+    expect(["PENDING_APPROVAL", "DRAFT"]).to.include(res.body.status);
+  });
+
+  test("Has evaluation_result", function() {
+    expect(res.body).to.have.property("evaluation_result");
+  });
+
+  test("Evaluation result has required fields", function() {
+    const result = res.body.evaluation_result;
+    expect(result).to.have.property("passed_policies");
+    expect(result).to.have.property("failed_policies");
+    expect(result).to.have.property("overall_result");
+  });
+
+  test("Has details array", function() {
+    expect(res.body.evaluation_result).to.have.property("details");
+    expect(res.body.evaluation_result.details).to.be.an("array");
+  });
+}
+
+docs {
+  # Evaluate Gate
+
+  Triggers policy evaluation for a gate and updates its status based on results.
+
+  ## Path Parameters
+  - **gate_id**: Gate UUID
+
+  ## Evaluation Flow
+  1. Collect all evidence attached to gate
+  2. Determine applicable policies based on gate stage
+  3. Call OPA to evaluate each policy
+  4. Update gate status:
+     - All policies pass -> PENDING_APPROVAL
+     - Any policy fails -> remain DRAFT with errors
+
+  ## Response Fields
+  - **gate_id**: Gate UUID
+  - **status**: New gate status
+  - **evaluation_result**:
+    - **overall_result**: PASS or FAIL
+    - **passed_policies**: Count of passed
+    - **failed_policies**: Count of failed
+    - **warnings**: Count of warnings
+    - **details**: Array of policy results
+
+  ## Expected
+  Gate G3 (BFlow BUILD stage):
+  - Applicable policies: BUILD stage policies
+  - With proper evidence: status -> PENDING_APPROVAL
+  - Without evidence: status remains DRAFT
+}

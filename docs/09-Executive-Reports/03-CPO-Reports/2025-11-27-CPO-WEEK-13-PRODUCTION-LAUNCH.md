@@ -167,7 +167,7 @@ Week 13: Production Launch ✅
 
 ### Success Criteria (30 days post-launch)
 
-- [ ] 5-8 MTC/NQH internal teams using daily
+- [ ] 5-8 MTS/NQH internal teams using daily
 - [ ] 70%+ daily active usage
 - [ ] Measurable waste reduction (60-70% → <30%)
 - [ ] Zero P0 bugs for 30 days

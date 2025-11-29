@@ -1,12 +1,12 @@
 # CLAUDE AI PROJECT CONTEXT - SDLC ORCHESTRATOR
-## AI Assistant Configuration for SDLC 4.9 Governance Platform
+## AI Assistant Configuration for SDLC 4.9.1 Governance Platform
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Status**: ACTIVE - BUILD PHASE (Stage 03)
-**Effective Date**: November 13, 2025
-**Project**: SDLC Orchestrator - First Governance-First Platform on SDLC 4.9
+**Effective Date**: November 29, 2025
+**Project**: SDLC Orchestrator - First Governance-First Platform on SDLC 4.9.1
 **Authority**: CTO + CPO + CEO Approved
-**Framework**: SDLC 4.9 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 4.9.1 Complete Lifecycle (10 Stages)
 
 ---
 
@@ -14,7 +14,7 @@
 
 ### **What is SDLC Orchestrator?**
 
-SDLC Orchestrator is the **FIRST governance-first platform** built on SDLC 4.9 Complete Lifecycle methodology. It's a bridge-layer tool that enforces quality gates, collects evidence, and ensures teams follow proven SDLC practices - WITHOUT replacing existing tools (GitHub, Jira, Linear).
+SDLC Orchestrator is the **FIRST governance-first platform** built on SDLC 4.9.1 Complete Lifecycle methodology. It's a bridge-layer tool that enforces quality gates, collects evidence, and ensures teams follow proven SDLC practices - WITHOUT replacing existing tools (GitHub, Jira, Linear).
 
 **Core Value Proposition**: Reduce feature waste from 60-70% → <30% by enforcing evidence-based development practices.
 
@@ -46,13 +46,14 @@ Next Gate:
 
 ## 🤖 **YOUR ROLE AS AI ASSISTANT**
 
-You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 4.9. Your primary responsibilities:
+You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 4.9.1. Your primary responsibilities:
 
 ### **1. Code Generation & Implementation**
 - Generate **production-ready code** (Python FastAPI, React TypeScript, PostgreSQL)
 - Follow **Zero Mock Policy** (no `// TODO`, no placeholders, real implementations only)
 - Integrate with **OSS components** (OPA, MinIO, Grafana, Redis) via adapter pattern
-- Apply **SDLC 4.9 patterns** learned from BFlow/NQH/MTEP experience
+- Apply **SDLC 4.9.1 patterns** learned from BFlow/NQH/MTEP experience
+- Follow **Code File Naming Standards** (snake_case for Python ≤50 chars, camelCase/PascalCase for TypeScript)
 
 ### **2. Architecture & Design Review**
 - Validate **4-layer architecture** (User → Business → Integration → Infrastructure)
@@ -315,7 +316,44 @@ Frontend:
   Component render: <100ms
 ```
 
-### **4. Security Baseline (OWASP ASVS Level 2)**
+### **4. Code File Naming Standards (SDLC 4.9.1 - MANDATORY)**
+
+```yaml
+Python Files:
+  Convention: snake_case
+  Max Length: 50 characters (excluding .py)
+  Examples:
+    ✅ user_service.py
+    ✅ customer_repository.py
+    ✅ test_user_service.py
+    ❌ UserService.py (PascalCase)
+    ❌ very_long_descriptive_name_that_exceeds_fifty_chars.py (>50 chars)
+
+TypeScript Files:
+  Regular files: camelCase (max 50 chars)
+  React components: PascalCase (max 50 chars)
+  Examples:
+    ✅ userService.ts
+    ✅ UserProfile.tsx
+    ❌ user_service.ts (snake_case)
+
+Alembic Migrations:
+  Format: {revision}_{short_description}.py
+  Max Length: 60 characters
+  Examples:
+    ✅ 001_create_users.py (16 chars)
+    ✅ a502ce0d_seed_mtc_data.py (24 chars)
+    ❌ a502ce0d23a7_seed_data_realistic_mtc_nqh_very_long_name_examples.py (>60 chars)
+
+Documentation Files:
+  Convention: kebab-case
+  Examples:
+    ✅ user-guide.md
+    ✅ api-reference.md
+    ❌ user_guide.md (snake_case)
+```
+
+### **5. Security Baseline (OWASP ASVS Level 2)**
 
 ```yaml
 Authentication:
@@ -504,6 +542,7 @@ Code Quality:
   - Pre-commit: Linting (ruff, ESLint) + formatting (black, Prettier)
   - CI/CD: Tests (95%+ coverage), security scan (Semgrep), SBOM (Syft)
   - Code review: 2+ approvers required (Tech Lead + Backend Lead)
+  - File naming: SDLC 4.9.1 Code File Naming Standards enforced
 
 Performance:
   - Load test: 100K concurrent users (Locust)
@@ -696,22 +735,23 @@ You are successful if:
 - ✅ **Test Coverage**: 95%+ (unit + integration)
 - ✅ **CTO Approval**: Code review pass (2+ approvers)
 - ✅ **Gate G3 Pass**: Ship Ready by Jan 31, 2026
+- ✅ **SDLC 4.9.1 Compliance**: Code File Naming Standards enforced
 
 ---
 
 **Template Status**: ✅ **SDLC ORCHESTRATOR AI CONTEXT COMPLETE**
-**Framework**: ✅ **SDLC 4.9 COMPLETE LIFECYCLE**
+**Framework**: ✅ **SDLC 4.9.1 COMPLETE LIFECYCLE**
 **Authorization**: ✅ **CTO + CPO + CEO APPROVED**
 
 ---
 
-*SDLC Orchestrator - First Governance-First Platform on SDLC 4.9. Zero facade tolerance. Battle-tested patterns. Production excellence.*
+*SDLC Orchestrator - First Governance-First Platform on SDLC 4.9.1. Zero facade tolerance. Battle-tested patterns. Production excellence.*
 
-**"Quality over quantity. Real implementations over mocks. Let's build with discipline."** ⚔️ - CTO
+**"Quality over quantity. Real implementations over mocks. Let's build with discipline."** - CTO
 
 ---
 
-**Last Updated**: November 13, 2025
+**Last Updated**: November 29, 2025
 **Owner**: CTO + CPO + CEO
 **Status**: ✅ ACTIVE - BUILD PHASE (Stage 03)
 **Next Review**: Weekly CEO Review (Every Friday 3pm)

@@ -81,10 +81,10 @@
 ### Gate G4 (Week 11 - Jan 23-27, 2026)
 
 **Original**: Market Validation (10 external beta teams)  
-**NEW**: Internal Validation (5-8 MTC/NQH teams)
+**NEW**: Internal Validation (5-8 MTS/NQH teams)
 
 **NEW Exit Criteria**:
-- ✅ 5-8 MTC/NQH internal teams onboarded
+- ✅ 5-8 MTS/NQH internal teams onboarded
 - ✅ 70%+ daily active usage
 - ✅ NPS 50+ from internal users
 - ✅ Zero P0 bugs
@@ -108,7 +108,7 @@
 ### Launch Strategy (2-Phase Approach)
 
 **Phase 1: Internal Validation** (Feb-Jun 2026)
-- Target: 5-8 MTC/NQH teams (50-100 engineers)
+- Target: 5-8 MTS/NQH teams (50-100 engineers)
 - Revenue: $0 MRR (internal only)
 - Goal: Prove waste reduction, 70% daily usage, zero P0 bugs
 - Duration: 4-6 months
@@ -141,7 +141,7 @@
 |--------|--------|-------------|
 | Daily Active Usage | **70%** | Grafana dashboard |
 | NPS (Internal Users) | **50+** | Monthly survey |
-| Internal Teams | **5-8** | MTC + NQH teams |
+| Internal Teams | **5-8** | MTS + NQH teams |
 | Waste Reduction | **<30%** | Before/after data |
 | Zero P0 Bug Streak | **30 days** | Jira bug tracker |
 
@@ -190,17 +190,17 @@
 - ✅ Product Roadmap updated (Internal-First strategy)
 - ✅ Stage 00/01 documents updated (removed 10 LOIs references)
 - ⏳ Complete Week 1 deliverables (Stage 00 foundation)
-- ⏳ Coordinate with MTC/NQH teams (identify 5-8 teams for Week 11 beta)
+- ⏳ Coordinate with MTS/NQH teams (identify 5-8 teams for Week 11 beta)
 
 ### Week 2 (Nov 21-25, 2025) - NEXT
 
 - ⏳ **Gate G1 Focus**: Legal + FRD + Data Model (skip LOI requirement)
-- ⏳ **Internal Team Coordination**: Brief MTC/NQH leads on Week 11 beta
+- ⏳ **Internal Team Coordination**: Brief MTS/NQH leads on Week 11 beta
 - ⏳ **Metrics Planning**: Define "waste reduction" measurement methodology
 
 ### Week 11 (Jan 23-27, 2026)
 
-- ⏳ **Internal Beta Launch**: Onboard 5-8 MTC/NQH teams
+- ⏳ **Internal Beta Launch**: Onboard 5-8 MTS/NQH teams
 - ⏳ **Daily Feedback Sessions**: Collect usage data, bug reports
 - ⏳ **NPS Survey**: Measure internal user satisfaction
 
@@ -228,13 +228,13 @@
 **Message**:
 - Strategy change from external to internal-first launch
 - Week 1-10 unchanged (same technical deliverables)
-- Week 11 internal beta easier (MTC/NQH teams)
+- Week 11 internal beta easier (MTS/NQH teams)
 - Week 13+ focus on internal validation ($0 MRR Phase 1)
 
-### MTC/NQH Leadership (Week 2)
+### MTS/NQH Leadership (Week 2)
 
 **Status**: ⏳ PENDING  
-**Audience**: MTC CTO, NQH CTO, Team Leads  
+**Audience**: MTS CTO, NQH CTO, Team Leads  
 **Message**:
 - SDLC Orchestrator launches internally Feb 2026
 - Need 5-8 teams for beta (Week 11+)
@@ -254,7 +254,7 @@
 ### Risk 2: Internal Teams Don't Adopt (<70% usage)
 
 **Impact**: No case studies for external launch  
-**Mitigation**: MTC/NQH teams validated in interviews  
+**Mitigation**: MTS/NQH teams validated in interviews  
 **Contingency**: Extend Phase 1, improve UX  
 **Status**: 🟢 LOW RISK (internal teams aware of problem)
 

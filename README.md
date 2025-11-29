@@ -125,6 +125,30 @@ curl http://localhost:3000
 # Expected: React app HTML
 ```
 
+### 7. GitHub Integration (Optional)
+
+SDLC Orchestrator supports GitHub integration for automatic project creation:
+
+1. **Connect GitHub Account**:
+   - Go to Settings → GitHub
+   - Click "Connect GitHub"
+   - Authorize SDLC Orchestrator (read-only access)
+
+2. **Sync Repository**:
+   - Select a repository from your GitHub account
+   - System automatically:
+     - Analyzes repository structure
+     - Detects project type
+     - Recommends policy pack
+     - Maps folders to SDLC 4.9 stages
+     - Creates project with initial gates
+
+3. **Webhook Setup** (Optional):
+   - Configure webhook in GitHub repository
+   - URL: `https://api.sdlc-orchestrator.com/api/v1/github/webhook`
+   - Events: push, pull_request, issues
+   - Automatic sync on repository changes
+
 ---
 
 ## 📚 Documentation

@@ -328,7 +328,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 **Phase 1: Internal Validation** (Feb-Jun 2026)
 
 **Internal Beta Teams**:
-- **MTC Teams**: 3-4 application development teams (20-40 engineers)
+- **MTS Teams**: 3-4 application development teams (20-40 engineers)
 - **NQH Teams**: 2-4 application development teams (30-60 engineers)
 - **Total**: 5-8 teams, 50-100 engineers using SDLC Orchestrator daily
 
@@ -347,7 +347,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 **Why Internal-First**:
 - **Reduces Risk**: Fix bugs internally before external reputation impact
-- **Validates SOM**: Real usage from MTC/NQH, not beta tester politeness
+- **Validates SOM**: Real usage from MTS/NQH, not beta tester politeness
 - **Case Studies**: "We use it ourselves" = powerful marketing
 - **Gate G1**: Legal + Technical Feasibility (LOI requirement removed, too early)
 
@@ -684,7 +684,7 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 **Risk**: Teams expect "free" (like OPA, Backstage)
 **Impact**: ARPU $99 → $50 (-50%)
 **Probability**: 🟢 LOW (20%)
-**Mitigation**: Internal usage validation (pricing tested with MTC/NQH), free tier (no barrier)
+**Mitigation**: Internal usage validation (pricing tested with MTS/NQH), free tier (no barrier)
 
 ---
 

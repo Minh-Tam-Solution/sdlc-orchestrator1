@@ -1,0 +1,89 @@
+meta {
+  name: Create Project
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/projects
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "E2E Test Project - {{$timestamp}}",
+    "description": "Automated test project created by Bruno API tests. Testing project creation flow."
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("newProjectId", res.body.id);
+    bru.setVar("newProjectSlug", res.body.slug);
+  }
+}
+
+tests {
+  test("Status code is 201 Created", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("Response has project id", function() {
+    expect(res.body).to.have.property("id");
+    expect(res.body.id).to.be.a("string");
+  });
+
+  test("Response has auto-generated slug", function() {
+    expect(res.body).to.have.property("slug");
+    expect(res.body.slug).to.include("e2e-test-project");
+  });
+
+  test("Owner is current user", function() {
+    expect(res.body).to.have.property("owner_id");
+  });
+
+  test("Project is active by default", function() {
+    expect(res.body).to.have.property("is_active");
+    expect(res.body.is_active).to.equal(true);
+  });
+
+  test("Has timestamps", function() {
+    expect(res.body).to.have.property("created_at");
+  });
+}
+
+docs {
+  # Create Project
+
+  Creates a new project in the system.
+
+  ## Request Body
+  - **name**: Project name (required)
+  - **description**: Project description (optional)
+  - **slug**: URL-friendly identifier (auto-generated if not provided)
+
+  ## Response Fields
+  - **id**: Project UUID
+  - **name**: Project name
+  - **slug**: URL-friendly identifier
+  - **description**: Project description
+  - **owner_id**: Creator user ID (current user)
+  - **is_active**: Active status (true by default)
+  - **created_at**: Creation timestamp
+
+  ## Auto-Generated
+  - **slug**: From project name (kebab-case)
+  - **owner_id**: From authenticated user
+
+  ## Side Effects
+  - Creator added as project owner in project_members
+  - Audit log entry created
+
+  ## Expected
+  New project created with auto-generated slug
+}

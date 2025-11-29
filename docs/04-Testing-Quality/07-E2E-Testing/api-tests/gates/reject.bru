@@ -1,0 +1,86 @@
+meta {
+  name: Reject Gate
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates/{{nqhG1GateId}}/reject
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "reason": "FRD is 80% complete. Missing:\n- AI recommendation algorithm specs\n- Payment gateway integration details\n- Performance requirements for API endpoints\n\nPlease address these items and resubmit."
+  }
+}
+
+tests {
+  test("Status code is 200 or 403", function() {
+    expect([200, 403, 404]).to.include(res.status);
+  });
+
+  test("If rejected, has correct status", function() {
+    if (res.status === 200) {
+      expect(res.body).to.have.property("status");
+      expect(res.body.status).to.equal("REJECTED");
+    }
+  });
+
+  test("If rejected, has rejector info", function() {
+    if (res.status === 200) {
+      expect(res.body).to.have.property("rejected_by");
+      expect(res.body).to.have.property("rejected_at");
+      expect(res.body).to.have.property("reason");
+    }
+  });
+
+  test("Rejection reason is preserved", function() {
+    if (res.status === 200) {
+      expect(res.body.reason).to.include("FRD is 80% complete");
+    }
+  });
+}
+
+docs {
+  # Reject Gate
+
+  Rejects a gate that is in PENDING_APPROVAL status with feedback.
+
+  ## Path Parameters
+  - **gate_id**: Gate UUID
+
+  ## Request Body
+  - **reason**: Rejection reason with actionable feedback (required)
+
+  ## Authorization
+  - User must have gate approval/rejection permission
+  - Gate must be in PENDING_APPROVAL status
+
+  ## Response Fields (200)
+  - **gate_id**: Gate UUID
+  - **status**: REJECTED
+  - **rejected_by**: Rejector user ID
+  - **rejected_at**: Rejection timestamp
+  - **reason**: Rejection reason
+
+  ## Side Effects
+  - Gate status changes to REJECTED
+  - Rejection record created
+  - Audit log entry created
+  - Notification sent to gate creator
+  - Project owner alerted
+
+  ## Best Practices
+  - Provide specific, actionable feedback
+  - Reference specific missing items
+  - Suggest next steps for the team
+
+  ## Expected
+  NQH G1 gate rejection with detailed feedback
+}

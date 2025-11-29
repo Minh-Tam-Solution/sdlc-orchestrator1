@@ -37,6 +37,7 @@ Zero Mock Policy: Production-ready gate management
 """
 
 from datetime import datetime
+import logging
 from typing import List, Optional
 from uuid import UUID
 
@@ -49,6 +50,8 @@ from app.api.dependencies import get_current_active_user, require_roles
 from app.db.session import get_db
 from app.models.gate import Gate
 from app.models.gate_approval import GateApproval
+from app.models.gate_evidence import GateEvidence
+from app.models.policy import PolicyEvaluation
 from app.models.project import Project, ProjectMember
 from app.models.user import User
 from app.schemas.gate import (
@@ -60,6 +63,8 @@ from app.schemas.gate import (
     GateSubmitRequest,
     GateUpdateRequest,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/gates", tags=["Gates"])
 
@@ -123,6 +128,181 @@ async def get_gate_or_404(gate_id: UUID, db: AsyncSession) -> Gate:
         )
 
     return gate
+
+
+async def get_evidence_count(gate_id: UUID, db: AsyncSession) -> int:
+    """
+    Get count of evidence attached to a gate.
+
+    Args:
+        gate_id: Gate UUID
+        db: Database session
+
+    Returns:
+        Number of evidence files attached to the gate
+    """
+    result = await db.scalar(
+        select(func.count())
+        .select_from(GateEvidence)
+        .where(
+            GateEvidence.gate_id == gate_id,
+            GateEvidence.deleted_at.is_(None),
+        )
+    )
+    return result or 0
+
+
+async def get_policy_violations(gate_id: UUID, db: AsyncSession) -> list:
+    """
+    Get policy violations for a gate.
+
+    Args:
+        gate_id: Gate UUID
+        db: Database session
+
+    Returns:
+        List of policy violations (from failed PolicyEvaluation records)
+    """
+    result = await db.execute(
+        select(PolicyEvaluation)
+        .where(
+            PolicyEvaluation.gate_id == gate_id,
+            PolicyEvaluation.is_passed == False,
+        )
+        .order_by(PolicyEvaluation.evaluated_at.desc())
+    )
+    evaluations = result.scalars().all()
+
+    violations = []
+    for eval in evaluations:
+        if eval.violations:
+            for violation in eval.violations:
+                violations.append({
+                    "policy_id": str(eval.policy_id) if eval.policy_id else None,
+                    "message": violation.get("message", str(violation)) if isinstance(violation, dict) else str(violation),
+                    "evaluated_at": eval.evaluated_at.isoformat() if eval.evaluated_at else None,
+                })
+    return violations
+
+
+async def evaluate_gate_policies(gate: Gate, db: AsyncSession) -> list:
+    """
+    Evaluate policies for a gate using OPA (TD-03).
+
+    This function:
+    1. Fetches applicable policies for the gate's stage
+    2. Evaluates each policy via OPA REST API
+    3. Stores results in PolicyEvaluation table
+    4. Returns list of violations for API response
+
+    Args:
+        gate: Gate object to evaluate
+        db: Database session
+
+    Returns:
+        List of policy violations (empty if all policies passed)
+    """
+    from app.services.opa_service import opa_service, OPAEvaluationError
+    from app.models.policy import Policy
+
+    violations = []
+
+    # Fetch applicable policies for this gate's stage
+    result = await db.execute(
+        select(Policy)
+        .where(
+            Policy.stage == gate.stage,
+            Policy.is_active == True,
+            Policy.deleted_at.is_(None),
+        )
+    )
+    policies = result.scalars().all()
+
+    if not policies:
+        logger.info(f"No active policies found for gate {gate.id} (stage: {gate.stage})")
+        return violations
+
+    # Prepare input data for OPA evaluation
+    input_data = {
+        "gate_id": str(gate.id),
+        "gate_name": gate.gate_name,
+        "gate_type": gate.gate_type,
+        "stage": gate.stage,
+        "exit_criteria": gate.exit_criteria or [],
+        "project_id": str(gate.project_id),
+    }
+
+    # Evaluate each policy
+    for policy in policies:
+        try:
+            # Call OPA to evaluate policy
+            opa_result = opa_service.evaluate_policy(
+                policy_code=policy.policy_code,
+                stage=gate.stage,
+                input_data=input_data,
+            )
+
+            is_passed = opa_result.get("allowed", False)
+            policy_violations = opa_result.get("violations", [])
+
+            # Store evaluation result
+            evaluation = PolicyEvaluation(
+                gate_id=gate.id,
+                policy_id=policy.id,
+                is_passed=is_passed,
+                violations=policy_violations if not is_passed else None,
+                evaluated_at=datetime.utcnow(),
+                evaluation_metadata=opa_result.get("metadata", {}),
+            )
+            db.add(evaluation)
+
+            # Collect violations for response
+            if not is_passed and policy_violations:
+                for v in policy_violations:
+                    violations.append({
+                        "policy_id": str(policy.id),
+                        "policy_code": policy.policy_code,
+                        "message": v if isinstance(v, str) else v.get("message", str(v)),
+                        "evaluated_at": datetime.utcnow().isoformat(),
+                    })
+
+            logger.info(
+                f"Policy {policy.policy_code} evaluated for gate {gate.id}: "
+                f"{'PASSED' if is_passed else 'FAILED'}"
+            )
+
+        except OPAEvaluationError as e:
+            # Log error but don't block gate submission
+            logger.warning(
+                f"OPA evaluation failed for policy {policy.policy_code} "
+                f"on gate {gate.id}: {e}"
+            )
+            # Store failed evaluation
+            evaluation = PolicyEvaluation(
+                gate_id=gate.id,
+                policy_id=policy.id,
+                is_passed=False,
+                violations=[{"message": f"Policy evaluation error: {str(e)}"}],
+                evaluated_at=datetime.utcnow(),
+                evaluation_metadata={"error": str(e)},
+            )
+            db.add(evaluation)
+
+            violations.append({
+                "policy_id": str(policy.id),
+                "policy_code": policy.policy_code,
+                "message": f"Policy evaluation error: {str(e)}",
+                "evaluated_at": datetime.utcnow().isoformat(),
+            })
+
+        except Exception as e:
+            # Unexpected error - log and continue
+            logger.error(
+                f"Unexpected error evaluating policy {policy.policy_code} "
+                f"on gate {gate.id}: {e}"
+            )
+
+    return violations
 
 
 # =========================================================================
@@ -394,6 +574,10 @@ async def get_gate(
         for approval in gate.approvals
     ]
 
+    # Get real evidence count and policy violations (TD-04+05)
+    evidence_count = await get_evidence_count(gate_id, db)
+    policy_violations = await get_policy_violations(gate_id, db)
+
     return GateResponse(
         id=gate.id,
         project_id=gate.project_id,
@@ -409,8 +593,8 @@ async def get_gate(
         approved_at=gate.approved_at,
         deleted_at=gate.deleted_at,
         approvals=approvals,
-        evidence_count=0,  # TODO: Count from gate_evidence table
-        policy_violations=[],  # TODO: Fetch from policy_evaluations table
+        evidence_count=evidence_count,
+        policy_violations=policy_violations,
     )
 
 
@@ -485,6 +669,10 @@ async def update_gate(
     await db.commit()
     await db.refresh(gate)
 
+    # Get real evidence count and policy violations (TD-04+05)
+    evidence_count = await get_evidence_count(gate_id, db)
+    policy_violations = await get_policy_violations(gate_id, db)
+
     return GateResponse(
         id=gate.id,
         project_id=gate.project_id,
@@ -500,8 +688,8 @@ async def update_gate(
         approved_at=gate.approved_at,
         deleted_at=gate.deleted_at,
         approvals=[],
-        evidence_count=0,
-        policy_violations=[],
+        evidence_count=evidence_count,
+        policy_violations=policy_violations,
     )
 
 
@@ -621,11 +809,16 @@ async def submit_gate(
     gate.status = "PENDING_APPROVAL"
     gate.updated_at = datetime.utcnow()
 
-    # TODO: Trigger OPA policy evaluation
-    # TODO: Send notifications to CTO/CPO/CEO
+    # TD-03: Trigger OPA policy evaluation on gate submit
+    policy_violations = await evaluate_gate_policies(gate, db)
+
+    # TODO Sprint 17: Send notifications to CTO/CPO/CEO
 
     await db.commit()
     await db.refresh(gate)
+
+    # Get real evidence count (TD-04+05)
+    evidence_count = await get_evidence_count(gate_id, db)
 
     return GateResponse(
         id=gate.id,
@@ -642,8 +835,8 @@ async def submit_gate(
         approved_at=gate.approved_at,
         deleted_at=gate.deleted_at,
         approvals=[],
-        evidence_count=0,
-        policy_violations=[],
+        evidence_count=evidence_count,
+        policy_violations=policy_violations,
     )
 
 
@@ -720,6 +913,10 @@ async def approve_gate(
     await db.refresh(gate)
     await db.refresh(approval)
 
+    # Get real evidence count and policy violations (TD-04+05)
+    evidence_count = await get_evidence_count(gate_id, db)
+    policy_violations = await get_policy_violations(gate_id, db)
+
     return GateResponse(
         id=gate.id,
         project_id=gate.project_id,
@@ -743,8 +940,8 @@ async def approve_gate(
                 "approved_at": approval.approved_at.isoformat(),
             }
         ],
-        evidence_count=0,
-        policy_violations=[],
+        evidence_count=evidence_count,
+        policy_violations=policy_violations,
     )
 
 
@@ -794,22 +991,38 @@ async def get_gate_approvals(
             detail="You must be a project member to view gate approvals",
         )
 
-    # Fetch approvals with user details
+    # Fetch approvals with user details and roles (TD-06)
     result = await db.execute(
         select(GateApproval, User)
         .join(User, GateApproval.approver_id == User.id)
         .where(GateApproval.gate_id == gate_id)
         .order_by(GateApproval.approved_at.desc())
+        .options(selectinload(User.roles))
     )
     approvals = result.all()
+
+    def get_approver_role(user: User) -> str:
+        """Get the highest priority role for an approver (TD-06)."""
+        # C-suite roles in priority order
+        c_suite_priority = ["ceo", "cto", "cpo", "cio", "cfo"]
+        role_names = [r.name.lower() for r in user.roles]
+
+        for role in c_suite_priority:
+            if role in role_names:
+                return role.upper()
+
+        # Fallback to first role or 'Member'
+        if user.roles:
+            return user.roles[0].display_name or user.roles[0].name.upper()
+        return "Member"
 
     return [
         GateApprovalResponse(
             id=approval.GateApproval.id,
             gate_id=approval.GateApproval.gate_id,
             approved_by=approval.GateApproval.approver_id,
-            approved_by_name=f"{approval.User.name}",
-            approved_by_role="CTO",  # TODO: Get role from user.roles relationship
+            approved_by_name=approval.User.name,
+            approved_by_role=get_approver_role(approval.User),
             is_approved=approval.GateApproval.is_approved,
             comments=approval.GateApproval.comments,
             approved_at=approval.GateApproval.approved_at,

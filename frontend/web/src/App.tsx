@@ -18,18 +18,27 @@ import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import ProjectsPage from '@/pages/ProjectsPage'
 import ProjectDetailPage from '@/pages/ProjectDetailPage'
+import GatesPage from '@/pages/GatesPage'
 import GateDetailPage from '@/pages/GateDetailPage'
 import EvidencePage from '@/pages/EvidencePage'
 import PoliciesPage from '@/pages/PoliciesPage'
+import PolicyDetailPage from '@/pages/PolicyDetailPage'
+import SettingsPage from '@/pages/SettingsPage'
+import OnboardingPage from '@/pages/OnboardingPage'
+import GitHubCallbackPage from '@/pages/GitHubCallbackPage'
 
 /**
  * Root App component
  *
  * Routing structure:
  * - /login - Public authentication page
+ * - /auth/github/callback - GitHub OAuth callback handler
+ * - /onboarding/* - Public onboarding wizard (6 steps)
  * - / - Protected dashboard (requires authentication)
  * - /projects - Protected projects list
  * - /projects/:id - Protected project detail
+ * - /gates - Protected gates list
+ * - /gates/:id - Protected gate detail
  * - /evidence - Protected evidence vault
  * - /policies - Protected policies library
  *
@@ -42,6 +51,8 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/github/callback" element={<GitHubCallbackPage />} />
+          <Route path="/onboarding/*" element={<OnboardingPage />} />
 
           {/* Protected routes */}
           <Route
@@ -69,6 +80,14 @@ function App() {
             }
           />
           <Route
+            path="/gates"
+            element={
+              <ProtectedRoute>
+                <GatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/gates/:id"
             element={
               <ProtectedRoute>
@@ -89,6 +108,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <PoliciesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/policies/:id"
+            element={
+              <ProtectedRoute>
+                <PolicyDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />

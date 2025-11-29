@@ -1,0 +1,87 @@
+meta {
+  name: Approve Gate
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/gates/{{bflowG3GateId}}/approve
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "comment": "All requirements met. MVP ready for testing phase."
+  }
+}
+
+tests {
+  test("Status code is 200 or 403", function() {
+    // 200 = approved, 403 = insufficient permissions
+    expect([200, 403]).to.include(res.status);
+  });
+
+  test("If approved, has correct status", function() {
+    if (res.status === 200) {
+      expect(res.body).to.have.property("status");
+      expect(res.body.status).to.equal("APPROVED");
+    }
+  });
+
+  test("If approved, has approver info", function() {
+    if (res.status === 200) {
+      expect(res.body).to.have.property("approved_by");
+      expect(res.body).to.have.property("approved_at");
+      expect(res.body).to.have.property("comment");
+    }
+  });
+
+  test("If forbidden, has error message", function() {
+    if (res.status === 403) {
+      expect(res.body).to.have.property("detail");
+    }
+  });
+}
+
+docs {
+  # Approve Gate
+
+  Approves a gate that is in PENDING_APPROVAL status.
+  Requires appropriate permissions (CTO, CPO, or designated approver).
+
+  ## Path Parameters
+  - **gate_id**: Gate UUID
+
+  ## Request Body
+  - **comment**: Approval comment (required)
+
+  ## Authorization
+  - User must have gate approval permission
+  - Some gates require multiple approvers (e.g., G1 requires CTO + CPO)
+  - Gate must be in PENDING_APPROVAL status
+
+  ## Response Fields (200)
+  - **gate_id**: Gate UUID
+  - **status**: APPROVED
+  - **approved_by**: Approver user ID
+  - **approved_at**: Approval timestamp
+  - **comment**: Approval comment
+
+  ## Response (403)
+  - Insufficient permissions to approve
+
+  ## Side Effects
+  - Approval record created in gate_approvals table
+  - Audit log entry created
+  - Project progress updated
+  - Notifications sent to project team
+
+  ## Expected
+  Admin user should be able to approve G3
+  Non-admin without approval permission: 403
+}

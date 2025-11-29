@@ -28,9 +28,10 @@ from app.core.config import settings
 
 target_metadata = Base.metadata
 
-# Set database URL from settings if not already set in alembic.ini
+# Set database URL from settings (prioritize environment variable over alembic.ini)
 def get_url():
-    url = config.get_main_option("sqlalchemy.url") or settings.DATABASE_URL
+    # Prioritize settings.DATABASE_URL from environment variable
+    url = settings.DATABASE_URL
     # Convert asyncpg to psycopg2 for Alembic (sync driver)
     if url and "postgresql+asyncpg" in url:
         url = url.replace("postgresql+asyncpg", "postgresql+psycopg2")

@@ -286,7 +286,7 @@
 | **API Endpoints** | 31 | 100% functional (23 core + 8 new) |
 | **Database Tables** | 24 | Deployed via Alembic migrations |
 | **Test Coverage** | 90%+ | Unit + integration + load tests |
-| **Zero Mock Policy** | 100% | Historic achievement (first in MTC) |
+| **Zero Mock Policy** | 100% | Historic achievement (first in MTS) |
 | **Gates Passed** | 2/10 | G0.1, G0.2, G1, G2 (pending approval) |
 
 ---
@@ -348,7 +348,7 @@
 
 ### **4. Zero Mock Policy Achievement** 🎯
 
-**Achievement**: Maintained **100% Zero Mock Policy compliance** throughout 5-week sprint—first project in MTC history.
+**Achievement**: Maintained **100% Zero Mock Policy compliance** throughout 5-week sprint—first project in MTS history.
 
 **Validation**:
 ```yaml

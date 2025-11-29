@@ -18,6 +18,7 @@
  */
 
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -78,6 +79,11 @@ function PolicyCard({ policy }: { policy: PolicyResponse }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link to={`/policies/${policy.id}`}>
+            <Button variant="outline" size="sm">
+              View Details
+            </Button>
+          </Link>
           <Button
             variant="outline"
             size="sm"

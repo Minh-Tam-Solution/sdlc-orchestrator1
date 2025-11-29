@@ -1,0 +1,64 @@
+meta {
+  name: Download Evidence
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/evidence/{{evidenceG01Id}}/download
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Response has download_url", function() {
+    expect(res.body).to.have.property("download_url");
+  });
+
+  test("Response has expires_in", function() {
+    expect(res.body).to.have.property("expires_in");
+    expect(res.body.expires_in).to.be.a("number");
+    expect(res.body.expires_in).to.be.greaterThan(0);
+  });
+
+  test("Response has file_name", function() {
+    expect(res.body).to.have.property("file_name");
+  });
+
+  test("Download URL is valid format", function() {
+    const url = res.body.download_url;
+    expect(url).to.include("minio");
+    expect(url).to.include("evidence-vault");
+  });
+}
+
+docs {
+  # Download Evidence File
+
+  Generates a pre-signed URL for downloading an evidence file from MinIO.
+
+  ## Path Parameters
+  - **evidence_id**: Evidence UUID
+
+  ## Response Fields
+  - **download_url**: Pre-signed MinIO URL (expires in 1 hour)
+  - **expires_in**: URL expiration time in seconds (3600)
+  - **file_name**: Original file name
+
+  ## Security
+  - URL is time-limited (1 hour default)
+  - Download action logged in audit trail
+  - User must have access to the gate's project
+
+  ## Expected
+  - Valid pre-signed URL for MinIO
+  - Audit log entry created
+}
