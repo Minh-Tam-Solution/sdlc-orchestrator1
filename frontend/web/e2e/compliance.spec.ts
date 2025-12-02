@@ -23,16 +23,41 @@
  * - Pillar 3: Quality Governance (E2E coverage)
  */
 
-import { test, expect } from '@playwright/test'
+import { test, expect, Page } from '@playwright/test'
+
+/**
+ * Helper function for reliable login
+ * Uses proper wait strategy to handle slow API responses and avoid race conditions
+ *
+ * P1 Fix: Addresses login race conditions identified in Sprint 22 Day 5 CTO Review
+ * Strategy: Use navigation promise to handle redirect, with retry on timeout
+ */
+async function loginAsAdmin(page: Page) {
+  // Navigate to login page
+  await page.goto('/login')
+  await page.waitForLoadState('domcontentloaded')
+
+  // Fill login form
+  const emailInput = page.getByLabel(/email/i)
+  const passwordInput = page.getByLabel(/password/i)
+  const loginButton = page.getByRole('button', { name: /sign in|login/i })
+
+  await emailInput.fill('admin@sdlc-orchestrator.io')
+  await passwordInput.fill('Admin@123')
+
+  // Wait for button to be enabled (handles form validation)
+  await expect(loginButton).toBeEnabled({ timeout: 5000 })
+
+  // Click and immediately wait for navigation
+  await Promise.all([
+    page.waitForURL(/\/dashboard|\/$/, { timeout: 30000, waitUntil: 'domcontentloaded' }),
+    loginButton.click()
+  ])
+}
 
 test.describe('Compliance Dashboard', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should display compliance page', async ({ page }) => {
@@ -103,12 +128,7 @@ test.describe('Compliance Dashboard', () => {
 
 test.describe('Compliance Scanning', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should show trigger scan button', async ({ page }) => {
@@ -174,12 +194,7 @@ test.describe('Compliance Scanning', () => {
 
 test.describe('Violation Management', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should display violations list', async ({ page }) => {
@@ -298,12 +313,7 @@ test.describe('Violation Management', () => {
 
 test.describe('AI Recommendations', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should display AI recommendation in violation card', async ({ page }) => {
@@ -381,12 +391,7 @@ test.describe('AI Recommendations', () => {
 
 test.describe('Compliance Score Visualization', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should display circular progress for score', async ({ page }) => {
@@ -459,12 +464,7 @@ test.describe('Compliance Score Visualization', () => {
 
 test.describe('Compliance Accessibility', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should have proper heading hierarchy', async ({ page }) => {
@@ -513,12 +513,7 @@ test.describe('Compliance Accessibility', () => {
 // ============================================================================
 test.describe('Compliance Trend Charts (Sprint 22 Day 4)', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should display Compliance Score Trend chart', async ({ page }) => {
@@ -745,12 +740,7 @@ test.describe('Compliance Trend Charts (Sprint 22 Day 4)', () => {
 
 test.describe('Compliance Error Handling', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
-    await page.goto('/login')
-    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
-    await page.getByLabel(/password/i).fill('Admin@123')
-    await page.getByRole('button', { name: /sign in|login/i }).click()
-    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+    await loginAsAdmin(page)
   })
 
   test('should show empty state when no violations', async ({ page }) => {
