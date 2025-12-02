@@ -1,1127 +1,1925 @@
-# Functional Requirements Document (FRD)
-## Detailed Feature Specifications
+# Functional Requirements Document (FRD) - SDLC Orchestrator
 
 **Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: PM + CTO Review (PENDING)
-**Foundation**: Stage 00 (WHY) - Problem validated, Stage 01 (WHAT) - Planning
-**Stage**: Stage 01 (WHAT - Planning & Analysis)
-
----
-
-## Document Purpose (Stage 01 Focus: WHAT)
-
-This document defines **WHAT features to build**, not HOW to implement them (Stage 02 scope).
-
-**Key Questions Answered**:
-- WHAT does each feature do? (functional behavior)
-- WHAT are the inputs/outputs? (data flow)
-- WHAT are the business rules? (constraints, validations)
-- WHAT are the success criteria? (acceptance criteria)
-
-**Out of Scope** (Stage 02):
-- HOW to implement (architecture, tech stack, algorithms)
-- WHERE to deploy (infrastructure, cloud provider)
-- WHEN to build (sprint planning, task breakdown)
+**Date**: November 21, 2025
+**Status**: ACTIVE - Week 2 Planning Phase
+**Authority**: PM + CTO + CPO + Full Team Approved
+**Foundation**: Product Vision, BRD v1.2, Stage 02 Architecture
+**Framework**: SDLC 4.9 Complete Lifecycle
 
 ---
 
 ## Executive Summary
 
-### Total Requirements: 25 Functional Requirements (FR1-FR25)
+**Purpose**: Define WHAT the SDLC Orchestrator will build in Sprint 1-4 (November 14 - February 10, 2026).
 
-**Categorization**:
-| Category | Count | % | Priority |
-|----------|-------|---|----------|
-| **Core Features** (FR1-FR5) | 5 | 20% | P0 (MVP blocker) |
-| **AI Features** (FR6-FR10) | 5 | 20% | P0 (MVP blocker) |
-| **Integration Features** (FR11-FR15) | 5 | 20% | P1 (Week 5-8) |
-| **Dashboard Features** (FR16-FR20) | 5 | 20% | P1 (Week 8-10) |
-| **Advanced Features** (FR21-FR25) | 5 | 20% | P2 (Post-MVP) |
+**Scope**: 5 core functional requirements aligned with Product Vision MVP features:
+1. **FR1: Quality Gate Management** - Policy-as-Code enforcement using OPA
+2. **FR2: Evidence Vault** - Permanent audit trail with SHA256 integrity
+3. **FR3: AI Context Engine** - Multi-provider stage-aware assistance
+4. **FR4: Real-Time Dashboard** - Live gate status visualization
+5. **FR5: Policy Pack Library** - Pre-built SDLC 4.9 policies
 
-**Traceability**: Every FR traces back to Stage 00 validated problems:
-- Problem 1: 60-70% feature waste → FR1-FR3 (Gate Engine, Evidence Vault, AI)
-- Problem 2: No evidence trail → FR2 (Evidence Vault)
-- Problem 3: Process fatigue → FR4 (Dashboard), FR11-FR15 (Integrations)
-- Problem 4: Audit chaos → FR2 (Evidence Vault audit trail)
-- Problem 5: No AI assistance → FR6-FR10 (AI Context Engine)
+**Timeline**: Week 2 (Nov 21-25) - Detailed specs for Week 3-4 architecture design.
+
+**Success Criteria**: All 5 FRs approved by Friday Nov 25 → Gate G1 passage.
 
 ---
 
-## FR1: Quality Gate Management (Gate Engine)
+## FR1: Quality Gate Management
 
-### FR1.1: Gate Definition
+### Overview
 
-**WHAT**: System allows admin to define gates (G0.1, G0.2, G1-G6) with criteria.
+**Capability**: Automated enforcement of SDLC 4.9 quality gates using Policy-as-Code (OPA).
 
-**Inputs**:
-- Gate ID (e.g., "G0.1")
-- Gate Name (e.g., "Problem Definition")
-- Stage (e.g., "Stage 00 - WHY")
-- Criteria (list of policy pack IDs)
-- Blocking (boolean, default: true)
+**Business Value**: Prevent 70% feature waste by validating BEFORE building (Design Thinking gates).
 
-**Outputs**:
-- Gate created in database
-- Gate visible in dashboard
-
-**Business Rules**:
-- Gate ID must be unique (validation: regex `^G[0-6]\.\d+$`)
-- Criteria must reference existing policy packs
-- Cannot delete gate if projects are using it (soft delete only)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am an admin
-When I create gate "G0.1" with criteria ["policy-pack-problem-validation", "policy-pack-user-interviews"]
-Then gate is saved to database
-And gate appears in dashboard under "Stage 00 - WHY"
-And gate status is "NOT_EVALUATED" (default)
-```
-
-**Traceability**: Problem 1 (60-70% feature waste) → Gate prevents un-validated features
+**User Personas**:
+- Engineering Manager: Ensure team meets quality standards
+- CTO: Enforce governance without manual reviews
+- Product Manager: Validate user needs before engineering starts
 
 ---
 
-### FR1.2: Gate Evaluation
+### FR1.1: Gate Orchestration Engine
 
-**WHAT**: System evaluates gate status (BLOCKED, PENDING, PASSED) by running policy packs.
+#### Use Case 1.1.1: Create Quality Gate
 
-**Inputs**:
-- Project ID
-- Gate ID
-- Evidence (collected automatically or uploaded manually)
+**Actor**: Engineering Manager
+**Precondition**: User authenticated, project exists
+**Trigger**: User clicks "Create Gate" button
 
-**Outputs**:
-- Gate status (BLOCKED, PENDING, PASSED)
-- Policy evaluation results (per policy, pass/fail)
-- Failure reasons (if BLOCKED)
+**Main Flow**:
+1. User selects gate type (G0.1 Design Thinking, G1 Design Ready, G2 Build Ready, etc.)
+2. System displays gate template with required evidence fields
+3. User fills required metadata:
+   - Gate name (e.g., "User Authentication - Gate G1")
+   - Stage (WHY, WHAT, HOW, BUILD, TEST, DEPLOY, OPERATE)
+   - Exit criteria (auto-populated from policy pack)
+   - Approvers (CEO, CTO, CPO - role-based)
+4. System creates gate record in PostgreSQL
+5. System initializes evidence vault (empty, pending submission)
+6. System displays gate status: "Draft" (not submitted for review)
 
-**Business Rules**:
-- Gate status = PASSED if ALL policies pass
-- Gate status = BLOCKED if ANY policy fails
-- Gate status = PENDING if missing evidence (not enough data to evaluate)
-- Evaluation triggers: (1) Manual (user clicks "Evaluate"), (2) Auto (on git push via VS Code Extension), (3) Scheduled (daily cron for all gates)
-
-**Acceptance Criteria**:
-```gherkin
-Given project "SDLC-Orchestrator" has gate "G0.1" with 2 policies
-And policy "user-interviews" requires 3+ user interviews
-And policy "problem-statement" requires validated problem statement
-When I trigger gate evaluation
-And evidence shows 5 user interviews + validated problem statement
-Then gate status = "PASSED"
-And gate status timestamp = current time
-And user receives notification "G0.1 PASSED"
-```
-
-**Performance Requirements**:
-- Gate evaluation: <500ms (p95) for 10 policies
-- Supports 10K+ evaluations/sec (OPA benchmark)
-
-**Traceability**: Problem 1 (60-70% feature waste) → Gate blocks progress until validation
-
----
-
-### FR1.3: Gate Override (Manual Approval)
-
-**WHAT**: CTO can manually override gate status (bypass policies) with justification.
-
-**Inputs**:
-- Project ID
-- Gate ID
-- Override reason (required, 50-500 characters)
-- Override expires (optional, default: 7 days)
-
-**Outputs**:
-- Gate status = PASSED (with override flag)
-- Audit log entry (who, when, why)
-
-**Business Rules**:
-- Only CTO role can override (RBAC enforced)
-- Override reason required (cannot be empty)
-- Override expires after 7 days (automatic revert to BLOCKED if policies still fail)
-- Override triggers notification to CEO (audit trail)
+**Postcondition**: Gate created with status "Draft", evidence vault initialized.
 
 **Acceptance Criteria**:
-```gherkin
-Given I am CTO
-And gate "G1" is BLOCKED (legal review pending)
-When I override gate with reason "Legal review delayed 2 days due to holiday"
-Then gate status = "PASSED" (with override_flag = true)
-And CEO receives email "CTO overrode G1 for SDLC-Orchestrator"
-And override expires in 7 days
-```
-
-**Security Requirements**:
-- Override audit logged (who, when, why, IP address)
-- Override notification sent to CEO + CPO (prevent abuse)
-
-**Traceability**: Problem 3 (Process fatigue) → Allow flexibility while maintaining audit trail
-
----
-
-### FR1.4: Gate Dependency Chain
-
-**WHAT**: System enforces gate order (G0.1 must pass before G0.2, etc.).
-
-**Inputs**:
-- Gate dependencies (defined in gate configuration)
-
-**Outputs**:
-- Error message if attempting to evaluate gate out of order
-
-**Business Rules**:
-- Gates must pass in sequence: G0.1 → G0.2 → G1 → G2 → G3 → G4 → G5 → G6
-- Cannot skip gates (e.g., cannot evaluate G1 if G0.2 not passed)
-- Warning (not error) if gates evaluated out of recommended order (allow flexibility)
-
-**Acceptance Criteria**:
-```gherkin
-Given gate "G0.1" is BLOCKED
-When I attempt to evaluate gate "G1"
-Then system shows warning "G0.1 not passed. Proceed anyway?"
-And if I confirm, G1 evaluates (with warning flag)
-And if I cancel, G1 evaluation aborted
-```
-
-**Traceability**: SDLC 4.8 methodology (sequential gates)
-
----
-
-### FR1.5: Gate Status Dashboard
-
-**WHAT**: Dashboard shows gate status overview (all projects, all gates).
-
-**Inputs**:
-- User role (EM, CTO, PM)
-- Filters (project, stage, status)
-
-**Outputs**:
-- Table view: Project | Gate | Status | Last Evaluated | Evidence Complete
-- Color coding: 🔴 BLOCKED, 🟡 PENDING, 🟢 PASSED
-- Drill-down: Click gate → see policy evaluation details
-
-**Business Rules**:
-- EM sees only their projects
-- CTO sees all projects
-- PM sees projects they're assigned to
-
-**Acceptance Criteria**:
-```gherkin
-Given I am EM managing 3 projects
-When I view gate status dashboard
-Then I see 3 projects × 8 gates = 24 gate statuses
-And gates are color-coded (🔴 BLOCKED, 🟡 PENDING, 🟢 PASSED)
-And I can filter by stage (e.g., "Stage 00 only")
-```
-
-**Traceability**: Problem 3 (Process fatigue) → Single dashboard (not 6-10 tools)
-
----
-
-## FR2: Evidence Vault (Auto-Collection + Storage)
-
-### FR2.1: Evidence Auto-Collection (Slack)
-
-**WHAT**: System auto-collects evidence from Slack messages/threads.
-
-**Inputs**:
-- Slack workspace integration (OAuth token)
-- Slack channels monitored (configurable, default: #product, #design)
-- Keywords (e.g., "user interview", "validation", "feedback")
-
-**Outputs**:
-- Evidence record created (type: "slack_message", source_url, content, timestamp)
-- Evidence linked to project + gate (heuristic: parse feature name from message)
-
-**Business Rules**:
-- Only public channels monitored (private channels require explicit opt-in)
-- Evidence de-duplicated (same message not collected twice)
-- Evidence retention: 7 years (SOC 2 compliance)
-- PII redaction (email addresses, phone numbers auto-redacted)
-
-**Acceptance Criteria**:
-```gherkin
-Given Slack integration is enabled for workspace "SDLC-Orchestrator"
-And channel "#product" is monitored
-When PM posts "Just interviewed 3 users about Feature X. All confirmed 60% waste problem."
-Then system creates evidence record:
-  - type: "slack_message"
-  - source_url: "https://slack.com/archives/C123/p456"
-  - content: "Just interviewed 3 users about Feature X..."
-  - project: "SDLC-Orchestrator" (parsed from "Feature X")
-  - gate: "G0.1" (heuristic: "interviewed" keyword → G0.1 Problem Definition)
-And evidence appears in Evidence Vault dashboard
-```
-
-**Privacy Requirements**:
-- Users can opt-out (Slack profile setting "Do not monitor my messages")
-- PII redacted (emails, phones replaced with [REDACTED])
-
-**Traceability**: Problem 2 (No evidence trail) → Auto-collect from Slack
-
----
-
-### FR2.2: Evidence Auto-Collection (GitHub)
-
-**WHAT**: System auto-collects evidence from GitHub PRs, issues, commits.
-
-**Inputs**:
-- GitHub repository integration (GitHub App, OAuth token)
-- Webhooks (PR opened, issue created, commit pushed)
-
-**Outputs**:
-- Evidence record (type: "github_pr", "github_issue", "github_commit")
-- Evidence linked to gate (heuristic: PR = G3 Build, Issue = G0.1/G1 Problem/Planning)
-
-**Business Rules**:
-- Only repositories with SDLC Orchestrator app installed are monitored
-- Evidence includes: PR description, code diff (truncated to 10KB), review comments
-- Evidence retention: 7 years
-
-**Acceptance Criteria**:
-```gherkin
-Given GitHub integration is enabled for repo "sdlc-orchestrator/backend"
-When engineer creates PR "Add Gate Engine API endpoint"
-Then system creates evidence record:
-  - type: "github_pr"
-  - source_url: "https://github.com/sdlc-orchestrator/backend/pull/42"
-  - content: PR description + code diff (truncated)
-  - project: "SDLC-Orchestrator"
-  - gate: "G3" (heuristic: PR → G3 Build)
-And evidence appears in Evidence Vault
-```
-
-**Traceability**: Problem 2 (No evidence trail) → Auto-collect from GitHub
-
----
-
-### FR2.3: Evidence Manual Upload
-
-**WHAT**: Users can manually upload evidence (PDFs, images, docs).
-
-**Inputs**:
-- File (max 10MB, formats: PDF, PNG, JPG, DOCX, XLSX)
-- Project ID
-- Gate ID
-- Description (optional, 0-500 characters)
-
-**Outputs**:
-- Evidence record created (type: "manual_upload")
-- File stored in MinIO (S3-compatible object storage)
-- File encrypted (AES-256)
-
-**Business Rules**:
-- Max file size: 10MB (reject larger files with error message)
-- Supported formats: PDF, PNG, JPG, DOCX, XLSX (reject other formats)
-- Virus scan (ClamAV) before storage (reject infected files)
-- Storage quota: 10GB per team (enforce limit, show warning at 80%)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am PM
-When I upload "user-interview-transcript.pdf" (5MB) to gate "G0.1"
-Then file is virus-scanned (ClamAV)
-And file is encrypted (AES-256)
-And file is stored in MinIO at "evidence-vault/team-123/gate-g01/user-interview-transcript.pdf"
-And evidence record created with download URL
-And I can view evidence in Evidence Vault dashboard
-```
-
-**Security Requirements**:
-- File encrypted at-rest (AES-256)
-- File encrypted in-transit (HTTPS/TLS 1.3)
-- Virus scan (ClamAV, reject infected files)
-
-**Traceability**: Problem 2 (No evidence trail) → Manual upload for user interviews, design docs
-
----
-
-### FR2.4: Evidence Search (Full-Text)
-
-**WHAT**: Users can search evidence by keyword, project, gate, date range.
-
-**Inputs**:
-- Search query (keywords, e.g., "user interview")
-- Filters: Project, Gate, Date range, Evidence type
-
-**Outputs**:
-- Search results (ranked by relevance)
-- Snippets (highlighting matching keywords)
-- Download links (click to download evidence file)
-
-**Business Rules**:
-- Full-text search (PostgreSQL pg_trgm extension for fuzzy matching)
-- Search indexes: Content, Description, File name, Slack message, GitHub PR description
-- RBAC: Users only see evidence for projects they have access to
-
-**Acceptance Criteria**:
-```gherkin
-Given Evidence Vault has 50 evidence records
-When I search "user interview Feature X"
-Then I see 5 results ranked by relevance:
-  1. Slack message: "Just interviewed 3 users about Feature X..."
-  2. PDF upload: "user-interview-transcript-feature-x.pdf"
-  3. GitHub issue: "User feedback: Feature X has 2% adoption"
-And each result shows snippet with "user interview" highlighted
-And I can click to download PDF or view Slack message
-```
-
-**Performance Requirements**:
-- Search response: <200ms (p95) for 10K evidence records
-- Fuzzy matching (typo tolerance, e.g., "interveiw" → "interview")
-
-**Traceability**: Problem 4 (Audit chaos) → Quick evidence search (SOC 2 audit prep 40 hours → <2 hours)
-
----
-
-### FR2.5: Evidence Audit Trail
-
-**WHAT**: System logs all evidence access (who viewed, downloaded, deleted evidence).
-
-**Inputs**:
-- User action (view, download, delete)
-- Evidence ID
-- User ID
-
-**Outputs**:
-- Audit log entry (action, user_id, evidence_id, timestamp, IP address)
-- Audit log visible to CTO only (RBAC enforced)
-
-**Business Rules**:
-- All access logged (no exceptions)
-- Audit log retention: 7 years (SOC 2 compliance)
-- Audit log immutable (cannot be deleted or modified)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am EM
-When I download evidence "user-interview-transcript.pdf"
-Then audit log entry created:
-  - action: "download"
-  - user_id: "em-john-doe"
-  - evidence_id: "evidence-123"
-  - timestamp: "2025-01-13T10:30:00Z"
-  - ip_address: "192.168.1.100"
-And CTO can view audit log in dashboard
-And EM cannot view audit log (RBAC denied)
-```
-
-**Compliance Requirements**:
-- SOC 2 Type I: Audit trail for all evidence access
-- Immutable (append-only log)
-
-**Traceability**: Problem 4 (Audit chaos) → Audit trail for SOC 2 compliance
-
----
-
-## FR3: Policy Pack Library (100+ SDLC 4.8 Policies)
-
-### FR3.1: Policy Pack Definition
-
-**WHAT**: Admin can define policy packs (Rego code) for gate evaluation.
-
-**Inputs**:
-- Policy Pack ID (e.g., "policy-pack-user-interviews")
-- Policy Pack Name (e.g., "User Interviews (3+ required)")
-- Rego Code (policy logic, e.g., `count(input.evidence.user_interviews) >= 3`)
-- Stage (e.g., "Stage 00 - WHY")
-- Description (50-500 characters)
-
-**Outputs**:
-- Policy pack saved to database
-- Policy pack versioned (Git-based, semantic versioning 1.0.0)
-
-**Business Rules**:
-- Rego code must be valid (OPA syntax check before save)
-- Policy pack ID must be unique
-- Cannot delete policy pack if gates are using it (soft delete only)
-- Policy pack versioned (allow rollback to previous version)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am admin
-When I create policy pack "policy-pack-user-interviews" with Rego code:
-  ```rego
-  package sdlc.gate.g01.user_interviews
-
-  default allowed = false
-
-  allowed {
-    count(input.evidence.user_interviews) >= 3
+- AC1: User can create gate in <5 seconds
+- AC2: System validates required fields (name, stage, approvers)
+- AC3: System auto-populates exit criteria from SDLC 4.9 policy pack
+- AC4: System supports all 10 SDLC stages (WHY → GOVERN)
+- AC5: System supports role-based approver selection (CEO, CTO, CPO, CIO, CFO)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates
+Request:
+{
+  "name": "User Authentication - Gate G1 Design Ready",
+  "stage": "WHAT",
+  "gate_type": "G1_DESIGN_READY",
+  "project_id": "uuid",
+  "approvers": [
+    {"role": "CTO", "user_id": "uuid"},
+    {"role": "CPO", "user_id": "uuid"}
+  ],
+  "metadata": {
+    "feature_name": "User Authentication",
+    "priority": "P0",
+    "target_sprint": 2
   }
-  ```
-Then policy pack is saved to database
-And policy pack version = "1.0.0"
-And policy pack appears in policy library
+}
+
+Response (201 Created):
+{
+  "gate_id": "uuid",
+  "name": "User Authentication - Gate G1 Design Ready",
+  "status": "DRAFT",
+  "stage": "WHAT",
+  "gate_type": "G1_DESIGN_READY",
+  "exit_criteria": [
+    {"id": "G1-EC1", "description": "TDD test cases written BEFORE code", "required": true},
+    {"id": "G1-EC2", "description": "API contracts documented (OpenAPI 3.0)", "required": true},
+    {"id": "G1-EC3", "description": "Database schema designed (ERD + SQL)", "required": true}
+  ],
+  "evidence_vault_url": "/api/v1/gates/{gate_id}/evidence",
+  "created_at": "2025-11-21T10:30:00Z"
+}
 ```
 
-**Traceability**: Problem 1 (60-70% feature waste) → Policy enforces validation
+**UI Mockup** (Figma reference):
+- Modal dialog: "Create Quality Gate"
+- Dropdown: Gate type (G0.1, G0.2, G1, G2... G9)
+- Multi-select: Approvers (role + user)
+- Auto-populated: Exit criteria checklist (from policy pack)
 
 ---
 
-### FR3.2: Policy Pack Testing
+#### Use Case 1.1.2: Submit Gate for Review
 
-**WHAT**: Admin can test policy packs with sample evidence before deploying to gates.
+**Actor**: Engineering Lead
+**Precondition**: Gate in "Draft" status, all required evidence uploaded
+**Trigger**: User clicks "Submit for Review" button
 
-**Inputs**:
-- Policy pack ID
-- Sample evidence (JSON, mimics real evidence structure)
+**Main Flow**:
+1. User navigates to gate detail page
+2. System displays evidence checklist (exit criteria vs uploaded evidence)
+3. User reviews completeness:
+   - Green checkmarks: Evidence uploaded + policy passed
+   - Red X: Evidence missing OR policy failed
+4. User clicks "Submit for Review"
+5. System runs OPA policy validation:
+   - Query: `data.sdlc.gates.g1.design_ready`
+   - Input: All uploaded evidence + metadata
+   - Output: Pass/Fail + policy violations
+6. **IF** policy passes:
+   - System updates gate status: "Draft" → "Pending Approval"
+   - System sends notifications to approvers (Slack, email)
+   - System locks evidence vault (no more uploads until decision)
+7. **IF** policy fails:
+   - System displays violations (e.g., "TDD tests missing", "API contract incomplete")
+   - System keeps gate in "Draft" status
+   - System allows user to fix and re-submit
 
-**Outputs**:
-- Test result (PASS/FAIL)
-- Evaluation output (OPA decision, e.g., `{"allowed": false, "reason": "Only 2 user interviews, need 3+"}`)
-
-**Business Rules**:
-- Test runs in sandbox (does not affect production gates)
-- Test result shows decision + reason (help debug policy logic)
+**Postcondition**: Gate in "Pending Approval" status, approvers notified.
 
 **Acceptance Criteria**:
-```gherkin
-Given I am admin
-And policy pack "policy-pack-user-interviews" requires 3+ interviews
-When I test with sample evidence:
-  ```json
-  {
-    "evidence": {
-      "user_interviews": [
-        {"id": "interview-1"},
-        {"id": "interview-2"}
+- AC1: System validates ALL exit criteria before allowing submission
+- AC2: System runs OPA policy check in <2 seconds (async for large evidence)
+- AC3: System provides clear error messages for policy violations (with links to missing evidence)
+- AC4: System locks evidence vault after submission (prevent tampering)
+- AC5: System sends real-time notifications (Slack webhook, email)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/submit
+Request: {} (no body, gate_id in URL)
+
+Response (200 OK - Policy Passed):
+{
+  "gate_id": "uuid",
+  "status": "PENDING_APPROVAL",
+  "policy_result": {
+    "decision": "PASS",
+    "violations": [],
+    "checked_at": "2025-11-21T11:00:00Z"
+  },
+  "approvers_notified": [
+    {"role": "CTO", "user_id": "uuid", "notified_at": "2025-11-21T11:00:01Z"},
+    {"role": "CPO", "user_id": "uuid", "notified_at": "2025-11-21T11:00:01Z"}
+  ]
+}
+
+Response (400 Bad Request - Policy Failed):
+{
+  "error": "POLICY_VIOLATION",
+  "gate_id": "uuid",
+  "status": "DRAFT",
+  "policy_result": {
+    "decision": "FAIL",
+    "violations": [
+      {
+        "code": "G1-EC1-MISSING",
+        "message": "TDD test cases not found in evidence vault",
+        "remediation": "Upload test cases to /evidence/tdd-tests/"
+      },
+      {
+        "code": "G1-EC2-INCOMPLETE",
+        "message": "API contract missing POST /api/users endpoint",
+        "remediation": "Update OpenAPI spec with all CRUD endpoints"
+      }
+    ],
+    "checked_at": "2025-11-21T11:00:00Z"
+  }
+}
+```
+
+**UI Mockup** (Figma reference):
+- Evidence checklist: Green ✅ / Red ❌ for each exit criterion
+- "Submit for Review" button (disabled if policy would fail)
+- Policy violation banner (red alert with remediation links)
+
+---
+
+#### Use Case 1.1.3: Approve/Reject Gate
+
+**Actor**: CTO (Approver)
+**Precondition**: Gate in "Pending Approval" status
+**Trigger**: Approver receives notification, clicks "Review Gate"
+
+**Main Flow**:
+1. Approver navigates to gate review page
+2. System displays:
+   - Gate metadata (name, stage, submitter, date)
+   - Evidence summary (all uploaded files + policy results)
+   - Exit criteria checklist (policy-validated)
+   - Comments from other approvers (if multi-approval)
+3. Approver reviews evidence:
+   - Downloads evidence files (TDD tests, API contracts, etc.)
+   - Reads AI-generated summary (Claude: "Gate summary in 3 bullet points")
+   - Checks policy validation results (OPA decision log)
+4. Approver makes decision:
+   - **Approve**: Add comment (optional), click "Approve"
+   - **Reject**: Add comment (required), click "Reject"
+5. System updates gate approval record:
+   - Records approver, decision, timestamp, comment
+6. **IF** all approvers approved:
+   - System updates gate status: "Pending Approval" → "Approved"
+   - System unlocks next stage (e.g., G1 approved → BUILD stage enabled)
+   - System sends notification to submitter (Slack, email)
+7. **IF** any approver rejected:
+   - System updates gate status: "Pending Approval" → "Rejected"
+   - System unlocks evidence vault (allow re-submission)
+   - System sends notification to submitter with rejection reasons
+
+**Postcondition**: Gate approved/rejected, submitter notified, next stage enabled (if approved).
+
+**Acceptance Criteria**:
+- AC1: Approver can review evidence without leaving platform (inline file viewer)
+- AC2: System requires comment for rejection (mandatory feedback)
+- AC3: System supports multi-approval workflow (all approvers must approve)
+- AC4: System prevents duplicate approvals (same user can't approve twice)
+- AC5: System auto-unlocks next stage within 1 second of final approval
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/approve
+Request:
+{
+  "decision": "APPROVE", // or "REJECT"
+  "comment": "API contracts look comprehensive. LGTM for BUILD phase.",
+  "approver_id": "uuid"
+}
+
+Response (200 OK - All Approvers Approved):
+{
+  "gate_id": "uuid",
+  "status": "APPROVED",
+  "approvals": [
+    {
+      "approver_role": "CTO",
+      "approver_id": "uuid",
+      "decision": "APPROVE",
+      "comment": "API contracts look comprehensive. LGTM for BUILD phase.",
+      "approved_at": "2025-11-21T14:30:00Z"
+    },
+    {
+      "approver_role": "CPO",
+      "approver_id": "uuid",
+      "decision": "APPROVE",
+      "comment": "User validation evidence is strong. Go ahead.",
+      "approved_at": "2025-11-21T14:35:00Z"
+    }
+  ],
+  "next_stage_unlocked": "BUILD",
+  "unlocked_at": "2025-11-21T14:35:01Z"
+}
+
+Response (200 OK - Partial Approval):
+{
+  "gate_id": "uuid",
+  "status": "PENDING_APPROVAL",
+  "approvals": [
+    {
+      "approver_role": "CTO",
+      "approver_id": "uuid",
+      "decision": "APPROVE",
+      "comment": "API contracts look comprehensive. LGTM for BUILD phase.",
+      "approved_at": "2025-11-21T14:30:00Z"
+    }
+  ],
+  "pending_approvers": ["CPO"]
+}
+
+Response (200 OK - Rejection):
+{
+  "gate_id": "uuid",
+  "status": "REJECTED",
+  "approvals": [
+    {
+      "approver_role": "CTO",
+      "approver_id": "uuid",
+      "decision": "REJECT",
+      "comment": "TDD test cases are incomplete. Missing edge cases for authentication failures.",
+      "approved_at": "2025-11-21T14:30:00Z"
+    }
+  ],
+  "evidence_vault_unlocked": true
+}
+```
+
+**UI Mockup** (Figma reference):
+- Split view: Evidence list (left) + Evidence viewer (right)
+- Approve/Reject buttons (green/red, prominent)
+- Comment textarea (required for rejection)
+- Approval history timeline (show all approvers' decisions)
+
+---
+
+### FR1.2: OPA Policy Engine Integration
+
+#### Use Case 1.2.1: Validate Evidence Against Policy
+
+**Actor**: System (automated)
+**Precondition**: Evidence uploaded, gate submitted for review
+**Trigger**: User clicks "Submit for Review" (triggers policy check)
+
+**Main Flow**:
+1. System collects all evidence from vault:
+   - Files: TDD tests (Python), API contracts (OpenAPI YAML), ERD (PNG/PDF)
+   - Metadata: File count, total size, SHA256 hashes
+2. System prepares OPA input document:
+   ```json
+   {
+     "gate": {
+       "id": "uuid",
+       "type": "G1_DESIGN_READY",
+       "stage": "WHAT"
+     },
+     "evidence": {
+       "tdd_tests": {
+         "file_count": 5,
+         "lines_of_code": 350,
+         "test_coverage": 0, // Not applicable at design stage
+         "sha256": "abc123..."
+       },
+       "api_contracts": {
+         "file_path": "evidence/api-contracts.yaml",
+         "endpoints_count": 12,
+         "sha256": "def456..."
+       },
+       "database_schema": {
+         "file_path": "evidence/schema.sql",
+         "tables_count": 8,
+         "sha256": "ghi789..."
+       }
+     }
+   }
+   ```
+3. System queries OPA:
+   - HTTP POST to `http://opa:8181/v1/data/sdlc/gates/g1/design_ready`
+   - Input: Evidence document (JSON)
+   - Timeout: 5 seconds (fail-safe if OPA unreachable)
+4. OPA evaluates policy:
+   ```rego
+   package sdlc.gates.g1
+
+   # Gate G1: Design Ready (WHAT Stage)
+   design_ready = decision {
+     decision := {
+       "allowed": allowed,
+       "violations": violations
+     }
+   }
+
+   # Exit Criterion 1: TDD tests exist
+   allowed {
+     input.evidence.tdd_tests.file_count > 0
+     input.evidence.tdd_tests.lines_of_code >= 100
+   }
+
+   # Exit Criterion 2: API contracts complete
+   allowed {
+     input.evidence.api_contracts.endpoints_count >= 5
+   }
+
+   # Exit Criterion 3: Database schema designed
+   allowed {
+     input.evidence.database_schema.tables_count > 0
+   }
+
+   # Collect violations
+   violations[msg] {
+     input.evidence.tdd_tests.file_count == 0
+     msg := "G1-EC1-MISSING: TDD test cases not found"
+   }
+   ```
+5. OPA returns decision:
+   ```json
+   {
+     "result": {
+       "allowed": false,
+       "violations": ["G1-EC1-MISSING: TDD test cases not found"]
+     }
+   }
+   ```
+6. System processes OPA response:
+   - **IF** `allowed == true`: Allow gate submission
+   - **IF** `allowed == false`: Block submission, display violations
+
+**Postcondition**: Policy decision recorded, gate status updated.
+
+**Acceptance Criteria**:
+- AC1: System evaluates policy within 2 seconds (95th percentile)
+- AC2: System handles OPA timeout gracefully (default to "fail-safe" rejection)
+- AC3: System logs all policy decisions to audit trail (PostgreSQL + MinIO)
+- AC4: System supports 10+ gate types (G0.1, G0.2, G1... G9)
+- AC5: System allows policy customization via Web UI (advanced feature, Week 6+)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/validate-policy
+Request: {} // No body, uses gate_id to fetch evidence
+
+Response (200 OK - Policy Passed):
+{
+  "gate_id": "uuid",
+  "policy_result": {
+    "decision": "PASS",
+    "violations": [],
+    "evaluated_at": "2025-11-21T11:00:00Z",
+    "opa_version": "0.58.0",
+    "policy_version": "sdlc-4.9-v1.0"
+  }
+}
+
+Response (200 OK - Policy Failed):
+{
+  "gate_id": "uuid",
+  "policy_result": {
+    "decision": "FAIL",
+    "violations": [
+      {
+        "code": "G1-EC1-MISSING",
+        "message": "TDD test cases not found in evidence vault",
+        "remediation": "Upload test cases to /evidence/tdd-tests/",
+        "severity": "CRITICAL"
+      }
+    ],
+    "evaluated_at": "2025-11-21T11:00:00Z",
+    "opa_version": "0.58.0",
+    "policy_version": "sdlc-4.9-v1.0"
+  }
+}
+
+Response (503 Service Unavailable - OPA Timeout):
+{
+  "error": "OPA_TIMEOUT",
+  "message": "Policy engine unreachable after 5 seconds",
+  "fallback_decision": "FAIL",
+  "retry_after": 60
+}
+```
+
+**Infrastructure Requirements**:
+- OPA container: `openpolicyagent/opa:0.58.0-rootless`
+- Network: Backend → OPA via HTTP (docker-compose network)
+- Policy storage: PostgreSQL (policy bundles table)
+- Policy versioning: Git-based (policies/ directory)
+
+---
+
+### FR1.3: Stage Progression Control
+
+#### Use Case 1.3.1: Unlock Next Stage After Gate Approval
+
+**Actor**: System (automated)
+**Precondition**: Gate approved by all required approvers
+**Trigger**: Final approver clicks "Approve"
+
+**Main Flow**:
+1. System detects final approval (all approvers voted "APPROVE")
+2. System looks up gate type → next stage mapping:
+   - G0.1 (Design Thinking) → WHAT stage unlocked
+   - G0.2 (Solution Diversity) → HOW stage unlocked
+   - G1 (Design Ready) → BUILD stage unlocked
+   - G2 (Build Ready) → TEST stage unlocked
+   - G3 (Ship Ready) → DEPLOY stage unlocked
+   - ... (all 10 stages)
+3. System updates project stage:
+   - `projects` table: `current_stage = 'BUILD'` (example)
+   - `stage_history` table: Insert transition record (WHAT → BUILD)
+4. System enables next stage features:
+   - Creates GitHub branch: `build/feature-name`
+   - Enables BUILD stage AI prompts (Claude context switch)
+   - Shows BUILD stage checklist in dashboard
+5. System sends notification:
+   - Slack: "#engineering - Gate G1 APPROVED 🎉 BUILD stage unlocked"
+   - Email: "Your gate was approved, you can start coding now"
+
+**Postcondition**: Next stage unlocked, team can proceed.
+
+**Acceptance Criteria**:
+- AC1: System unlocks next stage within 1 second of final approval
+- AC2: System prevents skipping stages (cannot go WHAT → DEPLOY without HOW/BUILD/TEST)
+- AC3: System supports parallel stage work (advanced: multiple features in different stages)
+- AC4: System tracks stage history (audit trail for compliance)
+- AC5: System integrates with GitHub (auto-create branch for BUILD stage)
+
+**API Contract**:
+```typescript
+POST /api/v1/projects/{project_id}/unlock-stage
+Request:
+{
+  "gate_id": "uuid",
+  "approved_stage": "WHAT",
+  "next_stage": "BUILD"
+}
+
+Response (200 OK):
+{
+  "project_id": "uuid",
+  "previous_stage": "WHAT",
+  "current_stage": "BUILD",
+  "unlocked_at": "2025-11-21T14:35:01Z",
+  "github_branch_created": "build/user-authentication",
+  "ai_context_updated": true,
+  "notification_sent": true
+}
+
+Response (400 Bad Request - Stage Skip Detected):
+{
+  "error": "STAGE_SKIP_VIOLATION",
+  "message": "Cannot unlock DEPLOY stage without passing TEST stage",
+  "current_stage": "BUILD",
+  "requested_stage": "DEPLOY",
+  "missing_gates": ["G2_BUILD_READY", "G3_SHIP_READY"]
+}
+```
+
+---
+
+### FR1.4: Non-Functional Requirements
+
+| Requirement | Target | Measurement |
+|-------------|--------|-------------|
+| **Performance** | Policy validation <2s (95th percentile) | Prometheus histogram |
+| **Availability** | 99.5% uptime (OPA + Backend) | Uptime Robot |
+| **Scalability** | 1,000 gates/day (10 teams × 100 gates) | Load testing (Locust) |
+| **Security** | Role-based access (only approvers can approve) | RBAC enforcement |
+| **Auditability** | 100% policy decisions logged (permanent) | PostgreSQL + MinIO |
+
+---
+
+## FR2: Evidence Vault
+
+### Overview
+
+**Capability**: Permanent audit trail with SHA256 integrity verification for all gate evidence.
+
+**Business Value**: SOC 2 / ISO 27001 compliance - prove WHAT was approved and WHEN.
+
+**User Personas**:
+- CTO: Need permanent proof for auditors
+- Compliance Officer: Export evidence for external audits
+- Engineering Lead: Upload evidence (TDD tests, API contracts, runbooks)
+
+---
+
+### FR2.1: Evidence Upload and Storage
+
+#### Use Case 2.1.1: Upload Evidence File
+
+**Actor**: Engineering Lead
+**Precondition**: Gate created (status: "Draft")
+**Trigger**: User clicks "Upload Evidence" button
+
+**Main Flow**:
+1. User navigates to gate detail page → "Evidence" tab
+2. System displays evidence checklist (from exit criteria):
+   - G1 Design Ready:
+     - ☐ TDD Test Cases (Python files)
+     - ☐ API Contracts (OpenAPI YAML)
+     - ☐ Database Schema (SQL + ERD)
+3. User selects evidence type (dropdown: "TDD Test Cases")
+4. User drags file or clicks "Browse" (multi-file upload supported)
+5. System validates file:
+   - Size: Max 100 MB per file
+   - Type: Allowed extensions (.py, .yaml, .sql, .png, .pdf)
+   - Virus scan: ClamAV (async, results in 5 seconds)
+6. System computes SHA256 hash (client-side + server-side verification)
+7. System uploads file to MinIO:
+   - Bucket: `sdlc-evidence`
+   - Path: `{project_id}/{gate_id}/{evidence_type}/{filename}`
+   - Metadata: SHA256, uploader, timestamp
+8. System records evidence in PostgreSQL:
+   - Table: `gate_evidence`
+   - Columns: `gate_id`, `evidence_type`, `file_path`, `sha256`, `uploaded_by`, `uploaded_at`
+9. System displays upload success:
+   - Green checkmark ✅ next to evidence type
+   - File preview (inline for images/PDFs, download link for code)
+
+**Postcondition**: Evidence uploaded, SHA256 recorded, checklist updated.
+
+**Acceptance Criteria**:
+- AC1: User can upload files up to 100 MB in <10 seconds (for 10 MB file)
+- AC2: System computes SHA256 hash client-side + server-side (detect tampering)
+- AC3: System prevents duplicate uploads (same SHA256 = reject)
+- AC4: System supports multi-file upload (drag-and-drop 10 files at once)
+- AC5: System scans files for viruses (ClamAV integration, async)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/evidence
+Request (multipart/form-data):
+{
+  "evidence_type": "TDD_TESTS",
+  "files": [File, File, ...], // Binary files
+  "sha256_client": "abc123...", // Client-computed hash
+  "metadata": {
+    "description": "Unit tests for user authentication",
+    "author": "Engineering Lead"
+  }
+}
+
+Response (201 Created):
+{
+  "gate_id": "uuid",
+  "evidence_id": "uuid",
+  "evidence_type": "TDD_TESTS",
+  "files": [
+    {
+      "filename": "test_auth.py",
+      "file_path": "projects/uuid/gates/uuid/tdd-tests/test_auth.py",
+      "size_bytes": 4096,
+      "sha256_server": "abc123...",
+      "sha256_match": true, // Client hash == Server hash
+      "uploaded_at": "2025-11-21T10:45:00Z"
+    }
+  ],
+  "minio_url": "http://minio:9000/sdlc-evidence/projects/uuid/gates/uuid/tdd-tests/test_auth.py"
+}
+
+Response (400 Bad Request - Hash Mismatch):
+{
+  "error": "SHA256_MISMATCH",
+  "message": "Client-side hash (abc123) does not match server-side hash (def456)",
+  "file": "test_auth.py",
+  "client_sha256": "abc123...",
+  "server_sha256": "def456..."
+}
+
+Response (400 Bad Request - Duplicate Evidence):
+{
+  "error": "DUPLICATE_EVIDENCE",
+  "message": "File with same SHA256 already uploaded",
+  "existing_evidence_id": "uuid",
+  "uploaded_at": "2025-11-20T14:30:00Z"
+}
+```
+
+**UI Mockup** (Figma reference):
+- Drag-and-drop zone: "Drop files here or click to browse"
+- Progress bar: Upload progress (for large files)
+- File list: Uploaded files with SHA256 hash displayed (truncated)
+- Preview panel: Inline viewer for images/PDFs
+
+---
+
+#### Use Case 2.1.2: Verify Evidence Integrity
+
+**Actor**: CTO (Auditor)
+**Precondition**: Evidence uploaded months ago
+**Trigger**: Auditor wants to verify file was not tampered with
+
+**Main Flow**:
+1. Auditor navigates to gate detail page → "Evidence" tab
+2. Auditor selects evidence file (e.g., "test_auth.py")
+3. Auditor clicks "Verify Integrity" button
+4. System re-downloads file from MinIO
+5. System computes current SHA256 hash
+6. System compares current hash vs original hash (from PostgreSQL):
+   - **IF** hashes match: Display "✅ Integrity verified - File unchanged since upload"
+   - **IF** hashes mismatch: Display "🔴 TAMPERING DETECTED - File modified after upload"
+7. System logs verification attempt (audit trail):
+   - `evidence_verifications` table: `evidence_id`, `verified_by`, `result`, `verified_at`
+
+**Postcondition**: Integrity verified, verification logged.
+
+**Acceptance Criteria**:
+- AC1: System verifies integrity in <1 second (for 10 MB file)
+- AC2: System detects tampering with 100% accuracy (SHA256 collision probability negligible)
+- AC3: System logs all verification attempts (auditor accountability)
+- AC4: System supports bulk verification (all evidence in gate)
+- AC5: System displays verification history timeline
+
+**API Contract**:
+```typescript
+POST /api/v1/evidence/{evidence_id}/verify
+Request: {} // No body
+
+Response (200 OK - Integrity Verified):
+{
+  "evidence_id": "uuid",
+  "filename": "test_auth.py",
+  "original_sha256": "abc123...",
+  "current_sha256": "abc123...",
+  "integrity_status": "VERIFIED",
+  "verified_at": "2025-12-21T10:00:00Z",
+  "verified_by": "uuid (CTO)"
+}
+
+Response (200 OK - Tampering Detected):
+{
+  "evidence_id": "uuid",
+  "filename": "test_auth.py",
+  "original_sha256": "abc123...",
+  "current_sha256": "def456...", // DIFFERENT!
+  "integrity_status": "TAMPERED",
+  "verified_at": "2025-12-21T10:00:00Z",
+  "verified_by": "uuid (CTO)",
+  "alert_sent_to": ["security@company.com"]
+}
+```
+
+---
+
+### FR2.2: GitHub Artifact Auto-Collection
+
+#### Use Case 2.2.1: Auto-Collect GitHub PR Evidence
+
+**Actor**: System (automated)
+**Precondition**: GitHub webhook configured, PR merged
+**Trigger**: GitHub webhook: `pull_request.merged`
+
+**Main Flow**:
+1. GitHub sends webhook to backend:
+   ```json
+   {
+     "action": "closed",
+     "pull_request": {
+       "merged": true,
+       "number": 42,
+       "title": "feat: Add user authentication",
+       "html_url": "https://github.com/org/repo/pull/42",
+       "merged_at": "2025-11-21T15:30:00Z",
+       "base": {"ref": "main"},
+       "head": {"ref": "build/user-auth"}
+     }
+   }
+   ```
+2. System extracts PR metadata:
+   - PR number, title, author, reviewers
+   - Commits (git log), files changed (diff)
+   - CI/CD status (GitHub Actions results)
+3. System looks up associated gate:
+   - Searches `gates` table for `github_branch = 'build/user-auth'`
+   - **IF** gate found: Auto-attach PR as evidence
+4. System downloads PR artifacts:
+   - PR description (markdown)
+   - Code review comments (JSON)
+   - CI/CD logs (GitHub Actions API)
+5. System uploads artifacts to MinIO:
+   - Bucket: `sdlc-evidence`
+   - Path: `{project_id}/{gate_id}/github-pr-{number}/`
+6. System records evidence in PostgreSQL:
+   - Table: `gate_evidence`
+   - Type: `GITHUB_PR`
+   - Metadata: PR number, URL, merged_at
+
+**Postcondition**: GitHub PR auto-attached to gate, evidence vault updated.
+
+**Acceptance Criteria**:
+- AC1: System processes webhook within 5 seconds of PR merge
+- AC2: System auto-links PR to gate based on branch name convention
+- AC3: System downloads PR artifacts (description, comments, CI logs)
+- AC4: System handles webhook retries (idempotent, deduplicate by PR number)
+- AC5: System supports GitHub Enterprise (configurable base URL)
+
+**API Contract** (GitHub Webhook):
+```typescript
+POST /api/v1/webhooks/github/pull-request
+Request (from GitHub):
+{
+  "action": "closed",
+  "pull_request": {
+    "merged": true,
+    "number": 42,
+    "html_url": "https://github.com/org/repo/pull/42"
+  }
+}
+
+Response (200 OK):
+{
+  "webhook_id": "uuid",
+  "processed": true,
+  "gate_id": "uuid", // Auto-linked gate
+  "evidence_created": {
+    "evidence_id": "uuid",
+    "evidence_type": "GITHUB_PR",
+    "artifacts_collected": [
+      "pr-description.md",
+      "code-review-comments.json",
+      "ci-logs.txt"
+    ]
+  }
+}
+
+Response (200 OK - No Gate Found):
+{
+  "webhook_id": "uuid",
+  "processed": false,
+  "reason": "No gate found for branch 'build/user-auth'",
+  "action": "SKIPPED"
+}
+```
+
+---
+
+### FR2.3: Evidence Export for Compliance
+
+#### Use Case 2.3.1: Export Gate Evidence Package
+
+**Actor**: Compliance Officer
+**Precondition**: Gate approved, evidence stored in vault
+**Trigger**: User clicks "Export Evidence Package" button
+
+**Main Flow**:
+1. User navigates to gate detail page → "Evidence" tab
+2. User clicks "Export Evidence Package"
+3. System prompts for export format:
+   - ZIP archive (all files + manifest.json)
+   - PDF report (evidence summary + screenshots)
+4. System generates evidence package:
+   - Collects all files from MinIO
+   - Generates manifest.json:
+     ```json
+     {
+       "gate_id": "uuid",
+       "gate_name": "User Authentication - Gate G1",
+       "exported_at": "2025-12-15T10:00:00Z",
+       "exported_by": "Compliance Officer",
+       "evidence_files": [
+         {
+           "filename": "test_auth.py",
+           "sha256": "abc123...",
+           "uploaded_at": "2025-11-21T10:45:00Z"
+         }
+       ]
+     }
+     ```
+   - Creates ZIP archive
+5. System serves ZIP download (signed URL, expires in 1 hour)
+6. System logs export activity (audit trail):
+   - `evidence_exports` table: `gate_id`, `exported_by`, `format`, `exported_at`
+
+**Postcondition**: Evidence package downloaded, export logged.
+
+**Acceptance Criteria**:
+- AC1: System generates ZIP in <10 seconds (for 100 MB evidence)
+- AC2: System includes manifest.json with all SHA256 hashes
+- AC3: System signs download URL (S3 presigned URL, expires in 1 hour)
+- AC4: System logs all exports (who, when, what)
+- AC5: System supports PDF report generation (evidence summary + thumbnails)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/export-evidence
+Request:
+{
+  "format": "ZIP", // or "PDF"
+  "include_artifacts": true // Include GitHub PR artifacts
+}
+
+Response (200 OK):
+{
+  "export_id": "uuid",
+  "gate_id": "uuid",
+  "format": "ZIP",
+  "download_url": "https://minio:9000/exports/gate-uuid.zip?signature=xyz&expires=3600",
+  "expires_at": "2025-11-21T16:00:00Z",
+  "file_size_bytes": 10485760,
+  "evidence_count": 12
+}
+```
+
+---
+
+### FR2.4: Non-Functional Requirements
+
+| Requirement | Target | Measurement |
+|-------------|--------|-------------|
+| **Storage** | 1 TB total (MinIO) | Prometheus gauge |
+| **Upload Speed** | 10 MB/s (100 MB file in 10s) | Upload latency |
+| **Integrity** | 100% SHA256 verification | Verify all files monthly |
+| **Retention** | Permanent (no auto-delete) | MinIO lifecycle policy |
+| **Encryption** | AES-256 at rest (MinIO) | MinIO config |
+
+---
+
+## FR3: AI Context Engine
+
+### Overview
+
+**Capability**: Multi-provider stage-aware AI assistance (Claude, GPT-4o, Gemini).
+
+**Business Value**: 10x faster evidence creation (AI drafts TDD tests, API contracts, runbooks).
+
+**User Personas**:
+- Engineering Lead: Generate TDD tests from user stories
+- Product Manager: Draft Design Thinking artifacts (problem statement, personas)
+- DevOps Engineer: Generate runbooks from architecture docs
+
+---
+
+### FR3.1: Stage-Aware Prompt Injection
+
+#### Use Case 3.1.1: Generate TDD Tests (WHAT Stage)
+
+**Actor**: Engineering Lead
+**Precondition**: Gate G1 created (Design Ready stage), user story defined
+**Trigger**: User clicks "AI: Generate TDD Tests" button
+
+**Main Flow**:
+1. User navigates to gate detail page → "Evidence" tab
+2. User clicks "AI: Generate TDD Tests"
+3. System displays AI prompt form:
+   - Stage: WHAT (auto-detected from gate type)
+   - Input: User story (textarea)
+   - AI Provider: Claude Sonnet 4.5 (default for complex reasoning)
+4. User enters user story:
+   ```
+   As a user, I want to log in with email + password,
+   so that I can access protected resources.
+
+   Acceptance Criteria:
+   - Email validation (RFC 5322)
+   - Password min 8 chars, 1 uppercase, 1 number
+   - Max 3 failed attempts → account lockout
+   ```
+5. User clicks "Generate Tests"
+6. System prepares AI prompt (stage-aware template):
+   ```
+   You are an expert software engineer following SDLC 4.9 Complete Lifecycle.
+
+   CURRENT STAGE: WHAT (Design & Planning)
+   GATE: G1 Design Ready
+   EXIT CRITERIA: Write TDD test cases BEFORE writing implementation code.
+
+   USER STORY:
+   {user_story}
+
+   TASK: Generate Python pytest test cases that validate ALL acceptance criteria.
+
+   REQUIREMENTS:
+   - Use pytest framework
+   - Test ONLY external behavior (black-box testing)
+   - Cover happy path + edge cases + error cases
+   - Follow AAA pattern (Arrange, Act, Assert)
+   - Include docstrings explaining WHAT is tested (not HOW)
+
+   OUTPUT: Python code only (no explanations).
+   ```
+7. System calls Claude API:
+   - Model: `claude-sonnet-4-5-20250929`
+   - Temperature: 0.2 (deterministic for code)
+   - Max tokens: 4096
+8. Claude returns TDD tests:
+   ```python
+   import pytest
+   from app.auth import login
+
+   def test_login_success_valid_credentials():
+       """User can log in with valid email and password."""
+       # Arrange
+       email = "user@example.com"
+       password = "SecurePass123"
+
+       # Act
+       result = login(email, password)
+
+       # Assert
+       assert result.success is True
+       assert result.access_token is not None
+
+   def test_login_failure_invalid_email():
+       """Login fails with invalid email format."""
+       # Arrange
+       email = "invalid-email"
+       password = "SecurePass123"
+
+       # Act
+       result = login(email, password)
+
+       # Assert
+       assert result.success is False
+       assert result.error == "INVALID_EMAIL_FORMAT"
+
+   # ... (10 more test cases)
+   ```
+9. System displays generated tests in code editor (Monaco Editor)
+10. User reviews tests:
+    - Edit directly in browser
+    - Click "Save as Evidence" to upload to vault
+11. System uploads tests to MinIO (same as manual upload)
+
+**Postcondition**: TDD tests generated, uploaded to evidence vault.
+
+**Acceptance Criteria**:
+- AC1: System generates tests in <10 seconds (95th percentile)
+- AC2: System uses stage-aware prompts (WHAT stage = TDD tests, BUILD stage = implementation)
+- AC3: System supports multi-provider fallback (Claude timeout → GPT-4o → Gemini)
+- AC4: System tracks AI usage costs (tokens, $$ per gate)
+- AC5: System allows manual editing before saving (inline code editor)
+
+**API Contract**:
+```typescript
+POST /api/v1/gates/{gate_id}/ai/generate-evidence
+Request:
+{
+  "evidence_type": "TDD_TESTS",
+  "ai_provider": "CLAUDE", // or "GPT4", "GEMINI"
+  "input": {
+    "user_story": "As a user, I want to log in..."
+  },
+  "temperature": 0.2
+}
+
+Response (200 OK):
+{
+  "evidence_draft_id": "uuid",
+  "evidence_type": "TDD_TESTS",
+  "ai_provider": "CLAUDE",
+  "model": "claude-sonnet-4-5",
+  "generated_content": "import pytest\nfrom app.auth import login\n\n...",
+  "tokens_used": 1250,
+  "cost_usd": 0.025,
+  "generated_at": "2025-11-21T11:15:00Z"
+}
+
+Response (429 Too Many Requests - Rate Limit):
+{
+  "error": "RATE_LIMIT_EXCEEDED",
+  "ai_provider": "CLAUDE",
+  "retry_after": 60,
+  "fallback_providers": ["GPT4", "GEMINI"]
+}
+```
+
+**UI Mockup** (Figma reference):
+- Modal dialog: "AI Generate Evidence"
+- Dropdown: AI Provider (Claude, GPT-4o, Gemini)
+- Textarea: Input (user story, architecture doc, etc.)
+- Code editor: Generated output (Monaco Editor)
+- Buttons: "Regenerate", "Save as Evidence", "Cancel"
+
+---
+
+### FR3.2: Multi-Provider Routing
+
+#### Use Case 3.2.1: Route Request to Best AI Provider
+
+**Actor**: System (automated)
+**Precondition**: User clicks "AI: Generate Evidence"
+**Trigger**: AI request received
+
+**Main Flow**:
+1. System analyzes request context:
+   - Stage: WHAT (complex reasoning needed)
+   - Evidence type: TDD_TESTS (code generation)
+   - Input length: 500 tokens
+2. System applies routing logic:
+   - **Claude Sonnet 4.5**: Complex reasoning (Design Thinking, TDD, runbooks)
+   - **GPT-4o**: Code generation (implementation, unit tests)
+   - **Gemini**: Bulk tasks (summarization, translation, low-cost)
+3. System selects provider: Claude (complex reasoning for WHAT stage)
+4. System checks rate limits:
+   - Claude: 50 RPM (requests per minute)
+   - Current usage: 10 RPM
+   - **IF** under limit: Proceed
+   - **IF** over limit: Fallback to GPT-4o
+5. System calls selected provider API
+6. System tracks usage:
+   - Table: `ai_usage_logs`
+   - Columns: `gate_id`, `provider`, `model`, `tokens`, `cost_usd`, `timestamp`
+
+**Postcondition**: AI request routed to optimal provider, usage tracked.
+
+**Acceptance Criteria**:
+- AC1: System routes to correct provider based on stage + evidence type
+- AC2: System falls back to alternate provider on rate limit (Claude → GPT-4o → Gemini)
+- AC3: System tracks costs per gate (visible in dashboard)
+- AC4: System respects monthly budget limit ($500/month for AI)
+- AC5: System logs all AI requests (audit trail for compliance)
+
+**Routing Rules** (Configurable):
+```yaml
+ai_routing:
+  WHAT_STAGE:
+    TDD_TESTS: CLAUDE # Complex reasoning
+    API_CONTRACTS: GPT4 # Code generation
+    DESIGN_THINKING: CLAUDE # Creative + reasoning
+
+  BUILD_STAGE:
+    IMPLEMENTATION: GPT4 # Code generation
+    CODE_REVIEW: CLAUDE # Analysis
+
+  OPERATE_STAGE:
+    RUNBOOKS: CLAUDE # Complex instructions
+    METRICS_QUERIES: GEMINI # Simple templating
+
+  FALLBACK: GEMINI # Cheap fallback
+```
+
+---
+
+### FR3.3: Cost Tracking and Budget Limits
+
+#### Use Case 3.3.1: Track AI Costs Per Gate
+
+**Actor**: System (automated)
+**Precondition**: AI request completed
+**Trigger**: AI provider returns response
+
+**Main Flow**:
+1. System receives AI response with token usage:
+   ```json
+   {
+     "usage": {
+       "prompt_tokens": 500,
+       "completion_tokens": 750,
+       "total_tokens": 1250
+     }
+   }
+   ```
+2. System looks up pricing (from config):
+   - Claude Sonnet 4.5: $3/M input, $15/M output
+   - GPT-4o: $5/M input, $15/M output
+   - Gemini 2.0 Flash: $0.075/M input, $0.30/M output
+3. System calculates cost:
+   ```
+   cost_usd = (prompt_tokens * input_price_per_1M) + (completion_tokens * output_price_per_1M)
+   cost_usd = (500 * 3/1000000) + (750 * 15/1000000)
+   cost_usd = 0.0015 + 0.01125 = 0.01275 (~$0.013)
+   ```
+4. System records cost:
+   - Table: `ai_usage_logs`
+   - Update gate aggregate: `gates.ai_cost_usd += 0.013`
+5. System checks monthly budget:
+   - Config: `AI_MONTHLY_BUDGET = $500`
+   - Current month spend: `SUM(ai_cost_usd) WHERE month = 2025-11`
+   - **IF** spend > budget: Send alert to CTO, block new AI requests
+
+**Postcondition**: AI cost tracked, budget monitored.
+
+**Acceptance Criteria**:
+- AC1: System calculates cost accurately (within 1 cent)
+- AC2: System aggregates costs by gate, project, month
+- AC3: System alerts when 80% of monthly budget consumed
+- AC4: System blocks AI requests when budget exceeded (fail-safe)
+- AC5: System displays cost in dashboard (real-time)
+
+**API Contract**:
+```typescript
+GET /api/v1/ai/usage-stats?month=2025-11
+Response (200 OK):
+{
+  "month": "2025-11",
+  "total_cost_usd": 125.45,
+  "budget_usd": 500,
+  "budget_used_percent": 25.09,
+  "requests_count": 1250,
+  "providers": {
+    "CLAUDE": {"cost_usd": 85.20, "requests": 450},
+    "GPT4": {"cost_usd": 30.15, "requests": 600},
+    "GEMINI": {"cost_usd": 10.10, "requests": 200}
+  },
+  "top_gates": [
+    {"gate_id": "uuid", "cost_usd": 15.30, "gate_name": "User Auth - G1"}
+  ]
+}
+```
+
+---
+
+### FR3.4: Non-Functional Requirements
+
+| Requirement | Target | Measurement |
+|-------------|--------|-------------|
+| **Latency** | AI response <10s (95th percentile) | Prometheus histogram |
+| **Availability** | 99% (with multi-provider fallback) | Uptime monitoring |
+| **Cost** | <$500/month (AI usage) | PostgreSQL cost tracking |
+| **Rate Limits** | Handle 50 RPM per provider | Queue-based throttling |
+| **Quality** | 90%+ user satisfaction (AI output) | User feedback (thumbs up/down) |
+
+---
+
+## FR4: Real-Time Dashboard
+
+### Overview
+
+**Capability**: Live visualization of gate status, stage progression, and team metrics.
+
+**Business Value**: At-a-glance project health (are we on track for Feb 10 launch?).
+
+**User Personas**:
+- Engineering Manager: Monitor team velocity, gate pass rate
+- CTO: Executive view (all projects, compliance status)
+- Product Manager: Track feature progress (WHAT → BUILD → DEPLOY)
+
+---
+
+### FR4.1: Gate Status Dashboard
+
+#### Use Case 4.1.1: View All Gates (Project Dashboard)
+
+**Actor**: Engineering Manager
+**Precondition**: User logged in, project selected
+**Trigger**: User navigates to project dashboard
+
+**Main Flow**:
+1. User clicks "Dashboard" in navigation
+2. System displays project overview:
+   - Project name: "SDLC Orchestrator MVP"
+   - Current stage: BUILD
+   - Sprint: Week 6 of 13
+   - Timeline: Nov 14 - Feb 10 (13 weeks)
+3. System displays gates table (real-time):
+   | Gate | Stage | Status | Approvers | Evidence | Created | Updated |
+   |------|-------|--------|-----------|----------|---------|---------|
+   | G0.1 Design Thinking | WHY | ✅ Approved | CEO, CPO | 3/3 files | Nov 14 | Nov 15 |
+   | G0.2 Solution Diversity | WHY | ✅ Approved | CTO, CFO | 5/5 files | Nov 15 | Nov 18 |
+   | G1 Design Ready | WHAT | ✅ Approved | CTO, CPO | 12/12 files | Nov 21 | Nov 25 |
+   | G2 Build Ready | BUILD | 🟡 Pending | CTO | 8/10 files | Dec 12 | Dec 18 |
+   | G3 Ship Ready | TEST | ⏳ Draft | - | 0/15 files | - | - |
+4. System displays stage progression timeline:
+   ```
+   WHY ✅ → WHAT ✅ → HOW ✅ → BUILD 🟡 → TEST ⏳ → DEPLOY ⏳
+   ```
+5. System displays key metrics (cards):
+   - Gate Pass Rate: 92% (11/12 gates passed on first attempt)
+   - Avg Time to Approval: 2.3 days
+   - Evidence Completeness: 87% (all gates)
+   - AI Cost (Month): $125.45 / $500 budget
+
+**Postcondition**: User sees real-time project status.
+
+**Acceptance Criteria**:
+- AC1: Dashboard loads in <2 seconds (all data)
+- AC2: Dashboard updates real-time (WebSocket for gate status changes)
+- AC3: Dashboard supports filtering (by stage, status, approver)
+- AC4: Dashboard supports sorting (by created date, updated date)
+- AC5: Dashboard exports to PDF (executive report)
+
+**API Contract**:
+```typescript
+GET /api/v1/projects/{project_id}/dashboard
+Response (200 OK):
+{
+  "project": {
+    "id": "uuid",
+    "name": "SDLC Orchestrator MVP",
+    "current_stage": "BUILD",
+    "sprint_week": 6,
+    "timeline": {
+      "start_date": "2025-11-14",
+      "end_date": "2026-02-10",
+      "total_weeks": 13
+    }
+  },
+  "gates": [
+    {
+      "gate_id": "uuid",
+      "name": "G0.1 Design Thinking",
+      "stage": "WHY",
+      "status": "APPROVED",
+      "approvers": [
+        {"role": "CEO", "approved_at": "2025-11-15T10:00:00Z"},
+        {"role": "CPO", "approved_at": "2025-11-15T11:00:00Z"}
+      ],
+      "evidence_count": 3,
+      "evidence_required": 3,
+      "created_at": "2025-11-14T09:00:00Z",
+      "updated_at": "2025-11-15T11:00:00Z"
+    }
+    // ... (12 gates total)
+  ],
+  "metrics": {
+    "gate_pass_rate": 0.92,
+    "avg_approval_days": 2.3,
+    "evidence_completeness": 0.87,
+    "ai_cost_month_usd": 125.45,
+    "ai_budget_usd": 500
+  }
+}
+```
+
+**UI Mockup** (Figma reference):
+- Header: Project name, current stage, sprint progress bar
+- Table: Gates list (sortable, filterable)
+- Timeline: Stage progression (visual roadmap)
+- Metrics cards: 4 key metrics (gate pass rate, time to approval, evidence, AI cost)
+
+---
+
+### FR4.2: Real-Time Updates (WebSocket)
+
+#### Use Case 4.2.1: Receive Real-Time Gate Status Updates
+
+**Actor**: Engineering Manager
+**Precondition**: Dashboard open in browser
+**Trigger**: Gate status changes (e.g., approved by CTO)
+
+**Main Flow**:
+1. User opens dashboard, browser establishes WebSocket connection:
+   ```
+   ws://backend:8000/ws/projects/{project_id}/dashboard
+   ```
+2. Backend subscribes to Redis pub/sub channel:
+   ```
+   SUBSCRIBE project:{project_id}:gates:updates
+   ```
+3. Gate status changes (CTO approves Gate G2):
+   - Backend updates PostgreSQL: `UPDATE gates SET status = 'APPROVED'`
+   - Backend publishes event to Redis:
+     ```json
+     PUBLISH project:uuid:gates:updates {
+       "event": "GATE_APPROVED",
+       "gate_id": "uuid",
+       "gate_name": "G2 Build Ready",
+       "approved_by": "CTO",
+       "approved_at": "2025-12-18T14:30:00Z"
+     }
+     ```
+4. Backend receives Redis event, forwards via WebSocket to all connected clients
+5. Frontend (React) receives WebSocket message:
+   ```javascript
+   ws.onmessage = (event) => {
+     const update = JSON.parse(event.data)
+     // Update gate table row (G2 status: Pending → Approved)
+     updateGateStatus(update.gate_id, 'APPROVED')
+     // Show toast notification: "Gate G2 approved by CTO 🎉"
+     showToast(`Gate ${update.gate_name} approved by ${update.approved_by}`)
+   }
+   ```
+6. Dashboard updates instantly (no page refresh needed)
+
+**Postcondition**: Dashboard shows real-time updates.
+
+**Acceptance Criteria**:
+- AC1: WebSocket updates appear within 1 second of status change
+- AC2: WebSocket reconnects automatically on disconnect (max 3 retries)
+- AC3: WebSocket authenticates using JWT token (secure)
+- AC4: WebSocket supports multiple concurrent clients (1,000+ connections)
+- AC5: WebSocket falls back to HTTP polling if unavailable (graceful degradation)
+
+**WebSocket Protocol**:
+```typescript
+// Client → Server (Subscribe)
+{
+  "action": "SUBSCRIBE",
+  "channel": "project:uuid:gates:updates",
+  "auth_token": "jwt_token_here"
+}
+
+// Server → Client (Event)
+{
+  "event": "GATE_APPROVED",
+  "gate_id": "uuid",
+  "gate_name": "G2 Build Ready",
+  "approved_by": "CTO",
+  "approved_at": "2025-12-18T14:30:00Z"
+}
+
+// Server → Client (Heartbeat, every 30s)
+{
+  "event": "PING",
+  "timestamp": "2025-12-18T14:30:00Z"
+}
+
+// Client → Server (Heartbeat Response)
+{
+  "action": "PONG"
+}
+```
+
+---
+
+### FR4.3: Executive Summary Report
+
+#### Use Case 4.3.1: Generate Executive PDF Report
+
+**Actor**: CTO
+**Precondition**: Project has gates created
+**Trigger**: User clicks "Export Executive Report"
+
+**Main Flow**:
+1. User clicks "Export Executive Report" button (dashboard)
+2. System prompts for report parameters:
+   - Date range: Last 30 days (default: current month)
+   - Include sections: Gates, Metrics, AI Usage, Compliance
+3. User clicks "Generate PDF"
+4. System collects data:
+   - Gates: Status, approvals, evidence completeness
+   - Metrics: Gate pass rate, time to approval, evidence stats
+   - AI Usage: Costs, tokens, providers
+   - Compliance: Evidence integrity checks, audit log
+5. System generates PDF (using library: `reportlab` or `pdfkit`):
+   - Page 1: Executive summary (1-page overview)
+   - Page 2-5: Gate details (table + charts)
+   - Page 6: Metrics dashboard (charts: gate pass rate trend, AI cost)
+   - Page 7: Compliance status (evidence integrity, audit trail)
+6. System serves PDF download (signed URL)
+
+**Postcondition**: PDF report downloaded.
+
+**Acceptance Criteria**:
+- AC1: System generates PDF in <10 seconds (for 100 gates)
+- AC2: PDF includes charts (gate pass rate trend, AI cost)
+- AC3: PDF is branded (company logo, colors)
+- AC4: PDF is printer-friendly (black & white mode)
+- AC5: PDF includes footer (generated date, page numbers)
+
+**API Contract**:
+```typescript
+POST /api/v1/projects/{project_id}/reports/executive
+Request:
+{
+  "date_range": {
+    "start_date": "2025-11-01",
+    "end_date": "2025-11-30"
+  },
+  "sections": ["GATES", "METRICS", "AI_USAGE", "COMPLIANCE"]
+}
+
+Response (200 OK):
+{
+  "report_id": "uuid",
+  "download_url": "https://minio:9000/reports/executive-2025-11.pdf?signature=xyz",
+  "expires_at": "2025-11-21T17:00:00Z",
+  "file_size_bytes": 2097152
+}
+```
+
+---
+
+### FR4.4: Non-Functional Requirements
+
+| Requirement | Target | Measurement |
+|-------------|--------|-------------|
+| **Load Time** | Dashboard <2s (initial load) | Lighthouse performance |
+| **Real-Time** | WebSocket updates <1s (latency) | Custom metric |
+| **Scalability** | 1,000 concurrent WebSocket clients | Load testing |
+| **Accessibility** | WCAG 2.1 AA compliance | axe DevTools |
+| **Mobile** | Responsive (mobile, tablet, desktop) | Manual testing |
+
+---
+
+## FR5: Policy Pack Library
+
+### Overview
+
+**Capability**: Pre-built SDLC 4.9 policies for all 10 stages (100+ policies out-of-the-box).
+
+**Business Value**: Zero policy authoring for 90% of teams (instant governance).
+
+**User Personas**:
+- Engineering Manager: Apply pre-built policies (G1, G2, G3)
+- CTO: Customize policies for enterprise compliance
+- DevOps Engineer: Deploy policies via GitOps
+
+---
+
+### FR5.1: Pre-Built Policy Catalog
+
+#### Use Case 5.1.1: Browse Policy Catalog
+
+**Actor**: Engineering Manager
+**Precondition**: User logged in
+**Trigger**: User navigates to "Policy Catalog"
+
+**Main Flow**:
+1. User clicks "Policy Catalog" in navigation
+2. System displays policy categories:
+   - **Stage 00 (WHY)**: Design Thinking policies (G0.1, G0.2)
+   - **Stage 01 (WHAT)**: Planning & Analysis policies (G1)
+   - **Stage 02 (HOW)**: Design & Architecture policies (G1)
+   - **Stage 03 (BUILD)**: Development policies (G2)
+   - **Stage 04 (TEST)**: Testing policies (G3)
+   - **Stage 05 (DEPLOY)**: Deployment policies (G4)
+   - **Stage 06 (OPERATE)**: Operations policies (G5)
+   - **Stage 07-09**: Integration, Collaboration, Governance
+3. User expands "Stage 03 (BUILD)" category
+4. System displays policies:
+   | Policy | Description | Gate | Severity |
+   |--------|-------------|------|----------|
+   | G2-Code-Review | 2+ reviewers required | G2 | CRITICAL |
+   | G2-Test-Coverage | 90%+ test coverage | G2 | HIGH |
+   | G2-No-TODOs | Zero TODO/FIXME in code | G2 | MEDIUM |
+   | G2-Security-Scan | Snyk/SonarQube pass | G2 | CRITICAL |
+5. User clicks "G2-Code-Review" policy
+6. System displays policy details:
+   - Description: "Pull requests require approval from 2+ reviewers"
+   - Rego code (view-only):
+     ```rego
+     package sdlc.gates.g2.code_review
+
+     violation[msg] {
+       count(input.pull_request.reviewers) < 2
+       msg := "G2-CODE-REVIEW-VIOLATION: Less than 2 reviewers"
+     }
+     ```
+   - Test cases: 5 test scenarios (pass/fail examples)
+   - Documentation: Link to SDLC 4.9 rationale
+
+**Postcondition**: User understands available policies.
+
+**Acceptance Criteria**:
+- AC1: Catalog contains 100+ pre-built policies (all 10 stages)
+- AC2: Each policy has description, Rego code, test cases, docs
+- AC3: Policies are versioned (v1.0, v1.1, etc.)
+- AC4: Policies support customization (parameters: min_reviewers = 2)
+- AC5: Policies are searchable (keyword: "test coverage")
+
+**API Contract**:
+```typescript
+GET /api/v1/policies/catalog
+Response (200 OK):
+{
+  "categories": [
+    {
+      "stage": "BUILD",
+      "stage_number": "03",
+      "policies": [
+        {
+          "policy_id": "G2-CODE-REVIEW",
+          "name": "Code Review Required",
+          "description": "Pull requests require 2+ reviewers",
+          "gate_type": "G2_BUILD_READY",
+          "severity": "CRITICAL",
+          "version": "1.0.0",
+          "rego_file": "policies/g2-code-review.rego",
+          "test_cases_count": 5,
+          "documentation_url": "https://docs.sdlc.com/policies/g2-code-review"
+        }
+      ]
+    }
+  ],
+  "total_policies": 105
+}
+```
+
+**UI Mockup** (Figma reference):
+- Sidebar: Stage categories (collapsible tree)
+- Main panel: Policies table (sortable by severity, gate)
+- Detail panel: Policy description + Rego code (syntax highlighted)
+
+---
+
+### FR5.2: Policy Customization
+
+#### Use Case 5.2.1: Customize Policy Parameters
+
+**Actor**: CTO
+**Precondition**: Policy selected from catalog
+**Trigger**: User clicks "Customize Policy"
+
+**Main Flow**:
+1. User selects "G2-Code-Review" policy from catalog
+2. User clicks "Customize Policy"
+3. System displays customization form:
+   - Parameter: `min_reviewers` (default: 2)
+   - Parameter: `require_codeowner_approval` (default: true)
+   - Parameter: `allow_self_approval` (default: false)
+4. User changes `min_reviewers` from 2 to 3 (enterprise requirement)
+5. User clicks "Save Custom Policy"
+6. System creates custom policy variant:
+   - Name: "G2-Code-Review (Custom - 3 Reviewers)"
+   - Rego code: Parameterized template
+     ```rego
+     package sdlc.gates.g2.code_review_custom
+
+     min_reviewers := 3 # Custom parameter
+
+     violation[msg] {
+       count(input.pull_request.reviewers) < min_reviewers
+       msg := sprintf("G2-CODE-REVIEW-VIOLATION: Less than %d reviewers", [min_reviewers])
+     }
+     ```
+7. System saves custom policy to project:
+   - Table: `custom_policies`
+   - Columns: `project_id`, `base_policy_id`, `parameters`, `created_by`
+
+**Postcondition**: Custom policy created, applied to project.
+
+**Acceptance Criteria**:
+- AC1: User can customize policy parameters (no Rego editing required)
+- AC2: System validates parameters (min_reviewers >= 1)
+- AC3: Custom policies inherit from base policy (version updates auto-applied)
+- AC4: Custom policies are project-scoped (don't affect other projects)
+- AC5: Custom policies support export (Rego file download)
+
+**API Contract**:
+```typescript
+POST /api/v1/projects/{project_id}/policies/customize
+Request:
+{
+  "base_policy_id": "G2-CODE-REVIEW",
+  "custom_name": "G2-Code-Review (3 Reviewers)",
+  "parameters": {
+    "min_reviewers": 3,
+    "require_codeowner_approval": true,
+    "allow_self_approval": false
+  }
+}
+
+Response (201 Created):
+{
+  "custom_policy_id": "uuid",
+  "base_policy_id": "G2-CODE-REVIEW",
+  "name": "G2-Code-Review (3 Reviewers)",
+  "parameters": {
+    "min_reviewers": 3,
+    "require_codeowner_approval": true,
+    "allow_self_approval": false
+  },
+  "rego_generated": true,
+  "applied_to_gates": ["G2_BUILD_READY"]
+}
+```
+
+---
+
+### FR5.3: Policy Testing and Validation
+
+#### Use Case 5.3.1: Test Policy Before Deployment
+
+**Actor**: DevOps Engineer
+**Precondition**: Custom policy created
+**Trigger**: User clicks "Test Policy"
+
+**Main Flow**:
+1. User navigates to custom policy detail page
+2. User clicks "Test Policy"
+3. System displays test input form:
+   - Sample input (JSON):
+     ```json
+     {
+       "pull_request": {
+         "reviewers": [
+           {"username": "alice", "approved": true},
+           {"username": "bob", "approved": true}
+         ]
+       }
+     }
+     ```
+4. User modifies input (e.g., remove 1 reviewer to test violation)
+5. User clicks "Run Test"
+6. System evaluates policy against input:
+   - HTTP POST to OPA: `http://opa:8181/v1/data/sdlc/gates/g2/code_review_custom`
+   - Input: User-provided JSON
+7. OPA returns result:
+   ```json
+   {
+     "result": {
+       "allowed": false,
+       "violations": ["G2-CODE-REVIEW-VIOLATION: Less than 3 reviewers"]
+     }
+   }
+   ```
+8. System displays test result:
+   - Status: ❌ FAIL (expected if testing violation)
+   - Violations: "Less than 3 reviewers"
+   - Recommendation: "Add 1 more reviewer to pass"
+
+**Postcondition**: Policy tested, results displayed.
+
+**Acceptance Criteria**:
+- AC1: User can test policy with custom input (JSON editor)
+- AC2: System displays test results in <1 second
+- AC3: System provides pre-built test cases (pass/fail examples)
+- AC4: System supports bulk testing (run 10 test cases at once)
+- AC5: System saves test history (previous test runs)
+
+**API Contract**:
+```typescript
+POST /api/v1/policies/{policy_id}/test
+Request:
+{
+  "input": {
+    "pull_request": {
+      "reviewers": [
+        {"username": "alice", "approved": true},
+        {"username": "bob", "approved": true}
       ]
     }
   }
-  ```
-Then test result = FAIL
-And reason = "Only 2 user interviews, need 3+"
-And I can adjust Rego code and retest
-```
+}
 
-**Traceability**: Problem 3 (Process fatigue) → Test policies before deployment (prevent broken gates)
+Response (200 OK):
+{
+  "policy_id": "uuid",
+  "test_result": {
+    "allowed": false,
+    "violations": ["G2-CODE-REVIEW-VIOLATION: Less than 3 reviewers"],
+    "evaluated_at": "2025-11-21T12:00:00Z"
+  },
+  "recommendation": "Add 1 more reviewer to pass policy"
+}
+```
 
 ---
 
-### FR3.3: Policy Pack Editor (VS Code-like)
+### FR5.4: Policy Versioning and Updates
 
-**WHAT**: UI provides VS Code-like editor for writing Rego policies (syntax highlighting, autocomplete).
+#### Use Case 5.4.1: Update Policy to New Version
 
-**Inputs**:
-- User types Rego code in editor
+**Actor**: System (automated)
+**Precondition**: New policy version released (e.g., G2-Code-Review v1.1)
+**Trigger**: Policy pack update deployed
 
-**Outputs**:
-- Syntax highlighting (keywords, functions, variables color-coded)
-- Autocomplete (suggest OPA built-in functions)
-- Linting (show errors inline, e.g., "Syntax error line 5: missing brace")
+**Main Flow**:
+1. New policy pack version deployed to production:
+   - Git tag: `policy-pack-v1.1.0`
+   - Changes: G2-Code-Review now checks for approved vs requested reviews
+2. System detects policy update:
+   - Compares deployed version (v1.0) vs latest (v1.1)
+3. System notifies affected projects:
+   - Query: `SELECT * FROM custom_policies WHERE base_policy_id = 'G2-CODE-REVIEW'`
+   - Send email to project owners: "Policy G2-Code-Review updated to v1.1"
+4. System applies update strategy (configurable):
+   - **Auto-update**: Custom policies inherit new version automatically
+   - **Manual approval**: Project owner must approve update
+5. **IF** auto-update enabled:
+   - System regenerates custom policy Rego with new base version
+   - System runs regression tests (all previous test cases must pass)
+   - **IF** tests pass: Deploy new version
+   - **IF** tests fail: Rollback, alert project owner
+6. System logs policy update:
+   - Table: `policy_update_history`
+   - Columns: `policy_id`, `old_version`, `new_version`, `updated_at`, `status`
 
-**Business Rules**:
-- Editor uses Monaco Editor library (same as VS Code)
-- Autocomplete suggests SDLC 4.8-specific helpers (e.g., `sdlc.gate.G01`, `sdlc.evidence.count_user_interviews`)
+**Postcondition**: Policy updated to new version, backward compatibility maintained.
 
 **Acceptance Criteria**:
-```gherkin
-Given I am admin editing policy pack
-When I type "package sdlc"
-Then editor suggests autocomplete: "sdlc.gate.G01", "sdlc.evidence", etc.
-And keywords are highlighted (package = blue, default = purple)
-And if I have syntax error, red underline appears inline
-```
+- AC1: System supports policy versioning (v1.0, v1.1, v2.0)
+- AC2: System auto-updates custom policies (configurable)
+- AC3: System runs regression tests before deploying updates
+- AC4: System rolls back on test failures (fail-safe)
+- AC5: System notifies project owners of breaking changes
 
-**Traceability**: Problem 3 (Process fatigue) → Easy policy authoring (vs manual Rego in text editor)
+**API Contract**:
+```typescript
+POST /api/v1/policies/{policy_id}/update
+Request:
+{
+  "target_version": "1.1.0",
+  "update_strategy": "AUTO" // or "MANUAL"
+}
+
+Response (200 OK - Auto-Update Success):
+{
+  "policy_id": "uuid",
+  "old_version": "1.0.0",
+  "new_version": "1.1.0",
+  "update_strategy": "AUTO",
+  "regression_tests_passed": true,
+  "updated_at": "2025-11-21T13:00:00Z"
+}
+
+Response (400 Bad Request - Regression Tests Failed):
+{
+  "error": "REGRESSION_TESTS_FAILED",
+  "policy_id": "uuid",
+  "old_version": "1.0.0",
+  "new_version": "1.1.0",
+  "failed_tests": [
+    {"test_case": "Multiple reviewers approved", "expected": true, "actual": false}
+  ],
+  "rollback_performed": true
+}
+```
 
 ---
 
-### FR3.4: Policy Pack Versioning (Git-Based)
+### FR5.5: Non-Functional Requirements
 
-**WHAT**: Policy packs are versioned using semantic versioning (1.0.0, 1.1.0, 2.0.0).
+| Requirement | Target | Measurement |
+|-------------|--------|-------------|
+| **Policy Count** | 100+ pre-built policies (all stages) | Catalog size |
+| **Customization** | 90%+ policies customizable (parameters) | Policy metadata |
+| **Testing** | 100% policies have test cases (5+ each) | Test coverage |
+| **Versioning** | Semantic versioning (v1.0.0) | Git tags |
+| **Documentation** | 100% policies documented (rationale) | Docs coverage |
 
-**Inputs**:
-- Policy pack changes (code, description, etc.)
-- Version bump type (major, minor, patch)
+---
 
-**Outputs**:
-- New version created (e.g., 1.0.0 → 1.1.0)
-- Git commit (policy packs stored in Git repo for version control)
+## Cross-Functional Requirements (CFR)
 
-**Business Rules**:
-- Major version (breaking change): Policy logic changes incompatibly (e.g., require 5 interviews instead of 3)
-- Minor version (new feature): Policy adds new criteria (non-breaking)
-- Patch version (bug fix): Policy logic bug fixed
-- Gates can pin policy pack version (e.g., use v1.0.0 even if v1.1.0 available)
+### CFR1: Security
+
+**Requirement**: All API endpoints require JWT authentication (1h access, 30d refresh).
+
+**Implementation**:
+- FastAPI dependency: `Depends(get_current_user)`
+- JWT validation: Verify signature, expiry, role
+- RBAC: CEO/CTO/CPO roles enforced (approver permissions)
 
 **Acceptance Criteria**:
-```gherkin
-Given policy pack "policy-pack-user-interviews" is version 1.0.0
-When I change Rego code to require 5 interviews (breaking change)
-And I bump major version
-Then new version = 2.0.0
-And Git commit created with message "BREAKING: Require 5 interviews (was 3)"
-And gates using v1.0.0 continue to use v1.0.0 (unless manually upgraded)
-```
-
-**Traceability**: Problem 3 (Process fatigue) → Versioned policies (allow rollback if policy breaks gates)
+- AC1: Unauthenticated requests return 401 Unauthorized
+- AC2: Expired tokens return 401 (with refresh hint)
+- AC3: Role violations return 403 Forbidden (e.g., PM trying to approve gate)
+- AC4: JWT tokens stored in httpOnly cookies (XSS protection)
+- AC5: Refresh tokens rotate on use (security best practice)
 
 ---
 
-### FR3.5: Pre-Built Policy Pack Library (100+ SDLC 4.8 Policies)
+### CFR2: Performance
 
-**WHAT**: System ships with 100+ pre-built policy packs for SDLC 4.8 gates.
+**Requirement**: API response time <200ms (p95) for all read endpoints.
 
-**Inputs**:
-- None (pre-built, shipped with product)
-
-**Outputs**:
-- 100+ policy packs available in policy library
-- Organized by stage (Stage 00-06, 7-20 policies per stage)
-
-**Business Rules**:
-- Pre-built policies are curated (reviewed by SDLC 4.8 experts)
-- Pre-built policies cannot be deleted (only custom policies can be deleted)
-- Pre-built policies can be cloned/customized (create copy, then edit)
+**Implementation**:
+- PostgreSQL indexes: `gates(project_id, status)`, `evidence(gate_id)`
+- Redis cache: Gate status, project metadata (TTL: 5 minutes)
+- Database connection pooling: SQLAlchemy pool (min: 5, max: 20)
 
 **Acceptance Criteria**:
-```gherkin
-Given I am new user
-When I view policy library
-Then I see 100+ pre-built policies organized by stage:
-  - Stage 00 (WHY): 15 policies (user interviews, problem statement, POV, HMW, etc.)
-  - Stage 01 (WHAT): 20 policies (FRD, NFR, user stories, etc.)
-  - Stage 02 (HOW): 18 policies (architecture, API specs, database schema, etc.)
-  - Stage 03 (BUILD): 20 policies (unit tests, code review, CI/CD, etc.)
-  - Stage 04 (TEST): 12 policies (integration tests, performance tests, security tests)
-  - Stage 05 (DEPLOY): 10 policies (deployment checklist, monitoring, rollback plan)
-  - Stage 06 (OPERATE): 15 policies (uptime SLA, incident response, post-mortem)
-And I can use policies immediately (no setup required)
-```
-
-**Traceability**: SDLC 4.8 methodology (100+ policy packs = competitive moat, 1-2 years to replicate)
+- AC1: `/api/v1/projects/{id}/dashboard` responds in <200ms (p95)
+- AC2: `/api/v1/gates/{id}` responds in <100ms (p95)
+- AC3: Database queries use indexes (no full table scans)
+- AC4: Redis cache hit rate >80% (for dashboard)
+- AC5: Load test: 100 RPS sustained for 5 minutes (no errors)
 
 ---
 
-## FR4: Real-Time Dashboard (Overview + Metrics)
+### CFR3: Observability
 
-### FR4.1: Dashboard Overview (Gate Status)
+**Requirement**: All API requests logged, metrics exported to Grafana.
 
-**WHAT**: Dashboard shows gate status overview for all projects.
-
-**Inputs**:
-- User role (EM, CTO, PM)
-- Filters (project, stage, status)
-
-**Outputs**:
-- Summary metrics:
-  - Total gates: 24 (3 projects × 8 gates)
-  - Gates PASSED: 12 (50%)
-  - Gates BLOCKED: 8 (33%)
-  - Gates PENDING: 4 (17%)
-- Table view: Project | Gate | Status | Last Evaluated | Evidence Complete (%)
-
-**Business Rules**:
-- EM sees only their projects
-- CTO sees all projects
-- Dashboard auto-refreshes every 30 seconds (WebSocket or SSE)
+**Implementation**:
+- Structured logging: `structlog` (JSON format)
+- Metrics: Prometheus client (request latency, error rate, gate status)
+- Tracing: OpenTelemetry (distributed tracing for multi-service requests)
+- Dashboards: Grafana (API latency, error rate, gate pass rate)
 
 **Acceptance Criteria**:
-```gherkin
-Given I am CTO
-And there are 3 projects with 8 gates each = 24 gates
-When I view dashboard overview
-Then I see summary:
-  - Total gates: 24
-  - PASSED: 12 (50%)
-  - BLOCKED: 8 (33%)
-  - PENDING: 4 (17%)
-And I see table with 24 rows (1 per gate)
-And table auto-refreshes every 30 seconds
-```
-
-**Traceability**: Problem 3 (Process fatigue) → Single dashboard (not 6-10 tools)
+- AC1: All API requests logged with request_id, user_id, endpoint, latency
+- AC2: Prometheus metrics exported at `/metrics` endpoint
+- AC3: Grafana dashboard shows API latency (p50, p95, p99)
+- AC4: Alert: API error rate >1% (send to #engineering Slack)
+- AC5: Tracing: End-to-end trace for gate submission (backend → OPA → MinIO)
 
 ---
 
-### FR4.2: Feature Adoption Rate Tracking
+### CFR4: Data Retention
 
-**WHAT**: Dashboard tracks Feature Adoption Rate (North Star metric: 30% → 70%+).
+**Requirement**: Evidence stored permanently (no auto-delete), compliance with SOC 2.
 
-**Inputs**:
-- Feature usage data (from integrations: GitHub, Jira, analytics)
-- Feature release date
-
-**Outputs**:
-- Feature Adoption Rate: X% (users who used feature ÷ total users)
-- Time-series chart (adoption over time)
-- Comparison: Current vs Baseline (30%)
-
-**Business Rules**:
-- Feature Adoption Rate calculated weekly (every Monday)
-- Baseline = 30% (industry avg from Pendo 2024)
-- Target = 70%+ (SDLC Orchestrator goal)
+**Implementation**:
+- MinIO lifecycle policy: No expiration (permanent storage)
+- PostgreSQL: Soft delete for gates (mark as deleted, keep data)
+- Backup: Daily PostgreSQL dump to MinIO (retention: 90 days)
 
 **Acceptance Criteria**:
-```gherkin
-Given Feature X was released 4 weeks ago
-And 100 users have access
-And 60 users have used Feature X
-When I view dashboard
-Then Feature Adoption Rate = 60% (60/100)
-And chart shows adoption over 4 weeks: Week 1: 10%, Week 2: 30%, Week 3: 50%, Week 4: 60%
-And comparison shows: Current 60% vs Baseline 30% = +100% improvement
-```
-
-**Traceability**: Problem 1 (60-70% feature waste) → Track adoption to validate SDLC Orchestrator prevents waste
+- AC1: Evidence files never auto-deleted (permanent storage)
+- AC2: Deleted gates retain data for audit (soft delete with `deleted_at` timestamp)
+- AC3: Database backups run daily (automated via cron)
+- AC4: Backup restoration tested quarterly (disaster recovery drill)
+- AC5: Compliance: Evidence integrity verified monthly (bulk SHA256 check)
 
 ---
 
-### FR4.3: Evidence Completeness Meter
+## Acceptance Criteria Summary
 
-**WHAT**: Dashboard shows evidence completeness per gate (% of required evidence collected).
+### Gate G1 Passage Criteria (Friday, Nov 25, 2025)
 
-**Inputs**:
-- Gate criteria (policy packs)
-- Evidence collected (from Evidence Vault)
+**Required for G1 approval**:
+1. ✅ All 5 functional requirements documented (FR1-FR5)
+2. ✅ API contracts defined for all use cases (20+ endpoints)
+3. ✅ UI mockups referenced (Figma links)
+4. ✅ Non-functional requirements specified (performance, security, observability)
+5. ✅ Cross-functional requirements documented (CFR1-CFR4)
 
-**Outputs**:
-- Evidence completeness: X% (e.g., 60% complete: 3 of 5 evidence items collected)
-- Progress bar (visual indicator)
-- Missing evidence list (e.g., "Still need: 2 user interviews, design mockups")
-
-**Business Rules**:
-- Completeness calculated based on policy pack requirements
-- Completeness updates real-time (as evidence is collected)
-
-**Acceptance Criteria**:
-```gherkin
-Given gate "G0.1" requires 5 evidence items:
-  - 3 user interviews
-  - 1 problem statement
-  - 1 validated persona
-And Evidence Vault has:
-  - 3 user interviews ✅
-  - 1 problem statement ✅
-  - 0 personas ❌
-When I view dashboard
-Then evidence completeness = 80% (4/5 items)
-And progress bar shows 80% filled (green)
-And missing evidence list shows "Still need: Validated persona"
-```
-
-**Traceability**: Problem 2 (No evidence trail) → Visual indicator of evidence gaps
+**Stakeholder Approvals**:
+- PM: Functional requirements complete
+- CTO: Technical feasibility validated
+- CPO: User experience flows approved
+- Backend Lead: API contracts reviewed
+- Frontend Lead: UI mockups feasible
 
 ---
 
-### FR4.4: Grafana Metrics Embedding
+## Next Steps (Post-FRD Approval)
 
-**WHAT**: Dashboard embeds Grafana dashboards (iframe) for metrics visualization.
+### Week 3-4 (Nov 28 - Dec 9): Architecture Design
 
-**Inputs**:
-- Grafana dashboard URL (configured by admin)
+**Deliverables**:
+1. **Data Model v1.0**: PostgreSQL schema (ERD, SQL DDL)
+2. **API Design v1.0**: OpenAPI 3.0 spec (all 20+ endpoints)
+3. **Component Diagram**: Backend architecture (FastAPI + OPA + MinIO + Redis)
+4. **Deployment Architecture**: Docker-compose production config
+5. **ADRs**: 5+ architecture decision records
 
-**Outputs**:
-- Iframe displays Grafana dashboard (metrics: API response time, gate evaluation time, etc.)
-
-**Business Rules**:
-- Iframe sandboxed (prevent XSS attacks)
-- Grafana URL must be HTTPS (reject HTTP)
-- Grafana authentication handled via API key (not user credentials)
-
-**Acceptance Criteria**:
-```gherkin
-Given Grafana dashboard URL is "https://grafana:3000/d/sdlc-orchestrator-overview"
-When I view dashboard
-Then I see iframe with Grafana metrics:
-  - Gate evaluation time (p50, p95, p99)
-  - Evidence upload time (p50, p95, p99)
-  - API response time (p50, p95, p99)
-And metrics update in real-time (Grafana auto-refresh)
-```
-
-**Legal Note**: AGPL containment strategy (iframe embedding, not linking) - Legal review Week 2
-
-**Traceability**: Problem 3 (Process fatigue) → Unified dashboard (not separate Grafana login)
+**Gate G2 Exit Criteria** (Dec 9):
+- Data model supports all FR1-FR5 use cases
+- API spec validated with frontend team (mock API server)
+- Component diagram reviewed by CTO + Backend Lead
+- Deployment architecture tested locally (docker-compose up)
 
 ---
 
-### FR4.5: RBAC (Role-Based Access Control)
+## References
 
-**WHAT**: Dashboard enforces RBAC (EM, CTO, PM roles have different permissions).
-
-**Inputs**:
-- User role (EM, CTO, PM)
-
-**Outputs**:
-- UI adapts to role (show/hide features based on permissions)
-
-**Business Rules**:
-| Role | Permissions |
-|------|-------------|
-| **EM** | View own projects, cannot override gates, cannot view audit logs |
-| **CTO** | View all projects, can override gates, can view audit logs |
-| **PM** | View assigned projects, cannot override gates, cannot view audit logs |
-| **Admin** | All permissions (create policy packs, manage users, etc.) |
-
-**Acceptance Criteria**:
-```gherkin
-Given I am EM
-When I view dashboard
-Then I see only my 3 projects (not all 10 projects)
-And "Override Gate" button is hidden (no permission)
-And "Audit Log" menu item is hidden (no permission)
-
-Given I am CTO
-When I view dashboard
-Then I see all 10 projects
-And "Override Gate" button is visible
-And "Audit Log" menu item is visible
-```
-
-**Traceability**: Problem 4 (Audit chaos) → RBAC prevents unauthorized evidence access
+- [Product Vision](../../docs/00-Project-Foundation/01-Vision/Product-Vision.md) - North star metrics
+- [BRD v1.2](../../BRD-v1.2.md) - Business requirements
+- [Product Roadmap](../../docs/00-Project-Foundation/04-Roadmap/Product-Roadmap.md) - 90-day timeline
+- [Week-02-Kickoff-Brief](../../docs/08-Team-Management/02-Team-Coordination/Week-02-Kickoff-Brief.md) - Week 2 plan
 
 ---
 
-## FR5: VS Code Extension (Git Push Gate Checks)
-
-### FR5.1: Gate Check on Git Push
-
-**WHAT**: VS Code extension runs gate checks before git push (pre-push hook).
-
-**Inputs**:
-- Git repo (VS Code workspace)
-- Current branch (e.g., "feature/add-gate-engine")
-
-**Outputs**:
-- Gate check result (PASSED/BLOCKED)
-- If BLOCKED: Show error message in VS Code UI (e.g., "G3 BLOCKED: Unit test coverage <80%")
-
-**Business Rules**:
-- Gate check runs automatically on git push (pre-push hook)
-- If BLOCKED: Git push is aborted (prevent pushing un-validated code)
-- If PASSED: Git push proceeds normally
-- User can override (force push with `--no-verify` flag, but audit logged)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am engineer
-And I have VS Code extension installed
-When I run "git push origin feature/add-gate-engine"
-Then extension triggers gate check (calls API: POST /api/v1/gates/evaluate)
-And if gate "G3" is BLOCKED (unit test coverage 70%, need 80%)
-Then extension shows error in VS Code:
-  "❌ G3 BLOCKED: Unit test coverage 70% (need 80%). Run tests before pushing."
-And git push is aborted
-And I must fix tests, then retry push
-```
-
-**Traceability**: Problem 1 (60-70% feature waste) → Prevent pushing un-validated code
-
----
-
-### FR5.2: Gate Status Indicator (VS Code Status Bar)
-
-**WHAT**: VS Code extension shows gate status in status bar (bottom-left).
-
-**Inputs**:
-- Current project (VS Code workspace)
-
-**Outputs**:
-- Status bar indicator: "SDLC Gates: 🟢 5 PASSED, 🔴 2 BLOCKED, 🟡 1 PENDING"
-- Click to open gate details panel
-
-**Business Rules**:
-- Status updates every 60 seconds (polling or WebSocket)
-- Status shows aggregate (all gates for current project)
-
-**Acceptance Criteria**:
-```gherkin
-Given I have VS Code open with project "SDLC-Orchestrator"
-When extension loads
-Then status bar shows "SDLC Gates: 🟢 5 PASSED, 🔴 2 BLOCKED, 🟡 1 PENDING"
-And if I click status bar
-Then gate details panel opens (shows which gates are blocked + reasons)
-```
-
-**Traceability**: Problem 3 (Process fatigue) → Gate status visible in IDE (no context switching)
-
----
-
-### FR5.3: Evidence Quick Upload (VS Code Command)
-
-**WHAT**: Engineer can upload evidence directly from VS Code (command palette).
-
-**Inputs**:
-- File path (selected in VS Code file explorer)
-- Gate ID (from dropdown)
-
-**Outputs**:
-- Evidence uploaded to Evidence Vault
-- Notification: "Evidence uploaded to G0.1"
-
-**Business Rules**:
-- File must be <10MB (reject larger files)
-- Supported formats: PDF, PNG, JPG, DOCX
-
-**Acceptance Criteria**:
-```gherkin
-Given I am engineer
-And I have file "user-interview-transcript.pdf" open in VS Code
-When I run command "SDLC: Upload Evidence" (Cmd+Shift+P)
-And select gate "G0.1" from dropdown
-Then file is uploaded to Evidence Vault
-And notification shows "✅ Evidence uploaded to G0.1"
-And evidence appears in dashboard
-```
-
-**Traceability**: Problem 2 (No evidence trail) → Quick evidence upload (no context switching)
-
----
-
-*(Continuing with FR6-FR25 in next section...)*
-
----
-
-## FR6: AI Context Engine (Stage-Aware AI)
-
-### FR6.1: AI PRD Generation (from User Interviews)
-
-**WHAT**: AI generates 80% complete PRD from user interview transcripts.
-
-**Inputs**:
-- User interview transcripts (5+ interviews, PDF or text)
-- Product context (project name, target users)
-
-**Outputs**:
-- PRD document (Markdown, 5-10 pages)
-- PRD includes: Problem statement, User personas, Functional requirements, Success metrics
-- Completeness: 80%+ (PM only needs to review + refine 20%)
-
-**Business Rules**:
-- AI uses Claude Sonnet 4.5 (primary, 92% accuracy)
-- Fallback to GPT-4o if Claude API down (lower quality, 78% accuracy)
-- AI references evidence (cites interview quotes in PRD)
-- AI flags low-confidence sections (e.g., "⚠️ Assumption: Need PM validation")
-
-**Acceptance Criteria**:
-```gherkin
-Given I am PM
-And I have 5 user interview transcripts (total 50 pages)
-When I run "Generate PRD" in dashboard
-Then AI reads all 5 transcripts
-And AI generates PRD with:
-  - Problem statement (based on pain points from interviews)
-  - User personas (3 personas: EM, CTO, PM with quotes)
-  - Functional requirements (FR1-FR10, inferred from user needs)
-  - Success metrics (e.g., "Feature Adoption Rate 70%+")
-And PRD is 80%+ complete (PM estimates 2 hours to finalize, vs 16 hours manual)
-```
-
-**Performance Requirements**:
-- PRD generation: <3 minutes for 5 interviews (50 pages total)
-- AI cost: ~$2/PRD (Claude Sonnet 4.5 API)
-
-**Traceability**: Problem 5 (No AI assistance) → AI PRD generation (16 hours → 2 hours)
-
----
-
-### FR6.2: AI Design Review (SDLC 4.8 Compliance)
-
-**WHAT**: AI reviews design docs for SDLC 4.8 compliance (checks if design meets gate criteria).
-
-**Inputs**:
-- Design doc (PDF, Markdown, Figma URL)
-- Gate ID (e.g., "G2")
-
-**Outputs**:
-- Review report (Markdown)
-- Issues found (e.g., "Missing: Database schema, API error handling")
-- Compliance score (e.g., 7/10 criteria met)
-
-**Business Rules**:
-- AI uses gate criteria (policy packs) to check compliance
-- AI flags missing elements (e.g., "No mention of scalability (NFR2)")
-- AI provides suggestions (e.g., "Consider caching for API performance")
-
-**Acceptance Criteria**:
-```gherkin
-Given I am engineer
-And I have design doc "backend-architecture.md"
-When I run "AI Design Review" for gate "G2"
-Then AI reads design doc
-And AI checks against G2 criteria (10 policy packs)
-And AI generates review report:
-  - ✅ PASSED: System architecture diagram (4-layer architecture)
-  - ✅ PASSED: API design (REST endpoints defined)
-  - ❌ FAILED: Database schema (missing indexes for queries)
-  - ❌ FAILED: Security architecture (no mention of encryption)
-  - Compliance score: 7/10 (70%)
-And AI suggests: "Add indexes for user_id, project_id queries. Consider AES-256 encryption for evidence storage."
-```
-
-**Traceability**: Problem 5 (No AI assistance) → AI design review (manual review 4 hours → 10 minutes)
-
----
-
-### FR6.3: AI Test Plan Generation
-
-**WHAT**: AI generates test plan from functional requirements (FRD).
-
-**Inputs**:
-- FRD (Functional Requirements Document)
-- Gate ID (e.g., "G4")
-
-**Outputs**:
-- Test plan (Markdown, 5-10 pages)
-- Test cases (unit tests, integration tests, E2E tests)
-- Coverage target (e.g., "80%+ unit test coverage for FR1-FR5")
-
-**Business Rules**:
-- AI generates test cases for each FR (e.g., FR1 → 5 test cases)
-- AI prioritizes P0 features (FR1-FR5 = 60% of test cases)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am QA Lead
-And FRD has FR1-FR20 (20 functional requirements)
-When I run "Generate Test Plan" in dashboard
-Then AI generates test plan with:
-  - 100 test cases (5 per FR)
-  - Test cases categorized: Unit (50), Integration (30), E2E (20)
-  - Coverage target: 80%+ for P0 features (FR1-FR5)
-And test plan is 70%+ complete (QA Lead refines 30%)
-```
-
-**Traceability**: Problem 5 (No AI assistance) → AI test plan generation (8 hours → 2 hours)
-
----
-
-### FR6.4: AI Stage-Aware Prompts (3000+ Lines)
-
-**WHAT**: AI uses stage-aware prompts (knows Stage 00-06 context).
-
-**Inputs**:
-- Current stage (e.g., "Stage 00 - WHY")
-- Project context (project name, gate status, evidence)
-
-**Outputs**:
-- AI responses tailored to stage
-- Example (Stage 00): "Focus on WHY: Have you validated the problem with 3+ users?"
-- Example (Stage 03): "Focus on BUILD: Have you written unit tests with 80%+ coverage?"
-
-**Business Rules**:
-- 3000+ lines of stage-aware prompts (curated, tested)
-- Prompts include: Stage 00 (WHY), Stage 01 (WHAT), Stage 02 (HOW), Stage 03 (BUILD), Stage 04 (TEST), Stage 05 (DEPLOY), Stage 06 (OPERATE)
-
-**Acceptance Criteria**:
-```gherkin
-Given I am PM in Stage 00 (WHY)
-When I ask AI "Help me validate the problem"
-Then AI responds (using Stage 00 prompt):
-  "Stage 00 is about WHY. To validate the problem:
-  1. Conduct 5-10 user interviews (you have 3, need 2 more)
-  2. Document problem statement with evidence (not started)
-  3. Create user personas (not started)
-  Would you like me to generate an interview script?"
-```
-
-**Traceability**: SDLC 4.8 methodology (stage-aware AI = competitive advantage)
-
----
-
-### FR6.5: AI Multi-Provider Strategy (Claude + GPT-4o + Gemini)
-
-**WHAT**: AI uses multi-provider strategy (Claude primary, GPT-4o + Gemini fallback).
-
-**Inputs**:
-- AI request (PRD generation, design review, etc.)
-- Provider availability (monitored via health checks)
-
-**Outputs**:
-- AI response (from Claude if available, else GPT-4o, else Gemini)
-
-**Business Rules**:
-- **Claude Sonnet 4.5** (primary, $200/month budget):
-  - Use for: PRD generation, design review (complex reasoning)
-  - Accuracy: 92% (industry-leading)
-- **GPT-4o** (fallback, $100/month budget):
-  - Use if Claude API down
-  - Accuracy: 78% (lower quality, but reliable)
-- **Gemini 2.0** (bulk, $50/month budget):
-  - Use for: Bulk operations (generate 100 test cases)
-  - Accuracy: 70% (cost-effective)
-
-**Acceptance Criteria**:
-```gherkin
-Given Claude API is down (health check failed)
-When I run "Generate PRD"
-Then system automatically switches to GPT-4o
-And notification shows "⚠️ Using GPT-4o (Claude unavailable). Quality may be lower."
-And PRD is generated (78% accuracy vs 92% Claude)
-```
-
-**Traceability**: Problem 5 (No AI assistance) → Multi-provider = 99.9% AI availability
-
----
-
-## Summary of Remaining Requirements (FR11-FR25)
-
-Due to length constraints, I'll summarize FR11-FR25:
-
-**FR11-FR15: Integration Features**
-- FR11: Slack Integration (auto-collect evidence)
-- FR12: GitHub Integration (PR checks, auto-collect commits)
-- FR13: Jira Integration (link gates to Jira epics)
-- FR14: Figma Integration (auto-collect design files)
-- FR15: Zoom Integration (auto-transcribe user interviews)
-
-**FR16-FR20: Dashboard Features**
-- FR16: Project Dashboard (gate status, evidence, metrics)
-- FR17: Team Dashboard (multi-project view for CTO)
-- FR18: Reports (weekly summary, audit reports)
-- FR19: Notifications (Slack, email for gate status changes)
-- FR20: Settings (user preferences, integrations config)
-
-**FR21-FR25: Advanced Features (Post-MVP)**
-- FR21: Mobile App (iOS, Android)
-- FR22: API v2 (GraphQL)
-- FR23: Advanced RBAC (custom roles)
-- FR24: Multi-Language Support (Spanish, Mandarin)
-- FR25: On-Premise Deployment (self-hosted option)
-
----
-
-## Requirements Traceability Matrix (RTM)
-
-| Stage 00 Problem | FR# | Feature | Priority | Week |
-|------------------|-----|---------|----------|------|
-| **Problem 1**: 60-70% feature waste | FR1 | Gate Engine | P0 | Week 5-6 |
-| **Problem 1**: 60-70% feature waste | FR3 | Policy Packs | P0 | Week 9-10 |
-| **Problem 2**: No evidence trail | FR2 | Evidence Vault | P0 | Week 6-7 |
-| **Problem 3**: Process fatigue | FR4 | Dashboard | P1 | Week 8-9 |
-| **Problem 3**: Process fatigue | FR11-FR15 | Integrations | P1 | Week 7-8 |
-| **Problem 4**: Audit chaos | FR2.5 | Audit Trail | P0 | Week 7 |
-| **Problem 5**: No AI assistance | FR6-FR10 | AI Context Engine | P0 | Week 7-8 |
-
----
-
-## Document Control
-
-**Version History**:
-- v1.0.0 (January 13, 2025): Initial FRD (FR1-FR25 defined)
-
-**Review Schedule**:
-- CTO Review: Week 2 (FR1-FR10 functional correctness)
-- Backend Lead Review: Week 2 (FR1-FR10 technical feasibility)
-- QA Lead Review: Week 2 (FR1-FR10 testability)
-
-**Change Management**:
-- FR changes require PM + CTO approval (impact assessment)
-- FR deletions require CEO approval (scope reduction)
-
-**Related Documents**:
-- [Stage 00: Project Foundation](../../00-Project-Foundation/README.md) - WHY (problem validation)
-- [Non-Functional Requirements](./Non-Functional-Requirements.md) - WHAT (quality attributes)
-- [User Stories](../02-User-Stories/User-Stories-Epics.md) - WHAT (user journeys)
-
----
-
-**End of Functional Requirements Document v1.0.0**
-
-*This document defines WHAT features to build (Stage 01). HOW to implement will be in Stage 02 (Design & Architecture).*
+**End of Functional Requirements Document**
+
+**Status**: ✅ COMPLETE - Ready for Gate G1 Review
+**Date**: November 21, 2025
+**Next Gate**: G1 Design Ready (Friday, Nov 25, 2025)
+**Approvals Required**: PM, CTO, CPO, Backend Lead, Frontend Lead

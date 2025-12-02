@@ -372,7 +372,27 @@ class Notification(Base):
     message = Column(Text, nullable=False)
 
     # Channel
-    channel = Column(String(20), nullable=False)  # 'email', 'slack', 'in_app'
+    channel = Column(String(20), nullable=False, default="in_app")  # 'email', 'slack', 'in_app', 'teams'
+
+    # Priority (Sprint 22 - Notifications Enhancement)
+    priority = Column(
+        String(20), nullable=False, default="medium"
+    )  # 'critical', 'high', 'medium', 'low'
+
+    # Project Reference (Sprint 22 - Notifications Enhancement)
+    project_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+
+    # Extra Data (Sprint 22 - Additional context)
+    # Note: 'metadata' is reserved in SQLAlchemy, using 'extra_data' instead
+    extra_data = Column(JSONB, nullable=True, default=dict)
+
+    # Read Status (Sprint 22 - In-app notifications)
+    is_read = Column(Boolean, nullable=False, default=False, index=True)
 
     # Status
     status = Column(
@@ -386,6 +406,7 @@ class Notification(Base):
 
     # Relationships
     user = relationship("User", back_populates="notifications")
+    project = relationship("Project", backref="notifications")
 
     def __repr__(self) -> str:
         return f"<Notification(user_id={self.user_id}, notification_type={self.notification_type}, status={self.status})>"

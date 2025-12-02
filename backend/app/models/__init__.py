@@ -42,6 +42,9 @@ from app.models.policy import Policy, CustomPolicy, PolicyTest
 # Supporting - 4 models
 from app.models.support import StageTransition, Webhook, AuditLog, Notification
 
+# Compliance Scanning (Sprint 21) - 3 models
+from app.models.compliance_scan import ComplianceScan, ComplianceViolation, ScanJob
+
 __all__ = [
     # Base
     "Base",
@@ -74,4 +77,8 @@ __all__ = [
     "Webhook",
     "AuditLog",
     "Notification",
+    # Compliance Scanning (3)
+    "ComplianceScan",
+    "ComplianceViolation",
+    "ScanJob",
 ]

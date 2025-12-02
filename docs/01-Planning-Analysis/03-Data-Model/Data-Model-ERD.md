@@ -1,12 +1,15 @@
 # Data Model & Entity-Relationship Diagram
 ## Database Schema and Relationships
 
-**Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: CTO + Backend Lead Review (PENDING)
-**Foundation**: FRD v1.0, User Stories v1.0
-**Stage**: Stage 01 (WHAT - Planning & Analysis)
+**Version**: 2.0.0
+**Date**: November 29, 2025
+**Status**: IMPLEMENTED - Production Ready
+**Authority**: CTO + Backend Lead ✅ APPROVED
+**Foundation**: FRD v1.0, User Stories v1.0, Data-Model-v1.0.md
+**Stage**: Stage 03 (BUILD - Development & Implementation)
+
+> **UPDATE (Nov 29, 2025)**: ERD updated to reflect implemented 24-table schema.
+> See [Data-Model-v0.1.md](../Data-Model/Data-Model-v0.1.md) for detailed column definitions.
 
 ---
 
@@ -23,43 +26,116 @@ This document defines **WHAT data to store**, not HOW to implement database (Sta
 
 ---
 
-## ERD Overview (16 Core Tables)
+## ERD Overview (24 Implemented Tables)
+
+> **UPDATED (Nov 29, 2025)**: Reflects actual implemented schema.
+> Organizations/Teams deferred to post-MVP. Projects owned by users directly.
 
 ```
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│   users     │──────▶│   teams     │──────▶│organizations│
-└─────────────┘       └─────────────┘       └─────────────┘
-       │
-       │ 1:N
-       ▼
-┌─────────────┐  N:M  ┌─────────────┐  1:N  ┌─────────────┐
-│  projects   │◀─────▶│project_users│──────▶│   gates     │
-└─────────────┘       └─────────────┘       └─────────────┘
-       │                                            │
-       │ 1:N                                        │ 1:N
-       ▼                                            ▼
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│  features   │       │gate_evals   │       │  policies   │
-└─────────────┘       └─────────────┘       └─────────────┘
-       │                     │                      │
-       │ 1:N                 │ 1:N                  │ 1:N
-       ▼                     ▼                      ▼
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│  evidence   │       │policy_results│      │policy_versions│
-└─────────────┘       └─────────────┘       └─────────────┘
-       │                                            │
-       │ 1:N                                        │ 1:N
-       ▼                                            ▼
-┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│ audit_logs  │       │gate_approvals│      │integrations │
-└─────────────┘       └─────────────┘       └─────────────┘
-                             │
-                             │ N:1
-                             ▼
-                      ┌─────────────┐
-                      │ai_contexts  │
-                      └─────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    AUTHENTICATION LAYER                      │
+├─────────────────────────────────────────────────────────────┤
+│  ┌───────────┐    ┌─────────────┐    ┌─────────────────┐   │
+│  │   users   │───▶│oauth_accounts│    │  refresh_tokens │   │
+│  └───────────┘    └─────────────┘    └─────────────────┘   │
+│       │                                     │               │
+│       │ 1:N                                 │               │
+│       ▼                                     │               │
+│  ┌───────────┐    ┌─────────────┐         │               │
+│  │   roles   │───▶│ user_roles  │         │               │
+│  └───────────┘    └─────────────┘         │               │
+│       │                                     │               │
+│       │                                     │               │
+│       ▼                                     ▼               │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                   api_keys                           │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    PROJECT LAYER                             │
+├─────────────────────────────────────────────────────────────┤
+│  ┌───────────┐ owner_id ┌─────────────┐                    │
+│  │   users   │─────────▶│  projects   │◀─────┐             │
+│  └───────────┘          └─────────────┘      │ 1:N         │
+│                              │ 1:N           │             │
+│                              ▼               │             │
+│                         ┌─────────────────┐  │             │
+│                         │project_members  │──┘             │
+│                         └─────────────────┘                │
+│                              │                              │
+│                              │ 1:N                          │
+│                              ▼                              │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │                    webhooks                          │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    GATE ENGINE LAYER                         │
+├─────────────────────────────────────────────────────────────┤
+│  ┌───────────┐          ┌─────────────┐                    │
+│  │ projects  │─────────▶│    gates    │◀─────┐             │
+│  └───────────┘          └─────────────┘      │             │
+│                              │ 1:N           │             │
+│                              ├───────────────┼─────────┐   │
+│                              │               │         │   │
+│                              ▼               ▼         ▼   │
+│  ┌────────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │ gate_approvals │  │gate_evidence │  │policy_evals  │   │
+│  └────────────────┘  └──────────────┘  └──────────────┘   │
+│                                              │              │
+│                                              │              │
+│                                              ▼              │
+│  ┌───────────────┐   ┌──────────────────────────────────┐  │
+│  │stage_transitions│ │                                   │  │
+│  └───────────────┘   │         POLICY LAYER              │  │
+│                       │  ┌──────────┐  ┌───────────────┐ │  │
+│                       │  │ policies │─▶│ policy_tests  │ │  │
+│                       │  └──────────┘  └───────────────┘ │  │
+│                       │       │                          │  │
+│                       │       │ 1:N                      │  │
+│                       │       ▼                          │  │
+│                       │  ┌──────────────┐                │  │
+│                       │  │custom_policies│               │  │
+│                       │  └──────────────┘                │  │
+│                       └──────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                      AI ENGINE LAYER                         │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐  │
+│  │ ai_providers │───▶│ ai_requests  │───▶│ai_usage_logs │  │
+│  └──────────────┘    └──────────────┘    └──────────────┘  │
+│                           │                                 │
+│                           │ 1:N                             │
+│                           ▼                                 │
+│                     ┌───────────────────┐                   │
+│                     │ ai_evidence_drafts │                  │
+│                     └───────────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                    SYSTEM LAYER                              │
+├─────────────────────────────────────────────────────────────┤
+│  ┌────────────┐         ┌───────────────┐                   │
+│  │ audit_logs │         │ notifications │                   │
+│  └────────────┘         └───────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
 ```
+
+### Table Count by Layer
+
+| Layer | Tables | Count |
+|-------|--------|-------|
+| Authentication | users, roles, user_roles, oauth_accounts, refresh_tokens, api_keys | 6 |
+| Project | projects, project_members, webhooks | 3 |
+| Gate Engine | gates, gate_approvals, gate_evidence, policy_evaluations, stage_transitions | 5 |
+| Policy | policies, policy_tests, custom_policies | 3 |
+| AI Engine | ai_providers, ai_requests, ai_usage_logs, ai_evidence_drafts | 4 |
+| System | audit_logs, notifications | 2 |
+| **TOTAL** | | **24** |
 
 **Key Relationships**:
 - **C-Suite Approval Workflow**: users (CEO/CTO/CPO/CIO/CFO) → gate_approvals → gates
@@ -631,12 +707,23 @@ def downgrade():
 ## Document Control
 
 **Version History**:
-- v1.0.0 (January 13, 2025): Initial data model (15 tables)
+- v2.0.0 (November 29, 2025): Updated to reflect 24 implemented tables, NQH Portfolio seed data
+- v1.0.0 (January 13, 2025): Initial data model (15 tables - draft)
 
 **Related Documents**:
+- [Data-Model-v0.1.md](../Data-Model/Data-Model-v0.1.md) - Detailed column definitions
 - [FRD](../01-Requirements/Functional-Requirements-Document.md)
 - [NFR](../01-Requirements/Non-Functional-Requirements.md)
 
+**Implementation**:
+- Migration: `backend/alembic/versions/dce31118ffb7_initial_schema_24_tables.py`
+- Seed Data: `backend/alembic/versions/a502ce0d23a7_seed_data_realistic_mtc_nqh_examples.py`
+- Models: `backend/app/models/*.py`
+
 ---
 
-**End of Data Model v1.0.0**
+**End of Data Model v2.0.0**
+
+**Status**: ✅ IMPLEMENTED - Production Ready
+**Date**: November 29, 2025
+**Gate G3**: ✅ PASSED

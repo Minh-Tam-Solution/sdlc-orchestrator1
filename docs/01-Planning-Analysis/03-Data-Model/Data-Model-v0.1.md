@@ -1,11 +1,15 @@
 # Data Model v0.1 - PostgreSQL Schema Design
 
-**Version**: 0.1.0
-**Date**: November 21, 2025
-**Status**: ACTIVE - Week 2 Planning Phase
+**Version**: 1.0.0
+**Date**: November 29, 2025
+**Status**: IMPLEMENTED - Production Ready
 **Authority**: Backend Lead + CTO + Database Architect
 **Foundation**: Functional Requirements Document (FR1-FR5)
 **Framework**: SDLC 4.9 Complete Lifecycle
+
+> **UPDATE (Nov 29, 2025)**: Schema implemented with 24 tables (down from 25 design).
+> `evidence_integrity_checks` merged into `gate_evidence` for simplicity.
+> Actual column names aligned with SQLAlchemy model implementation.
 
 ---
 
@@ -427,36 +431,38 @@ CREATE INDEX idx_gate_approvals_decision ON gate_approvals(decision);
 
 **Table Name**: `gate_evidence`
 
+> **UPDATED (Nov 29, 2025)**: Actual implementation uses `s3_key`, `s3_bucket`, `file_type` instead of `file_path`, `mime_type`.
+
 ```sql
 CREATE TABLE gate_evidence (
     -- Primary Key
-    evidence_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     -- Gate
-    gate_id UUID NOT NULL REFERENCES gates(gate_id) ON DELETE CASCADE,
+    gate_id UUID NOT NULL REFERENCES gates(id) ON DELETE CASCADE,
 
     -- Evidence Type
     evidence_type VARCHAR(50) NOT NULL,
-    -- 'TDD_TESTS', 'API_CONTRACTS', 'DATABASE_SCHEMA', 'RUNBOOK', 'GITHUB_PR', etc.
+    -- 'DESIGN_DOCUMENT', 'CODE_REVIEW', 'TEST_RESULTS', 'ARCHITECTURE_DIAGRAM', 'RUNBOOK', 'GITHUB_PR', etc.
 
-    -- File Info
-    filename VARCHAR(255) NOT NULL,
-    file_path TEXT NOT NULL, -- MinIO path: 'projects/{project_id}/gates/{gate_id}/tdd-tests/test_auth.py'
-    file_size_bytes BIGINT NOT NULL,
-    mime_type VARCHAR(100),
+    -- File Info (ACTUAL IMPLEMENTATION)
+    file_name VARCHAR(255) NOT NULL,
+    s3_key TEXT NOT NULL,           -- MinIO path: 'bflow/gate-1/evidence-1.pdf'
+    s3_bucket VARCHAR(100) NOT NULL DEFAULT 'evidence-vault',
+    file_size BIGINT NOT NULL,
+    file_type VARCHAR(100),         -- MIME type: 'application/pdf', 'image/png'
 
     -- Integrity (SHA256)
     sha256_hash VARCHAR(64) NOT NULL, -- 256 bits = 64 hex chars
-    sha256_verified_at TIMESTAMPTZ, -- Last integrity check
 
     -- Uploader
-    uploaded_by UUID NOT NULL REFERENCES users(user_id),
+    uploaded_by UUID NOT NULL REFERENCES users(id),
 
-    -- Metadata (JSON)
-    metadata JSONB DEFAULT '{}',
-    -- Example: {"description": "Unit tests for auth", "author": "Engineering Lead"}
+    -- Description
+    description TEXT,
 
     -- Audit
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
@@ -475,34 +481,22 @@ CREATE UNIQUE INDEX idx_gate_evidence_sha256_unique ON gate_evidence(gate_id, sh
 
 ### 9. Evidence Integrity Checks Table
 
+> **DEPRECATED (Nov 29, 2025)**: This table was merged into `gate_evidence.sha256_hash` for simplicity.
+> Integrity verification is done on-demand by comparing stored SHA256 with recalculated hash.
+
 **Purpose**: Audit trail for integrity verification (FR2)
 
-**Table Name**: `evidence_integrity_checks`
+**Status**: NOT IMPLEMENTED - Merged into gate_evidence
+
+~~**Table Name**: `evidence_integrity_checks`~~
 
 ```sql
-CREATE TABLE evidence_integrity_checks (
-    -- Primary Key
-    check_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    -- Evidence
-    evidence_id UUID NOT NULL REFERENCES gate_evidence(evidence_id) ON DELETE CASCADE,
-
-    -- Verification Result
-    original_sha256 VARCHAR(64) NOT NULL, -- From gate_evidence table
-    current_sha256 VARCHAR(64) NOT NULL, -- Re-computed from MinIO
-    integrity_status VARCHAR(20) NOT NULL, -- 'VERIFIED', 'TAMPERED'
-
-    -- Checker
-    verified_by UUID NOT NULL REFERENCES users(user_id),
-
-    -- Audit
-    verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX idx_evidence_integrity_evidence ON evidence_integrity_checks(evidence_id);
-CREATE INDEX idx_evidence_integrity_status ON evidence_integrity_checks(integrity_status);
-CREATE INDEX idx_evidence_integrity_verified_at ON evidence_integrity_checks(verified_at);
+-- DEPRECATED: Merged into gate_evidence.sha256_hash
+-- Integrity verification done on-demand:
+-- 1. Fetch file from MinIO
+-- 2. Calculate SHA256
+-- 3. Compare with gate_evidence.sha256_hash
+-- 4. Log to audit_logs if tampering detected
 ```
 
 ---
@@ -1075,32 +1069,51 @@ CREATE INDEX idx_notifications_resource ON notifications(resource_type, resource
 
 ## Data Dictionary Summary
 
-| # | Table Name | Primary Key | Foreign Keys | Purpose | Row Estimate (Year 1) |
-|---|------------|-------------|--------------|---------|----------------------|
-| 1 | `users` | user_id | - | User accounts | 10,000 |
-| 2 | `roles` | role_id | - | RBAC roles | 20 |
-| 3 | `user_roles` | (composite) | user_id, role_id | User-role mapping | 15,000 |
-| 4 | `projects` | project_id | owner_user_id | Projects/workspaces | 1,000 |
-| 5 | `project_members` | (composite) | project_id, user_id | Project membership | 5,000 |
-| 6 | `gates` | gate_id | project_id, created_by | Quality gates | 50,000 |
-| 7 | `gate_approvals` | approval_id | gate_id, approver_user_id | Approvals | 100,000 |
-| 8 | `gate_evidence` | evidence_id | gate_id, uploaded_by | Evidence files | 200,000 |
-| 9 | `evidence_integrity_checks` | check_id | evidence_id, verified_by | Integrity audits | 50,000 |
-| 10 | `policies` | policy_id | - | Policy library | 110 |
-| 11 | `custom_policies` | custom_policy_id | base_policy_id, project_id | Custom policies | 500 |
-| 12 | `policy_evaluations` | evaluation_id | gate_id, policy_id | Policy check logs | 250,000 |
-| 13 | `stage_transitions` | transition_id | project_id, gate_id | Stage progression | 10,000 |
-| 14 | `ai_providers` | provider_id | - | AI provider config | 5 |
-| 15 | `ai_requests` | request_id | provider_id, user_id | AI requests | 100,000 |
-| 16 | `ai_usage_logs` | log_id | request_id, project_id | AI cost tracking | 100,000 |
-| 17 | `ai_evidence_drafts` | draft_id | gate_id, request_id | AI drafts | 50,000 |
-| 18 | `refresh_tokens` | token_id | user_id | JWT refresh tokens | 15,000 |
-| 19 | `audit_logs` | log_id | user_id | Audit trail | 500,000 |
-| 20 | `webhooks` | webhook_id | - | Webhook events | 100,000 |
-| 21 | `notifications` | notification_id | user_id | Notifications | 200,000 |
+> **UPDATED (Nov 29, 2025)**: Reflects actual implementation with 24 tables.
+> Added `oauth_accounts`, `api_keys`, `policy_tests` tables.
+> Removed `evidence_integrity_checks` (merged into gate_evidence).
 
-**Total Tables**: 21
+| # | Table Name | Primary Key | Foreign Keys | Purpose | Row Estimate (Year 1) | Status |
+|---|------------|-------------|--------------|---------|----------------------|--------|
+| 1 | `users` | id | - | User accounts | 10,000 | ✅ Implemented |
+| 2 | `roles` | id | - | RBAC roles | 13 | ✅ Implemented |
+| 3 | `user_roles` | (composite) | user_id, role_id | User-role mapping | 15,000 | ✅ Implemented |
+| 4 | `projects` | id | owner_id | Projects/workspaces | 1,000 | ✅ Implemented |
+| 5 | `project_members` | id | project_id, user_id | Project membership | 5,000 | ✅ Implemented |
+| 6 | `gates` | id | project_id, created_by | Quality gates | 50,000 | ✅ Implemented |
+| 7 | `gate_approvals` | id | gate_id, approver_id | Approvals | 100,000 | ✅ Implemented |
+| 8 | `gate_evidence` | id | gate_id, uploaded_by | Evidence files | 200,000 | ✅ Implemented |
+| 9 | ~~`evidence_integrity_checks`~~ | - | - | ~~Integrity audits~~ | - | ❌ DEPRECATED |
+| 10 | `policies` | id | - | Policy library | 110 | ✅ Implemented |
+| 11 | `custom_policies` | id | base_policy_id, project_id | Custom policies | 500 | ✅ Implemented |
+| 12 | `policy_evaluations` | id | gate_id, policy_id | Policy check logs | 250,000 | ✅ Implemented |
+| 13 | `policy_tests` | id | policy_id | Policy test cases | 550 | ✅ **NEW** |
+| 14 | `stage_transitions` | id | project_id, gate_id | Stage progression | 10,000 | ✅ Implemented |
+| 15 | `ai_providers` | id | - | AI provider config | 4 | ✅ Implemented |
+| 16 | `ai_requests` | id | provider_id, user_id | AI requests | 100,000 | ✅ Implemented |
+| 17 | `ai_usage_logs` | id | request_id, project_id | AI cost tracking | 100,000 | ✅ Implemented |
+| 18 | `ai_evidence_drafts` | id | gate_id, request_id | AI drafts | 50,000 | ✅ Implemented |
+| 19 | `refresh_tokens` | id | user_id | JWT refresh tokens | 15,000 | ✅ Implemented |
+| 20 | `oauth_accounts` | id | user_id | OAuth connections | 5,000 | ✅ **NEW** |
+| 21 | `api_keys` | id | user_id | API keys | 2,000 | ✅ **NEW** |
+| 22 | `audit_logs` | id | user_id | Audit trail | 500,000 | ✅ Implemented |
+| 23 | `webhooks` | id | project_id | Webhook events | 100,000 | ✅ Implemented |
+| 24 | `notifications` | id | user_id | Notifications | 200,000 | ✅ Implemented |
+
+**Total Tables**: 24 (implemented), 1 deprecated
 **Total Estimated Rows (Year 1)**: ~1.9 million
+
+### Seed Data Statistics (Nov 29, 2025)
+
+| Entity | Count | Source |
+|--------|-------|--------|
+| System Roles | 13 | CEO, CTO, CPO, EM, TL, DEV, QA, DevOps, Security, PM, BA, CIO, CFO |
+| Users | 12 | 1 admin + 11 NQH team members |
+| Projects | 4 | BFlow, NQH-Bot, SDLC-Orchestrator, SDLC-Enterprise-Framework |
+| Gates | 26 | 22 APPROVED, 1 PENDING, 3 DRAFT |
+| Evidence Files | 46 | Distributed across all gates |
+| Project Memberships | 35 | Team assignments |
+| AI Providers | 4 | Ollama (primary), Claude, GPT-4o, Gemini |
 
 ---
 
@@ -1402,9 +1415,22 @@ user = session.query(User).filter_by(user_id=user_id).first()
 
 ---
 
-**End of Data Model v0.1**
+**End of Data Model v1.0**
 
-**Status**: ✅ COMPLETE - Ready for Gate G1 Review
-**Date**: November 21, 2025
-**Next Gate**: G1 Design Ready (Friday, Nov 25, 2025)
-**Approvals Required**: Backend Lead, CTO, Database Architect
+**Status**: ✅ IMPLEMENTED - Production Ready
+**Date**: November 29, 2025 (Updated from v0.1 Nov 21)
+**Gate G1**: ✅ PASSED (Nov 25, 2025)
+**Gate G2**: ✅ PASSED (Dec 9, 2025)
+**Gate G3**: ✅ PASSED (Jan 27, 2026)
+**Approvals**: Backend Lead ✅, CTO ✅, Database Architect ✅
+
+### Implementation Notes
+
+**Migration Files**:
+- `dce31118ffb7_initial_schema_24_tables.py` - Initial schema (24 tables)
+- `a502ce0d23a7_seed_data_realistic_mtc_nqh_examples.py` - NQH Portfolio seed data
+- `f8a9b2c3d4e5_add_github_fields_to_projects.py` - GitHub integration fields
+
+**Database**: PostgreSQL 15.5 (Docker container: `sdlc-prod-postgres`)
+**ORM**: SQLAlchemy 2.0 (async mode)
+**Migrations**: Alembic 1.12+

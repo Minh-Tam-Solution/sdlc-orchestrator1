@@ -131,6 +131,31 @@ class Settings(BaseSettings):
     # CORS (configurable via ALLOWED_ORIGINS env var)
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:4000,http://localhost:5173,http://localhost:8000"
 
+    # SMTP Email Settings (Sprint 21 - Notifications)
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_FROM_EMAIL: str = "noreply@sdlc-orchestrator.com"
+    SMTP_FROM_NAME: str = "SDLC Orchestrator"
+
+    # Slack Webhook (Sprint 21 - Notifications)
+    SLACK_WEBHOOK_URL: Optional[str] = None
+
+    # Microsoft Teams Webhook (Sprint 21 - Notifications)
+    TEAMS_WEBHOOK_URL: Optional[str] = None
+
+    # Ollama AI (Sprint 21 - Local LLM Integration)
+    # ADR-007: Cost optimization - $50/month vs $1,000/month cloud APIs
+    OLLAMA_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "llama2:13b"
+    OLLAMA_TIMEOUT: int = 30
+
+    # Cloud AI Fallback (when Ollama unavailable)
+    ANTHROPIC_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse ALLOWED_ORIGINS into list"""

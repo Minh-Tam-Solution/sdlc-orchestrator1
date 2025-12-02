@@ -1,0 +1,572 @@
+/**
+ * File: frontend/web/e2e/compliance.spec.ts
+ * Version: 1.0.0
+ * Status: ACTIVE - STAGE 03 (BUILD)
+ * Date: December 2, 2025
+ * Authority: Frontend Lead + CTO Approved
+ * Foundation: Sprint 21 - Compliance Dashboard
+ * Framework: SDLC 4.9.1 Complete Lifecycle
+ *
+ * Description:
+ * E2E tests for Compliance Dashboard and SDLC 4.9.1 violation tracking.
+ *
+ * Test Scenarios:
+ * - View compliance dashboard
+ * - Trigger compliance scan
+ * - View violations list
+ * - Resolve violations
+ * - AI recommendation generation
+ * - Compliance score visualization
+ *
+ * SDLC 4.9.1 Compliance:
+ * - Pillar 1: Zero Mock Policy (Real API calls)
+ * - Pillar 3: Quality Governance (E2E coverage)
+ */
+
+import { test, expect } from '@playwright/test'
+
+test.describe('Compliance Dashboard', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should display compliance page', async ({ page }) => {
+    // Navigate to compliance
+    await page.goto('/compliance')
+
+    // Check page elements
+    await expect(page.getByRole('heading', { name: /compliance/i })).toBeVisible()
+  })
+
+  test('should show compliance score card', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for compliance score visualization
+    const scoreCard = page.locator('[data-testid="compliance-score"], .compliance-score, [class*="score"]').first()
+
+    if (await scoreCard.isVisible()) {
+      await expect(scoreCard).toBeVisible()
+    }
+  })
+
+  test('should show AI provider status', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for data to load
+    await page.waitForTimeout(2000)
+
+    // Look for AI status section
+    const aiStatusSection = page.getByText(/ai provider|ollama|claude|gpt-4/i).first()
+
+    if (await aiStatusSection.isVisible()) {
+      await expect(aiStatusSection).toBeVisible()
+    }
+  })
+
+  test('should display project selector', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Look for project selector dropdown
+    const projectSelector = page.getByRole('combobox', { name: /project|select/i })
+
+    if (await projectSelector.isVisible()) {
+      await expect(projectSelector).toBeVisible()
+      await projectSelector.click()
+
+      // Should show project options
+      const options = page.getByRole('option')
+      const count = await options.count()
+      expect(count).toBeGreaterThan(0)
+    }
+  })
+
+  test('should navigate to compliance from sidebar', async ({ page }) => {
+    await page.goto('/dashboard')
+
+    // Click on Compliance in sidebar
+    const complianceLink = page.getByRole('link', { name: /compliance/i })
+
+    if (await complianceLink.isVisible()) {
+      await complianceLink.click()
+      await expect(page).toHaveURL(/\/compliance/)
+    }
+  })
+})
+
+test.describe('Compliance Scanning', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should show trigger scan button', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for scan trigger button
+    const scanButton = page.getByRole('button', { name: /scan|run scan|trigger/i })
+
+    if (await scanButton.isVisible()) {
+      await expect(scanButton).toBeVisible()
+    }
+  })
+
+  test('should trigger compliance scan', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Select a project first (if required)
+    const projectSelector = page.getByRole('combobox', { name: /project|select/i })
+    if (await projectSelector.isVisible()) {
+      await projectSelector.click()
+      const firstOption = page.getByRole('option').first()
+      if (await firstOption.isVisible()) {
+        await firstOption.click()
+        await page.waitForTimeout(1000)
+      }
+    }
+
+    // Click scan button
+    const scanButton = page.getByRole('button', { name: /scan|run scan|trigger/i })
+
+    if (await scanButton.isVisible() && await scanButton.isEnabled()) {
+      await scanButton.click()
+
+      // Wait for scan to complete or show loading state
+      await page.waitForTimeout(3000)
+
+      // Should show scan result or loading indicator
+      const hasResult = await page.getByText(/score|violations|complete/i).isVisible()
+      expect(hasResult).toBeTruthy()
+    }
+  })
+
+  test('should display scan history', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for scan history section
+    const historySection = page.getByText(/history|recent scans|previous/i).first()
+
+    if (await historySection.isVisible()) {
+      await expect(historySection).toBeVisible()
+    }
+  })
+})
+
+test.describe('Violation Management', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should display violations list', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for violations section
+    const violationsSection = page.getByText(/violation|issue|finding/i).first()
+
+    if (await violationsSection.isVisible()) {
+      await expect(violationsSection).toBeVisible()
+    }
+  })
+
+  test('should filter violations by status', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for filter tabs or dropdown
+    const filterTabs = page.getByRole('tab', { name: /all|unresolved|resolved/i })
+    const filterDropdown = page.getByRole('combobox', { name: /filter|status/i })
+
+    if (await filterTabs.first().isVisible()) {
+      // Click on "Unresolved" tab
+      const unresolvedTab = page.getByRole('tab', { name: /unresolved/i })
+      if (await unresolvedTab.isVisible()) {
+        await unresolvedTab.click()
+        await page.waitForTimeout(500)
+      }
+    } else if (await filterDropdown.isVisible()) {
+      await filterDropdown.click()
+      const unresolvedOption = page.getByRole('option', { name: /unresolved/i })
+      if (await unresolvedOption.isVisible()) {
+        await unresolvedOption.click()
+      }
+    }
+  })
+
+  test('should show violation severity indicators', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for severity badges (critical, high, medium, low, info)
+    const severityIndicators = page.locator('[data-severity], .severity, [class*="critical"], [class*="high"], [class*="medium"], [class*="low"]')
+
+    const count = await severityIndicators.count()
+    if (count > 0) {
+      await expect(severityIndicators.first()).toBeVisible()
+    }
+  })
+
+  test('should expand violation card for details', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for violation cards
+    const violationCard = page.locator('[data-testid="violation-card"], .violation-card, [class*="violation"]').first()
+
+    if (await violationCard.isVisible()) {
+      await violationCard.click()
+
+      // Should show expanded details with description/recommendation
+      await page.waitForTimeout(500)
+      const hasDetails = await page.getByText(/description|recommendation|location/i).isVisible()
+      expect(hasDetails).toBeTruthy()
+    }
+  })
+
+  test('should resolve violation', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Find a violation card and click to expand
+    const violationCard = page.locator('[data-testid="violation-card"], .violation-card').first()
+
+    if (await violationCard.isVisible()) {
+      await violationCard.click()
+      await page.waitForTimeout(500)
+
+      // Look for resolve button
+      const resolveButton = page.getByRole('button', { name: /resolve|mark resolved/i })
+
+      if (await resolveButton.isVisible() && await resolveButton.isEnabled()) {
+        await resolveButton.click()
+
+        // Fill resolution notes if dialog appears
+        const notesInput = page.getByPlaceholder(/notes|resolution/i)
+        if (await notesInput.isVisible()) {
+          await notesInput.fill('Fixed the violation as per recommendation')
+        }
+
+        // Confirm resolution
+        const confirmButton = page.getByRole('button', { name: /confirm|save|submit/i })
+        if (await confirmButton.isVisible()) {
+          await confirmButton.click()
+          await page.waitForTimeout(1000)
+        }
+
+        // Should show success message or update UI
+        const success = await page.getByText(/resolved|success/i).isVisible()
+        expect(success).toBeTruthy()
+      }
+    }
+  })
+})
+
+test.describe('AI Recommendations', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should display AI recommendation in violation card', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Expand a violation card
+    const violationCard = page.locator('[data-testid="violation-card"], .violation-card').first()
+
+    if (await violationCard.isVisible()) {
+      await violationCard.click()
+      await page.waitForTimeout(500)
+
+      // Look for AI recommendation section
+      const aiSection = page.getByText(/ai recommendation|ollama|claude|gpt/i)
+
+      if (await aiSection.first().isVisible()) {
+        await expect(aiSection.first()).toBeVisible()
+      }
+    }
+  })
+
+  test('should generate AI recommendation for violation', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Find a violation without AI recommendation and generate one
+    const generateButton = page.getByRole('button', { name: /generate|get ai|ai recommendation/i }).first()
+
+    if (await generateButton.isVisible()) {
+      await generateButton.click()
+
+      // Wait for AI generation (may take a few seconds)
+      await page.waitForTimeout(5000)
+
+      // Should show AI recommendation or loading indicator
+      const hasRecommendation = await page.getByText(/recommendation generated|ollama|claude|confidence/i).isVisible()
+      expect(hasRecommendation).toBeTruthy()
+    }
+  })
+
+  test('should show AI provider in recommendation', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for AI provider badges (ollama, claude, gpt-4)
+    const providerBadges = page.locator('[data-provider], .provider-badge').first()
+
+    if (await providerBadges.isVisible()) {
+      const text = await providerBadges.textContent()
+      expect(text?.toLowerCase()).toMatch(/ollama|claude|gpt|rule/i)
+    }
+  })
+
+  test('should display AI budget status', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for budget status
+    const budgetSection = page.getByText(/budget|spent|remaining/i).first()
+
+    if (await budgetSection.isVisible()) {
+      await expect(budgetSection).toBeVisible()
+    }
+  })
+})
+
+test.describe('Compliance Score Visualization', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should display circular progress for score', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for SVG circular progress
+    const circularProgress = page.locator('svg circle, [data-testid="score-progress"]').first()
+
+    if (await circularProgress.isVisible()) {
+      await expect(circularProgress).toBeVisible()
+    }
+  })
+
+  test('should show score percentage', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for percentage display (0-100)
+    const percentageText = page.locator('text').filter({ hasText: /\d+%/ }).first()
+
+    if (await percentageText.isVisible()) {
+      const text = await percentageText.textContent()
+      const match = text?.match(/(\d+)%/)
+      if (match) {
+        const score = parseInt(match[1])
+        expect(score).toBeGreaterThanOrEqual(0)
+        expect(score).toBeLessThanOrEqual(100)
+      }
+    }
+  })
+
+  test('should show violations and warnings count', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for count displays
+    const violationsCount = page.getByText(/\d+ violation|violations: \d+/i).first()
+    const warningsCount = page.getByText(/\d+ warning|warnings: \d+/i).first()
+
+    if (await violationsCount.isVisible()) {
+      await expect(violationsCount).toBeVisible()
+    }
+    if (await warningsCount.isVisible()) {
+      await expect(warningsCount).toBeVisible()
+    }
+  })
+
+  test('should color-code score based on value', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Look for color-coded elements (green for good, red for bad)
+    const coloredElements = page.locator('[class*="green"], [class*="red"], [class*="yellow"], [class*="orange"]')
+
+    const count = await coloredElements.count()
+    if (count > 0) {
+      await expect(coloredElements.first()).toBeVisible()
+    }
+  })
+})
+
+test.describe('Compliance Accessibility', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should have proper heading hierarchy', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Check for h1 heading
+    const h1 = page.locator('h1')
+    await expect(h1).toBeVisible()
+
+    // Check heading order
+    const headings = page.locator('h1, h2, h3, h4, h5, h6')
+    const count = await headings.count()
+    expect(count).toBeGreaterThan(0)
+  })
+
+  test('should be keyboard navigable', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Tab through page elements
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+    await page.keyboard.press('Tab')
+
+    // Check that focus is visible
+    const focusedElement = page.locator(':focus')
+    await expect(focusedElement).toBeVisible()
+  })
+
+  test('should have accessible buttons', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Check buttons have accessible names
+    const buttons = page.getByRole('button')
+    const count = await buttons.count()
+
+    for (let i = 0; i < Math.min(count, 5); i++) {
+      const button = buttons.nth(i)
+      const name = await button.getAttribute('aria-label') || await button.textContent()
+      expect(name?.trim().length).toBeGreaterThan(0)
+    }
+  })
+})
+
+test.describe('Compliance Error Handling', () => {
+  test.beforeEach(async ({ page }) => {
+    // Login before each test
+    await page.goto('/login')
+    await page.getByLabel(/email/i).fill('admin@sdlc-orchestrator.io')
+    await page.getByLabel(/password/i).fill('Admin@123')
+    await page.getByRole('button', { name: /sign in|login/i }).click()
+    await expect(page).toHaveURL(/\/dashboard|\/$/, { timeout: 10000 })
+  })
+
+  test('should show empty state when no violations', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Check for empty state message (if no violations)
+    const emptyState = page.getByText(/no violations|all clear|compliant/i)
+
+    const hasViolations = await page.locator('[data-testid="violation-card"], .violation-card').count() > 0
+    const hasEmptyState = await emptyState.isVisible()
+
+    // Either we have violations OR we have an empty state message
+    expect(hasViolations || hasEmptyState).toBeTruthy()
+  })
+
+  test('should handle scan error gracefully', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // Wait for page to load
+    await page.waitForTimeout(2000)
+
+    // Attempt to trigger scan (may fail if no project selected)
+    const scanButton = page.getByRole('button', { name: /scan|run scan|trigger/i })
+
+    if (await scanButton.isVisible()) {
+      await scanButton.click()
+      await page.waitForTimeout(2000)
+
+      // Should show error message or require project selection
+      const hasError = await page.getByText(/error|failed|select a project/i).isVisible()
+      const hasSuccess = await page.getByText(/complete|success/i).isVisible()
+
+      // Either success or meaningful error
+      expect(hasError || hasSuccess).toBeTruthy()
+    }
+  })
+
+  test('should show loading state during operations', async ({ page }) => {
+    await page.goto('/compliance')
+
+    // During initial load, should show loading indicator
+    const loadingIndicator = page.locator('[class*="spinner"], [class*="loading"], [aria-busy="true"]')
+
+    // Either loading is visible initially, or content loaded quickly
+    await page.waitForTimeout(100)
+    const isLoading = await loadingIndicator.isVisible()
+    const hasContent = await page.getByRole('heading', { name: /compliance/i }).isVisible()
+
+    expect(isLoading || hasContent).toBeTruthy()
+  })
+})

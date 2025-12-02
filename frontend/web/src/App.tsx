@@ -24,6 +24,7 @@ import EvidencePage from '@/pages/EvidencePage'
 import PoliciesPage from '@/pages/PoliciesPage'
 import PolicyDetailPage from '@/pages/PolicyDetailPage'
 import SettingsPage from '@/pages/SettingsPage'
+import CompliancePage from '@/pages/CompliancePage'
 import OnboardingPage from '@/pages/OnboardingPage'
 import GitHubCallbackPage from '@/pages/GitHubCallbackPage'
 
@@ -124,6 +125,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/compliance"
+            element={
+              <ProtectedRoute>
+                <CompliancePage />
               </ProtectedRoute>
             }
           />

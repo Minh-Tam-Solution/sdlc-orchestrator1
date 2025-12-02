@@ -3,18 +3,19 @@
 FastAPI Main Application - SDLC Orchestrator Backend
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Version: 1.0.0
-Date: November 28, 2025
-Status: ACTIVE - Week 3 Architecture Design
+Version: 1.1.0
+Date: December 2, 2025
+Status: ACTIVE - Sprint 21 Day 2 (P0 Fixes)
 Authority: Backend Lead + CTO Approved
 Foundation: ADR-003 (API Strategy), ADR-004 (Microservices Architecture)
-Framework: SDLC 4.9 Complete Lifecycle
+Framework: SDLC 4.9.1 Complete Lifecycle
 
 Purpose:
 - FastAPI application entry point
 - API route configuration (authentication, gates, evidence)
 - Middleware setup (CORS, GZIP, logging)
 - Health checks and metrics (Prometheus)
+- APScheduler background jobs (compliance scans)
 
 API Features:
 - RESTful API (OpenAPI 3.1 documentation)
@@ -29,14 +30,24 @@ Middleware Stack:
 - Request ID tracking (X-Request-ID header)
 - Structured logging (structlog + JSON)
 
+Background Jobs (Sprint 21):
+- APScheduler for scheduled tasks
+- Daily compliance scans (2:00 AM)
+- Scan queue processor (every 5 minutes)
+
 =========================================================================
 """
 
+import os
+from contextlib import asynccontextmanager
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
+from app.jobs.compliance_scan import register_scheduled_jobs
 from app.middleware.prometheus_metrics import (
     PrometheusMetricsMiddleware,
     metrics_endpoint,
@@ -44,17 +55,139 @@ from app.middleware.prometheus_metrics import (
 from app.middleware.rate_limiter import RateLimiterMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 
-# Import API routers
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github
+# Global scheduler instance
+scheduler: AsyncIOScheduler | None = None
 
-# Create FastAPI app
+
+# ============================================================================
+# Lifespan Context Manager
+# ============================================================================
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan management.
+
+    Startup:
+    - Initialize database connection pool
+    - Connect to Redis
+    - Verify OPA availability
+    - Initialize MinIO buckets
+    - Start APScheduler for background jobs
+
+    Shutdown:
+    - Stop APScheduler
+    - Close database connections
+    - Close Redis connection
+    """
+    global scheduler
+    api_host = os.getenv("API_HOST", "localhost")
+    api_port = os.getenv("API_PORT", "8000")
+    print("🚀 SDLC Orchestrator API starting...")
+    print(f"📊 OpenAPI docs: http://{api_host}:{api_port}/api/docs")
+    print(f"🔐 Authentication endpoints: http://{api_host}:{api_port}/api/v1/auth")
+    print(f"🚪 Gates endpoints: http://{api_host}:{api_port}/api/v1/gates")
+
+    startup_errors = []
+
+    # Initialize Redis connection (Week 5 Day 1 - P1 Features)
+    try:
+        from app.utils.redis import get_redis_client
+        redis = await get_redis_client()
+        await redis.ping()
+        print("✅ Redis connected (rate limiting enabled)")
+    except Exception as e:
+        print(f"⚠️  Redis connection failed (rate limiting disabled): {e}")
+        # Redis is optional - don't add to startup_errors
+
+    # Verify OPA availability (Sprint 14 - TD-02)
+    try:
+        from app.services.opa_service import opa_service
+        health = opa_service.health_check()
+        if health.get("healthy"):
+            print(f"✅ OPA connected (version: {health.get('version', 'unknown')})")
+        else:
+            error_msg = f"OPA unhealthy: {health.get('error', 'unknown error')}"
+            print(f"❌ {error_msg}")
+            startup_errors.append(error_msg)
+    except Exception as e:
+        error_msg = f"OPA connection failed: {e}"
+        print(f"❌ {error_msg}")
+        startup_errors.append(error_msg)
+
+    # Initialize MinIO buckets (Sprint 14 - TD-02)
+    try:
+        from app.services.minio_service import minio_service
+        minio_service.ensure_bucket_exists()
+        print(f"✅ MinIO connected (bucket: {minio_service.bucket_name})")
+    except Exception as e:
+        error_msg = f"MinIO initialization failed: {e}"
+        print(f"❌ {error_msg}")
+        startup_errors.append(error_msg)
+
+    # Initialize APScheduler for background jobs (Sprint 21)
+    try:
+        scheduler = AsyncIOScheduler()
+        register_scheduled_jobs(scheduler)
+        scheduler.start()
+        print("✅ APScheduler started (compliance scans scheduled)")
+        print("   - Daily compliance scan: 2:00 AM")
+        print("   - Queue processor: every 5 minutes")
+    except Exception as e:
+        error_msg = f"APScheduler initialization failed: {e}"
+        print(f"❌ {error_msg}")
+        startup_errors.append(error_msg)
+
+    # Fail fast if critical dependencies unavailable
+    if startup_errors:
+        print("\n" + "=" * 60)
+        print("❌ STARTUP FAILED - Critical dependencies unavailable:")
+        for error in startup_errors:
+            print(f"   - {error}")
+        print("=" * 60 + "\n")
+        # In production, we might want to exit here
+        # For development, we continue with warnings
+        if not settings.DEBUG:
+            import sys
+            sys.exit(1)
+    else:
+        print("\n✅ SDLC Orchestrator API started successfully!")
+
+    # Yield control to the application
+    yield
+
+    # Shutdown
+    print("👋 SDLC Orchestrator API shutting down...")
+
+    # Stop APScheduler (Sprint 21)
+    if scheduler and scheduler.running:
+        scheduler.shutdown(wait=False)
+        print("✅ APScheduler stopped")
+
+    # Close Redis connection (Week 5 Day 1)
+    from app.utils.redis import close_redis_client
+    await close_redis_client()
+
+    print("✅ SDLC Orchestrator API shutdown complete")
+
+
+# ============================================================================
+# Create FastAPI App
+# ============================================================================
+
+# Import API routers (after lifespan is defined)
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications
+
+# Create FastAPI app with lifespan
 app = FastAPI(
     title="SDLC Orchestrator API",
     description="AI-Native SDLC Governance Platform with Quality Gates",
-    version="1.0.0",
+    version="1.1.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
 
 # ============================================================================
@@ -97,6 +230,8 @@ app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Dashboard"])
 app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
 app.include_router(github.router, prefix="/api/v1", tags=["GitHub"])
+app.include_router(compliance.router, prefix="/api/v1", tags=["Compliance"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 
 # ============================================================================
 # Health Check Endpoints
@@ -110,7 +245,7 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "service": "sdlc-orchestrator-backend",
     }
 
@@ -125,6 +260,7 @@ async def readiness_check():
     - Redis: PING command
     - OPA: /health endpoint
     - MinIO: HEAD bucket
+    - APScheduler: Running status
 
     Returns:
         200 OK if all dependencies are healthy
@@ -182,6 +318,18 @@ async def readiness_check():
             dependencies["minio"] = {"status": "disconnected", "healthy": False, "error": error_msg}
             all_healthy = False
 
+    # Check APScheduler (Sprint 21)
+    if scheduler and scheduler.running:
+        jobs = scheduler.get_jobs()
+        dependencies["scheduler"] = {
+            "status": "running",
+            "healthy": True,
+            "jobs_count": len(jobs),
+        }
+    else:
+        dependencies["scheduler"] = {"status": "stopped", "healthy": False}
+        all_healthy = False
+
     from fastapi.responses import JSONResponse
 
     response_data = {
@@ -202,7 +350,7 @@ async def root():
     """
     return {
         "service": "SDLC Orchestrator API",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "docs": "/api/docs",
         "health": "/health",
         "metrics": "/metrics",
@@ -218,106 +366,6 @@ async def metrics():
         Prometheus metrics in text format (for Prometheus scraping)
     """
     return metrics_endpoint()
-
-
-# ============================================================================
-# Week 3 Day 3: Authentication + Gates APIs Implemented ✅
-# Week 4 Day 4-5 TODO: Evidence + Policies + AI APIs
-# ============================================================================
-
-# TODO Week 4:
-# from app.api.routes import evidence, policies, ai
-# app.include_router(evidence.router, prefix="/api/v1", tags=["Evidence"])
-# app.include_router(policies.router, prefix="/api/v1", tags=["Policies"])
-# app.include_router(ai.router, prefix="/api/v1", tags=["AI"])
-
-# ============================================================================
-# Startup & Shutdown Events
-# ============================================================================
-
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Application startup
-    - Initialize database connection pool
-    - Connect to Redis
-    - Verify OPA availability
-    - Initialize MinIO buckets
-    """
-    import os
-    api_host = os.getenv("API_HOST", "localhost")
-    api_port = os.getenv("API_PORT", "8000")
-    print("🚀 SDLC Orchestrator API starting...")
-    print(f"📊 OpenAPI docs: http://{api_host}:{api_port}/api/docs")
-    print(f"🔐 Authentication endpoints: http://{api_host}:{api_port}/api/v1/auth")
-    print(f"🚪 Gates endpoints: http://{api_host}:{api_port}/api/v1/gates")
-
-    startup_errors = []
-
-    # Initialize Redis connection (Week 5 Day 1 - P1 Features)
-    try:
-        from app.utils.redis import get_redis_client
-        redis = await get_redis_client()
-        await redis.ping()
-        print("✅ Redis connected (rate limiting enabled)")
-    except Exception as e:
-        print(f"⚠️  Redis connection failed (rate limiting disabled): {e}")
-        # Redis is optional - don't add to startup_errors
-
-    # Verify OPA availability (Sprint 14 - TD-02)
-    try:
-        from app.services.opa_service import opa_service
-        health = opa_service.health_check()
-        if health.get("healthy"):
-            print(f"✅ OPA connected (version: {health.get('version', 'unknown')})")
-        else:
-            error_msg = f"OPA unhealthy: {health.get('error', 'unknown error')}"
-            print(f"❌ {error_msg}")
-            startup_errors.append(error_msg)
-    except Exception as e:
-        error_msg = f"OPA connection failed: {e}"
-        print(f"❌ {error_msg}")
-        startup_errors.append(error_msg)
-
-    # Initialize MinIO buckets (Sprint 14 - TD-02)
-    try:
-        from app.services.minio_service import minio_service
-        minio_service.ensure_bucket_exists()
-        print(f"✅ MinIO connected (bucket: {minio_service.bucket_name})")
-    except Exception as e:
-        error_msg = f"MinIO initialization failed: {e}"
-        print(f"❌ {error_msg}")
-        startup_errors.append(error_msg)
-
-    # Fail fast if critical dependencies unavailable
-    if startup_errors:
-        print("\n" + "=" * 60)
-        print("❌ STARTUP FAILED - Critical dependencies unavailable:")
-        for error in startup_errors:
-            print(f"   - {error}")
-        print("=" * 60 + "\n")
-        # In production, we might want to exit here
-        # For development, we continue with warnings
-        if not settings.DEBUG:
-            import sys
-            sys.exit(1)
-    else:
-        print("\n✅ SDLC Orchestrator API started successfully!")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """
-    Application shutdown
-    - Close database connections
-    - Close Redis connection
-    """
-    print("👋 SDLC Orchestrator API shutdown complete")
-    
-    # Close Redis connection (Week 5 Day 1)
-    from app.utils.redis import close_redis_client
-    await close_redis_client()
 
 
 if __name__ == "__main__":

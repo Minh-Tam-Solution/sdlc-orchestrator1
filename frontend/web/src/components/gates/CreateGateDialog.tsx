@@ -117,8 +117,17 @@ export default function CreateGateDialog({
       // Navigate to new gate
       navigate(`/gates/${gate.id}`)
     },
-    onError: (err) => {
-      setError(err.message || 'Failed to create gate')
+    onError: (err: Error & { response?: { status?: number; data?: { detail?: string } } }) => {
+      // Handle specific error codes with user-friendly messages
+      if (err.response?.status === 403) {
+        setError('You do not have permission to create gates for this project. Please contact the project owner.')
+      } else if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.')
+      } else if (err.response?.data?.detail) {
+        setError(err.response.data.detail)
+      } else {
+        setError(err.message || 'Failed to create gate')
+      }
     },
   })
 

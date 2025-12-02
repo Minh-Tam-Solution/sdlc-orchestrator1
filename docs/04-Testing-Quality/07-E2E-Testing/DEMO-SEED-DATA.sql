@@ -58,80 +58,80 @@
 -- | Role           | Email                         | Password    | Description                    |
 -- |----------------|-------------------------------|-------------|--------------------------------|
 -- | Platform Admin | admin@sdlc-orchestrator.io    | Admin@123   | Full access, superuser         |
--- | NQH CEO        | taidt@mtsolution.com.vn       | password123 | Tai Dang - leads 2 teams       |
--- | NQH CPO        | dunglt@mtsolution.com.vn      | password123 | Dung Luong - Product strategy  |
--- | NQH CTO        | dvhiep@nqh.com.vn             | password123 | Hiep Dinh - Technical authority|
--- | Local TL       | dangtt1971@gmail.com          | password123 | Endior - Local Team Lead       |
--- | Remote TL      | ltmhang@nqh.com.vn            | password123 | Hang Le - Remote Team Lead     |
--- | Local Dev 1    | local.dev1@nqh.com.vn         | password123 | Local Team Developer           |
--- | Local Dev 2    | local.dev2@nqh.com.vn         | password123 | Local Team Developer           |
--- | Remote Dev 1   | remote.dev1@nqh.com.vn        | password123 | Remote Team Developer          |
--- | Remote Dev 2   | remote.dev2@nqh.com.vn        | password123 | Remote Team Developer          |
--- | QA Lead        | qa.lead@nqh.com.vn            | password123 | QA Team Lead                   |
+-- | NQH CEO        | taidt@mtsolution.com.vn       | Admin@123   | Tai Dang - leads 2 teams       |
+-- | NQH CPO        | dunglt@mtsolution.com.vn      | Admin@123   | Dung Luong - Product strategy  |
+-- | NQH CTO        | dvhiep@nqh.com.vn             | Admin@123   | Hiep Dinh - Technical authority|
+-- | Local TL       | dangtt1971@gmail.com          | Admin@123   | Endior - Local Team Lead       |
+-- | Remote TL      | ltmhang@nqh.com.vn            | Admin@123   | Hang Le - Remote Team Lead     |
+-- | Local Dev 1    | local.dev1@nqh.com.vn         | Admin@123   | Local Team Developer           |
+-- | Local Dev 2    | local.dev2@nqh.com.vn         | Admin@123   | Local Team Developer           |
+-- | Remote Dev 1   | remote.dev1@nqh.com.vn        | Admin@123   | Remote Team Developer          |
+-- | Remote Dev 2   | remote.dev2@nqh.com.vn        | Admin@123   | Remote Team Developer          |
+-- | QA Lead        | qa.lead@nqh.com.vn            | Admin@123   | QA Team Lead                   |
 -- =========================================================================
 
 -- =========================================================================
 -- SECTION 3: NQH-BOT PLATFORM TEAM USERS
 -- =========================================================================
--- Password hash for "password123" (bcrypt, cost=12)
--- Generated with: python3 -c "import bcrypt; print(bcrypt.hashpw('password123'.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8'))"
+-- Password hash for "Admin@123" (bcrypt, cost=12) - ALL users use same password for E2E consistency
+-- Generated with: python3 -c "import bcrypt; print(bcrypt.hashpw('Admin@123'.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8'))"
 
 -- NQH-Bot Platform Team (REAL team structure)
 INSERT INTO users (id, email, name, password_hash, is_active, is_superuser, mfa_enabled, created_at, updated_at)
 VALUES
   -- CEO - Tai Dang (leads 2 teams: Local + Remote)
   ('b0000000-0000-0000-0000-000000000001', 'taidt@mtsolution.com.vn', 'Tai Dang',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu', -- password123
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm', -- Admin@123
    true, false, false, NOW(), NOW()),
 
   -- CPO - Dung Luong (Product strategy, business gates approval)
   ('b0000000-0000-0000-0000-000000000002', 'dunglt@mtsolution.com.vn', 'Dung Luong',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- CTO - Hiep Dinh (Technical authority, G2/G3 gates approval)
   ('b0000000-0000-0000-0000-000000000003', 'dvhiep@nqh.com.vn', 'Hiep Dinh',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Local Team Lead - Endior
   ('b0000000-0000-0000-0000-000000000004', 'dangtt1971@gmail.com', 'Endior',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Remote Team Lead - Ms Hang Le
   ('b0000000-0000-0000-0000-000000000005', 'ltmhang@nqh.com.vn', 'Hang Le',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Local Team Developer 1
   ('b0000000-0000-0000-0000-000000000006', 'local.dev1@nqh.com.vn', 'Local Dev 1',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Local Team Developer 2
   ('b0000000-0000-0000-0000-000000000007', 'local.dev2@nqh.com.vn', 'Local Dev 2',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Remote Team Developer 1
   ('b0000000-0000-0000-0000-000000000008', 'remote.dev1@nqh.com.vn', 'Remote Dev 1',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Remote Team Developer 2
   ('b0000000-0000-0000-0000-000000000009', 'remote.dev2@nqh.com.vn', 'Remote Dev 2',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- QA Lead
   ('b0000000-0000-0000-0000-000000000010', 'qa.lead@nqh.com.vn', 'QA Lead',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm',
    true, false, false, NOW(), NOW()),
 
   -- Inactive User (for testing inactive account scenarios)
   ('b0000000-0000-0000-0000-000000000011', 'inactive@nqh.com.vn', 'Inactive User',
-   '$2b$12$T6BJlzPawHNYv4UdrSCjleDH1o9UY6ho5859bNhNHIavyx7miFshu',
+   '$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm', -- Admin@123
    false, false, false, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 

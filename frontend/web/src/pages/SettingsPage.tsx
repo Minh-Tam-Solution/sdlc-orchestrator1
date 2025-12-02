@@ -59,12 +59,18 @@ export default function SettingsPage() {
   // Connect GitHub mutation
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.get<{ authorization_url: string }>('/github/auth/url')
+      // Call backend to get GitHub OAuth authorization URL
+      // Backend endpoint: GET /api/v1/github/authorize
+      const response = await apiClient.get<{ authorization_url: string; state: string }>('/github/authorize')
       return response.data.authorization_url
     },
     onSuccess: (authUrl) => {
       // Redirect to GitHub OAuth
       window.location.href = authUrl
+    },
+    onError: (error: Error & { response?: { status?: number; data?: { detail?: string } } }) => {
+      console.error('Failed to get GitHub authorization URL:', error)
+      // Could show a toast notification here
     },
   })
 
