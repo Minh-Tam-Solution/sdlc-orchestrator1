@@ -1,6 +1,6 @@
 """
 =========================================================================
-Seed Data Migration - Realistic MTC/NQH/BFlow Examples
+Seed Data Migration - Realistic MTS/NQH/BFlow Examples
 SDLC Orchestrator - Stage 03 (BUILD)
 
 Version: 1.0.0
@@ -12,9 +12,9 @@ Framework: SDLC 4.9 Complete Lifecycle
 
 Purpose:
 - Realistic seed data for Week 10/11 internal beta testing
-- 3 real projects (MTC Internal Tool, NQH E-commerce, BFlow Automation)
+- 3 real projects (MTS Internal Tool, NQH E-commerce, BFlow Automation)
 - Waste reduction metrics (before/after: 65% → 17%)
-- Vietnamese team member names (real MTC/NQH teams)
+- Vietnamese team member names (real MTS/NQH teams)
 - 13 system roles (CEO, CTO, CPO, EM, TL, DEV, QA, etc.)
 - 3 AI providers (Claude Sonnet 4.5, GPT-4o, Gemini 2.0 Flash)
 - Gate status examples (PASS, IN_PROGRESS, PENDING)
@@ -50,11 +50,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """
-    Insert realistic seed data for MTC/NQH/BFlow projects.
+    Insert realistic seed data for MTS/NQH/BFlow projects.
 
     Data Includes:
     - 13 SDLC system roles (CEO, CTO, CPO, EM, TL, DEV, QA, DevOps, Security, PM, BA, CIO, CFO)
-    - 15 Vietnamese team members (MTC: 6, NQH: 5, BFlow: 4)
+    - 15 Vietnamese team members (MTS: 6, NQH: 5, BFlow: 4)
     - 3 realistic projects with waste metrics
     - 9 gates (3 per project: G0.1, G0.2, G1)
     - 27 gate approvals (3 approvers per gate)
@@ -122,7 +122,7 @@ def upgrade() -> None:
     password_hash = pwd_context.hash("password123")
 
     users_data = [
-        # MTC Team (6 members)
+        # MTS Team (6 members)
         {'id': str(uuid4()), 'email': 'nguyen.van.anh@mtc.com.vn', 'name': 'Nguyễn Văn Anh', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
         {'id': str(uuid4()), 'email': 'tran.thi.binh@mtc.com.vn', 'name': 'Trần Thị Bình', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
         {'id': str(uuid4()), 'email': 'le.van.cuong@mtc.com.vn', 'name': 'Lê Văn Cường', 'password_hash': password_hash, 'is_active': True, 'is_superuser': False, 'mfa_enabled': False, 'created_at': datetime.utcnow(), 'updated_at': datetime.utcnow()},
@@ -156,7 +156,7 @@ def upgrade() -> None:
             user
         )
 
-    # Store user IDs (MTC team)
+    # Store user IDs (MTS team)
     mtc_em_id = users_data[0]['id']  # Nguyễn Văn Anh - Engineering Manager
     mtc_tl_id = users_data[1]['id']  # Trần Thị Bình - Tech Lead
     mtc_dev_id = users_data[2]['id']  # Lê Văn Cường - Developer
@@ -184,9 +184,9 @@ def upgrade() -> None:
     projects_data = [
         {
             'id': str(uuid4()),
-            'name': 'MTC Internal Tool - SDLC Automation',
+            'name': 'MTS Internal Tool - SDLC Automation',
             'slug': 'mtc-sdlc-automation',
-            'description': 'Internal developer productivity tool for MTC Solution. Automates SDLC workflows, reduces manual quality gate approvals from 3 days to 2 hours. Waste reduction: 65% → 17%. Target: 95% test coverage, zero deployment failures.',
+            'description': 'Internal developer productivity tool for MTS Solution. Automates SDLC workflows, reduces manual quality gate approvals from 3 days to 2 hours. Waste reduction: 65% → 17%. Target: 95% test coverage, zero deployment failures.',
             'owner_id': mtc_em_id,
             'is_active': True,
             'created_at': datetime.utcnow() - timedelta(days=45),
@@ -233,7 +233,7 @@ def upgrade() -> None:
     # =========================================================================
 
     project_members_data = [
-        # MTC Project Team
+        # MTS Project Team
         {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_em_id, 'role': 'owner', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
         {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_tl_id, 'role': 'member', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
         {'id': str(uuid4()), 'project_id': mtc_project_id, 'user_id': mtc_dev_id, 'role': 'member', 'invited_by': mtc_em_id, 'invited_at': datetime.utcnow() - timedelta(days=45), 'joined_at': datetime.utcnow() - timedelta(days=45), 'created_at': datetime.utcnow() - timedelta(days=45)},
@@ -264,7 +264,7 @@ def upgrade() -> None:
     # =========================================================================
 
     user_roles_data = [
-        # MTC team roles
+        # MTS team roles
         {'user_id': mtc_em_id, 'role_id': em_role_id},
         {'user_id': mtc_tl_id, 'role_id': tl_role_id},
         {'user_id': mtc_dev_id, 'role_id': dev_role_id},
@@ -370,7 +370,7 @@ def upgrade() -> None:
     # =========================================================================
 
     gates_data = [
-        # MTC Project Gates
+        # MTS Project Gates
         {
             'id': str(uuid4()),
             'project_id': mtc_project_id,
@@ -383,7 +383,7 @@ def upgrade() -> None:
             'created_at': datetime.utcnow() - timedelta(days=40),
             'updated_at': datetime.utcnow() - timedelta(days=37),  # Added: Required timestamp
             'approved_at': datetime.utcnow() - timedelta(days=37),
-            'description': 'Foundation Ready - MTC Internal Tool project kickoff. Business case: Reduce manual SDLC overhead from 3 days to 2 hours per release (65% → 17% waste).',
+            'description': 'Foundation Ready - MTS Internal Tool project kickoff. Business case: Reduce manual SDLC overhead from 3 days to 2 hours per release (65% → 17% waste).',
         },
         {
             'id': str(uuid4()),
@@ -517,7 +517,7 @@ def upgrade() -> None:
     print("✅ Seed data migration complete!")
     print("📊 Summary:")
     print("  - 13 system roles created (CEO, CTO, CPO, EM, TL, DEV, QA, DevOps, Security, PM, BA, CIO, CFO)")
-    print("  - 15 Vietnamese team members added (MTC: 6, NQH: 5, BFlow: 4)")
+    print("  - 15 Vietnamese team members added (MTS: 6, NQH: 5, BFlow: 4)")
     print("  - 3 realistic projects created with waste reduction metrics")
     print("  - 9 gates created (3 per project: G0.1, G0.2, G1)")
     print("  - Gate statuses: APPROVED (7), IN_REVIEW (1), DRAFT (1)")

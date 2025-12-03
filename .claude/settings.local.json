@@ -104,7 +104,10 @@
       "Bash(for i in {1..5})",
       "Bash(timeout 120 python3 -m pytest:*)",
       "Bash(gtimeout 120 python3:*)",
-      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjQyNTIyMjMsImlhdCI6MTc2NDI0ODYyMywidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.9u3CZdYTARsz_VCeaJjZPSyGp-0adPbZYJ6dLtHlm3M\":*)"
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjQyNTIyMjMsImlhdCI6MTc2NDI0ODYyMywidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.9u3CZdYTARsz_VCeaJjZPSyGp-0adPbZYJ6dLtHlm3M\":*)",
+      "Bash(git tag:*)",
+      "Bash(kill:*)",
+      "Bash(docker port:*)"
     ],
     "deny": [],
     "ask": []

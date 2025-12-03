@@ -109,8 +109,8 @@ THEN: User sees "Recent Gate Activity" section
 AND: Shows up to 5 most recent gates:
   | Gate Name | Project Name | Status |
   |-----------|--------------|--------|
-  | G1 | MTC Internal Tool - SDLC Automation | pending |
-  | G1 | MTC Internal Tool - SDLC Automation | pending |
+  | G1 | MTS Internal Tool - SDLC Automation | pending |
+  | G1 | MTS Internal Tool - SDLC Automation | pending |
   | G1 | BFlow Workflow Automation - v3.0 | pending |
   | G0.2 | BFlow Workflow Automation - v3.0 | passed |
   | G1 | NQH E-commerce Platform - Phase 2 | pending |
@@ -138,7 +138,7 @@ THEN: User sees list of 3 projects:
   |--------------|---------------|--------|----------|
   | BFlow Workflow Automation - v3.0 | WHY | pending | 20% |
   | NQH E-commerce Platform - Phase 2 | WHY | pending | 20% |
-  | MTC Internal Tool - SDLC Automation | WHY | pending | 30% |
+  | MTS Internal Tool - SDLC Automation | WHY | pending | 30% |
 ```
 
 #### TC-PROJ-002: View Project Detail
@@ -464,7 +464,7 @@ curl http://localhost:8000/api/v1/dashboard/recent-gates \
   {
     "id": "...",
     "gate_name": "G1",
-    "project_name": "MTC Internal Tool - SDLC Automation",
+    "project_name": "MTS Internal Tool - SDLC Automation",
     "status": "pending",
     "updated_at": "2025-11-17T14:57:30.638574"
   },
@@ -826,7 +826,7 @@ See: `DEMO-SEED-DATA.sql` for complete seed data script.
 
 Summary of seed data:
 - 5 test users (admin, cto, pm, dev, qa)
-- 3 projects (BFlow, NQH, MTC)
+- 3 projects (BFlow, NQH, MTS)
 - 5 gates across projects
 - 10 evidence documents
 - 3 policy packs (110+ policies)

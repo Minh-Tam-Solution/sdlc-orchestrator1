@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "SDLC Orchestrator - Frontend Web Application (React + TypeScript + Vite)",
-  "author": "MTC Team",
+  "author": "MTS Team",
   "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",

@@ -277,7 +277,7 @@ This document visualizes **user journeys across SDLC 4.8 stages (Stage 00-09)** 
 
 1. **UX Lead Review** (validate user journeys)
 2. **Wireframe Creation** (Dashboard, VS Code Extension UI)
-3. **Internal Beta Testing** (5-8 MTC/NQH teams, Week 11+)
+3. **Internal Beta Testing** (5-8 MTS/NQH teams, Week 11+)
 
 ---
 

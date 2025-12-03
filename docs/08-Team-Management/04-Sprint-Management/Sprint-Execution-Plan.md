@@ -894,14 +894,14 @@ Owner: PM + QA Lead
 
 Sprint Backlog:
   - Deploy to staging environment
-  - Onboard 5-8 MTC/NQH internal teams (50-100 engineers)
+  - Onboard 5-8 MTS/NQH internal teams (50-100 engineers)
   - Training documentation (user guide, quick start)
   - Feedback collection system (Slack channel, feedback forms)
   - Bug triage process (P0/P1/P2 priority)
   - Usage tracking (Prometheus metrics + Grafana dashboards)
 
 Exit Criteria (G4 - Internal Validation):
-  - [ ] 5-8 MTC/NQH internal teams onboarded
+  - [ ] 5-8 MTS/NQH internal teams onboarded
   - [ ] 70%+ Daily Active Usage (sticky product)
   - [ ] NPS 50+ from internal users
   - [ ] Zero P0 bugs
@@ -952,7 +952,7 @@ Sprint Backlog:
   - **Checkpoint**: $5K team bonus ✅
 
 Exit Criteria (G6 - Internal Validation):
-  - [ ] 5-8 MTC/NQH internal teams using daily
+  - [ ] 5-8 MTS/NQH internal teams using daily
   - [ ] 70%+ daily active usage
   - [ ] Measurable waste reduction (60-70% → <30%)
   - [ ] Zero P0 bugs for 30 days

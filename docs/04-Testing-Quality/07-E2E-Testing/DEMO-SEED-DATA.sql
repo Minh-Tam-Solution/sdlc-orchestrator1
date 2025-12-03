@@ -105,11 +105,11 @@ VALUES (
   NOW()
 ) ON CONFLICT (id) DO UPDATE SET updated_at = NOW();
 
--- Project 3: MTC SDLC Tool - In BUILD stage
+-- Project 3: MTS SDLC Tool - In BUILD stage
 INSERT INTO projects (id, name, slug, description, owner_id, is_active, created_at, updated_at)
 VALUES (
   'c0000000-0000-0000-0000-000000000003',
-  'MTC Internal Tool - SDLC Automation',
+  'MTS Internal Tool - SDLC Automation',
   'mtc-sdlc-automation',
   'Internal developer productivity tool. Automates SDLC workflows, reduces gate approvals from 3 days to 2 hours. Target: 95% test coverage, zero deployment failures.',
   'b0000000-0000-0000-0000-000000000001', -- CTO owns
@@ -172,7 +172,7 @@ VALUES
    'b0000000-0000-0000-0000-000000000007', 'member', 'b0000000-0000-0000-0000-000000000006', NOW(), NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- MTC SDLC Tool Team (all internal)
+-- MTS SDLC Tool Team (all internal)
 INSERT INTO project_members (id, project_id, user_id, role, invited_by, invited_at, joined_at, created_at)
 VALUES
   ('d0000000-0000-0000-0000-000000000007', 'c0000000-0000-0000-0000-000000000003',
@@ -246,7 +246,7 @@ VALUES
    'b0000000-0000-0000-0000-000000000007', '2025-10-10 09:00:00', NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- MTC SDLC Tool Gates (Complete through BUILD, VERIFY in progress)
+-- MTS SDLC Tool Gates (Complete through BUILD, VERIFY in progress)
 INSERT INTO gates (id, project_id, gate_name, gate_type, stage, status, description, created_by, created_at, updated_at)
 VALUES
   -- All WHY, WHAT, HOW, BUILD approved
@@ -317,7 +317,7 @@ VALUES
    'Architecture is solid. AGPL containment validated. Security baseline met.',
    '2025-11-10 17:00:00', '2025-11-10 17:00:00'),
 
-  -- MTC G3 approval
+  -- MTS G3 approval
   ('f0000000-0000-0000-0000-000000000006', 'e0000000-0000-0000-0000-000000000013',
    'b0000000-0000-0000-0000-000000000001', 'APPROVED',
    'MVP fully functional. Ready for testing phase.',
@@ -390,7 +390,7 @@ VALUES
    1572864, 'application/pdf', '89012345678901234567890abcdef1234567890abcdef123456789ab1c2d3e4f567',
    'b0000000-0000-0000-0000-000000000001', '2025-11-06 15:00:00', '2025-11-06 15:00:00'),
 
-  -- MTC G4 evidence (testing phase)
+  -- MTS G4 evidence (testing phase)
   ('g0000000-0000-0000-0000-000000000010', 'e0000000-0000-0000-0000-000000000014',
    'REPORT', 'Test Coverage Report', 'Current test coverage: Unit 85%, Integration 70%, E2E 50%',
    's3://evidence-vault/mtc-sdlc/g4/coverage-report.html', 'coverage-report.html',

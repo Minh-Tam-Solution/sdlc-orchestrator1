@@ -5,7 +5,7 @@
 **Status**: ACTIVE - Week 13 Production Launch
 **Authority**: PM + CPO
 **Framework**: SDLC 4.9 Complete Lifecycle
-**Target Audience**: Internal MTC/NQH Beta Teams (5-8 teams)
+**Target Audience**: Internal MTS/NQH Beta Teams (5-8 teams)
 
 ---
 

@@ -43,7 +43,7 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 | **Planning** | Week 2 | $50K | G1 (Legal ✅), Market Validation |
 | **Design** | Week 3-4 | $75K | G2 (Architecture ✅) |
 | **Build** | Week 5-10 | $280K | G3 (5 Core Capabilities) |
-| **Test** | Week 11 | $45K | G4 (Internal Beta: 5-8 MTC/NQH teams) |
+| **Test** | Week 11 | $45K | G4 (Internal Beta: 5-8 MTS/NQH teams) |
 | **Deploy** | Week 12 | $40K | G5 (Production ✅) |
 | **Operate** | Week 13 | $48K | G6 (Internal Validation - Phase 1: $0 MRR) |
 
@@ -52,7 +52,7 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 ### Critical Success Factors
 1. **Legal Clearance Week 2** (CRITICAL PATH): AGPL containment strategy approved
 2. **Technical Foundation Weeks 3-10**: Build 5 core capabilities with 95%+ test coverage
-3. **Internal Validation Week 11+**: 5-8 MTC/NQH teams, 70%+ daily usage, zero P0 bugs
+3. **Internal Validation Week 11+**: 5-8 MTS/NQH teams, 70%+ daily usage, zero P0 bugs
 
 ---
 
@@ -64,7 +64,7 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 ### Phase 1: Internal Validation (February-June 2026)
 
 **Timeline**: 4-6 months post-MVP  
-**Target**: MTC + NQH internal application development teams  
+**Target**: MTS + NQH internal application development teams  
 **Scope**: 5-8 teams, 50-100 engineers total
 
 **Goals**:
@@ -95,7 +95,7 @@ This roadmap answers **WHY we're sequencing delivery this way**, not WHAT featur
 **Scope**: 100+ external paying teams
 
 **Go-to-Market Strategy**:
-- **Proof Points**: MTC/NQH case studies (real waste reduction data)
+- **Proof Points**: MTS/NQH case studies (real waste reduction data)
 - **Sales Pitch**: "We've used it internally for 6 months, reduced waste by X%"
 - **Marketing**: Product Hunt, Hacker News, YC Demo Day
 - **Pricing**: Validated with internal teams ($20/team/month sweet spot)
@@ -172,7 +172,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 | **G1** | Stage 01 (WHAT - Requirements & Planning) | Legal + Technical Feasibility | $50K (Planning) | AGPL strategy approved, FRD + Data Model complete, CTO sign-off |
 | **G2** | Stage 02 (HOW - Design & Architecture) | Technical Feasibility | $75K (Design) | Architecture reviewed, no technical blockers |
 | **G3** | Stage 03 (BUILD - Development) | Build Quality | $280K (Development) | 5 core capabilities built, unit tested |
-| **G4** | Stage 04 (TEST - Quality Assurance) | Internal Validation | $45K (Testing) | 5-8 MTC/NQH internal teams, 70%+ daily usage, zero P0 bugs |
+| **G4** | Stage 04 (TEST - Quality Assurance) | Internal Validation | $45K (Testing) | 5-8 MTS/NQH internal teams, 70%+ daily usage, zero P0 bugs |
 | **G5** | Stage 05 (DEPLOY - Production Go-Live) | Production Readiness | $40K (Deploy) | SOC 2 Type I, 99.9% uptime, zero data loss |
 | **G6** | Stage 06 (OPERATE - Production Excellence) | Internal Validation | $48K (Operate) | 5-8 internal teams, 70% daily usage, waste reduction <30% |
 | **G7** | Stage 07 (INTEGRATE - Systems Integration) | Integration Quality | Ongoing | API contracts validated, integration tests ≥90% |
@@ -357,11 +357,11 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 
 ### Week 11 (January 23-27, 2026): Testing (INTERNAL BETA)
 **Stage**: 04 (TEST - Testing & Quality Assurance)
-**Team**: Full team (8.5 FTE) + 5-8 MTC/NQH internal teams
+**Team**: Full team (8.5 FTE) + 5-8 MTS/NQH internal teams
 **Investment**: $45K
 
 **Deliverables**:
-- Internal beta program (5-8 MTC/NQH teams onboarded)
+- Internal beta program (5-8 MTS/NQH teams onboarded)
 - Test plan (functional, integration, performance, security)
 - Bug triage (P0/P1 fixed, P2+ backlog)
 - Internal feedback sessions (daily standups)
@@ -371,14 +371,14 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - [ ] G4: Testing & Internal Validation
 
 **G4 Exit Criteria** (CRITICAL - MVP Go/No-Go):
-- ✅ 5-8 MTC/NQH internal teams onboarded (50-100 engineers total)
+- ✅ 5-8 MTS/NQH internal teams onboarded (50-100 engineers total)
 - ✅ **70%+ Daily Active Usage** (sticky product validation)
 - ✅ **NPS 50+** from internal users (quality benchmark)
 - ✅ Zero P0 bugs (system-breaking)
 - ✅ <5 P1 bugs (user-blocking, must fix pre-launch)
 
 **Internal Beta Team Profile**:
-- **MTC Teams**: 3-4 application development teams (20-40 engineers)
+- **MTS Teams**: 3-4 application development teams (20-40 engineers)
 - **NQH Teams**: 2-4 application development teams (30-60 engineers)
 - **Mixed Roles**: Engineering Managers, Tech Leads, Developers using SDLC Orchestrator daily
 
@@ -441,7 +441,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - **Compliance**: SOC 2 Type I requires documented controls (started Week 12, completed Month 6)
 
 **Launch Strategy** (Internal-Only):
-- **Internal Launch**: Week 12 Monday (MTC + NQH teams only)
+- **Internal Launch**: Week 12 Monday (MTS + NQH teams only)
 - **No Public Launch**: Phase 1 is internal validation (Feb-Jun 2026)
 - **Phase 2 External Launch**: July 2026+ (after 4-6 months internal validation)
 - **Rationale**: Quality over speed - validate internally before external reputation risk
@@ -454,7 +454,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 **Investment**: $48K
 
 **Deliverables** (Internal-Only Phase 1):
-- 5-8 MTC/NQH internal teams using SDLC Orchestrator daily
+- 5-8 MTS/NQH internal teams using SDLC Orchestrator daily
 - Internal support playbook (Slack channel, daily standups)
 - Usage tracking dashboard (Grafana metrics, not revenue)
 - Internal feedback loops (weekly retrospectives)
@@ -506,12 +506,12 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - ⏳ Week 2: Legal clearance (G1 CRITICAL)
 - ⏳ Week 3-4: Architecture (G2)
 - ⏳ Week 5-10: Build (G3, 5 core capabilities)
-- ⏳ Week 11: Internal Beta (G4, 5-8 MTC/NQH teams, 70%+ daily usage)
+- ⏳ Week 11: Internal Beta (G4, 5-8 MTS/NQH teams, 70%+ daily usage)
 - ⏳ Week 12: Deploy (G5, production live - internal only)
 - ⏳ Week 13: Operate (G6, internal validation - Phase 1: $0 MRR)
 
 **Exit Criteria** (Phase 1: Internal Validation):
-- 5-8 MTC/NQH internal teams using daily
+- 5-8 MTS/NQH internal teams using daily
 - 70%+ Daily Active Usage
 - Waste reduction from 60-70% → <30%
 - Zero P0 bugs for 30 days
@@ -624,7 +624,7 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - AI Engineer (1.5 FTE): Claude/GPT-4o/Gemini integration
 - QA (1.0 FTE): Test automation
 
-### Week 11 (Test): 8.5 FTE + 5-8 MTC/NQH internal teams
+### Week 11 (Test): 8.5 FTE + 5-8 MTS/NQH internal teams
 - QA (2.0 FTE): Bug triage, test execution
 - Backend/Frontend (4.0 FTE): Bug fixes
 - PM (1.0 FTE): Internal beta coordination, feedback sessions
@@ -692,7 +692,7 @@ Week 1 (Foundation)
 - **Contingency**: If Claude API unstable, switch primary to GPT-4o (lower quality, but reliable)
 
 **Risk 4: Internal Beta Usage <70%** (Week 11)
-- **Mitigation**: Internal-first strategy (MTC/NQH teams), faster feedback loop
+- **Mitigation**: Internal-first strategy (MTS/NQH teams), faster feedback loop
 - **Contingency**: Extend internal beta 1 week, daily feedback sessions, UX improvements
 
 ---
@@ -845,7 +845,7 @@ Week 1 (Foundation)
 - [ ] Performance benchmarks met
 
 ### ⏳ G4: Internal Validation (Week 11 - CRITICAL)
-- [ ] 5-8 MTC/NQH internal teams onboarded
+- [ ] 5-8 MTS/NQH internal teams onboarded
 - [ ] 70%+ Daily Active Usage
 - [ ] NPS 50+ from internal users
 - [ ] Zero P0 bugs
@@ -859,7 +859,7 @@ Week 1 (Foundation)
 - [ ] Documentation complete
 
 ### ⏳ G6: Internal Validation (Week 13 - Phase 1)
-- [ ] 5-8 MTC/NQH internal teams using daily (50-100 engineers)
+- [ ] 5-8 MTS/NQH internal teams using daily (50-100 engineers)
 - [ ] 70%+ daily active usage (sticky product)
 - [ ] Measurable waste reduction (60-70% → <30%)
 - [ ] Zero P0 bugs for 30 days
@@ -880,7 +880,7 @@ Week 1 (Foundation)
 
 **What We'll Do Differently**:
 1. ✅ Design Thinking Week 1 (6 docs: Personas, Problem, POV, HMW, Empathy, Journey)
-2. ✅ Internal beta with MTC/NQH teams Week 11 (validate 70%+ daily usage)
+2. ✅ Internal beta with MTS/NQH teams Week 11 (validate 70%+ daily usage)
 3. ✅ Internal-first strategy (Feb-Jun 2026 validation before external launch)
 4. ✅ External CTO review Week 4 (prevent architecture groupthink)
 
@@ -918,7 +918,7 @@ Week 1 (Foundation)
 ### Immediate (This Week - Week 1)
 - [x] Complete Stage 00 docs (9/14 complete, 5 remaining)
 - [ ] Schedule Legal Review kickoff (Week 2 Monday)
-- [ ] Coordinate with MTC/NQH teams for internal beta (Week 11+)
+- [ ] Coordinate with MTS/NQH teams for internal beta (Week 11+)
 - [ ] Finalize team contracts (8.5 FTE signed)
 
 ### Week 2 Prep (Next Week)

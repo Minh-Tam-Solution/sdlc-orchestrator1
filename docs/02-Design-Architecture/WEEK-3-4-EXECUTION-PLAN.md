@@ -253,7 +253,7 @@
    - Authentication flow testing
 
 2. **Database Integration Testing** (4 hours)
-   - Seed data creation (MTC/NQH project examples)
+   - Seed data creation (MTS/NQH project examples)
    - Query performance testing (<200ms target)
    - Relationship integrity validation
    - Migration testing (up/down cycles)
@@ -656,7 +656,7 @@
 - **Week 5-6**: Core API implementation (FR1-FR2)
 - **Week 7-8**: AI Engine + Policy Library (FR3, FR5)
 - **Week 9-10**: Frontend + Dashboard (FR4)
-- **Week 11**: Internal Beta (5-8 MTC/NQH teams)
+- **Week 11**: Internal Beta (5-8 MTS/NQH teams)
 - **Week 12**: Bug fixes + Gate G6 (Ship Ready)
 
 **Target**: MVP Launch (Week 13 - Feb 10, 2026)

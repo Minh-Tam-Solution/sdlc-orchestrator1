@@ -18,6 +18,7 @@ import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
 import ProjectsPage from '@/pages/ProjectsPage'
 import ProjectDetailPage from '@/pages/ProjectDetailPage'
+import GatesPage from '@/pages/GatesPage'
 import GateDetailPage from '@/pages/GateDetailPage'
 import EvidencePage from '@/pages/EvidencePage'
 import PoliciesPage from '@/pages/PoliciesPage'
@@ -65,6 +66,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProjectDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gates"
+            element={
+              <ProtectedRoute>
+                <GatesPage />
               </ProtectedRoute>
             }
           />
