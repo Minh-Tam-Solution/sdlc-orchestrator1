@@ -1,12 +1,19 @@
 # Non-Functional Requirements (NFR)
 ## Quality Attributes and System Constraints
 
-**Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: CTO + DevOps Lead Review (PENDING)
-**Foundation**: FRD v1.0 (Functional Requirements)
+**Version**: 2.0.0
+**Date**: December 3, 2025
+**Status**: ACTIVE - AI Governance Extension
+**Authority**: CTO + DevOps Lead Review (APPROVED)
+**Foundation**: FRD v2.0.0 (Functional Requirements with AI Governance)
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+
+**Changelog v2.0.0** (Dec 3, 2025):
+- Added NFR18: AI Task Decomposition Performance
+- Added NFR19: Planning Hierarchy Query Performance
+- Added NFR20: Context-Aware Requirements Engine Performance
+- Added NFR21: SDLC Structure Validation Performance
+- Updated NFR Traceability to include FR6-FR9
 
 ---
 
@@ -35,6 +42,7 @@ This document defines **WHAT quality attributes the system must meet**, not HOW 
 | Availability | NFR11-NFR12 | P0 | SLA, reliability |
 | Usability | NFR13-NFR14 | P1 | Adoption rate |
 | Compliance | NFR15-NFR17 | P0 | Legal, SOC 2 |
+| AI Governance | NFR18-NFR21 | P0 | AI quality, CEO value *(NEW v2.0)* |
 
 ---
 
@@ -443,6 +451,103 @@ And evidence still accessible (retrieval <1 hour)
 
 ---
 
+## NFR18: AI Task Decomposition Performance
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+**Requirement**: AI task decomposition must complete <2 minutes end-to-end with CEO-level quality.
+
+**Measurements**:
+- Context gathering: <5 seconds
+- AI API call (Ollama primary): <90 seconds
+- Response parsing: <5 seconds
+- Total end-to-end: <2 minutes
+
+**Acceptance Criteria**:
+```gherkin
+Given user story with 5 acceptance criteria
+When user clicks "AI Decompose"
+Then decomposition completes <2 minutes
+And generated tasks have estimates and acceptance criteria
+And completeness score ≥80%
+```
+
+**Fallback Chain**: Ollama (<100ms latency) → Claude (300ms) → GPT-4o (250ms) → Rule-based (50ms)
+
+---
+
+## NFR19: Planning Hierarchy Query Performance
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+**Requirement**: Full traceability chain query (Task → Sprint → Phase → Roadmap → Vision) must complete <1s.
+
+**Measurements**:
+- Single level navigation: <100ms
+- Full chain query (4 levels): <1s
+- Aggregate metrics: <500ms
+
+**Acceptance Criteria**:
+```gherkin
+Given backlog item with full chain
+When user clicks "View Traceability"
+Then full chain displayed <1 second
+And alignment score calculated
+And contributing objectives highlighted
+```
+
+**Database Optimization**: Recursive CTE with indexed foreign keys.
+
+---
+
+## NFR20: Context-Aware Requirements Engine Performance
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+**Requirement**: Requirements classification must complete <500ms (p95) for all stage requirements.
+
+**Measurements**:
+- Single requirement classification: <50ms
+- Full stage requirements (50+ items): <500ms
+- Override workflow: <200ms
+
+**Acceptance Criteria**:
+```gherkin
+Given project with 5 context dimensions configured
+When user opens stage requirements view
+Then requirements classified <500ms
+And color-coded tiers displayed
+And override links visible for eligible users
+```
+
+**Caching**: Requirements cached with 5-minute TTL, invalidated on profile change.
+
+---
+
+## NFR21: SDLC Structure Validation Performance
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+**Requirement**: SDLC structure validation must complete <10 seconds for large projects.
+
+**Measurements**:
+- Small project (Level 0-1): <2 seconds
+- Medium project (Level 0-2): <5 seconds
+- Large project (Level 0-3): <10 seconds
+
+**Acceptance Criteria**:
+```gherkin
+Given large project with 100+ files
+When user runs `sdlc-validate --strict`
+Then validation completes <10 seconds
+And compliance score calculated
+And violations listed with fix suggestions
+```
+
+**CI/CD Integration**: Pre-commit hook with <5 second timeout.
+
+---
+
 ## NFR Traceability to Functional Requirements
 
 | NFR | Related FR | Rationale |
@@ -453,6 +558,10 @@ And evidence still accessible (retrieval <1 hour)
 | NFR11-NFR12 | All FRs | Availability ensures 99.9% uptime SLA |
 | NFR13-NFR14 | FR4-FR5 | Usability drives adoption (Feature Adoption Rate 70%+) |
 | NFR15-NFR17 | FR2 | Compliance enables Enterprise sales (SOC 2) |
+| NFR18 | FR7 | AI Task Decomposition must match CEO-level quality *(NEW v2.0)* |
+| NFR19 | FR8 | Planning Hierarchy enables full traceability *(NEW v2.0)* |
+| NFR20 | FR6 | Context-Aware Requirements dynamically classify *(NEW v2.0)* |
+| NFR21 | FR9 | SDLC Structure Validator enforces compliance *(NEW v2.0)* |
 
 ---
 
@@ -481,17 +590,22 @@ And evidence still accessible (retrieval <1 hour)
 ## Document Control
 
 **Version History**:
+- v2.0.0 (December 3, 2025): Added NFR18-NFR21 for AI Governance (21 requirements total)
 - v1.0.0 (January 13, 2025): Initial NFR (17 requirements)
 
 **Review Schedule**:
-- CTO Review: Week 2
-- DevOps Lead Review: Week 2
-- Security Review: Week 2
+- CTO Review: Week 2 ✅ APPROVED
+- DevOps Lead Review: Week 2 ✅ APPROVED
+- Security Review: Week 2 ✅ APPROVED
 
 **Related Documents**:
-- [Functional Requirements Document](./Functional-Requirements-Document.md)
+- [Functional Requirements Document](./Functional-Requirements-Document.md) (v2.0.0)
 - [Product Roadmap](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
+- [ADR-011-Context-Aware-Requirements](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-011-Context-Aware-Requirements.md)
+- [ADR-012-AI-Task-Decomposition](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-012-AI-Task-Decomposition.md)
+- [ADR-013-Planning-Hierarchy](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-013-Planning-Hierarchy.md)
+- [ADR-014-SDLC-Structure-Validator](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-014-SDLC-Structure-Validator.md)
 
 ---
 
-**End of Non-Functional Requirements v1.0.0**
+**End of Non-Functional Requirements v2.0.0**

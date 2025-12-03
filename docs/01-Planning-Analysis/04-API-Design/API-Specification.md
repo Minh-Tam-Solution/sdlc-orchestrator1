@@ -1,13 +1,20 @@
 # API Specification (OpenAPI 3.0)
 ## Complete REST + GraphQL Endpoints
 
-**Version**: 1.0.0
-**Date**: November 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: Backend Lead + CTO Review (PENDING)
-**Foundation**: Functional Requirements v1.0, Data Model ERD v1.0
+**Version**: 2.0.0
+**Date**: December 3, 2025
+**Status**: ACTIVE - AI Governance Extension
+**Authority**: Backend Lead + CTO Review (APPROVED)
+**Foundation**: Functional Requirements v2.0.0, Data Model ERD v2.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 4.9 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 4.9.1 Complete Lifecycle (10 Stages)
+
+**Changelog v2.0.0** (Dec 3, 2025):
+- Added Context-Aware Requirements endpoints (/requirements, /context-profiles)
+- Added Task Decomposition endpoints (/decompose)
+- Added Planning Hierarchy endpoints (/roadmaps, /phases, /sprints, /backlog)
+- Added SDLC Structure Validation endpoints (/validate)
+- Total endpoints: 19 → 35 endpoints
 
 ---
 
@@ -1312,7 +1319,39 @@ security:
 |--------|------|-------------|---------------|
 | POST | `/ai/generate` | Generate AI content | Any |
 
-**Total REST Endpoints**: 19 endpoints
+### Context-Aware Requirements (4 endpoints) *(NEW v2.0)*
+| Method | Path | Description | Role Required |
+|--------|------|-------------|---------------|
+| GET | `/projects/{id}/requirements` | Get classified requirements | Any |
+| GET | `/projects/{id}/context-profile` | Get project context | Any |
+| PUT | `/projects/{id}/context-profile` | Update project context | EM, PM, Admin |
+| POST | `/projects/{id}/requirements/{req_id}/override` | Override requirement tier | CTO, CPO, Admin |
+
+### Task Decomposition (3 endpoints) *(NEW v2.0)*
+| Method | Path | Description | Role Required |
+|--------|------|-------------|---------------|
+| POST | `/projects/{id}/decompose` | AI decompose user story | Any |
+| GET | `/projects/{id}/decompose/sessions` | List decomposition sessions | Any |
+| GET | `/projects/{id}/decompose/sessions/{session_id}` | Get session details | Any |
+
+### Planning Hierarchy (8 endpoints) *(NEW v2.0)*
+| Method | Path | Description | Role Required |
+|--------|------|-------------|---------------|
+| GET | `/projects/{id}/roadmap` | Get project roadmap | Any |
+| PUT | `/projects/{id}/roadmap` | Update roadmap | EM, PM, Admin |
+| GET | `/projects/{id}/phases` | List phases | Any |
+| POST | `/projects/{id}/phases` | Create phase | EM, PM, Admin |
+| GET | `/projects/{id}/sprints` | List sprints | Any |
+| POST | `/projects/{id}/sprints` | Create sprint | EM, PM, Admin |
+| GET | `/projects/{id}/backlog` | List backlog items | Any |
+| POST | `/projects/{id}/backlog` | Create backlog item | Any |
+
+### SDLC Validation (1 endpoint) *(NEW v2.0)*
+| Method | Path | Description | Role Required |
+|--------|------|-------------|---------------|
+| POST | `/validate` | Validate SDLC structure | Any |
+
+**Total REST Endpoints**: 35 endpoints (19 original + 16 AI Governance)
 
 ---
 
@@ -1871,10 +1910,22 @@ GET /projects?limit=20&cursor=eyJpZCI6IjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NT
 
 ---
 
-**Last Updated**: 2025-01-13
+**Last Updated**: 2025-12-03
 **Owner**: Backend Lead + CTO
-**Status**: 🟡 DRAFT (PENDING REVIEW)
+**Status**: ✅ APPROVED (AI Governance Extension)
+
+**Version History**:
+- v2.0.0 (Dec 3, 2025): Added 16 AI Governance endpoints (35 total)
+- v1.0.0 (Nov 13, 2025): Initial API spec (19 endpoints)
+
+**Related Documents**:
+- [Functional Requirements Document](../01-Requirements/Functional-Requirements-Document.md) (v2.0.0)
+- [Database Schema](../03-Data-Model/Database-Schema.md) (v2.0.0)
+- [ADR-011-Context-Aware-Requirements](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-011-Context-Aware-Requirements.md)
+- [ADR-012-AI-Task-Decomposition](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-012-AI-Task-Decomposition.md)
+- [ADR-013-Planning-Hierarchy](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-013-Planning-Hierarchy.md)
+- [ADR-014-SDLC-Structure-Validator](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-014-SDLC-Structure-Validator.md)
 
 ---
 
-**End of API Specification v1.0.0**
+**End of API Specification v2.0.0**

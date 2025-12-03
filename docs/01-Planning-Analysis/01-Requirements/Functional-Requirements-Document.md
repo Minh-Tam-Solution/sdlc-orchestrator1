@@ -1,11 +1,17 @@
 # Functional Requirements Document (FRD) - SDLC Orchestrator
 
-**Version**: 1.0.0
-**Date**: November 21, 2025
-**Status**: ACTIVE - Week 2 Planning Phase
+**Version**: 2.0.0
+**Date**: December 3, 2025
+**Status**: ACTIVE - AI Governance Extension
 **Authority**: PM + CTO + CPO + Full Team Approved
 **Foundation**: Product Vision, BRD v1.2, Stage 02 Architecture
-**Framework**: SDLC 4.9 Complete Lifecycle
+**Framework**: SDLC 4.9.1 Complete Lifecycle
+
+**Changelog v2.0.0** (Dec 3, 2025):
+- Added FR6: Context-Aware Stage Requirements (ADR-011)
+- Added FR7: AI Task Decomposition Service (ADR-012)
+- Added FR8: 4-Level Planning Hierarchy (ADR-013)
+- Added FR9: SDLC Structure Validator (ADR-014)
 
 ---
 
@@ -13,12 +19,16 @@
 
 **Purpose**: Define WHAT the SDLC Orchestrator will build in Sprint 1-4 (November 14 - February 10, 2026).
 
-**Scope**: 5 core functional requirements aligned with Product Vision MVP features:
+**Scope**: 9 core functional requirements aligned with Product Vision MVP features:
 1. **FR1: Quality Gate Management** - Policy-as-Code enforcement using OPA
 2. **FR2: Evidence Vault** - Permanent audit trail with SHA256 integrity
 3. **FR3: AI Context Engine** - Multi-provider stage-aware assistance
 4. **FR4: Real-Time Dashboard** - Live gate status visualization
 5. **FR5: Policy Pack Library** - Pre-built SDLC 4.9 policies
+6. **FR6: Context-Aware Stage Requirements** - Dynamic MANDATORY/RECOMMENDED/OPTIONAL *(NEW v2.0)*
+7. **FR7: AI Task Decomposition** - User story → Tasks with CEO-level quality *(NEW v2.0)*
+8. **FR8: 4-Level Planning Hierarchy** - Roadmap → Phase → Sprint → Backlog *(NEW v2.0)*
+9. **FR9: SDLC Structure Validator** - Folder compliance enforcement *(NEW v2.0)*
 
 **Timeline**: Week 2 (Nov 21-25) - Detailed specs for Week 3-4 architecture design.
 
@@ -1886,6 +1896,218 @@ Response (400 Bad Request - Regression Tests Failed):
 - CPO: User experience flows approved
 - Backend Lead: API contracts reviewed
 - Frontend Lead: UI mockups feasible
+
+---
+
+## FR6: Context-Aware Stage Requirements
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+### Overview
+
+**Capability**: Dynamic requirement classification based on project context (scale, industry, risk).
+
+**Business Value**: Enable any PM to apply CEO-level governance decisions automatically.
+
+**ADR Reference**: [ADR-011-Context-Aware-Requirements](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-011-Context-Aware-Requirements.md)
+
+---
+
+### FR6.1: 3-Tier Requirement Classification
+
+**Actor**: PM/Tech Lead
+**Precondition**: Project profile configured
+
+**Main Flow**:
+1. User opens stage requirements view
+2. System calculates requirement tiers based on project profile
+3. System displays requirements with color-coded classification:
+   - 🔴 MANDATORY: Cannot skip
+   - 🟡 RECOMMENDED: Skip with justification
+   - ⚪ OPTIONAL: Nice-to-have
+
+**Acceptance Criteria**:
+- AC1: Requirements auto-classified based on 5 context dimensions
+- AC2: Classification updates when project profile changes
+- AC3: Override requests tracked with approval workflow
+
+---
+
+### FR6.2: Requirement Override Workflow
+
+**Actor**: PM
+**Precondition**: User has "requirements.override" permission
+
+**Main Flow**:
+1. User selects requirement to override
+2. User provides justification and selects new tier
+3. System routes MANDATORY downgrades to CTO/Security Lead
+4. Approver reviews and approves/rejects
+5. System applies override and logs audit trail
+
+**Acceptance Criteria**:
+- AC1: MANDATORY downgrades require CTO approval
+- AC2: Override history visible in audit log
+- AC3: Override can be reverted
+
+---
+
+## FR7: AI Task Decomposition Service
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+### Overview
+
+**Capability**: AI-powered decomposition of user stories into structured tasks.
+
+**Business Value**: Reduce PM task decomposition time from 30-45min to <2min with same quality.
+
+**ADR Reference**: [ADR-012-AI-Task-Decomposition](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-012-AI-Task-Decomposition.md)
+
+---
+
+### FR7.1: User Story Decomposition
+
+**Actor**: PM/Tech Lead
+**Precondition**: User story exists, AI service available
+
+**Main Flow**:
+1. User selects user story and clicks "AI Decompose"
+2. System builds context (project profile, existing components, similar stories)
+3. System calls AI Gateway (Ollama → Claude fallback)
+4. System parses AI response into structured tasks
+5. System displays tasks with estimates, acceptance criteria, dependencies
+6. User reviews, modifies, approves tasks
+7. System stores approved tasks in backlog
+
+**Acceptance Criteria**:
+- AC1: Decomposition completes in <2 minutes
+- AC2: Generated tasks have estimates and acceptance criteria
+- AC3: Completeness score calculated and displayed
+- AC4: User can modify AI-generated tasks before approval
+
+---
+
+### FR7.2: Export to GitHub Issues
+
+**Actor**: PM
+**Precondition**: Decomposition approved, GitHub connected
+
+**Main Flow**:
+1. User clicks "Export to GitHub"
+2. System creates GitHub Issues for each approved task
+3. System links issues to sprint milestone
+4. System syncs back issue IDs to Orchestrator
+
+**Acceptance Criteria**:
+- AC1: GitHub Issues created with labels and assignees
+- AC2: Backlog items linked to GitHub Issue URLs
+- AC3: Two-way status sync (bridge pattern)
+
+---
+
+## FR8: 4-Level Planning Hierarchy
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+### Overview
+
+**Capability**: Structured planning from vision to daily tasks.
+
+**Business Value**: Full traceability from code commit to business value.
+
+**ADR Reference**: [ADR-013-Planning-Hierarchy](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-013-Planning-Hierarchy.md)
+
+---
+
+### FR8.1: Planning Hierarchy Navigation
+
+**Actor**: PM/CEO/CTO
+**Precondition**: Roadmap exists
+
+**Main Flow**:
+1. User views Roadmap (Level 1)
+2. User drills down to Phase (Level 2)
+3. User drills down to Sprint (Level 3)
+4. User drills down to Backlog (Level 4)
+5. System displays traceability chain at each level
+
+**Acceptance Criteria**:
+- AC1: Navigation between levels is seamless
+- AC2: Traceability chain visible at each level
+- AC3: Progress metrics aggregated up the hierarchy
+
+---
+
+### FR8.2: Traceability Chain View
+
+**Actor**: PM/Tech Lead
+**Precondition**: Backlog item exists
+
+**Main Flow**:
+1. User selects backlog item
+2. System displays traceability chain:
+   - Task → Sprint → Phase → Roadmap → Vision
+3. System calculates alignment score
+4. System highlights contributing objectives
+
+**Acceptance Criteria**:
+- AC1: Full chain displayed in <1 second
+- AC2: Alignment score calculated (0-100%)
+- AC3: Orphan tasks (no sprint) flagged with warning
+
+---
+
+## FR9: SDLC Structure Validator
+
+*(Added in v2.0.0 - December 3, 2025)*
+
+### Overview
+
+**Capability**: Automated enforcement of SDLC 4.9.1 folder structure.
+
+**Business Value**: Consistent project structure across all repositories.
+
+**ADR Reference**: [ADR-014-SDLC-Structure-Validator](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-014-SDLC-Structure-Validator.md)
+
+---
+
+### FR9.1: CLI Validation Tool
+
+**Actor**: Developer
+**Precondition**: Project has .sdlc-config.json
+
+**Main Flow**:
+1. Developer runs `sdlc-validate --strict`
+2. Tool loads project configuration
+3. Tool validates stage folders exist and named correctly
+4. Tool validates level structure matches project size
+5. Tool calculates compliance score
+6. Tool outputs report (text/JSON)
+
+**Acceptance Criteria**:
+- AC1: Validates all 11 stage folders (00-10)
+- AC2: Detects naming variations and suggests corrections
+- AC3: Compliance score calculated (0-100%)
+- AC4: Exit code 1 if compliance <90% (for CI/CD)
+
+---
+
+### FR9.2: Pre-commit Hook Integration
+
+**Actor**: Developer
+**Precondition**: Pre-commit installed
+
+**Main Flow**:
+1. Developer attempts commit
+2. Pre-commit hook triggers sdlc-validate
+3. If compliance <90%, commit blocked
+4. Developer fixes issues and retries
+
+**Acceptance Criteria**:
+- AC1: Hook blocks non-compliant commits
+- AC2: Clear error messages with fix suggestions
+- AC3: --fix option available for auto-fixable issues
 
 ---
 
