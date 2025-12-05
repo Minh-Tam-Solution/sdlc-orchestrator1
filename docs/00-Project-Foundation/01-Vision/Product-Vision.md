@@ -5,14 +5,14 @@
 **Date**: December 3, 2025
 **Status**: ACTIVE - AI GOVERNANCE EXTENSION
 **Authority**: CEO + CPO + CTO Approved
-**Foundation**: SDLC 4.9.1 Complete Lifecycle (10 Stages)
+**Foundation**: SDLC 5.0.0 Complete Lifecycle (10 Stages + 4-Tier Classification)
 **Positioning**: Governance-First (NOT Project Management)
 
 **Changelog v2.0.0** (Dec 3, 2025):
 - Added AI Governance Layer vision (encode CEO's brain into platform)
 - Added Context-Aware Requirements as core capability
 - Added 4-Level Planning Hierarchy as value proposition
-- Updated to SDLC 4.9.1 framework reference  
+- Updated to SDLC 5.0.0 framework reference (4-Tier Classification)  
 
 ---
 
