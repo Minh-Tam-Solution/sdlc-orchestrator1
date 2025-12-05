@@ -21,6 +21,7 @@ export const TEST_USER = {
 /**
  * Login to the application with test credentials.
  * Uses flexible selectors to handle different input implementations.
+<<<<<<< HEAD
  * Includes retry logic for parallel test stability.
  */
 export async function login(page: Page, email = TEST_USER.email, password = TEST_USER.password): Promise<void> {
@@ -85,6 +86,46 @@ export async function login(page: Page, email = TEST_USER.email, password = TEST
   }
 
   throw lastError || new Error('Login failed after max retries')
+=======
+ */
+export async function login(page: Page, email = TEST_USER.email, password = TEST_USER.password): Promise<void> {
+  // Navigate to login page
+  await page.goto('/login')
+
+  // Wait for page to be ready
+  await page.waitForLoadState('networkidle')
+
+  // Find and fill email input (try multiple selectors)
+  const emailInput = page.locator('input[type="email"], input#email, input[name="email"]').first()
+  await emailInput.waitFor({ state: 'visible', timeout: 10000 })
+  await emailInput.fill(email)
+
+  // Find and fill password input
+  const passwordInput = page.locator('input[type="password"], input#password, input[name="password"]').first()
+  await passwordInput.waitFor({ state: 'visible', timeout: 5000 })
+  await passwordInput.fill(password)
+
+  // Click login button
+  const loginButton = page.getByRole('button', { name: /sign in|login|submit/i })
+  await loginButton.click()
+
+  // Wait for login to complete - button changes to "Signing in..." then redirects
+  // Wait for the button to not be disabled (loading finished)
+  await page.waitForFunction(
+    () => {
+      const btn = document.querySelector('button[type="submit"], button:has-text("Sign in"), button:has-text("Login")')
+      return !btn || !btn.hasAttribute('disabled')
+    },
+    { timeout: 20000 }
+  ).catch(() => {
+    // Ignore if button is gone (redirected)
+  })
+
+  // Wait for redirect - dashboard is at / or /dashboard
+  // After login, we should NOT be on /login anymore
+  await page.waitForTimeout(1000)
+  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 })
+>>>>>>> e4e08a4422114f82896f50256a793810a38a0c5b
 }
 
 /**
