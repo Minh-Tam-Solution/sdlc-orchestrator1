@@ -131,6 +131,9 @@ def upgrade() -> None:
     # =========================================================================
 
     # Password hash for "Admin@123" (bcrypt, cost=12)
+    # nosemgrep: generic.secrets.security.detected-bcrypt-hash
+    # SECURITY NOTE: This is seed data for development/testing only.
+    # In production, users should be created via proper onboarding flow.
     password_hash = "$2b$12$gbdaanPRphcu5qGFfd1AxuPE9tEuPDjazMcnz8oSfqDKE/T1961tm"
 
     admin_user_id = "a0000000-0000-0000-0000-000000000001"
