@@ -9,9 +9,37 @@
 
 ---
 
-## 🎯 What's New in SDLC 5.0.0 (December 5, 2025)
+## 🎯 What's New in SDLC 5.0.0 (December 6, 2025)
 
-### Governance & Compliance Standards (NEW)
+### Stage Restructuring: INTEGRATION → Stage 03 (CRITICAL)
+
+**SDLC 5.0.0** moves **INTEGRATION from Stage 07 to Stage 03** to enforce Contract-First development:
+
+```yaml
+Why This Change?
+  Problem: In 4.x, INTEGRATE was Stage 07 (after OPERATE)
+  Issue: Cannot design APIs after system is in production
+  Solution: Move INTEGRATION to Stage 03, BEFORE BUILD (Stage 04)
+
+New Stage Order (Linear 00-07, Continuous 08-09):
+  00-foundation    # WHY - Problem Definition
+  01-planning      # WHAT - Requirements
+  02-design        # HOW - Architecture
+  03-integration   # API Design (MOVED FROM 07) ← Contract-First
+  04-build         # Development
+  05-test          # Quality Assurance
+  06-deploy        # Release
+  07-operate       # Production
+  08-collaborate   # Team (Continuous)
+  09-govern        # Compliance (Continuous)
+
+Industry Alignment:
+  - ISO/IEC 12207: Integration in Technical processes (before Operation)
+  - DevOps CI: Continuous Integration during Build, not post-production
+  - NIST SSDF: Secure design before implementation
+```
+
+### Governance & Compliance Standards
 
 **SDLC 5.0.0** introduces comprehensive **Governance & Compliance standards** integrated into `02-Core-Methodology`:
 
@@ -142,11 +170,12 @@ SDLC 5.0.0 (December 5, 2025)
 - ✅ **Pillar 0**: Design Thinking Foundation (5 phases, 9 templates, NQH-Bot case study)
 - ✅ **Pillars 1-5**: AI-Native Excellence (from SDLC 4.7)
 
-### What SDLC 4.9 Adds (6 Additional Stages - NEW):
-- ➕ **Stage 04 (TEST)**: Comprehensive quality validation and QA
-- ➕ **Stage 05 (DEPLOY)**: Production go-live execution
-- ➕ **Stage 06 (OPERATE)**: Sustain production excellence
-- ➕ **Stage 07 (INTEGRATE)**: Seamless system and service integration
+### What SDLC 4.9 Added (6 Additional Stages) - RESTRUCTURED in 5.0.0:
+- ➕ **Stage 03 (INTEGRATION)**: API Design & System Integration ← **MOVED from 07 in 5.0.0**
+- ➕ **Stage 04 (BUILD)**: Development & Implementation ← Renumbered (was 03)
+- ➕ **Stage 05 (TEST)**: Comprehensive quality validation and QA ← Renumbered (was 04)
+- ➕ **Stage 06 (DEPLOY)**: Production go-live execution ← Renumbered (was 05)
+- ➕ **Stage 07 (OPERATE)**: Sustain production excellence ← Renumbered (was 06)
 - ➕ **Stage 08 (COLLABORATE)**: Effective team coordination and knowledge sharing
 - ➕ **Stage 09 (GOVERN)**: Strategic oversight, compliance, and risk management
 
@@ -171,11 +200,12 @@ This became the catalyst for **SDLC 4.9 enhancement** - expanding from 4 stages 
 - ✅ Zero Mock Policy - MAINTAINED
 - ✅ AI tools integration patterns - MAINTAINED
 
-**What's ADDED in 4.9** (10% new content):
-- ➕ 6 new stages (TEST, DEPLOY, OPERATE, INTEGRATE, COLLABORATE, GOVERN)
+**What's ADDED in 4.9/5.0.0** (10% new content):
+- ➕ 6 new stages (INTEGRATION, TEST, DEPLOY, OPERATE, COLLABORATE, GOVERN)
+- ➕ **5.0.0 Restructure**: INTEGRATION moved from Stage 07 → Stage 03 (Contract-First)
 - ➕ BFlow Platform complete 10-stage journey (52 days, Nov 1 - Dec 20, 2025)
-- ➕ 10-stage continuous loop diagram
-- ➕ Perfect /docs structure alignment (10 stages → 10 folders)
+- ➕ 10-stage continuous loop diagram (Linear 00-07, Continuous 08-09)
+- ➕ Perfect /docs structure alignment (10 stages → 10 folders, lowercase naming)
 - ➕ Enhanced ROI (7,322% → 14,822%)
 
 **Impact**:
@@ -226,63 +256,79 @@ SDLC 4.9 (6 Pillars + 10 Stages) - November 13, 2025:
 
 ---
 
-## 📊 10-Stage Complete Lifecycle Overview
+## 📊 10-Stage Complete Lifecycle Overview (SDLC 5.0.0 Restructured)
+
+### CRITICAL RESTRUCTURE: INTEGRATE Moved from Stage 07 to Stage 03
+
+**Rationale**: Contract-First principle - API Design must happen BEFORE coding begins:
+- ISO/IEC 12207:2017 places Integration in Technical processes (before Operation)
+- DevOps best practices: CI happens during Build, not post-production
+- Practical logic: Cannot design APIs after system is in production
 
 ### Business Questions → SDLC Stages → Documentation Structure
 
 ```yaml
 ┌─────────────────────────────────────────────────────────────────┐
-│ Question → Stage → /docs Folder (BFlow Example)                │
+│ SDLC 5.0.0 Restructured Stage Order                            │
 ├─────────────────────────────────────────────────────────────────┤
-│ WHY?        → Stage 00: Foundation    → 00-Project-Foundation/  │
-│ WHAT?       → Stage 01: Planning      → 01-Planning-Analysis/   │
-│ HOW?        → Stage 02: Design        → 02-Architecture-Design/ │
-│ BUILD       → Stage 03: Development   → 03-Development/         │
-│ TEST        → Stage 04: Quality       → 04-Quality-Assurance/   │
-│ DEPLOY      → Stage 05: Deployment    → 05-Deployment/          │
-│ OPERATE     → Stage 06: Operations    → 06-Operations/          │
-│ INTEGRATE   → Stage 07: Integration   → 07-Integration/         │
-│ COLLABORATE → Stage 08: Team Mgmt     → 08-Team-Management/     │
-│ GOVERN      → Stage 09: Governance    → 09-Executive-Reports/   │
+│ LINEAR STAGES (Sequential - One-time per release):             │
+│ WHY?        → Stage 00: foundation    → 00-foundation/          │
+│ WHAT?       → Stage 01: planning      → 01-planning/            │
+│ HOW?        → Stage 02: design        → 02-design/              │
+│ INTEGRATE   → Stage 03: integration   → 03-integration/         │  ← MOVED
+│ BUILD       → Stage 04: build         → 04-build/               │
+│ TEST        → Stage 05: test          → 05-test/                │
+│ DEPLOY      → Stage 06: deploy        → 06-deploy/              │
+│ OPERATE     → Stage 07: operate       → 07-operate/             │
+├─────────────────────────────────────────────────────────────────┤
+│ CONTINUOUS STAGES (Ongoing - Throughout project):              │
+│ COLLABORATE → Stage 08: collaborate   → 08-collaborate/         │
+│ GOVERN      → Stage 09: govern        → 09-govern/              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### The Continuous Loop
+### The Linear + Continuous Flow
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│              CONTINUOUS IMPROVEMENT LOOP                      │
+│           LINEAR STAGES (Sequential - 00-07)                  │
 └──────────────────────────────────────────────────────────────┘
 
-   WHY? → WHAT? → HOW? → BUILD → TEST → DEPLOY → OPERATE
-     ↑                                             ↓
-     └────────── LEARN & ITERATE ←────────────────┘
-                       ↓
-       INTEGRATE ← COLLABORATE ← GOVERN (Cross-Cutting)
+   WHY? → WHAT? → HOW? → INTEGRATE → BUILD → TEST → DEPLOY → OPERATE
+     ↑                                                          ↓
+     └────────────────── LEARN & ITERATE ←─────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│      CONTINUOUS STAGES (Ongoing - 08-09)                     │
+└──────────────────────────────────────────────────────────────┘
+
+   COLLABORATE + GOVERN run throughout the entire project lifecycle
 
 Detailed Flow:
 
-00. WHY?        (Foundation) - Design Thinking: EMPATHIZE + DEFINE
+00. WHY?        (foundation) - Design Thinking: EMPATHIZE + DEFINE
      ↓
-01. WHAT?       (Planning) - Design Thinking: IDEATE (start)
+01. WHAT?       (planning) - Design Thinking: IDEATE (start)
      ↓
-02. HOW?        (Design) - Design Thinking: IDEATE (complete)
+02. HOW?        (design) - Design Thinking: IDEATE (complete)
      ↓
-03. BUILD       (Development) - Design Thinking: PROTOTYPE + TEST
+03. INTEGRATE   (integration) - API Design, OpenAPI spec, Event schemas  ← NEW POSITION
      ↓
-04. TEST        (Quality Assurance) - Validate: Unit + Integration + UAT
+04. BUILD       (build) - Design Thinking: PROTOTYPE + TEST
      ↓
-05. DEPLOY      (Go-Live) - Blue-green deployment, War room
+05. TEST        (test) - Validate: Unit + Integration + UAT
      ↓
-06. OPERATE     (Production) - Monitor, Maintain, Support
-     │
-     ├→ 07. INTEGRATE  (APIs, Events, Data)
-     ├→ 08. COLLABORATE (Team, Communication)
-     └→ 09. GOVERN     (Reports, Compliance, Risk)
-     
+06. DEPLOY      (deploy) - Blue-green deployment, War room
+     ↓
+07. OPERATE     (operate) - Monitor, Maintain, Support
+
      ↓ LEARN from production
-     
+
      → Loop back to WHY? (for next feature/enhancement)
+
+Throughout All Linear Stages:
+  08. COLLABORATE (collaborate) - Team coordination, communication
+  09. GOVERN      (govern) - Compliance, risk, audit
 ```
 
 ---
@@ -515,11 +561,11 @@ Quality:
 
 ---
 
-### Mapping Design Thinking to SDLC 4.9 Stages (ENHANCED)
+### Mapping Design Thinking to SDLC 5.0.0 Stages (ENHANCED)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  Design Thinking Phase    SDLC 4.9 Stage      Deliverable           │
+│  Design Thinking Phase    SDLC 5.0.0 Stage    Deliverable           │
 ├──────────────────────────────────────────────────────────────────────┤
 │  1. EMPATHIZE 🧠       →  Stage 00 (WHY?)  →  User Persona          │
 │     Understand users       Iceberg Layer 4      Journey Map          │
@@ -534,21 +580,23 @@ Quality:
 │     Generate solutions     Stage 02 (HOW?)      Top 3 Concepts       │
 │                           (Before locking in)    Sketches             │
 │                                                                       │
-│  4. PROTOTYPE 🛠️       →  Stage 03 (BUILD) →  Working Prototype    │
+│  4. PROTOTYPE 🛠️       →  Stage 04 (BUILD) →  Working Prototype    │
 │     Build testable         First iteration       Test Plan           │
 │                           (MVP focus)                                 │
 │                                                                       │
-│  5. TEST 🧪            →  Stage 03 (BUILD) →  User Feedback         │
-│     Validate with users    Stage 04 (TEST)      Iteration Plan       │
+│  5. TEST 🧪            →  Stage 04 (BUILD) →  User Feedback         │
+│     Validate with users    Stage 05 (TEST)      Iteration Plan       │
 │                           (Test & Learn loop)    Ship Decision        │
 │                                                  ↓                    │
-│                        →  Stage 04 (TEST)  →  Comprehensive QA      │
+│                        →  Stage 05 (TEST)  →  Comprehensive QA      │
 │                           (Automated tests)      Coverage Reports     │
 │                           (UAT validation)       Performance Tests    │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Evolution in 4.9**: Design Thinking TEST phase now extends into Stage 04 (TEST) for comprehensive validation.
+**Key Evolution in 5.0.0**:
+- Stage 03 (INTEGRATION) now comes before BUILD for Contract-First development
+- Design Thinking TEST phase extends into Stage 05 (TEST) for comprehensive validation
 
 ---
 
@@ -933,27 +981,32 @@ Cultural Requirements:
 
 ---
 
-## PART 2: THE 10-STAGE COMPLETE LIFECYCLE
+## PART 2: THE 10-STAGE COMPLETE LIFECYCLE (SDLC 5.0.0 Restructured)
 
 ### Overview: From Discovery to Governance
 
-SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. Each stage builds on the previous one, creating a comprehensive framework from initial discovery (WHY) through production operations and governance (GOVERN).
+SDLC 5.0.0 provides **complete lifecycle coverage** through 10 systematic stages, now categorized as **Linear** (sequential) and **Continuous** (ongoing). The critical change is moving **INTEGRATE from Stage 07 to Stage 03** for Contract-First alignment.
 
-**The Journey**:
+**The Journey (SDLC 5.0.0 Restructured)**:
 ```
-00 WHY      → Why build this? (Foundation & Discovery)
-01 WHAT     → What to build? (Planning & Requirements)
-02 HOW      → How to build? (Architecture & Design)
-03 BUILD    → Building it right (Development & Implementation)
-04 TEST     → Validating quality (Quality Assurance & Validation)
-05 DEPLOY   → Shipping safely (Deployment & Release Management)
-06 OPERATE  → Running reliably (Operations & Monitoring)
-07 INTEGRATE → Connecting systems (Integration & Interoperability)
-08 COLLABORATE → Coordinating teams (Team Coordination & Communication)
-09 GOVERN   → Maintaining compliance (Governance & Compliance)
+LINEAR STAGES (Sequential):
+00 foundation  → Why build this? (Foundation & Discovery)
+01 planning    → What to build? (Planning & Requirements)
+02 design      → How to build? (Architecture & Design)
+03 integration → API contracts first (API Design & Integration) ← MOVED FROM 07
+04 build       → Building it right (Development & Implementation)
+05 test        → Validating quality (Quality Assurance & Validation)
+06 deploy      → Shipping safely (Deployment & Release Management)
+07 operate     → Running reliably (Operations & Monitoring)
+
+CONTINUOUS STAGES (Ongoing throughout project):
+08 collaborate → Coordinating teams (Team Coordination & Communication)
+09 govern      → Maintaining compliance (Governance & Compliance)
 ```
 
 **Key Principle**: Each stage has clear inputs, activities, outputs, and quality gates. Design Thinking (Pillar 0) applies throughout, System Thinking (Pillar 3) provides depth analysis, and all 6 Pillars support every stage.
+
+**Critical Change in 5.0.0**: Stage 03 (integration) comes BEFORE Stage 04 (build) because API contracts must be defined before coding begins (Contract-First principle, ISO 12207 aligned).
 
 ---
 
@@ -1151,14 +1204,91 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 
 ---
 
-### Stage 03: BUILD - Development & Implementation
-**Core Question**: Are we building it right? With quality, testing, and best practices?
+### Stage 03: INTEGRATION - API Design & System Integration 🔄 MOVED FROM STAGE 07
+**Core Question**: What APIs do we need? How will systems connect?
 
-**Purpose**: Implement the designed solution with high code quality, automated testing, and continuous integration.
+**Purpose**: Define API contracts, integration patterns, and system interoperability BEFORE coding begins (Contract-First principle).
 
-**Pillar 0 (Design Thinking) Application**:
-- **Test**: Continuous user testing during development
-- Quality Gate 0.5: User validation, feature adoption tracking
+**Why Stage 03 (Not Stage 07 in previous versions)**:
+- **ISO 12207 Alignment**: Integration belongs in Technical processes (before Operation)
+- **Contract-First**: OpenAPI specs must exist before implementation
+- **DevOps CI**: Continuous Integration happens during Build, not post-production
+- **Practical Logic**: Cannot design APIs after system is in production
+
+**Key Activities**:
+
+1. **API Contract Design (Contract-First)**
+   - OpenAPI/Swagger specification writing (before any code)
+   - RESTful API design (resource-oriented, HTTP verbs)
+   - GraphQL schema design (for complex data requirements)
+   - gRPC protobuf definitions (for high-performance services)
+   - API versioning strategy (v1, v2, backward compatibility)
+
+2. **Integration Architecture**
+   - **API Gateway**: Centralized entry point design (Kong, AWS API Gateway)
+   - **Service Mesh**: Service-to-service communication patterns (Istio, Linkerd)
+   - **Message Queue**: Asynchronous communication design (RabbitMQ, Kafka, Redis)
+   - **Event-Driven**: Event sourcing, CQRS patterns
+   - **Circuit Breaker**: Resilience patterns (prevent cascade failures)
+
+3. **Third-Party Integration Planning**
+   - External API integration mapping (payment, auth, cloud services)
+   - Webhook design (incoming and outgoing)
+   - Data transformation patterns (ETL, data normalization)
+   - Rate limiting strategy (prevent abuse)
+   - Authentication flow design (OAuth2, JWT tokens)
+
+4. **Contract Testing Strategy**
+   - Consumer-driven contract tests (Pact, Spring Cloud Contract)
+   - Mock server generation from OpenAPI specs
+   - Integration test environment setup
+   - CI/CD contract validation pipeline
+
+**Deliverables**:
+- OpenAPI specifications (complete, validated)
+- Integration architecture diagrams
+- API versioning documentation
+- Third-party integration inventory
+- Contract testing strategy document
+- Message queue / event schema definitions
+- Error handling strategy (retry, circuit breaker patterns)
+
+**Quality Gates**:
+- ✅ OpenAPI specs complete and validated (linting passed)
+- ✅ All external integrations documented
+- ✅ Contract tests defined for all APIs
+- ✅ API versioning strategy approved
+- ✅ Security review of API design passed
+
+**Common Pitfalls**:
+- ❌ Designing APIs during/after coding (leads to inconsistent contracts)
+- ❌ No API versioning (breaking changes affect all clients)
+- ❌ Synchronous-only design (cascading failures risk)
+- ❌ Missing error handling patterns (retry, circuit breaker)
+- ❌ No contract validation in CI/CD
+
+**BFlow Platform Example**:
+- **OpenAPI Spec**: 1,629 lines defining 30+ endpoints (written before coding)
+- **Architecture**: Kong API Gateway + Redis message queue
+- **Integrations**: BHXH API, VAT calculation, OAuth2, Email/SMS
+- **Contract Tests**: 120+ tests, validated in CI/CD
+- **Error Handling**: Exponential backoff, circuit breaker implemented
+- **Result**: Zero integration-related production bugs in first 90 days
+
+**Time Investment**: 1-2 weeks (before BUILD stage)
+
+**Links to Other Stages**:
+- ← Stage 02 (HOW): Architecture informs integration patterns
+- → Stage 04 (BUILD): API contracts guide implementation
+- → Stage 07 (OPERATE): Integration health monitoring
+- → Stage 09 (GOVERN): Integration compliance (data sharing, security)
+
+---
+
+### Stage 04: BUILD - Development & Implementation
+**Core Question**: How do we build it correctly? Following the API contracts?
+
+**Purpose**: Implement the solution following API contracts from Stage 03, with quality-first practices including code review, testing, and documentation.
 
 **Key Activities**:
 
@@ -1169,7 +1299,7 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
    - Pair programming (for complex features)
    - Continuous integration (CI - every commit tested)
 
-2. **Quality Assurance**
+2. **Quality Assurance During Development**
    - Unit testing (80%+ code coverage target)
    - Integration testing (API contracts, database interactions)
    - **Zero Mock Policy** (Pillar 1) - no mock data in tests
@@ -1181,6 +1311,12 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
    - API documentation (auto-generated from code)
    - README files (setup, deployment, troubleshooting)
    - **Documentation Permanence** (Pillar 4) - permanent naming
+
+4. **Contract Implementation**
+   - Implement APIs following OpenAPI specs from Stage 03
+   - Validate responses against contract definitions
+   - Generate client SDKs from contracts
+   - Contract validation in CI/CD pipeline
 
 **Deliverables**:
 - Working code (deployable to staging)
@@ -1195,35 +1331,36 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 - ✅ Zero critical linter errors
 - ✅ Performance tests passed (<50ms target)
 - ✅ Security scans passed (no critical vulnerabilities)
+- ✅ API contracts validated (responses match OpenAPI spec)
 
 **Common Pitfalls**:
 - ❌ Mock contamination (679 mocks case study - 48 hours to fix)
 - ❌ Skipping code reviews ("we'll review later")
 - ❌ Low test coverage ("tests slow us down")
 - ❌ Poor documentation ("code is self-documenting")
+- ❌ Deviating from API contracts without discussion
 
 **BFlow Platform Example**:
 - **Test Coverage**: 87% (zero mocks policy enforced)
 - **Code Review**: Tier 2 (Subscription-powered) - 2,033% ROI
 - **CI/CD**: GitHub Actions (10-15 min pipeline)
 - **Pre-commit**: Linting, formatting, security scans, test execution
+- **Contract Validation**: OpenAPI specs validated on every PR
 - **Documentation**: Auto-generated API docs, comprehensive README
 
 **Time Investment**: 4-12 weeks (depends on scope)
 
 **Links to Other Stages**:
-- ← Stage 02 (HOW): Implements designed architecture
-- → Stage 04 (TEST): Comprehensive testing before deployment
-- → Stage 06 (OPERATE): Code must be operation-ready
+- ← Stage 03 (INTEGRATION): Implements API contracts
+- → Stage 05 (TEST): Comprehensive testing before deployment
+- → Stage 07 (OPERATE): Code must be operation-ready
 
 ---
 
-### Stage 04: TEST - Quality Assurance & Validation
+### Stage 05: TEST - Quality Assurance & Validation
 **Core Question**: Does it work correctly? Is it ready for production?
 
 **Purpose**: Comprehensive testing to ensure the solution meets requirements, performs well, and is secure before deployment.
-
-**New in SDLC 4.9**: Complete testing framework covering functional, performance, security, and user acceptance testing.
 
 **Key Activities**:
 
@@ -1288,18 +1425,18 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 **Time Investment**: 2-4 weeks (parallel with late-stage development)
 
 **Links to Other Stages**:
-- ← Stage 03 (BUILD): Tests what was built
-- → Stage 05 (DEPLOY): Only deploy if tests pass
-- → Stage 06 (OPERATE): Test results inform monitoring
+- ← Stage 04 (BUILD): Tests what was built
+- → Stage 06 (DEPLOY): Only deploy if tests pass
+- → Stage 07 (OPERATE): Test results inform monitoring
 
 ---
 
-### Stage 05: DEPLOY - Deployment & Release Management
+### Stage 06: DEPLOY - Deployment & Release Management
 **Core Question**: How do we ship safely? With zero downtime and rollback capability?
 
 **Purpose**: Deploy to production safely, with automated processes, monitoring, and the ability to rollback if issues arise.
 
-**New in SDLC 4.9**: Production deployment excellence with blue-green, canary, and rollback strategies.
+**Note in SDLC 5.0.0**: Shifted from Stage 05 to Stage 06 due to INTEGRATION moving to Stage 03.
 
 **Key Activities**:
 
@@ -1358,18 +1495,18 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 **Time Investment**: 1-2 weeks (initial setup), 1-2 hours per deployment
 
 **Links to Other Stages**:
-- ← Stage 04 (TEST): Deploy only if tests pass
-- → Stage 06 (OPERATE): Deployed system needs monitoring
+- ← Stage 05 (TEST): Deploy only if tests pass
+- → Stage 07 (OPERATE): Deployed system needs monitoring
 - → Stage 09 (GOVERN): Deployment logs for audit
 
 ---
 
-### Stage 06: OPERATE - Operations & Monitoring
+### Stage 07: OPERATE - Operations & Monitoring
 **Core Question**: Is it running reliably? Are users having a good experience?
 
 **Purpose**: Ensure the application runs reliably in production with proactive monitoring, alerting, and incident response.
 
-**New in SDLC 4.9**: Complete operations framework with SLOs, observability, and crisis response.
+**Note in SDLC 5.0.0**: Shifted from Stage 06 to Stage 07 due to INTEGRATION moving to Stage 03.
 
 **Key Activities**:
 
@@ -1435,13 +1572,28 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 **Time Investment**: Ongoing (2-4 hours/week for healthy system)
 
 **Links to Other Stages**:
-- ← Stage 05 (DEPLOY): Monitor what was deployed
+- ← Stage 06 (DEPLOY): Monitor what was deployed
 - → Stage 09 (GOVERN): Operations metrics feed governance
-- → Stage 04 (TEST): Production incidents inform testing
+- → Stage 05 (TEST): Production incidents inform testing
+- ← Stage 03 (INTEGRATION): Monitor integration health
 
 ---
 
-### Stage 07: INTEGRATE - Integration & Interoperability
+### ~~Stage 07: INTEGRATE~~ - MOVED TO STAGE 03 in SDLC 5.0.0
+
+> **NOTE**: In SDLC 5.0.0, the INTEGRATE stage has been **moved from Stage 07 to Stage 03** to ensure Contract-First development (API specs before coding). See **Stage 03: INTEGRATION** for full details.
+
+**Rationale for Move**:
+- **ISO 12207 Alignment**: Integration belongs in Technical processes (before Operation)
+- **Contract-First**: OpenAPI specs must exist before implementation
+- **DevOps CI**: Continuous Integration happens during Build, not post-production
+- **Practical Logic**: Cannot design APIs after system is in production
+
+The following content is preserved for reference but is no longer the canonical Stage 07.
+
+---
+
+### ~~OLD Stage 07: INTEGRATE - Integration & Interoperability~~ (DEPRECATED)
 **Core Question**: How does this connect with other systems? Are integrations reliable?
 
 **Purpose**: Ensure seamless integration with external systems, APIs, and services while maintaining reliability and security.
@@ -1600,7 +1752,7 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 
 **Links to Other Stages**:
 - → All Stages: Collaboration affects every stage
-- → Stage 06 (OPERATE): On-call rotation, incident response
+- → Stage 07 (OPERATE): On-call rotation, incident response
 - → Stage 09 (GOVERN): Team compliance, training
 
 ---
@@ -1684,10 +1836,10 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 
 **Links to Other Stages**:
 - ← Stage 00 (WHY): Success metrics become governance KPIs
-- ← Stage 04 (TEST): Security testing informs compliance
-- ← Stage 05 (DEPLOY): Deployment logs for audit
-- ← Stage 06 (OPERATE): Operations metrics for governance
-- ← Stage 07 (INTEGRATE): Integration compliance (data sharing)
+- ← Stage 03 (INTEGRATION): Integration compliance (data sharing, APIs)
+- ← Stage 05 (TEST): Security testing informs compliance
+- ← Stage 06 (DEPLOY): Deployment logs for audit
+- ← Stage 07 (OPERATE): Operations metrics for governance
 - ← Stage 08 (COLLABORATE): Team compliance, training
 
 ---
@@ -1724,15 +1876,24 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 - **Security**: OAuth2, row-level security designed
 - **Time**: 14 days (2 weeks)
 
-#### Stage 03: BUILD (Sprint 26-32, Nov 1-Dec 13)
-- **Development**: 6 two-week sprints (concurrent with Stages 00-02)
+#### Stage 03: INTEGRATION (Nov 22-Dec 5, Weeks 4-5) 🔄 NEW POSITION
+- **API Contracts**: OpenAPI spec with 30+ endpoints (1,629 lines)
+- **Integrations**: BHXH API, VAT calculation, OAuth2, email/SMS
+- **API Gateway**: Kong (rate limiting, auth)
+- **Message Queue**: Redis for async AI processing
+- **Contract Tests**: 120+ tests, 98% pass rate
+- **Time**: Concurrent with HOW stage (Contract-First)
+
+#### Stage 04: BUILD (Sprint 26-32, Nov 1-Dec 13)
+- **Development**: 6 two-week sprints (concurrent with Stages 00-03)
 - **Test Coverage**: 87% (zero mocks policy enforced)
 - **Code Review**: Tier 2 (Subscription-powered, 2,033% ROI)
 - **CI/CD**: GitHub Actions (15 min pipeline)
 - **Documentation**: Auto-generated API docs, 150+ pages Notion
+- **Contract Validation**: All APIs validated against OpenAPI spec
 - **Time**: 43 days (6 sprints, parallel work)
 
-#### Stage 04: TEST (Dec 6-13, Week 6)
+#### Stage 05: TEST (Dec 6-13, Week 6)
 - **Functional**: 150+ E2E test cases, 98% pass rate
 - **Performance**: Load tested 1,000 concurrent users, <45ms P95
 - **Security**: OWASP Top 10 compliance, penetration tested
@@ -1740,7 +1901,7 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 - **Bugs**: 23 found (18 fixed, 5 minor deferred)
 - **Time**: 7 days (1 week, parallel with late-stage BUILD)
 
-#### Stage 05: DEPLOY (Dec 13-14, Weekend)
+#### Stage 06: DEPLOY (Dec 13-14, Weekend)
 - **Strategy**: Blue-green deployment, feature flags
 - **Automation**: GitHub Actions → AWS ECS (15 minutes)
 - **Rollback**: Tested, <3 minutes to revert
@@ -1748,20 +1909,14 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 - **Result**: Zero downtime, successful deployment
 - **Time**: 2 days (weekend deployment)
 
-#### Stage 06: OPERATE (Dec 15-20, Week 7 - Soft Launch)
+#### Stage 07: OPERATE (Dec 15-20, Week 7 - Soft Launch)
 - **Uptime**: 99.95% (only 2 minutes downtime)
 - **Latency**: P95 = 42ms (target <50ms)
 - **Error Rate**: 0.03% (target <0.1%)
 - **Incidents**: 2 P2 incidents, both resolved <2 hours
 - **Monitoring**: Datadog dashboards, Slack alerts
+- **Integration Health**: All external APIs monitored
 - **Time**: 6 days (ongoing operations)
-
-#### Stage 07: INTEGRATE (Concurrent with BUILD)
-- **Integrations**: BHXH API, VAT calculation, OAuth2, email/SMS
-- **API Gateway**: Kong (rate limiting, auth)
-- **Message Queue**: Redis for async AI processing
-- **Contract Tests**: 120+ tests, 98% pass rate
-- **Time**: Integrated throughout BUILD stage
 
 #### Stage 08: COLLABORATE (Throughout All Stages)
 - **Team**: 5 dev (3 local Vietnam, 2 remote), 1 PM, 1 CTO
@@ -1797,37 +1952,37 @@ SDLC 4.9 provides **complete lifecycle coverage** through 10 systematic stages. 
 
 ### AI Tools Integration (Extended to All Stages)
 
-SDLC 4.9 leverages AI tools across all 10 stages for maximum productivity:
+SDLC 5.0.0 leverages AI tools across all 10 stages for maximum productivity:
 
-#### Stage 00-02: Discovery & Planning
+#### Stage 00-02: Discovery, Planning & Design
 - **ChatGPT/Claude**: User interview analysis, problem statement refinement
 - **Cursor**: Requirements document generation, user story writing
 - **GitHub Copilot**: Technical feasibility prototyping
 
-#### Stage 03: BUILD
+#### Stage 03: INTEGRATION (Contract-First)
+- **ChatGPT**: API documentation generation, OpenAPI spec writing
+- **Claude**: Integration contract design, schema validation
+- **Cursor**: OpenAPI spec generation, contract test scaffolding
+
+#### Stage 04: BUILD
 - **Cursor**: 60% code generation (AI-powered IDE)
 - **GitHub Copilot**: Real-time code completion, documentation
 - **Claude**: Complex algorithm design, code review preparation
 
-#### Stage 04: TEST
+#### Stage 05: TEST
 - **ChatGPT**: Test case generation, edge case identification
 - **Cursor**: Test code generation (87% coverage achieved)
 - **GitHub Copilot**: Test automation scripts
 
-#### Stage 05: DEPLOY
+#### Stage 06: DEPLOY
 - **ChatGPT**: Deployment script generation, runbook creation
 - **Claude**: Infrastructure as Code templates
 - **Cursor**: CI/CD pipeline configuration
 
-#### Stage 06: OPERATE
+#### Stage 07: OPERATE
 - **ChatGPT**: Log analysis, incident investigation
 - **Claude**: Post-mortem report generation
 - **Cursor**: Monitoring script creation
-
-#### Stage 07: INTEGRATE
-- **ChatGPT**: API documentation generation
-- **Claude**: Integration contract design
-- **Cursor**: Integration code generation
 
 #### Stage 08: COLLABORATE
 - **ChatGPT**: Meeting summaries, documentation
@@ -1845,12 +2000,12 @@ SDLC 4.9 leverages AI tools across all 10 stages for maximum productivity:
 
 ### Training & Onboarding
 
-**For New Teams Starting SDLC 4.9**:
+**For New Teams Starting SDLC 5.0.0**:
 
 **Week 1: Foundation**
 - Read: SDLC-Executive-Summary.md (1 hour)
 - Read: SDLC-Core-Methodology.md (this document, 4 hours)
-- Watch: SDLC 4.9 Overview presentation (1 hour)
+- Watch: SDLC 5.0.0 Overview presentation (1 hour)
 - Setup: Pre-commit hooks, code review tier selection (2 hours)
 
 **Week 2: Deep Dive**
@@ -1858,6 +2013,7 @@ SDLC 4.9 leverages AI tools across all 10 stages for maximum productivity:
 - Read: SDLC-Implementation-Guide.md (2 hours)
 - Practice: Complete first Design Thinking exercise (4 hours)
 - Setup: Compliance monitoring, documentation templates (2 hours)
+- **NEW**: Understand Contract-First (Stage 03 before Stage 04)
 
 **Week 3: Practice**
 - Build pilot feature using complete 10-stage lifecycle (20 hours)

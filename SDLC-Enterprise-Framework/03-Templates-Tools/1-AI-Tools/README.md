@@ -20,11 +20,11 @@ SDLC 5.0.0 expands from 8 to **10 stages**. AI tools now cover the complete life
 | 00 | WHY? (Foundation) | `design-thinking/` | User research, problem definition |
 | 01 | WHAT? (Planning) | `design-thinking/` | Ideation, requirements synthesis |
 | 02 | HOW? (Design) | `design-to-code/` | Architecture, component design |
-| 03 | BUILD (Development) | `code-review/` | Code generation, review automation |
-| 04 | TEST (Quality) | `testing/` | Test cases, UAT scripts, performance |
-| 05 | DEPLOY (Release) | `deployment/` | Checklists, rollback plans, release notes |
-| 06 | OPERATE (Production) | `operations/` | Monitoring, incident response, post-mortems |
-| 07 | INTEGRATE (Systems) | `integration/` | API contracts, integration tests |
+| 03 | INTEGRATE (Systems) | `integration/` | **API contracts, Contract-First** |
+| 04 | BUILD (Development) | `code-review/` | Code generation, review automation |
+| 05 | TEST (Quality) | `testing/` | Test cases, UAT scripts, performance |
+| 06 | DEPLOY (Release) | `deployment/` | Checklists, rollback plans, release notes |
+| 07 | OPERATE (Production) | `operations/` | Monitoring, incident response, post-mortems |
 | 08 | COLLABORATE (Teams) | `collaboration/` | Protocols, RACI, documentation |
 | 09 | GOVERN (Compliance) | `governance/` | Compliance checks, audit reports |
 
@@ -69,29 +69,29 @@ AI tools scale with your team size:
 ├── design-to-code/              # Stage 02 (HOW?)
 │   └── universal-prompts.md     # Design-to-code automation
 │
-├── code-review/                 # Stage 03 (BUILD)
+├── integration/                 # Stage 03 (INTEGRATE) - Contract-First
+│   ├── api-contract-designer.md # OpenAPI, GraphQL specs
+│   └── integration-test-generator.md # Contract testing
+│
+├── code-review/                 # Stage 04 (BUILD)
 │   ├── tier-1-manual-prompts.md # Manual + AI assistance
 │   ├── tier-2-ai-powered.md     # Full AI review
 │   └── tier-3-automation.md     # Automated review setup
 │
-├── testing/                     # Stage 04 (TEST)
+├── testing/                     # Stage 05 (TEST)
 │   ├── test-case-generator.md   # Functional/integration tests
 │   ├── uat-script-creator.md    # User acceptance testing
 │   └── performance-test-analyzer.md # Load/stress testing
 │
-├── deployment/                  # Stage 05 (DEPLOY)
+├── deployment/                  # Stage 06 (DEPLOY)
 │   ├── deployment-checklist-generator.md # Pre/post deploy checks
 │   ├── rollback-plan-creator.md # Rollback procedures
 │   └── release-notes-writer.md  # Release documentation
 │
-├── operations/                  # Stage 06 (OPERATE)
+├── operations/                  # Stage 07 (OPERATE)
 │   ├── monitoring-setup-helper.md # Dashboards, alerts, SLOs
 │   ├── incident-response-guide.md # Incident handling
 │   └── post-mortem-analyzer.md  # Blameless post-mortems
-│
-├── integration/                 # Stage 07 (INTEGRATE)
-│   ├── api-contract-designer.md # OpenAPI, GraphQL specs
-│   └── integration-test-generator.md # Contract testing
 │
 ├── collaboration/               # Stage 08 (COLLABORATE)
 │   ├── README.md                # Collaboration tools overview
@@ -179,14 +179,14 @@ ROI: 50x productivity increase
 |-------|------|-------------|---------|---------|
 | 00-01 | Design Thinking | 26 hours | 1 hour | **96%** |
 | 02 | Design-to-Code | 2-4 hours | 5-10 min | **95%** |
-| 03 | Code Review | 30 min/PR | 10 min/PR | **67%** |
-| 04 | Test Cases | 8 hours | 45 min | **90%** |
-| 04 | UAT Scripts | 4 hours | 36 min | **85%** |
-| 04 | Performance Analysis | 6 hours | 1.2 hours | **80%** |
-| 05 | Deployment Checklist | 4 hours | 36 min | **85%** |
-| 06 | Monitoring Setup | 8 hours | 1.2 hours | **85%** |
-| 06 | Post-Mortem | 4 hours | 24 min | **90%** |
-| 07 | API Contracts | 6 hours | 54 min | **85%** |
+| 03 | API Contracts (Contract-First) | 6 hours | 54 min | **85%** |
+| 04 | Code Review | 30 min/PR | 10 min/PR | **67%** |
+| 05 | Test Cases | 8 hours | 45 min | **90%** |
+| 05 | UAT Scripts | 4 hours | 36 min | **85%** |
+| 05 | Performance Analysis | 6 hours | 1.2 hours | **80%** |
+| 06 | Deployment Checklist | 4 hours | 36 min | **85%** |
+| 07 | Monitoring Setup | 8 hours | 1.2 hours | **85%** |
+| 07 | Post-Mortem | 4 hours | 24 min | **90%** |
 | 08 | Documentation | 4 hours | 24 min | **90%** |
 | 08 | Meeting Summaries | 30 min | 2 min | **95%** |
 | 09 | Compliance Check | 8 hours | 24 min | **95%** |
@@ -244,7 +244,30 @@ AI Prompt Pattern:
 
 ---
 
-### Stage 03: Development (BUILD)
+### Stage 03: Integration (INTEGRATE) - Contract-First
+
+**Purpose**: Define API contracts BEFORE coding begins (ISO 12207 compliance)
+
+```
+AI Prompt Pattern:
+"Generate API contract (OpenAPI 3.0):
+- Endpoints: [list]
+- Auth: OAuth2/JWT
+- Rate limits: [X req/min]
+- Contract tests included
+
+Contract-First Requirements:
+✅ OpenAPI 3.0 spec BEFORE implementation
+✅ Integration tests defined upfront
+✅ API versioning strategy"
+```
+
+**Tools**: `integration/*.md`
+**BFlow Result**: 120+ contract tests, 98% pass rate
+
+---
+
+### Stage 04: Development (BUILD)
 
 **Purpose**: Ensure code quality before merge
 
@@ -268,7 +291,7 @@ Score: X/100 with specific fixes"
 
 ---
 
-### Stage 04: Quality (TEST)
+### Stage 05: Quality (TEST)
 
 **Purpose**: Comprehensive testing automation
 
@@ -289,7 +312,7 @@ Output: pytest/jest format"
 
 ---
 
-### Stage 05: Release (DEPLOY)
+### Stage 06: Release (DEPLOY)
 
 **Purpose**: Zero-downtime deployments
 
@@ -312,7 +335,7 @@ Include:
 
 ---
 
-### Stage 06: Production (OPERATE)
+### Stage 07: Production (OPERATE)
 
 **Purpose**: Reliable operations with fast recovery
 
@@ -327,24 +350,6 @@ AI Prompt Pattern:
 
 **Tools**: `operations/*.md`
 **BFlow Result**: 99.95% uptime, proactive alerting
-
----
-
-### Stage 07: Integration (INTEGRATE)
-
-**Purpose**: Seamless system connections
-
-```
-AI Prompt Pattern:
-"Generate API contract (OpenAPI 3.0):
-- Endpoints: [list]
-- Auth: OAuth2/JWT
-- Rate limits: [X req/min]
-- Contract tests included"
-```
-
-**Tools**: `integration/*.md`
-**BFlow Result**: 120+ contract tests, 98% pass rate
 
 ---
 
@@ -423,11 +428,11 @@ Output: Score + violations + auto-fix commands"
 ### Stage-Specific Guides
 - **Stage 00-01**: [design-thinking/](./design-thinking/)
 - **Stage 02**: [design-to-code/](./design-to-code/)
-- **Stage 03**: [code-review/](./code-review/)
-- **Stage 04**: [testing/](./testing/)
-- **Stage 05**: [deployment/](./deployment/)
-- **Stage 06**: [operations/](./operations/)
-- **Stage 07**: [integration/](./integration/)
+- **Stage 03**: [integration/](./integration/) - Contract-First
+- **Stage 04**: [code-review/](./code-review/)
+- **Stage 05**: [testing/](./testing/)
+- **Stage 06**: [deployment/](./deployment/)
+- **Stage 07**: [operations/](./operations/)
 - **Stage 08**: [collaboration/](./collaboration/)
 - **Stage 09**: [governance/](./governance/)
 

@@ -4,15 +4,37 @@
 **Date**: December 5, 2025
 **Audience**: All team members (developers, designers, product managers, QA)
 **Duration**: 8 hours total (can be split across multiple sessions)
-**Prerequisites**: Basic SDLC 4.9 knowledge (or 2-hour SDLC fundamentals course)
+**Prerequisites**: Basic SDLC knowledge (or 2-hour SDLC fundamentals course)
 
 ---
 
 ## 🆕 What's New in SDLC 5.0.0 (December 5, 2025)
 
-**Governance & Compliance Standards**: SDLC 5.0.0 introduces comprehensive Governance & Compliance with 4-Tier Classification (LITE → ENTERPRISE), Quality Gates, Security Gates, Observability, and Team Collaboration Standards.
+**SDLC 5.0.0 Stage Restructuring (Contract-First Order)**:
 
-Key naming conventions:
+```yaml
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration ← Contract-First (BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
+
+**Key Changes from Previous Versions**:
+- **Stage Restructuring**: INTEGRATE moved from Stage 07 → Stage 03 (Contract-First principle)
+- **Contract-First**: API Design (OpenAPI specs) must happen BEFORE coding begins
+- **4-Tier Classification**: LITE (1-2) / STANDARD (3-10) / PROFESSIONAL (10-50) / ENTERPRISE (50+)
+- **Governance & Compliance**: Quality Gates, Security Gates, Observability, Change Management
+
+**Code File Naming Standards**:
 - **Python**: `snake_case` (max 50 chars) - e.g., `user_service.py`
 - **TypeScript**: `camelCase` (max 50 chars) - e.g., `arService.ts`
 - **React**: `PascalCase` (max 50 chars) - e.g., `ARDashboard.tsx`
@@ -30,11 +52,12 @@ By completing this training, participants will be able to:
 1. ✅ **Explain** what Design Thinking is and why it matters (reduce 70% feature waste)
 2. ✅ **Apply** all 5 Design Thinking phases to real projects (Empathize → Test)
 3. ✅ **Use** 9 practical templates without assistance (15-30 min per template)
-4. ✅ **Map** Design Thinking to SDLC 5.0.0 10-Stage Framework (WHY → GOVERN)
+4. ✅ **Map** Design Thinking to SDLC 5.0.0 10-Stage Framework (Contract-First Order)
 5. ✅ **Validate** assumptions with real users before building (5-8 user tests)
 6. ✅ **Integrate** SDLC 5.0.0 into daily workflow (80%+ compliance within 2 weeks)
 7. ✅ **Apply** code quality standards including file naming conventions
 8. ✅ **Understand** 4-Tier Classification and select appropriate tier for projects
+9. ✅ **Apply** Contract-First principle (API Design before coding)
 
 ### Training Structure
 
@@ -59,14 +82,14 @@ Session 3: Templates, Code Quality & Code Review Excellence
 Session 4: Real Project Application
   Duration: 1 hour (ongoing)
   Format: Guided practice on actual project
-  Deliverable: Pilot project with SDLC 4.9.1 applied
+  Deliverable: Pilot project with SDLC 5.0.0 applied
 
 Total: 8 hours core + ongoing practice
 ```
 
 ---
 
-## 📚 SESSION 1: SDLC 4.9.1 Overview & Design Thinking Fundamentals
+## 📚 SESSION 1: SDLC 5.0.0 Overview & Design Thinking Fundamentals
 
 **Duration**: 2 hours
 **Format**: Lecture (60 min) + Discussion (30 min) + Quiz (30 min)
@@ -74,7 +97,7 @@ Total: 8 hours core + ongoing practice
 
 ---
 
-### Part 1: Why SDLC 4.9.1? (15 minutes)
+### Part 1: Why SDLC 5.0.0? (15 minutes)
 
 **Slide 1: The Problem We're Solving**
 
@@ -96,7 +119,7 @@ Cost: $100M feature × 64% waste = $64M wasted
 
 ---
 
-**Slide 2: SDLC Evolution (4.7 → 4.8 → 4.9 → 4.9.1)**
+**Slide 2: SDLC Evolution (4.7 → 4.8 → 4.9 → 5.0.0)**
 
 ```
 SDLC 4.7 (September 2025):
@@ -120,11 +143,13 @@ Focus: Complete Lifecycle Excellence (6 Pillars, 10 stages)
   ✅ 14,822% ROI proven (2x improvement)
   ✅ Perfect /docs alignment (00-09)
 
-SDLC 4.9.1 (November 29, 2025):
+SDLC 5.0.0 (December 5, 2025):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Focus: Complete Lifecycle + Code Consistency
-  ✅ Code File Naming Standards restored
-  ✅ All 4.9 features maintained
+Focus: Contract-First + Governance Excellence
+  ✅ Stage Restructuring: INTEGRATE → Stage 03 (Contract-First, BEFORE BUILD)
+  ✅ 4-Tier Classification: LITE/STANDARD/PROFESSIONAL/ENTERPRISE
+  ✅ Governance & Compliance: Quality Gates, Security Gates
+  ✅ ISO/IEC 12207:2017 Alignment
 ```
 
 ---
@@ -335,20 +360,25 @@ Decision Criteria:
 
 ---
 
-### Part 3: SDLC 4.9 Integration (15 minutes)
+### Part 3: SDLC 5.0.0 Integration (15 minutes)
 
-**Slide 9: Design Thinking + 4-Stage Framework**
+**Slide 9: Design Thinking + 10-Stage Framework (Contract-First Order)**
 
 ```
-┌───────────────────────────────────────────────────────────┐
-│  Design Thinking    SDLC Stage       Deliverable          │
-├───────────────────────────────────────────────────────────┤
-│  EMPATHIZE 🧠    →  Stage 00 (WHY?) →  User Persona      │
-│  DEFINE 🎯       →  Stage 00-01     →  Problem Statement │
-│  IDEATE 💡       →  Stage 01-02     →  100+ Ideas        │
-│  PROTOTYPE 🛠️    →  Stage 03        →  Working Prototype│
-│  TEST 🧪         →  Stage 03        →  User Feedback     │
-└───────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Design Thinking    SDLC Stage               Deliverable        │
+├─────────────────────────────────────────────────────────────────┤
+│  EMPATHIZE 🧠    →  Stage 00 (foundation)   →  User Persona     │
+│  DEFINE 🎯       →  Stage 00-01 (planning)  →  Problem Stmt     │
+│  IDEATE 💡       →  Stage 01-02 (design)    →  100+ Ideas       │
+│                  →  Stage 03 (integration)  →  API Contracts    │
+│  PROTOTYPE 🛠️    →  Stage 04 (build)        →  Working Proto    │
+│  TEST 🧪         →  Stage 05 (test)         →  User Feedback    │
+└─────────────────────────────────────────────────────────────────┘
+
+SDLC 5.0.0 Contract-First Principle:
+  Stage 03 (integration): API Design happens BEFORE coding (Stage 04)
+  This ensures system integration is planned early, not retrofitted
 
 Integration = Seamless
   Design Thinking phases ARE part of stages (not separate)
@@ -359,12 +389,12 @@ Integration = Seamless
 **Slide 10: Quality Gates Enhanced**
 
 ```
-Traditional SDLC 4.7:
+Traditional SDLC:
   Gate 1: Design review
   Gate 2: Implementation review
   Gate 3: Production ready
 
-SDLC 4.9 (5 NEW Design Thinking Gates):
+SDLC 5.0.0 Quality Gates (Contract-First Enhanced):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Gate 0.1: Problem Definition (user-validated)
   Gate 0.2: Solution Diversity (100+ ideas)
@@ -372,11 +402,11 @@ SDLC 4.9 (5 NEW Design Thinking Gates):
   Gate 0.4: Test Validity (right users, context)
   Gate 0.5: Ship Decision (validated assumptions)
 
-  Gate 1: Design review (as before)
-  Gate 2: Implementation review
-  Gate 3: Production ready
+  Gate 1: Design review (includes API contracts - Stage 03)
+  Gate 2: Implementation review (Stage 04 build)
+  Gate 3: Production ready (Stage 05-06)
 
-Total: 8 quality gates (5 new + 3 existing)
+Total: 8 quality gates (5 Design Thinking + 3 Implementation)
 ```
 
 ---
@@ -437,7 +467,7 @@ Total: 8 quality gates (5 new + 3 existing)
    - c) 20-30
    - d) 100+
 
-5. What does "ship decision" mean in SDLC 4.9?
+5. What does "ship decision" mean in SDLC 5.0.0?
    - a) Deploy to production immediately
    - b) **Validated assumptions, >80% completion → build full solution** ✅
    - c) Skip testing and ship
@@ -773,7 +803,7 @@ For each template:
 
 ### Part 2: Code Quality Standards (30 minutes)
 
-**SDLC 4.9.1 Code Standards Overview** (10 min):
+**SDLC 5.0.0 Code Standards Overview** (10 min):
 
 ```yaml
 Code File Naming Standards (Restored from SDLC 4.3/4.4):
@@ -1103,7 +1133,7 @@ Overall:
 
 **Knowledge Assessment** (Session 1 Quiz):
 - 20 questions, 80% pass rate
-- Covers all 5 DT phases + SDLC 4.9 integration
+- Covers all 5 DT phases + SDLC 5.0.0 integration
 - Retake allowed if failed
 
 **Skills Assessment** (Session 2 Workshop):
@@ -1119,7 +1149,7 @@ Overall:
 
 ---
 
-### SDLC 4.9 Certification
+### SDLC 5.0.0 Certification
 
 **Requirements**:
 ```
@@ -1134,15 +1164,15 @@ Overall:
 ```
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║          SDLC 4.9 CERTIFIED PRACTITIONER                  ║
+║          SDLC 5.0.0 CERTIFIED PRACTITIONER                ║
 ║                                                           ║
 ║  This certifies that [Name]                               ║
-║  has successfully completed SDLC 4.9 training and         ║
+║  has successfully completed SDLC 5.0.0 training and       ║
 ║  demonstrated proficiency in:                             ║
 ║                                                           ║
 ║  ✅ Design Thinking 5-phase methodology                   ║
 ║  ✅ 9 practical templates application                     ║
-║  ✅ SDLC 4.9 4-Stage Framework integration                ║
+║  ✅ SDLC 5.0.0 10-Stage Framework integration             ║
 ║  ✅ Subscription-powered code review excellence           ║
 ║  ✅ Real project validation                               ║
 ║                                                           ║
@@ -1156,7 +1186,7 @@ Overall:
 
 **Benefits**:
 - Authorization to lead Design Thinking workshops
-- Mentor new team members on SDLC 4.9
+- Mentor new team members on SDLC 5.0.0
 - Quality gate reviewer (peer validation)
 
 ---
@@ -1220,7 +1250,7 @@ Day 11: CPO 1-on-1
 - Template refinement based on usage
 
 **Quarterly Refresher** (2 hours):
-- Review SDLC 4.9 enhancements (if any)
+- Review SDLC 5.0.0 enhancements (if any)
 - Advanced techniques (e.g., remote user testing)
 - Cross-team case study sharing
 
@@ -1248,12 +1278,12 @@ Day 11: CPO 1-on-1
 
 **Feature Adoption**:
 - Baseline: 30% (industry average)
-- Target: 70%+ (SDLC 4.9 validated)
+- Target: 70%+ (SDLC 5.0.0 validated)
 - Actual: ___% (measured)
 
 **Time to Validated Solution**:
 - Baseline: 12-24 weeks (traditional)
-- Target: 4-6 weeks (SDLC 4.9)
+- Target: 4-6 weeks (SDLC 5.0.0)
 - Actual: ___ weeks (measured)
 
 **Development Waste**:
@@ -1304,12 +1334,12 @@ Day 11: CPO 1-on-1
 
 ---
 
-**Document**: SDLC-4.9.1-Training-Materials
+**Document**: SDLC-5.0.0-Training-Materials
 **Purpose**: Complete learning package for team adoption
 **Audience**: All team members (developers, designers, PM, QA)
 **Duration**: 8 hours core + ongoing practice
-**Certification**: SDLC 4.9.1 Certified Practitioner
-**Version**: 2.0
-**Date**: November 29, 2025
+**Certification**: SDLC 5.0.0 Certified Practitioner
+**Version**: 3.0
+**Date**: December 5, 2025
 **License**: MTS Internal Use
-**What's New**: Code File Naming Standards restored, 10-Stage Lifecycle integration
+**What's New**: Stage Restructuring (INTEGRATE → Stage 03), Contract-First Order, 4-Tier Classification, ISO/IEC 12207:2017 Alignment

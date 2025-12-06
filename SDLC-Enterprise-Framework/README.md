@@ -1,17 +1,44 @@
 # 🚀 SDLC 5.0.0 Universal Framework
-## Built BY Battle, FOR Victory - Complete 10-Stage AI+Human Excellence + Governance & Compliance
+## Built BY Battle, FOR Victory - Contract-First 10-Stage AI+Human Excellence
 
-**Current Version**: 5.0.0 (10-Stage + Governance & Compliance + 4-Tier Classification)
+**Current Version**: 5.0.0 (Contract-First Stage Restructuring + 4-Tier Classification)
 **Status**: ACTIVE - PRODUCTION READY
 **Heritage**: Built BY AI+Human Teams FOR AI+Human Teams
-**Evolution**: SDLC 1.0 (Jun) → 4.9.1 (Nov 29) → **5.0.0 (Dec 6, 2025)**
-**Key Enhancement**: Governance & Compliance Standards + 4-Tier Classification + Industry Best Practices
+**Evolution**: SDLC 1.0 (Jun) → 4.9.1 (Nov 29) → **5.0.0 (Dec 5, 2025)**
+**Key Enhancement**: Contract-First Stage Restructuring + 4-Tier Classification + ISO 12207 Alignment
 **Proven On**: BFlow ($43M value, 827:1 ROI), NQH-Bot (₫15B+, 83% usage), MTEP (<30 min PaaS)
-**ROI**: 14,822% combined (validated across 3 platforms)
+**ROI**: 15,500%+ target (validated across 3 platforms)
 
 ---
 
-## 🎯 What's New in SDLC 5.0.0 (December 6, 2025)
+## 📋 SDLC 5.0.0 Stage Structure (Contract-First Order)
+
+```yaml
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration ← Contract-First (BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
+
+**Key SDLC 5.0.0 Changes**:
+- **Stage Restructuring**: INTEGRATE moved from Stage 07 → Stage 03 (Contract-First principle)
+- **Contract-First**: API Design (OpenAPI specs) must happen BEFORE coding begins
+- **4-Tier Classification**: LITE (1-2) / STANDARD (3-10) / PROFESSIONAL (10-50) / ENTERPRISE (50+)
+- **ISO/IEC 12207:2017 Alignment**: Integration in Technical processes (pre-operation)
+- **Simplified Naming**: Lowercase, hyphenated stage names
+
+---
+
+## 🎯 What's New in SDLC 5.0.0 (December 5, 2025)
 
 ### Implementation Guides Upgraded (Dec 6, 2025)
 
@@ -164,34 +191,42 @@ SDLC 4.9.1 (November 29, 2025)
 
 ---
 
-## 📊 The Complete 10-Stage Methodology
+## 📊 The Complete 10-Stage Methodology (SDLC 5.0.0 Restructured)
 
 ### Business Questions → SDLC Stages → Documentation Structure
 
+**Note**: Stage 03 (INTEGRATE) moved from Stage 07 for logical order - API Design must happen BEFORE coding (ISO 12207 alignment).
+
 ```yaml
 ┌─────────────────────────────────────────────────────────────────┐
-│ Question → Stage → /docs Folder (BFlow Example)                │
+│ Question → Stage → /docs Folder (Recommended Structure)        │
 ├─────────────────────────────────────────────────────────────────┤
-│ WHY?        → Stage 00: Foundation    → 00-Project-Foundation/  │
-│ WHAT?       → Stage 01: Planning      → 01-Planning-Analysis/   │
-│ HOW?        → Stage 02: Design        → 02-Architecture-Design/ │
-│ BUILD       → Stage 03: Development   → 03-Development/         │
-│ TEST        → Stage 04: Quality       → 04-Quality-Assurance/   │
-│ DEPLOY      → Stage 05: Deployment    → 05-Deployment/          │
-│ OPERATE     → Stage 06: Operations    → 06-Operations/          │
-│ INTEGRATE   → Stage 07: Integration   → 07-Integration/         │
-│ COLLABORATE → Stage 08: Team Mgmt     → 08-Team-Management/     │
-│ GOVERN      → Stage 09: Governance    → 09-Executive-Reports/   │
+│ LINEAR STAGES (Sequential - One-time per release):             │
+│ WHY?        → Stage 00: foundation    → 00-foundation/          │
+│ WHAT?       → Stage 01: planning      → 01-planning/            │
+│ HOW?        → Stage 02: design        → 02-design/              │
+│ INTEGRATE   → Stage 03: integration   → 03-integration/         │  ← MOVED
+│ BUILD       → Stage 04: build         → 04-build/               │
+│ TEST        → Stage 05: test          → 05-test/                │
+│ DEPLOY      → Stage 06: deploy        → 06-deploy/              │
+│ OPERATE     → Stage 07: operate       → 07-operate/             │
+├─────────────────────────────────────────────────────────────────┤
+│ CONTINUOUS STAGES (Ongoing - Throughout project):              │
+│ COLLABORATE → Stage 08: collaborate   → 08-collaborate/         │
+│ GOVERN      → Stage 09: govern        → 09-govern/              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Continuous Loop**:
+**Linear Flow** (Stages 00-07):
 ```
-WHY → WHAT → HOW → BUILD → TEST → DEPLOY → OPERATE
-  ↑                                           ↓
-  └───────── LEARN & ITERATE ←───────────────┘
-                    ↓
-    INTEGRATE ← COLLABORATE ← GOVERN (Cross-Cutting)
+WHY → WHAT → HOW → INTEGRATE → BUILD → TEST → DEPLOY → OPERATE
+  ↑                                                        ↓
+  └─────────────── LEARN & ITERATE ←──────────────────────┘
+```
+
+**Continuous Flow** (Stages 08-09):
+```
+COLLABORATE + GOVERN run throughout the entire project lifecycle
 ```
 
 ---
@@ -222,9 +257,9 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 
 ---
 
-## 🎯 10-Stage Quick Reference
+## 🎯 10-Stage Quick Reference (SDLC 5.0.0 Restructured)
 
-### Stages 00-03: Discovery & Delivery (Enhanced from 4.8)
+### Stages 00-03: Discovery & API Design (Linear)
 
 **Stage 00: FOUNDATION (WHY?)**
 - **Purpose**: Establish strategic foundation
@@ -243,22 +278,29 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 **Stage 02: DESIGN (HOW?)**
 - **Purpose**: Technical architecture and design
 - **Design Thinking**: IDEATE (complete)
-- **Key Activities**: System architecture, API contracts, database design
+- **Key Activities**: System architecture, database design, security architecture
 - **BFlow Example**: 8 Microservices, Methods 16-19 stable (A+ 98.5%)
-- **Quality Gate**: API contracts validated, security reviewed
+- **Quality Gate**: Architecture reviewed, security baseline defined
 
-**Stage 03: DEVELOPMENT (BUILD)**
+**Stage 03: INTEGRATION (API Design)** 🔄 *MOVED from Stage 07*
+- **Purpose**: API Design & System Integration contracts
+- **Key Activities**: OpenAPI spec, API contracts, event schemas, 3rd-party integration design
+- **Rationale**: Contract-First - API specs must exist BEFORE coding begins
+- **BFlow Example**: OAuth2 265K req/s capacity, 450+ endpoints documented
+- **Quality Gate**: API contracts validated with consumers
+
+---
+
+### Stages 04-07: Build, Test, Deploy, Operate (Linear)
+
+**Stage 04: BUILD (Development)** 🔄 *Was Stage 03*
 - **Purpose**: Implementation with AI+Human orchestration
 - **Design Thinking**: PROTOTYPE + TEST (start)
 - **Key Activities**: Code, unit tests, CI/CD, code review
 - **BFlow Example**: OAuth2 Provider (265K req/s), $6.23M value
 - **Quality Gates**: Prototype fidelity, 80%+ test coverage
 
----
-
-### Stages 04-06: Quality & Deployment (NEW - Enhanced Focus)
-
-**Stage 04: TESTING (TEST)** 🆕
+**Stage 05: TEST (Quality Assurance)** 🔄 *Was Stage 04*
 - **Purpose**: Comprehensive quality validation
 - **Key Activities**:
   - Test strategy (Unit 70% → Integration 20% → E2E 10%)
@@ -269,7 +311,7 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 - **BFlow Example**: 639 tests (209 AI + 430 Django), 95%+ coverage, $17.42M value
 - **Quality Gates**: Coverage ≥80% unit, ≥70% integration, UAT ≥8.5/10, zero P0 bugs
 
-**Stage 05: DEPLOYMENT (DEPLOY)** 🆕
+**Stage 06: DEPLOY (Release)** 🔄 *Was Stage 05*
 - **Purpose**: Production go-live execution
 - **Key Activities**:
   - Pre-deployment checklist (50+ items)
@@ -280,7 +322,7 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 - **BFlow Example**: Dec 19-20 soft launch, 3 pilot customers, $18,880 investment, 99.5% → 100% confidence
 - **Quality Gates**: All pre-checks passed, rollback tested <5 min, war room staffed 24/7
 
-**Stage 06: OPERATIONS (OPERATE)** 🆕
+**Stage 07: OPERATE (Production)** 🔄 *Was Stage 06*
 - **Purpose**: Sustain production excellence
 - **Key Activities**:
   - Monitoring & observability (Grafana dashboards, alerts)
@@ -292,19 +334,9 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 
 ---
 
-### Stages 07-09: Integration & Collaboration (NEW - Cross-Cutting)
+### Stages 08-09: Continuous Stages (Ongoing Throughout Project)
 
-**Stage 07: INTEGRATION (INTEGRATE)** 🆕
-- **Purpose**: Seamless system and service integration
-- **Key Activities**:
-  - API integration (OAuth2, rate limiting, versioning)
-  - Event-driven integration (Kafka, event schemas, consumer groups)
-  - Third-party integration (payment gateways, banking APIs, government APIs)
-  - Data integration (ETL, CDC, validation)
-- **BFlow Example**: OAuth2 265K req/s, token introspection 8ms, revocation 12ms, 100% multi-tenant isolation
-- **Quality Gates**: API contracts validated, integration tests ≥90%, data quality ≥99.5%
-
-**Stage 08: COLLABORATION (COLLABORATE)** 🆕
+**Stage 08: COLLABORATE (Team & Stakeholder)** 🔄 *Was Stage 08*
 - **Purpose**: Effective team coordination
 - **Key Activities**:
   - Team structure (RACI matrix, Conway's Law, career paths)
@@ -314,7 +346,7 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 - **BFlow Example**: Remote (6) + Local (5) teams, A+ ratings (103%, 100%), $23.65M value
 - **Quality Gates**: Velocity stable ±20%, documentation ≥90%, team satisfaction ≥8/10
 
-**Stage 09: GOVERNANCE (GOVERN)** 🆕
+**Stage 09: GOVERN (Compliance & Governance)**
 - **Purpose**: Strategic oversight, compliance, accountability
 - **Key Activities**:
   - Executive reporting (weekly status, monthly financial, quarterly strategic)
@@ -332,17 +364,22 @@ SDLC 4.9 Enhancement (6 Pillars + 10 Stages) - November 13, 2025:
 
 **Timeline**: 52 days (9 weeks ahead of schedule)
 
+**Note**: Stage numbers reflect SDLC 5.0.0 restructured order.
+
 ```yaml
-Stage 00 (WHY):     $4.7M   - Strategic roadmap, disaster prevention
-Stage 01 (WHAT):    $3.8M   - 15 P0 Methods plan, feature parity 9.3% → 37%
-Stage 02 (HOW):     Stable  - 8 Microservices, Methods 16-19 (A+ 98.5%)
-Stage 03 (BUILD):   $6.23M  - OAuth2 + 6 microservices operational
-Stage 04 (TEST):    $17.42M - 639 tests, 95%+ coverage, UAT 3 customers
-Stage 05 (DEPLOY):  $18,880 - 3 pilot customers live (Dec 19-20)
-Stage 06 (OPERATE): $4.65M  - 99.9%+ uptime, <50ms API, zero P0 incidents
-Stage 07 (INTEGRATE): 265K req/s OAuth2, 8ms introspection, 100% isolation
-Stage 08 (COLLABORATE): A+ ratings both teams, 100% goals achieved
-Stage 09 (GOVERN):  $43.03M - Total platform value, 100% compliance
+# LINEAR STAGES (Sequential)
+Stage 00 (foundation):   $4.7M   - Strategic roadmap, disaster prevention
+Stage 01 (planning):     $3.8M   - 15 P0 Methods plan, feature parity 9.3% → 37%
+Stage 02 (design):       Stable  - 8 Microservices, Methods 16-19 (A+ 98.5%)
+Stage 03 (integration):  265K req/s OAuth2, 8ms introspection, 100% isolation  ← MOVED
+Stage 04 (build):        $6.23M  - OAuth2 + 6 microservices operational
+Stage 05 (test):         $17.42M - 639 tests, 95%+ coverage, UAT 3 customers
+Stage 06 (deploy):       $18,880 - 3 pilot customers live (Dec 19-20)
+Stage 07 (operate):      $4.65M  - 99.9%+ uptime, <50ms API, zero P0 incidents
+
+# CONTINUOUS STAGES (Ongoing)
+Stage 08 (collaborate):  A+ ratings both teams, 100% goals achieved
+Stage 09 (govern):       $43.03M - Total platform value, 100% compliance
 
 Investment: $90,200
 Value Delivered: $43.03M
@@ -696,4 +733,5 @@ AI+Human Metrics (Maintained):
 
 ***"Built BY Battle, FOR Victory - Complete 10-Stage AI+Human Excellence + Governance & Compliance"*** ⚔️
 ***"System Thinking + Design Thinking + AI + Complete Lifecycle + Governance = Sustainable Excellence"*** ✨
-***"WHY → WHAT → HOW → BUILD → TEST → DEPLOY → OPERATE → INTEGRATE → COLLABORATE → GOVERN"*** 🎯
+***"WHY → WHAT → HOW → INTEGRATE → BUILD → TEST → DEPLOY → OPERATE + COLLABORATE + GOVERN"*** 🎯
+***"Contract-First: API Design (Stage 03) BEFORE Coding (Stage 04) - ISO 12207 Aligned"*** 📐

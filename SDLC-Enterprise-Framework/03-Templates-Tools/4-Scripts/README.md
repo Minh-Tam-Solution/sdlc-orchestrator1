@@ -141,15 +141,15 @@ python3 scripts/quick-start/solo_setup.py /path/to/project
 python3 compliance/sdlc_validator.py /path/to/project
 
 # What it checks:
-## 10-Stage Lifecycle:
+## 10-Stage Lifecycle (SDLC 5.0.0 Restructured):
 - Stage 00 (WHY): Problem validation, user research
 - Stage 01 (WHAT): Requirements, acceptance criteria
 - Stage 02 (HOW): Architecture, design decisions
-- Stage 03 (BUILD): Implementation, code quality
-- Stage 04 (TEST): Test coverage, UAT completion
-- Stage 05 (DEPLOY): Deployment readiness, rollback plan
-- Stage 06 (OPERATE): Monitoring, incident response
-- Stage 07 (INTEGRATE): API contracts, integration tests
+- Stage 03 (INTEGRATE): **API contracts, Contract-First** ← BEFORE BUILD
+- Stage 04 (BUILD): Implementation, code quality
+- Stage 05 (TEST): Test coverage, UAT completion
+- Stage 06 (DEPLOY): Deployment readiness, rollback plan
+- Stage 07 (OPERATE): Monitoring, incident response
 - Stage 08 (COLLABORATE): Documentation, team alignment
 - Stage 09 (GOVERN): Compliance, audit trail
 
@@ -168,8 +168,8 @@ python3 compliance/sdlc_validator.py /path/to/project
 - Alembic migrations: {rev}_{desc}.py, max 60 chars
 
 # Output example:
-✅ Stage 00-03 (WHY→BUILD): COMPLIANT
-✅ Stage 04-09 (TEST→GOVERN): COMPLIANT
+✅ Stage 00-03 (WHY→INTEGRATE): COMPLIANT
+✅ Stage 04-09 (BUILD→GOVERN): COMPLIANT
 ✅ Pillar 0-5 (All Pillars): COMPLIANT
 ✅ File Naming Standards: COMPLIANT
 🎉 SDLC 5.0.0 FULLY COMPLIANT (10 stages + 6 pillars + file naming)

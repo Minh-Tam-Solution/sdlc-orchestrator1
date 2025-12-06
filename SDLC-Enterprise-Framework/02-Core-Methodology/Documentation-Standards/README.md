@@ -342,17 +342,17 @@ Archive Location: 99-Legacy/SDLC-4.9.1-Archive/
 
 ## 🔗 Related Documentation
 
-### Stage Documentation
-- `/00-Foundation/` - WHY stage (problem validation)
-- `/01-Planning/` - WHAT stage (requirements)
-- `/02-Architecture/` - HOW stage (design)
-- `/03-Development/` - BUILD stage (implementation)
-- `/04-Testing/` - TEST stage (quality)
-- `/05-Deployment/` - DEPLOY stage (delivery)
-- `/06-Operations/` - OPERATE stage (production)
-- `/07-Integration/` - INTEGRATE stage (microservices)
-- `/08-Team-Management/` - **COLLABORATE stage (documentation)** ⬅ YOU ARE HERE
-- `/09-Governance/` - GOVERN stage (compliance)
+### Stage Documentation (SDLC 5.0.0 Restructured)
+- `/00-foundation/` - WHY stage (problem validation)
+- `/01-planning/` - WHAT stage (requirements)
+- `/02-design/` - HOW stage (architecture)
+- `/03-integration/` - **INTEGRATE stage (API Design, Contract-First)** ← MOVED FROM 07
+- `/04-build/` - BUILD stage (implementation)
+- `/05-test/` - TEST stage (quality)
+- `/06-deploy/` - DEPLOY stage (delivery)
+- `/07-operate/` - OPERATE stage (production)
+- `/08-collaborate/` - **COLLABORATE stage (documentation)** ⬅ YOU ARE HERE
+- `/09-govern/` - GOVERN stage (compliance)
 
 ### Framework Documentation
 - `/01-Overview/SDLC-Executive-Summary.md` - Framework overview

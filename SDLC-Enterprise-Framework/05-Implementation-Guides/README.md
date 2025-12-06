@@ -306,43 +306,44 @@ Result: Enterprise-grade SDLC deployment
 
 ---
 
-## 🔗 10-Stage Lifecycle Mapping
+## 🔗 10-Stage Lifecycle Mapping (SDLC 5.0.0 Restructured)
 
 ### Discovery & Planning (Stages 00-02)
-- **WHY**: Design Thinking templates (in `/03-Templates-Tools/`)
-- **WHAT**: Design Thinking principles (in `/02-Core-Methodology/`)
-- **HOW**: Architecture patterns (in `SDLC-Platform-Patterns.md`)
+- **00 foundation (WHY)**: Design Thinking templates (in `/03-Templates-Tools/`)
+- **01 planning (WHAT)**: Design Thinking principles (in `/02-Core-Methodology/`)
+- **02 design (HOW)**: Architecture patterns (in `SDLC-Platform-Patterns.md`)
 
-### Development & Quality (Stages 03-04)
-- **BUILD**: Pre-commit hooks (`SDLC-PRE-COMMIT-HOOKS.md`)
-- **TEST**: Code review framework (Tier 1/2/3)
+### Integration & Development (Stages 03-04) ← RESTRUCTURED
+- **03 integration (INTEGRATE)**: API Design, OpenAPI specs (`SDLC-Platform-Patterns.md`) ← MOVED FROM 07
+- **04 build (BUILD)**: Pre-commit hooks (`SDLC-PRE-COMMIT-HOOKS.md`)
 
-### Deployment & Operations (Stages 05-06)
-- **DEPLOY**: Implementation Guide deployment procedures
-- **OPERATE**: Crisis Response Guide (`SDLC-Crisis-Response-Guide.md`)
+### Quality & Deployment (Stages 05-06)
+- **05 test (TEST)**: Code review framework (Tier 1/2/3)
+- **06 deploy (DEPLOY)**: Deployment Guide (`SDLC-Deployment-Guide.md`)
 
-### Integration & Collaboration (Stages 07-08)
-- **INTEGRATE**: Platform Patterns hybrid architecture
-- **COLLABORATE**: Code Review collaboration workflows
+### Operations (Stage 07)
+- **07 operate (OPERATE)**: Crisis Response Guide (`SDLC-Crisis-Response-Guide.md`)
 
-### Governance (Stage 09)
-- **GOVERN**: Compliance Enforcement Guide
+### Continuous Stages (Stages 08-09) - Throughout Project
+- **08 collaborate (COLLABORATE)**: Code Review collaboration workflows
+- **09 govern (GOVERN)**: Compliance Enforcement Guide
 
 ---
 
-## 📊 Quick Reference Matrix
+## 📊 Quick Reference Matrix (SDLC 5.0.0 Stage Numbers)
 
-| Guide | Primary Stage | Team Size | Cost | Time to Setup | ROI |
-|-------|---------------|-----------|------|---------------|-----|
-| Implementation Guide | All 10 | All | Varies | 1-2 weeks | 14,822% |
-| Universal Code Review | BUILD/TEST | All | See tiers | 1 day | Varies |
-| Tier 1 (Manual) | BUILD/TEST | 1-5 | $0 | 2 hours | ∞ |
-| Tier 2 (Subscription) | BUILD/TEST | 5-20 | $0* | 4 hours | 2,033% |
-| Tier 3 (CodeRabbit) | BUILD/TEST | 15-100+ | $12-15/seat | 1 day | TBD |
-| Compliance Enforcement | GOVERN | All | $0 | 1 day | High |
-| Pre-commit Hooks | BUILD | All | $0 | 1 hour | High |
-| Crisis Response | OPERATE | All | $0 | 2 hours | Critical |
-| Platform Patterns | All | All | $0 | Reference | High |
+| Guide | Primary Stage(s) | Team Size | Cost | Time to Setup | ROI |
+|-------|-----------------|-----------|------|---------------|-----|
+| Implementation Guide | All 10 (00-09) | All | Varies | 1-2 weeks | 14,822% |
+| Universal Code Review | 04 build, 05 test | All | See tiers | 1 day | Varies |
+| Tier 1 (Manual) | 04 build, 05 test | 1-5 | $0 | 2 hours | ∞ |
+| Tier 2 (Subscription) | 04 build, 05 test | 5-20 | $0* | 4 hours | 2,033% |
+| Tier 3 (CodeRabbit) | 04 build, 05 test | 15-100+ | $12-15/seat | 1 day | TBD |
+| Compliance Enforcement | 09 govern | All | $0 | 1 day | High |
+| Pre-commit Hooks | 04 build | All | $0 | 1 hour | High |
+| Crisis Response | 07 operate | All | $0 | 2 hours | Critical |
+| Platform Patterns | 03 integration + All | All | $0 | Reference | High |
+| Deployment Guide | 06 deploy | All | $0 | Reference | High |
 
 *$0 new cost (uses existing AI subscriptions)
 

@@ -9,9 +9,37 @@
 
 ---
 
-## 🚀 What's New in SDLC 5.0.0 (December 5, 2025)
+## 🚀 What's New in SDLC 5.0.0 (December 6, 2025)
 
-### Governance & Compliance Standards (NEW)
+### Stage Restructuring: INTEGRATION → Stage 03 (CRITICAL)
+
+**SDLC 5.0.0** moves **INTEGRATION from Stage 07 to Stage 03** to enforce Contract-First development:
+
+```yaml
+Why This Change?
+  Problem: In 4.x, INTEGRATE was Stage 07 (after OPERATE)
+  Issue: Cannot design APIs after system is in production
+  Solution: Move INTEGRATION to Stage 03, BEFORE BUILD (Stage 04)
+
+New Stage Order (Linear 00-07, Continuous 08-09):
+  00-foundation    # WHY - Problem Definition
+  01-planning      # WHAT - Requirements
+  02-design        # HOW - Architecture
+  03-integration   # API Design (MOVED FROM 07) ← Contract-First
+  04-build         # Development
+  05-test          # Quality Assurance
+  06-deploy        # Release
+  07-operate       # Production
+  08-collaborate   # Team (Continuous)
+  09-govern        # Compliance (Continuous)
+
+Industry Alignment:
+  - ISO/IEC 12207: Integration in Technical processes (before Operation)
+  - DevOps CI: Continuous Integration during Build, not post-production
+  - NIST SSDF: Secure design before implementation
+```
+
+### Governance & Compliance Standards
 
 **SDLC 5.0.0** introduces comprehensive Governance & Compliance standards integrated into `02-Core-Methodology`:
 
@@ -110,65 +138,81 @@ This became the catalyst for **SDLC 4.9 enhancement** - expanding from 4 stages 
 
 ---
 
-## 📊 The Complete 10-Stage Methodology
+## 📊 The Complete 10-Stage Methodology (SDLC 5.0.0 Restructured)
 
 ### Perfect Alignment: Business Questions → SDLC Stages → Documentation Structure
+
+> **IMPORTANT**: In SDLC 5.0.0, **INTEGRATION has been moved from Stage 07 to Stage 03** to enforce Contract-First development (API specs before coding). This aligns with ISO/IEC 12207 and DevOps best practices.
 
 ```yaml
 ┌────────────────────────────────────────────────────────────────────────┐
 │ Business Question → SDLC Stage → /docs Structure (BFlow Example)      │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 1. WHY?          → Stage 00: Foundation      → 00-Project-Foundation/  │
-│    Tại sao làm?     Why, Vision, Strategy      - 01-Vision/           │
-│                                                 - 02-Strategy/          │
-│                                                 - 03-Roadmap/           │
+│ LINEAR STAGES (Sequential - One-time per release):                     │
 │                                                                         │
-│ 2. WHAT?         → Stage 01: Planning        → 01-Planning-Analysis/   │
-│    Làm cái gì?      Requirements, Analysis      - 01-Business-Case/    │
+│ 1. WHY?          → Stage 00: Foundation      → 00-foundation/          │
+│    Tại sao làm?     Problem Definition          - 01-Vision/           │
+│                                                 - 02-Strategy/          │
+│                                                 - 03-Design-Thinking/   │
+│                                                                         │
+│ 2. WHAT?         → Stage 01: Planning        → 01-planning/            │
+│    Làm cái gì?      Requirements Analysis       - 01-Business-Case/    │
 │                                                 - 02-Requirements/      │
 │                                                 - 06-Project-Planning/  │
 │                                                                         │
-│ 3. HOW?          → Stage 02: Design          → 02-Architecture-Design/ │
-│    Làm thế nào?     Architecture, Design        - 01-System-Arch/      │
+│ 3. HOW?          → Stage 02: Design          → 02-design/              │
+│    Làm thế nào?     Architecture Design         - 01-System-Arch/      │
 │                                                 - 02-Technical-Design/  │
-│                                                 - 03-API-Design/        │
+│                                                 - 03-ADRs/              │
 │                                                                         │
-│ 4. BUILD         → Stage 03: Development     → 03-Development/         │
+│ 4. INTEGRATION   → Stage 03: Integration     → 03-integration/         │ ← MOVED FROM 07
+│    Tích hợp         API Design, Contracts       - 01-API-Design/       │
+│                     (Contract-First!)           - 02-OpenAPI-Specs/     │
+│                                                 - 03-Integration-Plan/  │
+│                                                                         │
+│ 5. BUILD         → Stage 04: Development     → 04-build/               │
 │    Xây dựng         Code, Implementation        - 01-Backend/          │
 │                                                 - 02-Frontend/          │
-│                                                 - 03-Integration/       │
+│                                                 - 03-Implementation/    │
 │                                                                         │
-│ 5. TEST          → Stage 04: Quality         → 04-Quality-Assurance/   │
+│ 6. TEST          → Stage 05: Quality         → 05-test/                │
 │    Kiểm thử         QA, Validation              - 01-Test-Strategy/    │
 │                                                 - 02-Test-Cases/        │
 │                                                 - 03-Test-Reports/      │
 │                                                                         │
-│ 6. DEPLOY        → Stage 05: Deployment      → 05-Deployment/          │
+│ 7. DEPLOY        → Stage 06: Deployment      → 06-deploy/              │
 │    Triển khai       Go-Live, Release            - 01-Deployment-Plan/  │
 │                                                 - 02-Release-Notes/     │
 │                                                 - 03-Rollback-Plans/    │
 │                                                                         │
-│ 7. OPERATE       → Stage 06: Operations      → 06-Operations/          │
+│ 8. OPERATE       → Stage 07: Operations      → 07-operate/             │
 │    Vận hành         Maintain, Support           - 01-Monitoring/        │
 │                                                 - 02-Maintenance/       │
 │                                                 - 03-Support/           │
 │                                                                         │
-│ 8. INTEGRATE     → Stage 07: Integration     → 07-Integration/         │
-│    Tích hợp         APIs, Systems               - 01-API-Docs/         │
-│                                                 - 02-3rd-Party/         │
-│                                                 - 03-Data-Flow/         │
+├────────────────────────────────────────────────────────────────────────┤
+│ CONTINUOUS STAGES (Ongoing - Throughout project):                      │
 │                                                                         │
-│ 9. COLLABORATE   → Stage 08: Team Mgmt       → 08-Team-Management/     │
-│    Cộng tác         Team, Sprint, Coordination  - 01-Team-Structure/   │
-│                                                 - 02-Roles-Responsibilities/│
-│                                                 - 04-Sprint-Management/ │
+│ 9. COLLABORATE   → Stage 08: Collaboration   → 08-collaborate/         │
+│    Cộng tác         Team, Communication         - 01-Team-Structure/   │
+│                                                 - 02-Meetings/          │
+│                                                 - 03-Knowledge-Base/    │
 │                                                                         │
-│ 10. GOVERN       → Stage 09: Governance      → 09-Executive-Reports/   │
+│ 10. GOVERN       → Stage 09: Governance      → 09-govern/              │
 │     Quản trị        Reports, Compliance         - 01-Status-Reports/   │
 │                                                 - 02-Risk-Management/   │
 │                                                 - 03-Compliance/        │
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Why INTEGRATION Moved to Stage 03 (Contract-First Principle)
+
+| Reason | Explanation |
+|--------|-------------|
+| **ISO 12207 Alignment** | Integration belongs in Technical processes (before Operation) |
+| **Contract-First** | OpenAPI specs must exist BEFORE coding begins |
+| **DevOps CI** | Continuous Integration happens during Build, not post-production |
+| **Practical Logic** | Cannot design APIs after system is already in production |
 
 ---
 
@@ -332,9 +376,70 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-#### **Stage 03: DEVELOPMENT (BUILD)** ✅ *Enhanced Detail*
+#### **Stage 03: INTEGRATION - API Design & System Integration** 🆕 *MOVED FROM STAGE 07*
 
-**Purpose**: Implementation with AI+Human orchestration
+**Purpose**: Define API contracts, integration patterns, and system interoperability BEFORE coding begins (Contract-First principle)
+
+> **WHY Stage 03?** In previous SDLC versions, INTEGRATE was Stage 07 (post-OPERATE). This was logically incorrect - you cannot design APIs after the system is in production. SDLC 5.0.0 corrects this by placing INTEGRATION before BUILD.
+
+**Key Activities**:
+
+1. **API Contract Design (Contract-First)**:
+   - OpenAPI/Swagger specification writing (before any code)
+   - RESTful API design (resource-oriented, HTTP verbs)
+   - GraphQL schema design (for complex data requirements)
+   - gRPC protobuf definitions (for high-performance services)
+   - API versioning strategy (v1, v2, backward compatibility)
+
+2. **Integration Architecture**:
+   - **API Gateway**: Centralized entry point design (Kong, AWS API Gateway)
+   - **Service Mesh**: Service-to-service communication patterns (Istio, Linkerd)
+   - **Message Queue**: Asynchronous communication design (RabbitMQ, Kafka, Redis)
+   - **Event-Driven**: Event sourcing, CQRS patterns
+   - **Circuit Breaker**: Resilience patterns (prevent cascade failures)
+
+3. **Third-Party Integration Planning**:
+   - External API integration mapping (payment, auth, cloud services)
+   - Webhook design (incoming and outgoing)
+   - Data transformation patterns (ETL, data normalization)
+   - Rate limiting strategy (prevent abuse)
+   - Authentication flow design (OAuth2, JWT tokens)
+
+4. **Contract Testing Strategy**:
+   - Consumer-driven contract tests (Pact, Spring Cloud Contract)
+   - Mock server generation from OpenAPI specs
+   - Integration test environment setup
+   - CI/CD contract validation pipeline
+
+**BFlow Example**: `/docs/03-integration/`
+- OpenAPI: 1,629 lines, 30+ endpoints documented
+- OAuth2: 265,000 req/s capacity planned
+- Integrations: BHXH, VAT, Payment gateways, SMS/Email
+- Message Queue: Kafka for event-driven architecture
+
+**Deliverables**:
+- OpenAPI specifications (complete, validated)
+- Integration architecture diagrams
+- API versioning documentation
+- Third-party integration inventory
+- Contract testing strategy document
+- Message queue / event schema definitions
+- Error handling strategy (retry, circuit breaker patterns)
+
+**Quality Gates**:
+- ✅ API contracts validated with all consumers
+- ✅ OpenAPI spec complete (100% endpoints documented)
+- ✅ Integration architecture reviewed (CTO sign-off)
+- ✅ Third-party dependencies risk-assessed
+- ✅ Contract tests written for all critical APIs
+
+**Time Investment**: 1-2 weeks (BEFORE BUILD stage)
+
+---
+
+#### **Stage 04: BUILD - Development & Implementation** ✅ *RENUMBERED FROM STAGE 03*
+
+**Purpose**: Implementation with AI+Human orchestration, following API contracts from Stage 03
 
 **Key Activities**:
 1. **Design Thinking Integration**:
@@ -344,7 +449,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 2. **Code Implementation**:
    - Backend development (FastAPI, Django, microservices)
    - Frontend development (React, TypeScript, UI components)
-   - Integration development (event-driven, API clients)
+   - **Contract Implementation** (following OpenAPI specs from Stage 03)
    - Database migrations (Alembic, Django migrations)
 
 3. **AI+Human Orchestration** (Pillar 2):
@@ -357,10 +462,11 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 4. **Quality Integration**:
    - Unit testing (80%+ coverage target)
    - Integration testing (70%+ coverage target)
+   - **Contract validation** (responses match OpenAPI specs)
    - Code review (peer review, AI-assisted)
    - CI/CD pipeline (automated testing, deployment)
 
-**BFlow Example**: `/docs/03-Development/`
+**BFlow Example**: `/docs/04-build/`
 - Implementation: OAuth2 Provider (265K req/s capacity)
 - Stack: FastAPI + Django + PostgreSQL + Redis + Kafka
 - Value: $6.23M (infrastructure + OAuth2 A+ 103%)
@@ -373,19 +479,20 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 - Code review reports (peer-reviewed)
 
 **Quality Gates**:
-- **0.3: Prototype Fidelity**
+- **G0.3: Prototype Fidelity**
   - ✅ Minimum to learn (not minimum to ship)
   - ✅ Core workflow functional
-- **0.4: Test Validity**
+  - ✅ API responses match contracts from Stage 03
+- **G0.4: Test Validity**
   - ✅ Right users, right context
-- **0.5: Ship Decision**
+- **G0.5: Ship Decision**
   - ✅ Validated assumptions, >80% completion
 
 ---
 
-### STAGES 04-06: Quality & Deployment (NEW - Enhanced Focus)
+### STAGES 05-07: Quality, Deployment & Operations (RENUMBERED)
 
-#### **Stage 04: TESTING (TEST)** 🆕 *New Comprehensive Detail*
+#### **Stage 05: TEST - Quality Assurance** 🔄 *RENUMBERED FROM STAGE 04*
 
 **Purpose**: Comprehensive quality validation before deployment
 
@@ -415,7 +522,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
    - System Thinking: Root cause analysis for failures
    - Design Thinking: User feedback integration
 
-**BFlow Example**: `/docs/04-Quality-Assurance/`
+**BFlow Example**: `/docs/05-test/`
 - Tests: 639 automated tests (209 AI + 430 Django)
 - Coverage: 95%+ model, 90%+ API
 - UAT: 3 pilot customers, 15 scenarios, 8.5+/10 satisfaction
@@ -448,7 +555,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-#### **Stage 05: DEPLOYMENT (DEPLOY)** 🆕 *New Comprehensive Detail*
+#### **Stage 06: DEPLOY - Release & Deployment** 🔄 *RENUMBERED FROM STAGE 05*
 
 **Purpose**: Production go-live execution with zero downtime
 
@@ -480,7 +587,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
    - Canary deployment (1% traffic first)
    - Emergency rollback ready (<5 min execution)
 
-**BFlow Example**: `/docs/05-Deployment/`
+**BFlow Example**: `/docs/06-deploy/`
 - Plan: December 19-20, 2025 soft launch
 - Strategy: Graduated rollout (3 pilot customers)
 - Execution:
@@ -522,7 +629,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-#### **Stage 06: OPERATIONS (OPERATE)** 🆕 *New Comprehensive Detail*
+#### **Stage 07: OPERATE - Production & Operations** 🔄 *RENUMBERED FROM STAGE 06*
 
 **Purpose**: Sustain production excellence with continuous improvement
 
@@ -590,7 +697,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
      * Root cause (5 Whys)
      * Prevention plan (update runbooks)
 
-**BFlow Example**: `/docs/06-Operations/`
+**BFlow Example**: `/docs/07-operate/`
 - Monitoring: Grafana dashboards (10+ panels)
 - Uptime: 99.9%+ target
 - API Performance: <50ms p50, <100ms p95
@@ -628,82 +735,11 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-### STAGES 07-09: Integration & Collaboration (NEW - Cross-Cutting Concerns)
+### STAGES 08-09: Continuous Stages (Cross-Cutting Concerns)
 
-#### **Stage 07: INTEGRATION (INTEGRATE)** 🆕 *New Critical Focus*
+> **Note**: Stages 08 and 09 are **Continuous Stages** that run throughout the project lifecycle, not sequentially like Stages 00-07.
 
-**Purpose**: Seamless system and service integration
-
-**Key Activities**:
-
-1. **API Integration**:
-   - RESTful API design (OpenAPI 3.1 specification)
-   - OAuth2 authentication (token introspection/revocation)
-   - Rate limiting (5-tier strategy: 100-50K req/min)
-   - API versioning (/v1, /v2 with deprecation policy)
-   - API documentation (auto-generated from OpenAPI)
-
-2. **Event-Driven Integration**:
-   - Message broker (Kafka 3 brokers, HA)
-   - Event schemas (Avro/JSON Schema validation)
-   - Event topics (domain-driven: finance.*, sales.*, inventory.*)
-   - Consumer groups (parallel processing)
-   - Dead letter queues (failed message handling)
-
-3. **Third-Party Integration**:
-   - Payment gateways (Vietnamese: VNPay, Momo, ZaloPay)
-   - Banking APIs (Napas, BIDV, Vietcombank)
-   - Government APIs (BHXH, VAT e-filing)
-   - AI/ML services (Ollama, OpenAI, Claude)
-   - SMS/Email providers (Twilio, SendGrid)
-
-4. **Data Integration**:
-   - ETL pipelines (data warehouse sync)
-   - CDC (Change Data Capture) for real-time sync
-   - Data validation (schema enforcement)
-   - Data transformation (Vietnamese formats)
-   - Data quality monitoring (anomaly detection)
-
-5. **Legacy System Integration**:
-   - API adapters (REST → SOAP, XML → JSON)
-   - Database replication (two-way sync)
-   - File-based integration (CSV, Excel imports)
-   - Scheduled batch jobs (nightly sync)
-
-**BFlow Example**: `/docs/07-Integration/`
-- OAuth2: 265,000 req/s capacity ✅
-- Token introspection: 8ms avg (12,500 req/s) ✅
-- Token revocation: 12ms avg (8,333 req/s) ✅
-- Rate limiting: <2ms overhead ✅
-- Multi-tenant isolation: 100% (zero cross-tenant leaks) ✅
-
-**Deliverables**:
-- API catalog (450+ endpoints documented - BFlow)
-- Event schemas (25+ canonical events)
-- Integration test suite (38 tests - BFlow Sprint 31)
-- Third-party credentials management (secure vault)
-- Integration monitoring (latency, error rates)
-
-**Quality Gates**:
-- ✅ API contracts validated (consumer-driven tests)
-- ✅ Event schema versioning enforced
-- ✅ Integration tests ≥90% pass rate
-- ✅ Third-party SLA monitoring active
-- ✅ Data quality ≥99.5% (validation rules)
-
-**System Thinking Integration**:
-- Iceberg Layer 3: Integration as system structure
-- Design for loose coupling (failure isolation)
-- Monitor integration health (detect cascading failures)
-
-**Design Thinking Integration**:
-- Empathize: Understand 3rd-party developer experience
-- Prototype: API sandbox for testing
-- Test: Developer documentation usability testing
-
----
-
-#### **Stage 08: COLLABORATION (COLLABORATE)** 🆕 *New Critical Focus*
+#### **Stage 08: COLLABORATE - Team & Stakeholder Collaboration** ✅ *Continuous Stage*
 
 **Purpose**: Effective team coordination and knowledge sharing
 
@@ -780,7 +816,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
    - Integration checkpoints (weekly)
    - Go-live coordination (war room 24/7)
 
-**BFlow Example**: `/docs/08-Team-Management/`
+**BFlow Example**: `/docs/08-collaborate/`
 - Team: Remote (6) + Local (5) unified execution
 - Communication: Daily standup 100% attendance
 - Sprint Velocity: A+ ratings both teams (Remote 103%, Local 100%)
@@ -812,7 +848,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-#### **Stage 09: GOVERNANCE (GOVERN)** 🆕 *New Critical Focus*
+#### **Stage 09: GOVERN - Compliance & Governance** ✅ *Continuous Stage*
 
 **Purpose**: Strategic oversight, compliance, and accountability
 
@@ -890,7 +926,7 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
    - Go/No-Go Decision:
      * Tech Leads + PM → CTO → CEO (formal review meeting)
 
-**BFlow Example**: `/docs/09-Executive-Reports/`
+**BFlow Example**: `/docs/09-govern/`
 - ROI: 827:1 (82,700% return Sprint 26-33)
 - Budget: $52K spent, $43.03M value delivered
 - Compliance: 100% Vietnamese regulations
@@ -921,54 +957,62 @@ Status: COMPLETE ENTERPRISE FRAMEWORK
 
 ---
 
-## 🔄 10-Stage Continuous Loop
+## 🔄 10-Stage Continuous Loop (SDLC 5.0.0 Restructured)
 
 ### The Complete Lifecycle Cycle
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                  CONTINUOUS IMPROVEMENT LOOP                  │
-└──────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│          SDLC 5.0.0 CONTINUOUS IMPROVEMENT LOOP                  │
+│        (INTEGRATION moved to Stage 03 - Contract-First)          │
+└──────────────────────────────────────────────────────────────────┘
 
-   WHY? → WHAT? → HOW? → BUILD → TEST → DEPLOY → OPERATE
-     ↑                                                   ↓
-     └───────────── LEARN & ITERATE ←──────────────────┘
-                           ↓
-        INTEGRATE ← COLLABORATE ← GOVERN (Cross-Cutting)
+LINEAR STAGES (Sequential):
+   WHY? → WHAT? → HOW? → INTEGRATION → BUILD → TEST → DEPLOY → OPERATE
+    00      01      02        03          04     05      06        07
+     ↑                                                              ↓
+     └─────────────────── LEARN & ITERATE ←────────────────────────┘
+
+CONTINUOUS STAGES (Ongoing throughout project):
+        08. COLLABORATE (Team, Communication)
+        09. GOVERN     (Reports, Compliance, Risk)
 
 
 Detailed Flow:
 
-00. WHY?        (Foundation)
+00. WHY?         (Foundation - Problem Definition)
      ↓ Design Thinking: EMPATHIZE + DEFINE
-01. WHAT?       (Planning)
+01. WHAT?        (Planning - Requirements Analysis)
      ↓ Design Thinking: IDEATE (start)
-02. HOW?        (Design)
+02. HOW?         (Design - Architecture Design)
      ↓ Design Thinking: IDEATE (complete)
-03. BUILD       (Development)
-     ↓ Design Thinking: PROTOTYPE + TEST
-04. TEST        (Quality Assurance)
+03. INTEGRATION  (API Design - Contract-First)  ← MOVED FROM 07
+     ↓ OpenAPI specs, Integration architecture
+04. BUILD        (Development - Implementation)
+     ↓ Code following API contracts from Stage 03
+05. TEST         (Quality Assurance)
      ↓ Validate: Unit + Integration + UAT
-05. DEPLOY      (Go-Live)
+06. DEPLOY       (Go-Live - Release)
      ↓ Blue-green deployment, War room
-06. OPERATE     (Production)
+07. OPERATE      (Production - Operations)
      ↓ Monitor, Maintain, Support
-     │
-     ├→ 07. INTEGRATE  (APIs, Events, Data)
-     ├→ 08. COLLABORATE (Team, Communication)
-     └→ 09. GOVERN     (Reports, Compliance, Risk)
-     
+
      ↓ LEARN from production
-     
+
      → Loop back to WHY? (for next feature/enhancement)
+
+CONTINUOUS (Throughout all stages):
+     08. COLLABORATE (Team communication, knowledge sharing)
+     09. GOVERN      (Compliance monitoring, executive reports)
 ```
 
 **Key Principles**:
-1. **Sequential Flow** (00-06): Foundation → Design → Delivery → Operations
-2. **Parallel Flow** (07-09): Integration, Collaboration, Governance happen throughout
-3. **Continuous Loop**: Production insights inform next WHY cycle
-4. **Design Thinking**: Woven through all stages (Empathize → Test)
-5. **System Thinking**: 4-layer analysis at every stage (Events → Mental Models)
+1. **Sequential Flow** (00-07): Foundation → Design → **Integration** → Build → Test → Deploy → Operate
+2. **Contract-First** (Stage 03): API specs defined BEFORE coding starts
+3. **Continuous Flow** (08-09): Collaboration and Governance happen throughout
+4. **Continuous Loop**: Production insights inform next WHY cycle
+5. **Design Thinking**: Woven through all stages (Empathize → Test)
+6. **System Thinking**: 4-layer analysis at every stage (Events → Mental Models)
 
 ---
 
@@ -980,64 +1024,70 @@ Detailed Flow:
 
 ```yaml
 00. FOUNDATION (WHY?) - Sprint 26 (Nov 1-3):
-   Document: /docs/00-Project-Foundation/03-Roadmap/PLATFORM-ROADMAP.md
+   Document: /docs/00-foundation/03-Roadmap/PLATFORM-ROADMAP.md
    Deliverable: BFlow 2.0 Pure V9.0 Strategic Roadmap
    Value: $4.7M (disaster prevention + market advantage)
    Design Thinking: EMPATHIZE (CEO vision → user pain validation)
 
 01. PLANNING (WHAT?) - Sprint 27 (Nov 3-16):
-   Document: /docs/01-Planning-Analysis/06-Project-Planning/PROJECT-IMPLEMENTATION-PLAN.md
+   Document: /docs/01-planning/06-Project-Planning/PROJECT-IMPLEMENTATION-PLAN.md
    Deliverable: 15 P0 Methods Implementation Plan
    Value: $3.8M (feature parity 9.3% → 37%)
    Design Thinking: DEFINE + IDEATE (100+ solution ideas → Top 3 concepts)
 
 02. DESIGN (HOW?) - Sprint 28 (Nov 4-16):
-   Document: /docs/02-Architecture-Design/01-System-Architecture/MICROSERVICES-ARCHITECTURE.md
+   Document: /docs/02-design/01-System-Architecture/MICROSERVICES-ARCHITECTURE.md
    Deliverable: 8 Microservices Architecture (OAuth2 + 7 business services)
    Value: Methods 16-19 stable (72-hour monitoring A+ 98.5%)
    Design Thinking: IDEATE complete (technical approach finalized)
 
-03. DEVELOPMENT (BUILD) - Sprint 29-30 (Nov 6-17):
-   Document: /docs/03-Development/01-Backend/OAUTH2-IMPLEMENTATION.md
+03. INTEGRATION (API Design) - Sprint 28-29 (Nov 4-10):  ← NEW STAGE POSITION
+   Document: /docs/03-integration/01-API-Design/OPENAPI-SPEC.md
+   Deliverable: OpenAPI 1,629 lines, 30+ endpoints, OAuth2 contract
+   Value: Contract-First ensures consistent API implementation
+   Design Thinking: PROTOTYPE (API contracts before code)
+
+04. BUILD (Development) - Sprint 29-30 (Nov 6-17):  ← RENUMBERED
+   Document: /docs/04-build/01-Backend/OAUTH2-IMPLEMENTATION.md
    Deliverable: OAuth2 Provider + 6 Microservices operational
    Value: $6.23M (infrastructure + OAuth2 A+ 103%)
-   Design Thinking: PROTOTYPE (code prototype, working features)
+   Design Thinking: PROTOTYPE (code following API contracts)
 
-04. TESTING (TEST) - Sprint 31-32 (Nov 10 - Dec 12):
-   Document: /docs/04-Quality-Assurance/03-Test-Reports/SPRINT-31-TEST-RESULTS.md
+05. TEST (Quality) - Sprint 31-32 (Nov 10 - Dec 12):  ← RENUMBERED
+   Document: /docs/05-test/03-Test-Reports/SPRINT-31-TEST-RESULTS.md
    Deliverable: 639 tests (209 AI + 430 Django), 95%+ coverage
    Value: $17.42M (GAP-001/002 + Agent Gateway Wave 0-1)
    Design Thinking: TEST (5-8 user validation, iterate based on feedback)
 
-05. DEPLOYMENT (DEPLOY) - Dec 13-20:
-   Document: /docs/05-Deployment/01-Deployment-Plan/SPRINT-32-FINAL-GOLIVE-PLAN.md
+06. DEPLOY (Release) - Dec 13-20:  ← RENUMBERED (was 05)
+   Document: /docs/06-deploy/01-Deployment-Plan/SPRINT-32-FINAL-GOLIVE-PLAN.md
    Deliverable: December 19-20 Soft Launch (3 pilot customers live)
    Value: $18,880 investment, 99.5% → 100% confidence
    Success: NQH (Dec 19 9AM), Galaxy (Dec 20 9AM), CMCSISG (Dec 20 1PM)
 
-06. OPERATIONS (OPERATE) - Sprint 33+ (Dec 16-29, ongoing):
-   Document: /docs/06-Operations/01-Monitoring/GRAFANA-DASHBOARDS.md
+07. OPERATE (Production) - Sprint 33+ (Dec 16-29, ongoing):  ← RENUMBERED (was 06)
+   Document: /docs/07-operate/01-Monitoring/GRAFANA-DASHBOARDS.md
    Deliverable: 24/7 war room, 99.9%+ uptime, <50ms API response
    Value: $4.65M (stabilization + Agent Gateway Wave 3)
    Metrics: 8.5+/10 customer satisfaction, zero P0 incidents
 
-07. INTEGRATION (INTEGRATE) - Sprint 31 (OAuth2 focus):
-   Document: /docs/07-Integration/01-API-Documentation/OAUTH2-API-REFERENCE.md
-   Deliverable: 450+ API endpoints, OAuth2 265K req/s capacity
-   Value: Token introspection 8ms, revocation 12ms, rate limiting <2ms
-   Achievement: Multi-tenant isolation 100% (zero cross-tenant leaks)
+--- CONTINUOUS STAGES (Throughout all Linear Stages) ---
 
-08. COLLABORATION (COLLABORATE) - Sprint 31-32 (dual team):
-   Document: /docs/08-Team-Management/04-Sprint-Management/SPRINT-31-32-COORDINATION.md
+08. COLLABORATE (Team) - Sprint 31-32 (dual team):  ← CONTINUOUS
+   Document: /docs/08-collaborate/04-Sprint-Management/SPRINT-31-32-COORDINATION.md
    Deliverable: Remote Team (6) + Local Team (5) unified execution
    Value: A+ ratings both teams (Remote 103%, Local 100%)
    Success: Daily standup 100% attendance, sprint goals 100% achieved
 
-09. GOVERNANCE (GOVERN) - Sprint 32 (go-live gate):
-   Document: /docs/09-Executive-Reports/DECEMBER-PRODUCTION-READINESS-99.5-PERCENT.md
+09. GOVERN (Compliance) - Sprint 32 (go-live gate):  ← CONTINUOUS
+   Document: /docs/09-govern/DECEMBER-PRODUCTION-READINESS-99.5-PERCENT.md
    Deliverable: Risk assessment (85% → 90% confidence), CEO authorization
    Value: $43.03M total platform value (Sprint 26-33)
    Compliance: Vietnamese regulations 100% (BHXH, VAT, FIFO, PIT)
+
+NOTE: Stage 07 INTEGRATION was REMOVED from this position.
+      In SDLC 5.0.0, INTEGRATION is now Stage 03 (Contract-First).
+      API Design (OpenAPI specs) happens BEFORE coding, not after production.
 
 RESULTS:
   Investment: $90,200 (Sprint 26-33)
@@ -1051,27 +1101,28 @@ RESULTS:
 
 ## 🎯 What You Achieve: Proven Metrics
 
-### SDLC 4.9 vs 4.8 vs Traditional Comparison
+### SDLC 5.0.0 vs 4.9 vs Traditional Comparison
 
-| Metric | Traditional | SDLC 4.8 | SDLC 4.9 | Improvement |
-|--------|------------|----------|----------|-------------|
-| **Lifecycle Coverage** | Partial | 4 stages | 10 stages | Complete |
+| Metric | Traditional | SDLC 4.9 | SDLC 5.0.0 | Improvement |
+|--------|------------|----------|------------|-------------|
+| **Lifecycle Coverage** | Partial | 10 stages | 10 stages (restructured) | Logical order |
+| **Contract-First** | None | Optional | **Stage 03 MANDATORY** | API before code |
 | **Feature Adoption** | 30% | 75-90% | 75-90% | +3x |
 | **Development Waste** | 70% | 10-20% | 10-20% | -3.5x |
 | **Concept-to-Prototype** | 3-6 months | 4 weeks | 4 weeks | -6x time |
 | **Productivity Gain** | 2-3x | 10-50x | 10-50x | Maintained |
 | **Crisis Response** | Weeks | 24-48 hours | 24-48 hours | Maintained |
 | **PR Review Time** | 30-60 min | 3-5 min | 3-5 min | Maintained |
-| **Deployment Confidence** | 50-60% | 70-80% | 90-99.5% | +2x |
-| **Production Uptime** | 95-98% | 99%+ | 99.9%+ | +5 9s |
-| **Documentation Structure** | Ad-hoc | Good | Perfect | 10-stage align |
+| **Deployment Confidence** | 50-60% | 90-99.5% | 90-99.5% | Maintained |
+| **Production Uptime** | 95-98% | 99.9%+ | 99.9%+ | Maintained |
+| **Documentation Structure** | Ad-hoc | 10 folders | 10 folders (renamed) | lowercase naming |
 
-**Key Enhancements in 4.9**:
-- ✅ **Complete lifecycle**: 10 stages (WHY → GOVERN) vs 4 stages
-- ✅ **2x deployment confidence**: 90-99.5% vs 70-80% (TEST, DEPLOY stages)
-- ✅ **Perfect /docs alignment**: 10 stages → 10 folders (Documentation Permanence)
-- ✅ **Production excellence**: 99.9%+ uptime (OPERATE stage detailed)
-- ✅ **Cross-cutting concerns**: INTEGRATE, COLLABORATE, GOVERN formalized
+**Key Enhancements in SDLC 5.0.0**:
+- ✅ **Contract-First (Stage 03)**: INTEGRATION moved from Stage 07 → Stage 03. API specs BEFORE coding.
+- ✅ **Logical Stage Order**: ISO 12207 compliant - Integration belongs in Technical processes, not post-production
+- ✅ **Linear vs Continuous**: Clear separation - Stages 00-07 (sequential), 08-09 (ongoing throughout)
+- ✅ **Simplified Naming**: lowercase folder names (00-foundation, 01-planning, etc.)
+- ✅ **4-Tier Classification**: LITE (1-2) / STANDARD (3-10) / PROFESSIONAL (10-50) / ENTERPRISE (50+)
 
 ---
 

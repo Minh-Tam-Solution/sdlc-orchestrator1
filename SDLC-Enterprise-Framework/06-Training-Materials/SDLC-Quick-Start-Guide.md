@@ -8,13 +8,30 @@
 **What's New in 5.0.0**: Governance & Compliance + 4-Tier Classification + Industry Best Practices
 
 **SDLC 5.0.0 Features**:
-- ✅ 10 stages: WHY → GOVERN (complete lifecycle)
+- ✅ 10 stages: WHY → GOVERN (complete lifecycle with **Contract-First**)
 - ✅ 6 Pillars: Design Thinking + 5 core pillars
 - ✅ 4-Tier Classification: LITE, STANDARD, PROFESSIONAL, ENTERPRISE
 - ✅ Governance & Compliance: Quality Gates, Security Gates, Observability, Change Management
 - ✅ Team Collaboration Standards: RACI, Communication Protocol, Escalation
 - ✅ Code File Naming Standards (Python: snake_case, TypeScript: camelCase, React: PascalCase)
 - ✅ Universal Code Review (3 tiers)
+
+**SDLC 5.0.0 Stages (Contract-First Order)**:
+```yaml
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration ← Contract-First (BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
 
 ---
 

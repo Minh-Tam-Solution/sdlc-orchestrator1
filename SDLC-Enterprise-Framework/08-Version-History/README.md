@@ -2,8 +2,34 @@
 
 **Current Version**: 5.0.0
 **Date**: December 5, 2025
-**Status**: ACTIVE - Complete 10-Stage Lifecycle + 4-Tier Classification + Governance
+**Status**: ACTIVE - Contract-First Stage Restructuring + 4-Tier Classification
 **Purpose**: Document framework evolution and lessons learned
+
+---
+
+## 📋 SDLC 5.0.0 Stage Structure (Contract-First Order)
+
+```yaml
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration ← Contract-First (BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
+
+**Key SDLC 5.0.0 Changes**:
+- **Stage Restructuring**: INTEGRATE moved from Stage 07 → Stage 03 (Contract-First principle)
+- **Contract-First**: API Design (OpenAPI specs) must happen BEFORE coding begins
+- **4-Tier Classification**: LITE (1-2) / STANDARD (3-10) / PROFESSIONAL (10-50) / ENTERPRISE (50+)
+- **ISO/IEC 12207:2017 Alignment**: Integration in Technical processes (pre-operation)
 
 ---
 
@@ -11,7 +37,7 @@
 
 This folder maintains the **complete history** of SDLC framework evolution from inception to current version, documenting:
 - **What changed** in each version
-- **Why** changes were made  
+- **Why** changes were made
 - **How** to migrate between versions
 - **Lessons learned** from production
 
@@ -21,21 +47,43 @@ This folder maintains the **complete history** of SDLC framework evolution from 
 
 ### SDLC-Version-History.md ⭐ PRIMARY DOCUMENT
 
-**Complete framework evolution** from Version 1.0 (June 2025) → 4.9.0 (November 2025)
+**Complete framework evolution** from Version 1.0 (June 2025) → 5.0.0 (December 2025)
 
 **Key Sections**:
-1. **Version 4.9.1** (Current) - Code File Naming Standards Restored
-2. **Version 4.9.0** - Complete 10-stage lifecycle
-3. **Version 4.8.0** - Design Thinking integration
-4. **Version 4.7.0** - Battle-tested 5-pillar excellence
-5. **Version 4.6.0** - Zero Mock Policy crisis response
-6. **Earlier versions** - Foundation establishment
+1. **Version 5.0.0** (Current) - Contract-First Stage Restructuring ← NEW
+2. **Version 4.9.1** - Code File Naming Standards Restored
+3. **Version 4.9.0** - Complete 10-stage lifecycle
+4. **Version 4.8.0** - Design Thinking integration
+5. **Version 4.7.0** - Battle-tested 5-pillar excellence
+6. **Version 4.6.0** - Zero Mock Policy crisis response
+7. **Earlier versions** - Foundation establishment
 
-**Total**: 1,500+ lines comprehensive version history
+**Total**: 1,600+ lines comprehensive version history
 
 ---
 
-## 🚀 Current Version: SDLC 4.9.1
+## 🚀 Current Version: SDLC 5.0.0
+
+### Released: December 5, 2025
+
+**Major Achievement**: Contract-First Stage Restructuring - INTEGRATE moved to Stage 03
+
+**Key Enhancements**:
+- ✅ **Stage Restructuring**: INTEGRATE moved from Stage 07 → Stage 03 (Contract-First)
+- ✅ **Contract-First Principle**: API Design (OpenAPI) BEFORE coding begins
+- ✅ **4-Tier Classification**: LITE/STANDARD/PROFESSIONAL/ENTERPRISE
+- ✅ **ISO/IEC 12207:2017 Alignment**: Integration in Technical processes
+- ✅ **Simplified Naming**: Lowercase, hyphenated stage names
+
+**Why This Matters**:
+- **Logical Order**: Integration/API Design belongs BEFORE coding, not post-production
+- **Industry Standard**: Aligns with ISO 12207, DevOps CI, CMMI best practices
+- **Contract-First Development**: Teams define API contracts before implementation
+- **Prevents Issues**: Catches integration problems early in the design phase
+
+---
+
+## 📜 Previous Version: SDLC 4.9.1
 
 ### Released: November 29, 2025
 

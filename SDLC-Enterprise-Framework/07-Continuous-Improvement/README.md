@@ -6,18 +6,44 @@
 
 ---
 
+## 📋 SDLC 5.0.0 Stage Structure (Contract-First Order)
+
+```yaml
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration ← Contract-First (BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
+
+**Key SDLC 5.0.0 Changes**:
+- **Stage Restructuring**: INTEGRATE moved from Stage 07 → Stage 03 (Contract-First principle)
+- **Contract-First**: API Design (OpenAPI specs) must happen BEFORE coding begins
+- **4-Tier Classification**: LITE (1-2) / STANDARD (3-10) / PROFESSIONAL (10-50) / ENTERPRISE (50+)
+- **ISO/IEC 12207:2017 Alignment**: Integration in Technical processes (pre-operation)
+
+---
+
 ## 📚 Documents in This Folder
 
 ### 1. SDLC-Continuous-Improvement-Guide.md
 **Purpose**: Master guide for evolving the SDLC framework without losing battle-tested wisdom
 
 **Key Content**:
-- **4.7 → 4.8 → 4.9 Upgrade Lessons**: Three successful major upgrades documented
+- **4.7 → 4.8 → 4.9 → 5.0.0 Upgrade Lessons**: Four successful major upgrades documented
 - **90% Preserve + 10% Enhance Philosophy**: Proven additive enhancement strategy
 - **Document-by-Document Upgrade Process**: CEO review checkpoint methodology
 - **5-Phase Systematic Upgrade**: Planning → Preservation → Transformation → Consistency → Review
-- **Success Stories**: Detailed case studies of 4.7→4.8 and 4.8→4.9 upgrades
-- **Next Evolution Criteria**: Guidelines for 4.10 minor update and 5.0 major update
+- **Success Stories**: Detailed case studies of 4.7→4.8, 4.8→4.9, and 4.9→5.0.0 upgrades
+- **Contract-First Stage Restructuring**: INTEGRATE at Stage 03, before BUILD
 
 **Use When**:
 - Planning next SDLC framework upgrade
@@ -25,7 +51,7 @@
 - Want to learn from previous upgrade experiences
 - Training team on framework evolution best practices
 
-**Version**: 4.9.0  
+**Version**: 5.0.0
 **Lines**: ~1,130 lines comprehensive guide
 
 ---

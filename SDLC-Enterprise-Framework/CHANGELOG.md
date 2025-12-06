@@ -11,15 +11,65 @@
 ## 🚀 Version 5.0.0 - December 5, 2025 (MAJOR RELEASE)
 
 **Release Date**: December 5, 2025
-**Type**: MAJOR RELEASE - 4-Tier Governance Framework + Industry Standards Integration
+**Type**: MAJOR RELEASE - Contract-First Stage Restructuring + 4-Tier Classification + ISO 12207 Alignment
 **Status**: PRODUCTION-READY
-**Breaking Changes**: Yes - Structural changes to Stage 08 (Team-Collaboration subfolder added)
+**Breaking Changes**: Yes - Stage numbering changed (INTEGRATE moved from 07 → 03)
 **Supersedes**: SDLC 4.9.1 Complete 10-Stage Lifecycle
-**Achievement**: Universal governance framework for ALL project sizes (1 person → 500+ people)
+**Achievement**: Contract-First development with logical stage ordering + Universal governance for ALL project sizes
+
+### 🎯 CRITICAL CHANGE: Contract-First Stage Restructuring
+
+**THE PROBLEM**: Stage 07 (INTEGRATE) placed after Stage 06 (OPERATE) was logically incorrect:
+- If a project is already in OPERATE (production), it cannot "go back" to define API contracts
+- Integration/API Design belongs in the Design phase, not post-production
+- This contradicted ISO/IEC 12207:2017 and DevOps best practices
+
+**THE SOLUTION**: Move INTEGRATE from Stage 07 → Stage 03 (Contract-First principle)
+
+```yaml
+# SDLC 5.0.0 Stage Structure (Contract-First Order)
+
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration     ← MOVED FROM 07 (Contract-First)
+  04-build:        Development & Implementation        ← Was 03
+  05-test:         Quality Assurance                   ← Was 04
+  06-deploy:       Release & Deployment                ← Was 05
+  07-operate:      Production & Operations             ← Was 06
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
+```
+
+**Why This Matters**:
+- **Contract-First**: API Design (OpenAPI specs) must happen BEFORE coding begins
+- **ISO/IEC 12207:2017 Alignment**: Integration belongs with Technical processes (pre-operation)
+- **DevOps CI**: Continuous Integration occurs during Build, not post-production
+- **Practical Logic**: Cannot design APIs after system is in production
+
+### 🎯 Key Enhancement: 4-Tier Governance Framework
 
 ### 🎯 Key Enhancement: 4-Tier Governance Framework
 
 **THE CHANGE**: Transform from one-size-fits-all to **tiered governance** that scales with team size and project complexity.
+
+#### Stage Mapping Changes (SDLC 5.0.0 Restructure)
+
+| Old Stage (4.9.x) | New Stage (5.0.0) | Stage # | Change |
+|-------------------|-------------------|---------|--------|
+| WHY | foundation | 00 | Rename only |
+| WHAT | planning | 01 | Rename only |
+| HOW | design | 02 | Rename only |
+| BUILD | **integration** | **03** | **MOVED from 07** |
+| TEST | build | 04 | Shifted +1, rename |
+| DEPLOY | test | 05 | Shifted +1, rename |
+| OPERATE | deploy | 06 | Shifted +1, rename |
+| INTEGRATE | operate | 07 | **Shifted -4**, rename |
+| COLLABORATE | collaborate | 08 | Rename only |
+| GOVERN | govern | 09 | Rename only |
 
 **What's New in 5.0.0**:
 
@@ -147,25 +197,44 @@ After (Tiered Governance):
 **Duration**: 4-6 hours (systematic upgrade)
 **Approach**: Document-by-document with CPO/CTO review
 
-**Steps**:
+**sdlcctl migrate Command** (RECOMMENDED):
+```bash
+# Auto-migrate project to SDLC 5.0.0 (includes stage restructuring)
+sdlcctl migrate --from 4.9.1 --to 5.0.0 --path /path/to/project
+
+# Preview changes only (dry-run)
+sdlcctl migrate --from 4.9.1 --to 5.0.0 --path /path/to/project --dry-run
+
+# Validate after migration
+sdlcctl validate --path /path/to/project
+```
+
+**Manual Steps** (if not using sdlcctl):
 
 1. **Determine your tier**: Based on team size and project complexity
 2. **Update version headers**: Change "4.9" → "5.0" in all documents
-3. **Apply tier-specific requirements**: Add only what's needed for your tier
-4. **Create Team-Collaboration folder** (if STANDARD+)
-5. **Update CHANGELOG**: Add 5.0.0 entry
-6. **Validate**: Run sdlc_validator.py
+3. **Restructure stage references**: Update all references to Contract-First order
+   - Stage 03 is now INTEGRATION (was BUILD)
+   - Stage 04 is now BUILD (was TEST)
+   - Stage 05 is now TEST (was DEPLOY)
+   - Stage 06 is now DEPLOY (was OPERATE)
+   - Stage 07 is now OPERATE (was INTEGRATION)
+4. **Apply tier-specific requirements**: Add only what's needed for your tier
+5. **Create Team-Collaboration folder** (if STANDARD+)
+6. **Update CHANGELOG**: Add 5.0.0 entry
+7. **Validate**: Run sdlc_validator.py
 
 **Migration Checklist**:
 ```markdown
 □ 1. Update README.md version header to 5.0.0
 □ 2. Update CLAUDE.md (if exists)
-□ 3. Determine tier (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)
-□ 4. Create Team-Collaboration/ (STANDARD+)
-□ 5. Add tier-appropriate governance docs
-□ 6. Update CHANGELOG.md
-□ 7. Run validation
-□ 8. CPO/CTO review
+□ 3. Restructure stage numbering (INTEGRATE → Stage 03)
+□ 4. Determine tier (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)
+□ 5. Create Team-Collaboration/ (STANDARD+)
+□ 6. Add tier-appropriate governance docs
+□ 7. Update CHANGELOG.md
+□ 8. Run sdlcctl validate or sdlc_validator.py
+□ 9. CPO/CTO review
 ```
 
 ---
@@ -196,14 +265,19 @@ After (Tiered Governance):
 ### 🎊 Summary (5.0.0)
 
 **What Changed**:
+- ✅ **Contract-First Stage Restructuring** - INTEGRATE moved from Stage 07 → Stage 03
+- ✅ **ISO/IEC 12207:2017 Alignment** - Integration in Technical processes (pre-operation)
+- ✅ **Simplified Stage Naming** - Lowercase, hyphenated stage names (foundation, planning, etc.)
 - ✅ 4-Tier Governance (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)
 - ✅ Team-Collaboration standards (RACI, Handoffs, Escalation)
 - ✅ Governance & Compliance standards (Quality Gates, Security Gates)
-- ✅ Industry standards integration (CMMI, SAFe, DORA, NIST, OWASP)
+- ✅ Industry standards integration (CMMI, SAFe, DORA, NIST, OWASP, ISO 12207)
 - ✅ 12 new documents for comprehensive coverage
 - ✅ Version-free naming maintained
 
 **What This Enables**:
+- ✅ **Contract-First Development** - API Design before coding begins
+- ✅ **Logical Stage Order** - Integration catches issues early in design phase
 - ✅ Right-size governance for ANY project size
 - ✅ Clear escalation paths and RACI matrices
 - ✅ Industry-standard compliance (audit-ready)
@@ -211,8 +285,13 @@ After (Tiered Governance):
 - ✅ Measurable quality with DORA metrics
 
 **Breaking Changes**:
+- **Stage numbering changed** - INTEGRATE moved from 07 → 03, subsequent stages shifted
 - Stage 08 structure changed (Team-Collaboration subfolder added)
 - Governance requirements now tier-dependent
+
+**Migration Tool**:
+- Use `sdlcctl migrate --from 4.9.1 --to 5.0.0` for automated migration
+- Supports `--dry-run` flag for preview
 
 ---
 

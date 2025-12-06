@@ -7,6 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 The **SDLC-Enterprise-Framework** is a universal, battle-tested AI+Human development framework (**v5.0.0**) with complete 10-Stage lifecycle (WHY → GOVERN), Governance & Compliance standards, and 4-Tier Classification system. Built through 6 months of real platform development (June-December 2025) across BFlow, NQH-Bot, and MTEP platforms, this framework achieves **14,822% ROI** through proven patterns, crisis response protocols, and implementation profiles that deliver 10x-50x productivity gains.
 
 **What's New in 5.0.0 (December 5, 2025)**:
+- ✅ **Contract-First Stage Restructuring** - INTEGRATE moved from Stage 07 → Stage 03 (API Design BEFORE coding)
+- ✅ **ISO/IEC 12207:2017 Alignment** - Integration in Technical processes (pre-operation)
+- ✅ **Simplified Stage Naming** - Lowercase, hyphenated stage names (foundation, planning, design, etc.)
 - ✅ **Governance & Compliance Standards** - Quality Gates, Security Gates, Observability, Change Management
 - ✅ **4-Tier Classification** - LITE (1-2), STANDARD (3-10), PROFESSIONAL (10-50), ENTERPRISE (50+)
 - ✅ **Industry Best Practices** - CMMI v3.0, SAFe 6.0, DORA Metrics, OWASP ASVS, NIST SSDF
@@ -15,29 +18,37 @@ The **SDLC-Enterprise-Framework** is a universal, battle-tested AI+Human develop
 **What's in SDLC 4.9.1 (November 29, 2025)**:
 - ✅ **Code File Naming Standards** - Python: snake_case, TypeScript: camelCase, React: PascalCase
 
-**What's in SDLC 4.9 (November 13, 2025)**:
-- ✅ **Complete 10-Stage Lifecycle** - WHY → WHAT → HOW → BUILD → TEST → DEPLOY → OPERATE → INTEGRATE → COLLABORATE → GOVERN
+**What's in SDLC 4.9 (November 13, 2025)** *(Stage order updated in 5.0.0)*:
+- ✅ **Complete 10-Stage Lifecycle** - WHY → WHAT → HOW → INTEGRATE → BUILD → TEST → DEPLOY → OPERATE → COLLABORATE → GOVERN
 - ✅ **Perfect /docs Alignment** - 10 SDLC stages → 10 /docs folders (00-09)
 - ✅ **14,822% ROI** - 2x improvement over SDLC 4.8's 7,322%
 - ✅ **BFlow 52-Day Journey** - Flagship validation, 827:1 ROI
 
 ## Key Framework Concepts
 
-### The Complete 10-Stage Lifecycle (NEW in 4.9)
+### The Complete 10-Stage Lifecycle (SDLC 5.0.0 - Contract-First Order)
 
 ```yaml
-Business Question → SDLC Stage → /docs Folder
-WHY?        → Stage 00: Foundation    → 00-Project-Foundation/
-WHAT?       → Stage 01: Planning      → 01-Planning-Analysis/
-HOW?        → Stage 02: Design        → 02-Architecture-Design/
-BUILD       → Stage 03: Development   → 03-Development/
-TEST        → Stage 04: Quality       → 04-Quality-Assurance/
-DEPLOY      → Stage 05: Deployment    → 05-Deployment/
-OPERATE     → Stage 06: Operations    → 06-Operations/
-INTEGRATE   → Stage 07: Integration   → 07-Integration/
-COLLABORATE → Stage 08: Team Mgmt     → 08-Team-Management/
-GOVERN      → Stage 09: Governance    → 09-Executive-Reports/
+# LINEAR STAGES (Sequential per release):
+Stage 00 - foundation:   WHY - Problem Definition          → 00-foundation/
+Stage 01 - planning:     WHAT - Requirements Analysis      → 01-planning/
+Stage 02 - design:       HOW - Architecture Design         → 02-design/
+Stage 03 - integration:  API Design & System Integration   → 03-integration/     ← Contract-First (BEFORE BUILD)
+Stage 04 - build:        Development & Implementation      → 04-build/
+Stage 05 - test:         Quality Assurance                 → 05-test/
+Stage 06 - deploy:       Release & Deployment              → 06-deploy/
+Stage 07 - operate:      Production & Operations           → 07-operate/
+
+# CONTINUOUS STAGES (Ongoing throughout project):
+Stage 08 - collaborate:  Team Coordination & Communication → 08-collaborate/
+Stage 09 - govern:       Governance & Compliance           → 09-govern/
 ```
+
+**Why Contract-First (Stage 03 before Stage 04)?**
+- OpenAPI specs must exist BEFORE coding begins
+- ISO/IEC 12207:2017 Alignment: Integration in Technical processes (pre-operation)
+- Prevents: "It worked in dev" syndrome when API contracts change
+- DevOps CI: Continuous Integration occurs during Build, not post-production
 
 ### Code File Naming Standards (NEW in 4.9.1)
 
@@ -147,16 +158,16 @@ SDLC-Orchestrator/SDLC-Enterprise-Framework/
 ## Development Workflow
 
 ### When Working with Framework Documentation
-1. **Check current version**: Framework is at **SDLC 4.9.1** (November 29, 2025)
-2. **Apply 10-stage lifecycle**: WHY → GOVERN complete coverage
+1. **Check current version**: Framework is at **SDLC 5.0.0** (December 5, 2025)
+2. **Apply 10-stage lifecycle**: Contract-First order (INTEGRATE at Stage 03, before BUILD)
 3. **Use English only**: All technical content must be in English
 4. **Follow code file naming**: Python snake_case, TypeScript camelCase, React PascalCase
-5. **Maintain version consistency**: Update to 4.9.1 across related documents
+5. **Maintain version consistency**: Update to 5.0.0 across related documents
 
 ### When Updating Framework Content
 1. **Review CHANGELOG.md**: Check version history
-2. **Check 02-Core-Methodology/**: Core principles and 10-stage framework
-3. **Update consistently**: Version 4.9.1, dates November 29, 2025
+2. **Check 02-Core-Methodology/**: Core principles and 10-stage framework (Contract-First)
+3. **Update consistently**: Version 5.0.0, dates December 5, 2025
 4. **Preserve legacy**: Use 99-Legacy/ for superseded content
 5. **Apply code file naming**: All new files must follow naming standards
 
@@ -169,8 +180,9 @@ SDLC-Orchestrator/SDLC-Enterprise-Framework/
 
 ## Framework Compliance Standards
 
-### Required Compliance Metrics (SDLC 4.9.1)
-- **10-Stage Lifecycle Applied**: All 10 stages considered
+### Required Compliance Metrics (SDLC 5.0.0)
+- **Contract-First Development**: API Design (Stage 03) BEFORE coding (Stage 04)
+- **10-Stage Lifecycle Applied**: All 10 stages in Contract-First order considered
 - **Code File Naming**: Python snake_case, TypeScript camelCase, React PascalCase
 - **Design Thinking Applied**: 5-phase methodology for all new features
 - **Code Review Active**: At least Tier 1 (manual) for all code changes
@@ -179,8 +191,9 @@ SDLC-Orchestrator/SDLC-Enterprise-Framework/
 - **Test Coverage**: >90% with real services only
 - **Performance**: <50ms response time target
 
-### Quality Gates (SDLC 4.9.1)
+### Quality Gates (SDLC 5.0.0)
 - **Pre-Design Thinking**: User validation before coding starts
+- **Contract-First Validation**: OpenAPI spec must exist before implementation
 - **Pre-commit hooks**: Block commits with mock instances
 - **Code file naming validation**: Enforce naming standards
 - **Code Review enforcement**: At least Tier 1 for all changes
@@ -204,7 +217,9 @@ SDLC 4.9 (November 13, 2025)
 SDLC 4.9.1 (November 29, 2025)
   ↓ Code File Naming Standards Restored
 SDLC 5.0.0 (December 5, 2025)
-  ↓ Governance & Compliance + 4-Tier Classification + Industry Best Practices
+  ↓ Contract-First Stage Restructuring (INTEGRATE moved 07→03)
+  ↓ ISO/IEC 12207:2017 Alignment + 4-Tier Classification
+  ↓ Governance & Compliance + Industry Best Practices
 ```
 
 ## Proven ROI (SDLC 5.0.0)
@@ -237,8 +252,10 @@ SDLC 5.0.0 (December 5, 2025)
 
 ---
 
-The framework represents not theory but battle-tested patterns from 6 months of real platform development. With SDLC 5.0.0, we achieve excellence faster: **10-stage complete lifecycle, governance & compliance standards, 4-tier classification, 14,822% ROI, production-ready in 1-2 weeks.**
+The framework represents not theory but battle-tested patterns from 6 months of real platform development. With SDLC 5.0.0, we achieve excellence faster: **Contract-First 10-stage lifecycle, ISO/IEC 12207 alignment, 4-tier classification, 14,822% ROI, production-ready in 1-2 weeks.**
+
+**Migration from 4.9.x**: Use `sdlcctl migrate --from 4.9.1 --to 5.0.0 --path /path/to/project` for automated migration.
 
 **Last Updated**: December 5, 2025
-**Framework Version**: SDLC 5.0.0
-**Status**: PRODUCTION READY - Complete 10-Stage Lifecycle + Governance & Compliance + 4-Tier Classification
+**Framework Version**: SDLC 5.0.0 (Contract-First Stage Restructuring)
+**Status**: PRODUCTION READY - Contract-First 10-Stage Lifecycle + ISO/IEC 12207 Alignment + 4-Tier Classification

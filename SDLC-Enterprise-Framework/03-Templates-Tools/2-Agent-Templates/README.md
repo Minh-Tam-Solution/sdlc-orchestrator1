@@ -21,11 +21,11 @@ Agents are now mapped to the complete 10-stage lifecycle:
 | 00 | WHY? (Foundation) | Business Analyst, Product Owner | CEO, CPO |
 | 01 | WHAT? (Planning) | Product Owner, Business Analyst | Architect |
 | 02 | HOW? (Design) | Architect | CTO, Developer |
-| 03 | BUILD (Development) | Developer | QA, Architect |
-| 04 | TEST (Quality) | QA Engineer | Developer |
-| 05 | DEPLOY (Release) | DevOps Engineer | Developer, QA |
-| 06 | OPERATE (Production) | DevOps Engineer | Developer |
-| 07 | INTEGRATE (Systems) | Architect, Developer | DevOps |
+| 03 | INTEGRATE (Systems) | Architect, Developer | DevOps |
+| 04 | BUILD (Development) | Developer | QA, Architect |
+| 05 | TEST (Quality) | QA Engineer | Developer |
+| 06 | DEPLOY (Release) | DevOps Engineer | Developer, QA |
+| 07 | OPERATE (Production) | DevOps Engineer | Developer |
 | 08 | COLLABORATE (Teams) | CPO, Product Owner | All roles |
 | 09 | GOVERN (Compliance) | CTO, CPO | CEO |
 
@@ -201,7 +201,25 @@ Result: 20x+ organizational efficiency
 
 ---
 
-### Stage 03: BUILD (Development)
+### Stage 03: INTEGRATE (Systems) - Contract-First
+
+**Primary**: Architect, Developer
+**Purpose**: Define API contracts BEFORE coding (ISO 12207 compliance)
+
+| Agent | Key Tasks | Output |
+|-------|-----------|--------|
+| Architect | Integration design | API contracts, OpenAPI specs |
+| Developer | Contract implementation | Integration tests |
+| DevOps | Integration infrastructure | Connected systems |
+
+**SDLC 5.0.0 Contract-First Requirements:**
+- OpenAPI 3.0 specs BEFORE implementation
+- Contract tests defined upfront
+- API versioning strategy
+
+---
+
+### Stage 04: BUILD (Development)
 
 **Primary**: Developer
 **Purpose**: Implement features with quality
@@ -219,7 +237,7 @@ Result: 20x+ organizational efficiency
 
 ---
 
-### Stage 04: TEST (Quality)
+### Stage 05: TEST (Quality)
 
 **Primary**: QA Engineer
 **Purpose**: Comprehensive testing
@@ -237,7 +255,7 @@ Result: 20x+ organizational efficiency
 
 ---
 
-### Stage 05-06: DEPLOY → OPERATE (Release & Production)
+### Stage 06-07: DEPLOY → OPERATE (Release & Production)
 
 **Primary**: DevOps Engineer
 **Purpose**: Reliable deployments and operations
@@ -252,19 +270,6 @@ Result: 20x+ organizational efficiency
 - <5 min rollback capability
 - Monitoring + alerting setup
 - 99.9%+ uptime target
-
----
-
-### Stage 07: INTEGRATE (Systems)
-
-**Primary**: Architect, Developer
-**Purpose**: System integrations
-
-| Agent | Key Tasks | Output |
-|-------|-----------|--------|
-| Architect | Integration design | API contracts |
-| Developer | Integration implementation | Working integrations |
-| DevOps | Integration infrastructure | Connected systems |
 
 ---
 

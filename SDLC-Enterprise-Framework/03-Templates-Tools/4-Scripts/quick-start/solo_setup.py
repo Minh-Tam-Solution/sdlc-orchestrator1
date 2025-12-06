@@ -70,7 +70,7 @@ class SoloSetup:
             'profile': 'solo',
             'team_size': 1,
             'setup_date': datetime.now().isoformat(),
-            'sdlc_version': '4.9.1',
+            'sdlc_version': '5.0.0',
             'code_review_tier': 1,
             'design_thinking': 'lightweight',
             'productivity_target': '10x',
@@ -301,10 +301,15 @@ class SoloSetup:
         logger.info("   • Upgrade to Tier 3 Code Review when budget allows")
         logger.info("")
         logger.info("📚 Resources:")
-        logger.info("   • SDLC 5.0 Docs: /00-Overview/")
-        logger.info("   • AI Tools: /06-Templates-Tools/ai-tools/")
+        logger.info("   • SDLC 5.0.0 Docs: /01-Overview/SDLC-Executive-Summary.md")
+        logger.info("   • AI Tools: /03-Templates-Tools/1-AI-Tools/")
         logger.info("   • Case Studies: /07-Case-Studies/")
         logger.info("   • Support: taidt@mtsolution.com.vn")
+        logger.info("")
+        logger.info("📋 SDLC 5.0.0 Stages (Contract-First Order):")
+        logger.info("   LINEAR: 00-foundation → 01-planning → 02-design → 03-integration")
+        logger.info("           → 04-build → 05-test → 06-deploy → 07-operate")
+        logger.info("   CONTINUOUS: 08-collaborate, 09-govern")
         logger.info("")
         logger.info("🎯 Your Path: Solo → Startup → Growth → Enterprise")
         logger.info("")

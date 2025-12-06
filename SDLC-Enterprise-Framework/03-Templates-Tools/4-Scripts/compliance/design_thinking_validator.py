@@ -379,9 +379,15 @@ class DesignThinkingValidator:
 
         logger.info("")
         logger.info("📚 Resources:")
-        logger.info("   • SDLC 5.0 Design Thinking Guide: /00-Overview/SDLC-5.0-Overview.md")
-        logger.info("   • AI Tools: /06-Templates-Tools/ai-tools/design-thinking/")
+        logger.info("   • SDLC 5.0.0 Overview: /01-Overview/SDLC-Executive-Summary.md")
+        logger.info("   • Design Thinking AI Tools: /03-Templates-Tools/1-AI-Tools/design-thinking/")
+        logger.info("   • Stage 00-01 (WHY→WHAT): Foundation & Planning")
         logger.info("   • Case Study: NQH-Bot 96% time savings")
+        logger.info("")
+        logger.info("📋 SDLC 5.0.0 Stage Reference (Contract-First Order):")
+        logger.info("   LINEAR: 00-foundation → 01-planning → 02-design → 03-integration")
+        logger.info("           → 04-build → 05-test → 06-deploy → 07-operate")
+        logger.info("   CONTINUOUS: 08-collaborate, 09-govern")
         logger.info("")
 
 def main():

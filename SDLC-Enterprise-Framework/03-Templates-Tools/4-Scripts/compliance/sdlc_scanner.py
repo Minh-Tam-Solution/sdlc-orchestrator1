@@ -33,7 +33,23 @@ For new implementations, use sdlc_4_8_validator.py directly.
 EVOLUTION HISTORY:
 - 5.0: Zero Mock Policy + Complete Lifecycle (10 Stages)
 - 5.0: 4-Tier Classification (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)
+- 5.0: Stage Restructuring - INTEGRATE moved to Stage 03 (Contract-First, BEFORE BUILD)
 - 5.0: Battle-tested patterns from BFlow, NQH-Bot, MTEP
+
+10 STAGES (SDLC 5.0.0 - Contract-First Order):
+LINEAR STAGES (Sequential per release):
+  00-foundation:   WHY - Problem Definition
+  01-planning:     WHAT - Requirements Analysis
+  02-design:       HOW - Architecture Design
+  03-integration:  API Design & System Integration (Contract-First - BEFORE BUILD)
+  04-build:        Development & Implementation
+  05-test:         Quality Assurance
+  06-deploy:       Release & Deployment
+  07-operate:      Production & Operations
+
+CONTINUOUS STAGES (Ongoing throughout project):
+  08-collaborate:  Team Coordination & Communication
+  09-govern:       Governance & Compliance
 """
 
 import os

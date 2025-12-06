@@ -24,15 +24,15 @@ User empathy → Define real problem → Prototype → Test → Iterate → Ship
 ```
 **Result**: 3-10x higher adoption, lower technical debt, sustainable product-market fit
 
-### Why SDLC 4.9 Integrates Design Thinking Throughout Complete Lifecycle
+### Why SDLC 5.0.0 Integrates Design Thinking Throughout Complete Lifecycle
 
 **Chairman's Insight (November 7, 2025)**:
 > "Chúng ta chưa nêu bật được việc áp dụng những nguyên tắc cốt lõi của Design Thinking"
 
 **The Evolution**:
 - **SDLC 4.7**: Focused on "HOW to build" (engineering excellence)
-- **SDLC 4.9**: Focuses on "WHAT to build" + "HOW to build" (user-centered + engineering excellence)
-- **SDLC 4.9**: Complete lifecycle (WHY → GOVERN) with Design Thinking throughout all 10 stages
+- **SDLC 4.9**: Focused on "WHAT to build" + "HOW to build" (user-centered + engineering excellence)
+- **SDLC 5.0.0**: Complete lifecycle (FOUNDATION → GOVERN) with Design Thinking throughout all 10 stages + 4-Tier Classification
 
 **Strategic Value**:
 - Build features users actually need (not what we think they need)
@@ -42,18 +42,20 @@ User empathy → Define real problem → Prototype → Test → Iterate → Ship
 
 ---
 
-## 🆕 What's New in SDLC 4.9
+## 🆕 What's New in SDLC 5.0.0
 
-### Complete 10-Stage Lifecycle Integration
+### Complete 10-Stage Lifecycle Integration + 4-Tier Classification
 
-**SDLC 4.8**: Design Thinking mapped to 4 stages (WHY, WHAT, HOW, BUILD)  
-**SDLC 4.9**: Design Thinking extends across **all 10 stages** (WHY → GOVERN)
+**SDLC 4.8**: Design Thinking mapped to 4 stages (WHY, WHAT, HOW, BUILD)
+**SDLC 4.9**: Design Thinking extended across all 10 stages (WHY → GOVERN)
+**SDLC 5.0.0**: Complete lifecycle restructured with INTEGRATE moved to Stage 03 (Contract-First) + 4-Tier Classification (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)
 
-**New Stage Coverage**:
-- **Stage 04 (TEST)**: User acceptance testing, usability validation
-- **Stage 05 (DEPLOY)**: Canary deployments, gradual user rollout
-- **Stage 06 (OPERATE)**: User behavior monitoring, continuous feedback
-- **Stage 07 (INTEGRATE)**: User-centered integration design
+**New Stage Coverage (SDLC 5.0.0 Restructured)**:
+- **Stage 03 (INTEGRATE)**: API Design, Contract-First development ← MOVED FROM 07
+- **Stage 04 (BUILD)**: Implementation with user-centered design patterns
+- **Stage 05 (TEST)**: User acceptance testing, usability validation
+- **Stage 06 (DEPLOY)**: Canary deployments, gradual user rollout
+- **Stage 07 (OPERATE)**: User behavior monitoring, continuous feedback
 - **Stage 08 (COLLABORATE)**: Cross-team empathy, stakeholder alignment
 - **Stage 09 (GOVERN)**: User data governance, privacy-first compliance
 
@@ -105,14 +107,14 @@ User empathy → Define real problem → Prototype → Test → Iterate → Ship
 ### Goal
 **Deeply understand users' pain, context, and needs** (not assumptions)
 
-### Mapping to SDLC 4.9 (10-Stage Lifecycle)
+### Mapping to SDLC 5.0.0 (10-Stage Lifecycle)
 
 **Primary Stages**:
-- **Stage 00 (WHY)**: Foundation & Discovery - Deep user research, problem validation
+- **Stage 00 (FOUNDATION)**: Foundation & Discovery - Deep user research, problem validation
 - **Stage 09 (GOVERN)**: Governance - User data compliance, privacy policies
 
 **Supporting Stages**:
-- **Stage 06 (OPERATE)**: Monitor user behavior, gather usage data
+- **Stage 07 (OPERATE)**: Monitor user behavior, gather usage data
 - **Stage 08 (COLLABORATE)**: Cross-team empathy (dev, product, business)
 
 **System Thinking Integration**:
@@ -248,7 +250,7 @@ Impact: ₫15B revenue at risk (payroll errors + trust issues)
 - ✅ Pain Point Ranking (what hurts most)
 - ✅ Empathy Map (SAY/THINK/DO/FEEL insights)
 
-### SDLC 4.9 Quality Gate 0.1
+### SDLC 5.0.0 Quality Gate 0.1
 **Questions**:
 - ✅ Can you explain user's pain in their own words?
 - ✅ Do you have evidence from 5+ interviews (not assumptions)?
@@ -263,14 +265,14 @@ Impact: ₫15B revenue at risk (payroll errors + trust issues)
 ### Goal
 **Frame the RIGHT problem to solve** (not symptoms)
 
-### Mapping to SDLC 4.9 (10-Stage Lifecycle)
+### Mapping to SDLC 5.0.0 (10-Stage Lifecycle)
 
 **Primary Stages**:
-- **Stage 00 (WHY)**: Problem definition, business case, success criteria
-- **Stage 01 (WHAT)**: Requirements definition based on problem statement
+- **Stage 00 (FOUNDATION)**: Problem definition, business case, success criteria
+- **Stage 01 (PLANNING)**: Requirements definition based on problem statement
 
 **Supporting Stages**:
-- **Stage 02 (HOW)**: Architectural constraints inform problem scope
+- **Stage 02 (DESIGN)**: Architectural constraints inform problem scope
 - **Stage 09 (GOVERN)**: Compliance requirements shape problem boundaries
 
 **System Thinking Integration**:
@@ -367,7 +369,7 @@ Rejected examples:
 - ✅ Top 3 HMW Questions (ideation prompts)
 - ✅ Success Metrics (how we'll measure outcome)
 
-### SDLC 4.9 Quality Gate 0.2
+### SDLC 5.0.0 Quality Gate 0.2
 **Questions**:
 - ✅ Is problem statement specific and measurable?
 - ✅ Does problem come from user empathy (not our assumptions)?
@@ -383,15 +385,15 @@ Rejected examples:
 ### Goal
 **Generate diverse solution possibilities** (quantity over quality at this stage)
 
-### Mapping to SDLC 4.9 (10-Stage Lifecycle)
+### Mapping to SDLC 5.0.0 (10-Stage Lifecycle)
 
 **Primary Stages**:
-- **Stage 01 (WHAT)**: Feature ideation, prioritization (MoSCoW method)
-- **Stage 02 (HOW)**: Solution architecture ideation, design patterns
+- **Stage 01 (PLANNING)**: Feature ideation, prioritization (MoSCoW method)
+- **Stage 02 (DESIGN)**: Solution architecture ideation, design patterns
 
 **Supporting Stages**:
-- **Stage 03 (BUILD)**: Technical implementation approaches
-- **Stage 07 (INTEGRATE)**: Integration pattern ideation
+- **Stage 03 (INTEGRATE)**: API contract ideation (Contract-First) ← MOVED FROM 07
+- **Stage 04 (BUILD)**: Technical implementation approaches
 - **Stage 08 (COLLABORATE)**: Collaborative brainstorming sessions
 
 **System Thinking Integration**:
@@ -540,7 +542,7 @@ User Benefit:
 - ✅ Quick sketches (visual communication)
 - ✅ Rationale for selection (why these 3)
 
-### SDLC 4.9 Quality Gate 0.3
+### SDLC 5.0.0 Quality Gate 0.3
 **Questions**:
 - ✅ Did team generate 50+ ideas before converging?
 - ✅ Are ideas diverse (not all variations of same approach)?
@@ -556,16 +558,16 @@ User Benefit:
 ### Goal
 **Build minimum testable version to learn** (not to impress)
 
-### Mapping to SDLC 4.9 (10-Stage Lifecycle)
+### Mapping to SDLC 5.0.0 (10-Stage Lifecycle)
 
 **Primary Stages**:
-- **Stage 02 (HOW)**: High-fidelity UI/UX design, architecture prototypes
-- **Stage 03 (BUILD)**: MVP implementation, working prototype
+- **Stage 02 (DESIGN)**: High-fidelity UI/UX design, architecture prototypes
+- **Stage 03 (INTEGRATE)**: API contracts, interface definitions (Contract-First)
+- **Stage 04 (BUILD)**: MVP implementation, working prototype
 
 **Supporting Stages**:
-- **Stage 04 (TEST)**: Prototype testing (usability, performance)
-- **Stage 05 (DEPLOY)**: Deploy prototype to staging for user testing
-- **Stage 07 (INTEGRATE)**: Prototype integration points with existing systems
+- **Stage 05 (TEST)**: Prototype testing (usability, performance)
+- **Stage 06 (DEPLOY)**: Deploy prototype to staging for user testing
 
 **System Thinking Integration**:
 - **Iceberg Layer 1**: Events (tangible prototype)
@@ -679,7 +681,7 @@ Not Learning Objectives:
 ❌ "Will they buy?" (validate problem first)
 ```
 
-#### 4.4 AI-Assisted Prototyping (SDLC 4.9 Approach)
+#### 4.4 AI-Assisted Prototyping (SDLC 5.0.0 Approach)
 
 **Using Claude Code (70% of work)**:
 ```
@@ -742,7 +744,7 @@ Limitation: Less control over code quality
 - ✅ Learning objectives documented
 - ✅ Technical feasibility validated
 
-### SDLC 4.9 Quality Gate 0.4
+### SDLC 5.0.0 Quality Gate 0.4
 **Questions**:
 - ✅ Is prototype minimum viable (not overbuilt)?
 - ✅ Can users interact with core workflow?
@@ -758,16 +760,16 @@ Limitation: Less control over code quality
 ### Goal
 **Validate with real users, iterate based on feedback**
 
-### Mapping to SDLC 4.9 (10-Stage Lifecycle)
+### Mapping to SDLC 5.0.0 (10-Stage Lifecycle)
 
 **Primary Stages**:
-- **Stage 03 (BUILD)**: Continuous user testing during development
-- **Stage 04 (TEST)**: Comprehensive UAT (User Acceptance Testing)
-- **Stage 00 (WHY)**: Loop back to validate assumptions, success metrics
+- **Stage 04 (BUILD)**: Continuous user testing during development
+- **Stage 05 (TEST)**: Comprehensive UAT (User Acceptance Testing)
+- **Stage 00 (FOUNDATION)**: Loop back to validate assumptions, success metrics
 
 **Supporting Stages**:
-- **Stage 05 (DEPLOY)**: Canary deployments for gradual user testing
-- **Stage 06 (OPERATE)**: Monitor user behavior post-launch, gather analytics
+- **Stage 06 (DEPLOY)**: Canary deployments for gradual user testing
+- **Stage 07 (OPERATE)**: Monitor user behavior post-launch, gather analytics
 - **Stage 08 (COLLABORATE)**: Cross-team feedback loops (dev, product, users)
 
 **System Thinking Integration**:
@@ -957,7 +959,7 @@ Decision: SHIP with minor trust improvements
 - ✅ Decision: Iterate / Pivot / Ship
 - ✅ Metrics validation (goals met or not)
 
-### SDLC 4.9 Quality Gate 0.5
+### SDLC 5.0.0 Quality Gate 0.5
 **Questions**:
 - ✅ Did you test with 5+ real users (representative of target)?
 - ✅ Do you have evidence (observations, recordings) for decisions?
@@ -1033,42 +1035,44 @@ Decision: SHIP with minor trust improvements
 
 ---
 
-## 🗺️ Mapping Design Thinking → SDLC 4.9 Stages
+## 🗺️ Mapping Design Thinking → SDLC 5.0.0 Stages
 
-### Complete Alignment
+### Complete Alignment (SDLC 5.0.0 Restructured)
 
 ```
-Design Thinking Phase      SDLC 4.9 Stage            Deliverable
+Design Thinking Phase      SDLC 5.0.0 Stage          Deliverable
 ────────────────────────────────────────────────────────────────────
-1. EMPATHIZE 🧠       →   Stage 00 (WHY?)      →   User Persona
+1. EMPATHIZE 🧠       →   Stage 00 (FOUNDATION) →   User Persona
                           Iceberg Layer 4            Journey Map
                           (Mental Models)            Pain Points
                                                      Empathy Map
 
-2. DEFINE 🎯          →   Stage 00 (WHY?)      →   Problem Statement
-                          Stage 01 (WHAT?)           POV Statement
+2. DEFINE 🎯          →   Stage 00 (FOUNDATION) →   Problem Statement
+                          Stage 01 (PLANNING)        POV Statement
                           Iceberg Layer 3            HMW Questions
                           (Structures)               Success Metrics
 
-3. IDEATE 💡          →   Stage 02 (HOW?)      →   50+ Ideas
-                          First half                 Top 3 Concepts
-                          (Before locking in)        Quick Sketches
+3. IDEATE 💡          →   Stage 02 (DESIGN)     →   50+ Ideas
+                          Stage 03 (INTEGRATE)       Top 3 Concepts
+                          (Contract-First API)       Quick Sketches
+                                                     OpenAPI Specs
 
-4. PROTOTYPE 🛠️       →   Stage 03 (BUILD)     →   Minimum Testable
+4. PROTOTYPE 🛠️       →   Stage 04 (BUILD)      →   Minimum Testable
                           First iteration            Working Prototype
                           (MVP focus)                Test Plan
 
-5. TEST 🧪            →   Stage 03 (BUILD)     →   User Feedback
-                          Test & Learn loop          Iteration Plan
-                          (Continuous)               Ship Decision
+5. TEST 🧪            →   Stage 04 (BUILD)      →   User Feedback
+                          Stage 05 (TEST)            Iteration Plan
+                          Test & Learn loop          Ship Decision
 
-                      →   CONTINUOUS LOOP      →   Empathize again
-                          Iceberg Layer 1-2          (New cycle)
+                      →   CONTINUOUS LOOP       →   Empathize again
+                          Stage 08 (COLLABORATE)     (New cycle)
+                          Stage 09 (GOVERN)
 ```
 
 ### The Integration
 
-**SDLC 4.9 = Design Thinking + Software Engineering Discipline**
+**SDLC 5.0.0 = Design Thinking + Software Engineering Discipline + Contract-First**
 
 ```
 Design Thinking ensures:
@@ -1076,13 +1080,15 @@ Design Thinking ensures:
 ✅ Validate before scaling (test early, test often)
 ✅ Iterate based on evidence (not opinions)
 
-SDLC 4.9 Engineering ensures:
+SDLC 5.0.0 Engineering ensures:
 ✅ Build the thing RIGHT (quality gates, zero mocks)
+✅ Contract-First API design (Stage 03 INTEGRATE before Stage 04 BUILD)
 ✅ AI-assisted productivity (Claude Code, Copilot)
 ✅ Sustainable architecture (clean code, maintainable)
 
 Together:
 ✅ User-centered solutions
+✅ API contracts before implementation
 ✅ Technically excellent
 ✅ Sustainable product-market fit
 ```
@@ -1365,7 +1371,7 @@ Time to Market:
 
 ---
 
-## 🎯 Design Thinking in SDLC 4.9 Quality Gates
+## 🎯 Design Thinking in SDLC 5.0.0 Quality Gates
 
 ### Gate 0.1: Problem Definition (After EMPATHIZE + DEFINE)
 
@@ -1461,7 +1467,7 @@ Time to Market:
 
 **Criteria**:
 - ✅ User acceptance criteria met (from Define phase)
-- ✅ Zero critical bugs (SDLC 4.9 engineering standards)
+- ✅ Zero critical bugs (SDLC 5.0.0 engineering standards)
 - ✅ Adoption plan defined (onboarding, support, monitoring)
 
 **Evidence Required**:
@@ -1642,7 +1648,7 @@ Prompt:
 - Display [data from API]
 - Design: [attach Figma link or describe]
 
-Use TypeScript, Material-UI, follow SDLC 4.9 standards."
+Use TypeScript, Material-UI, follow SDLC 5.0.0 standards."
 
 Output: Production-quality code in minutes
 Time saved: 70% vs manual coding
@@ -1866,7 +1872,7 @@ Competitive Differentiation:
 
 ## 📚 Resources & Templates
 
-### SDLC 4.9 Design Thinking Templates
+### SDLC 5.0.0 Design Thinking Templates
 
 All templates available in `/06-Templates-Tools/Design-Thinking/`:
 
@@ -1903,7 +1909,7 @@ All templates available in `/06-Templates-Tools/Design-Thinking/`:
 
 ## 🎓 Training & Implementation
 
-### SDLC 4.9 Design Thinking Workshop (4 Hours)
+### SDLC 5.0.0 Design Thinking Workshop (4 Hours)
 
 **Module 1: Principles (60 min)**
 - Why Design Thinking matters
@@ -1924,7 +1930,7 @@ All templates available in `/06-Templates-Tools/Design-Thinking/`:
 - Q&A
 
 **Module 4: Integration (45 min)**
-- Design Thinking + SDLC 4.9 stages
+- Design Thinking + SDLC 5.0.0 stages
 - Quality Gates 0.1-0.5
 - Team workflows
 - Pilot project assignment
@@ -1945,14 +1951,15 @@ All templates available in `/06-Templates-Tools/Design-Thinking/`:
 - Problem definition focuses effort
 - Iteration reduces waste
 
-**2. SDLC 4.9 = Build the Thing RIGHT**
+**2. SDLC 5.0.0 = Build the Thing RIGHT**
 - Engineering discipline ensures quality
+- Contract-First API design (INTEGRATE before BUILD)
 - AI tools accelerate delivery
 - Quality gates prevent defects
 
 **3. Together = Sustainable Excellence**
 - User-centered solutions (Design Thinking)
-- Technically sound execution (SDLC 4.9)
+- Technically sound execution (SDLC 5.0.0)
 - Predictable, repeatable outcomes
 
 ### Chairman's Vision
@@ -1960,7 +1967,7 @@ All templates available in `/06-Templates-Tools/Design-Thinking/`:
 > "Build the RIGHT thing, then build the thing RIGHT"
 >
 > Design Thinking ensures WHAT to build
-> SDLC 4.9 ensures HOW to build
+> SDLC 5.0.0 ensures HOW to build (with Contract-First API design)
 >
 > This is the framework transformation that positions us for category leadership.
 

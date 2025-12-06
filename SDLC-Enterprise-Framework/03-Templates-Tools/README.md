@@ -20,16 +20,16 @@ All templates and tools are mapped to the complete 10-stage lifecycle:
 
 | Stage | Name | Folder(s) | AI Tools | Key Deliverables |
 |-------|------|-----------|----------|------------------|
-| **00** | WHY? (Foundation) | 00-Project-Foundation | `design-thinking/` | Problem validation, user research |
-| **01** | WHAT? (Planning) | 01-Planning-Analysis | `design-thinking/` | Requirements, roadmap |
-| **02** | HOW? (Design) | 02-Architecture-Design | `design-to-code/` | Architecture, components |
-| **03** | BUILD (Development) | 03-Development | `code-review/` | Production code |
-| **04** | TEST (Quality) | 04-Quality-Assurance | `testing/` | Test suites, UAT |
-| **05** | DEPLOY (Release) | 05-Deployment | `deployment/` | Release artifacts |
-| **06** | OPERATE (Production) | 06-Operations | `operations/` | Monitoring, incidents |
-| **07** | INTEGRATE (Systems) | 07-Integration | `integration/` | API contracts |
-| **08** | COLLABORATE (Teams) | 08-Team-Management | `collaboration/` | Protocols, RACI |
-| **09** | GOVERN (Compliance) | 09-Executive-Reports | `governance/` | Audit reports |
+| **00** | WHY? (Foundation) | 00-foundation | `design-thinking/` | Problem validation, user research |
+| **01** | WHAT? (Planning) | 01-planning | `design-thinking/` | Requirements, roadmap |
+| **02** | HOW? (Design) | 02-design | `design-to-code/` | Architecture, components |
+| **03** | INTEGRATE (Systems) | 03-integration | `integration/` | **API contracts, Contract-First** |
+| **04** | BUILD (Development) | 04-build | `code-review/` | Production code |
+| **05** | TEST (Quality) | 05-test | `testing/` | Test suites, UAT |
+| **06** | DEPLOY (Release) | 06-deploy | `deployment/` | Release artifacts |
+| **07** | OPERATE (Production) | 07-operate | `operations/` | Monitoring, incidents |
+| **08** | COLLABORATE (Teams) | 08-collaborate | `collaboration/` | Protocols, RACI |
+| **09** | GOVERN (Compliance) | 09-govern | `governance/` | Audit reports |
 
 ### 4-Tier Classification
 
@@ -64,11 +64,11 @@ All templates and tools are mapped to the complete 10-stage lifecycle:
 |-------|----------|--------------|
 | 00-01 | Design Thinking (empathy, problem, ideation) | 96% |
 | 02 | Design-to-Code (universal prompts) | 95% |
-| 03 | Code Review (3-tier automation) | 93% |
-| 04 | Testing (test cases, UAT, performance) | 90% |
-| 05 | Deployment (checklists, rollback, notes) | 85% |
-| 06 | Operations (monitoring, incidents, postmortem) | 85% |
-| 07 | Integration (API contracts, integration tests) | 85% |
+| 03 | Integration (API contracts, Contract-First) | 85% |
+| 04 | Code Review (3-tier automation) | 93% |
+| 05 | Testing (test cases, UAT, performance) | 90% |
+| 06 | Deployment (checklists, rollback, notes) | 85% |
+| 07 | Operations (monitoring, incidents, postmortem) | 85% |
 | 08 | Collaboration (docs, meetings, RACI) | 90% |
 | 09 | Governance (compliance, audits) | 95% |
 
@@ -139,11 +139,11 @@ All templates and tools are mapped to the complete 10-stage lifecycle:
 │   ├── README.md                    # 10-stage AI tools guide
 │   ├── design-thinking/             # Stage 00-01: User research, problem
 │   ├── design-to-code/              # Stage 02: Architecture, components
-│   ├── code-review/                 # Stage 03: 3-tier review automation
-│   ├── testing/                     # Stage 04: Tests, UAT, performance
-│   ├── deployment/                  # Stage 05: Checklists, rollback
-│   ├── operations/                  # Stage 06: Monitoring, incidents
-│   ├── integration/                 # Stage 07: API contracts
+│   ├── integration/                 # Stage 03: API contracts, Contract-First
+│   ├── code-review/                 # Stage 04: 3-tier review automation
+│   ├── testing/                     # Stage 05: Tests, UAT, performance
+│   ├── deployment/                  # Stage 06: Checklists, rollback
+│   ├── operations/                  # Stage 07: Monitoring, incidents
 │   ├── collaboration/               # Stage 08: Docs, RACI, meetings
 │   ├── governance/                  # Stage 09: Compliance, audits
 │   └── platform-examples/           # BFlow, NQH-Bot success stories
