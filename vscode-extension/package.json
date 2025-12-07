@@ -1,7 +1,7 @@
 {
   "name": "sdlc-orchestrator",
   "displayName": "SDLC Orchestrator",
-  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 4.9.1 governance platform",
+  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 5.0.0 governance platform",
   "version": "0.1.0",
   "publisher": "nqh-team",
   "license": "Apache-2.0",
@@ -39,7 +39,7 @@
         "id": "sdlc-orchestrator.gate",
         "name": "gate",
         "fullName": "SDLC Gate Assistant",
-        "description": "Compliance and gate evaluation assistance for SDLC 4.9.1 (G0-G5)",
+        "description": "Compliance and gate evaluation assistance for SDLC 5.0.0 (G0-G5)",
         "isSticky": true,
         "commands": [
           {
@@ -134,6 +134,30 @@
         "title": "Get AI Fix for Violation",
         "category": "SDLC",
         "icon": "$(lightbulb)"
+      },
+      {
+        "command": "sdlc.init",
+        "title": "Initialize SDLC Project",
+        "category": "SDLC",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "sdlc.initOffline",
+        "title": "Initialize SDLC Project (Offline)",
+        "category": "SDLC",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "sdlc.reinit",
+        "title": "Reinitialize SDLC Project",
+        "category": "SDLC",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "sdlc.gapAnalysis",
+        "title": "Run SDLC Gap Analysis",
+        "category": "SDLC",
+        "icon": "$(search)"
       }
     ],
     "menus": {
@@ -229,6 +253,11 @@
         "key": "ctrl+shift+g",
         "mac": "cmd+shift+g",
         "when": "sdlc.isAuthenticated"
+      },
+      {
+        "command": "sdlc.init",
+        "key": "ctrl+shift+i",
+        "mac": "cmd+shift+i"
       }
     ],
     "colors": [

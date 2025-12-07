@@ -58,6 +58,8 @@ const complianceChat_1 = require("./views/complianceChat");
 const logger_1 = require("./utils/logger");
 const config_1 = require("./utils/config");
 const errors_1 = require("./utils/errors");
+const initCommand_1 = require("./commands/initCommand");
+const sdlcStructureService_1 = require("./services/sdlcStructureService");
 const state = {
     apiClient: undefined,
     authService: undefined,
@@ -101,6 +103,10 @@ async function activate(context) {
         context.subscriptions.push(chatParticipantDisposable);
         // Register commands
         registerCommands(context);
+        // Register init commands (SDLC 5.0.0 project initialization)
+        (0, initCommand_1.registerInitCommand)(context, state.apiClient);
+        // Check for empty folder and prompt for initialization
+        await checkAndPromptForInit(context);
         // Setup auto-refresh
         setupAutoRefresh(config.autoRefreshInterval);
         // Listen for configuration changes
@@ -432,6 +438,55 @@ async function showWelcomeMessage() {
     }
     else if (selection === 'Learn More') {
         void vscode.env.openExternal(vscode.Uri.parse('https://docs.sdlc-orchestrator.dev/vscode-extension'));
+    }
+}
+/**
+ * Check for empty folder or missing SDLC config and prompt for initialization
+ */
+async function checkAndPromptForInit(context) {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders || folders.length === 0) {
+        return;
+    }
+    const firstFolder = folders[0];
+    if (!firstFolder) {
+        return;
+    }
+    const workspaceRoot = firstFolder.uri.fsPath;
+    const structureService = new sdlcStructureService_1.SDLCStructureService();
+    // Check if SDLC config exists
+    if (structureService.hasSDLCConfig(workspaceRoot)) {
+        // Config exists, no prompt needed
+        logger_1.Logger.info('SDLC config found, skipping init prompt');
+        return;
+    }
+    // Check if folder is empty or minimal
+    const isEmptyOrMinimal = structureService.isEmptyOrMinimalFolder(workspaceRoot);
+    // Check if we've already prompted for this workspace
+    const hasPrompted = context.workspaceState.get('sdlc.hasPromptedInit');
+    if (hasPrompted) {
+        return;
+    }
+    // Show prompt based on folder state
+    let message;
+    let actions;
+    if (isEmptyOrMinimal) {
+        message = 'This folder is empty. Would you like to create an SDLC 5.0.0 project structure?';
+        actions = ['Create SDLC Project', 'Not Now', "Don't Ask Again"];
+    }
+    else {
+        message = 'This project doesn\'t have an SDLC configuration. Would you like to add SDLC 5.0.0 governance?';
+        actions = ['Run Gap Analysis', 'Initialize', 'Not Now', "Don't Ask Again"];
+    }
+    const selection = await vscode.window.showInformationMessage(message, ...actions);
+    if (selection === 'Create SDLC Project' || selection === 'Initialize') {
+        await vscode.commands.executeCommand('sdlc.init');
+    }
+    else if (selection === 'Run Gap Analysis') {
+        await vscode.commands.executeCommand('sdlc.gapAnalysis');
+    }
+    else if (selection === "Don't Ask Again") {
+        await context.workspaceState.update('sdlc.hasPromptedInit', true);
     }
 }
 /**

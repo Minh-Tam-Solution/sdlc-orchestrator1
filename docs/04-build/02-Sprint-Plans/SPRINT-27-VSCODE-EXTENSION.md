@@ -1,11 +1,11 @@
 # Sprint 27: VS Code Extension MVP - IDE Integration
 
-**Version**: 1.0.0
-**Date**: December 2, 2025
-**Status**: APPROVED - Awaiting Implementation
-**Authority**: CTO + CPO (9.2/10 Rating)
+**Version**: 2.0.0
+**Date**: December 13, 2025
+**Status**: COMPLETE + Phase 2 Features Added
+**Authority**: CTO + CPO (9.5/10 Rating)
 **Foundation**: Expert Analysis (Deep Research, VS Code Copilot Chat)
-**Framework**: SDLC 4.9.1 Complete Lifecycle
+**Framework**: SDLC 5.0.0 Complete Lifecycle (Contract-First, 4-Tier Classification)
 **Week**: 12 of 13
 
 ---
@@ -44,7 +44,7 @@ Expert Alignment:
 
 ## Scope: MVP vs Phase 2 (CTO Condition #4)
 
-| Feature | MVP (Sprint 27) | Phase 2 (Sprint 29) |
+| Feature | MVP (Sprint 27) | Phase 2 (Sprint 32) |
 |---------|-----------------|---------------------|
 | Gate Status Sidebar | ✅ | - |
 | Inline AI Chat | ✅ | - |
@@ -52,9 +52,14 @@ Expert Alignment:
 | Scaffold Commands | ❌ | ✅ |
 | Tier Selector | ❌ | ✅ |
 | Gate Code Lens | ❌ | ✅ |
+| **`/init` Command** | ❌ | ✅ **NEW** |
+| **Empty Folder Detection** | ❌ | ✅ **NEW** |
+| **SDLC 5.0.0 Structure Generation** | ❌ | ✅ **NEW** |
+| **Gap Analysis** | ❌ | ✅ **NEW** |
+| **AI Template Pre-fill** | ❌ | ✅ **NEW** |
 
 **MVP Lines**: ~900 lines
-**Phase 2 Lines**: ~1,500 lines
+**Phase 2 Lines**: ~2,500 lines (expanded)
 
 ---
 
@@ -735,15 +740,138 @@ describe('ComplianceChatParticipant', () => {
 | `package.json` | 100 | Extension manifest |
 | **TOTAL** | **~900** | |
 
-### Phase 2 Files (Sprint 29) (~1,500 lines)
+### Phase 2 Files (Sprint 32) (~2,500 lines) - SDLC 5.0.0 Update
 
 | File | Lines | Description |
 |------|-------|-------------|
 | `src/views/EvidencePanel.ts` | 400 | Evidence submission UI |
 | `src/commands/generateEvidence.ts` | 300 | Scaffold commands |
-| `src/views/TierSelector.ts` | 200 | Lite/Standard/Enterprise toggle |
+| `src/views/TierSelector.ts` | 250 | 4-Tier selector (LITE/STANDARD/PROFESSIONAL/ENTERPRISE) |
 | `src/providers/GateCodeLens.ts` | 300 | Inline gate status |
 | `src/commands/scaffoldDocs.ts` | 300 | BRD/ADR generation |
+| **`src/commands/initProject.ts`** | **400** | **NEW: /init command - SDLC 5.0.0 project initialization** |
+| **`src/services/structureService.ts`** | **350** | **NEW: Folder structure generation + gap analysis** |
+| **`src/services/templateService.ts`** | **200** | **NEW: AI pre-fill templates** |
+
+### NEW: `/init` Command Specification (SDLC 5.0.0)
+
+**Command**: `SDLC: Initialize Project`
+**Shortcut**: `Cmd+Shift+I` (macOS) / `Ctrl+Shift+I` (Windows/Linux)
+**Command Palette**: `/init` or `SDLC: Initialize`
+
+#### Features
+
+1. **Offline Mode Support** (Local-First)
+   - Works without server connection
+   - Generates local UUID for project
+   - Syncs to server when connected later
+
+2. **Empty Folder Detection**
+   ```typescript
+   // Auto-detect on folder open
+   if (isEmptyFolder() || !hasSDLCConfig()) {
+     showInitPrompt("Create SDLC 5.0.0 Project?");
+   }
+   ```
+
+3. **4-Tier Selection UI**
+   ```
+   ○ LITE (1-2 people) - 4 stages, minimal docs
+   ● STANDARD (3-10 people) - 6 stages, balanced [Recommended]
+   ○ PROFESSIONAL (10-50 people) - 10 stages, P0 required
+   ○ ENTERPRISE (50+ people) - 11 stages, full compliance
+   ```
+
+4. **Gap Analysis** (For Non-Empty Folders)
+   ```yaml
+   Scan Results:
+   ✓ docs/ folder exists
+   ✓ src/ folder exists
+   ✗ docs/03-integration/ missing (Contract-First!)
+   ✗ tests/ folder missing
+
+   Recommendations:
+   1. Create docs/03-integration/ for API specs (BEFORE coding)
+   2. Create tests/ for quality assurance
+   ```
+
+5. **SDLC 5.0.0 Structure Generation**
+   ```
+   project/
+   ├── .sdlc-config.json          # Project configuration
+   ├── .vscode/settings.json      # Recommended VS Code settings
+   ├── docs/
+   │   ├── 00-foundation/         # WHY stage
+   │   │   └── problem-statement.md
+   │   ├── 01-planning/           # WHAT stage
+   │   │   └── requirements.md
+   │   ├── 02-design/             # HOW stage
+   │   │   └── architecture.md
+   │   ├── 03-integration/        # Contract-First! (API Design BEFORE coding)
+   │   │   └── openapi.yaml
+   │   ├── 04-build/              # BUILD stage
+   │   ├── 05-test/               # TEST stage
+   │   └── ...
+   ├── src/
+   └── tests/
+   ```
+
+6. **AI Pre-fill Templates**
+   ```typescript
+   // Template pre-filling based on project context
+   const problemStatement = await aiService.generateTemplate({
+     templateType: "problem-statement",
+     projectName: config.project.name,
+     context: existingFilesScan
+   });
+   ```
+
+#### VS Code Commands Summary (Updated)
+
+| Command | Shortcut | Description |
+|---------|----------|-------------|
+| `SDLC: Initialize Project` | Cmd+Shift+I | **NEW**: Create/update .sdlc-config.json |
+| `SDLC: Validate Structure` | Cmd+Shift+V | **NEW**: Validate SDLC 5.0.0 compliance |
+| `SDLC: Submit Evidence` | Cmd+Shift+E | Submit file as gate evidence |
+| `SDLC: View Gates` | Cmd+Shift+G | Open gate status sidebar |
+| `SDLC: AI Assistant` | Cmd+Shift+A | Open AI chat panel |
+| `SDLC: Generate Template` | Cmd+Shift+T | Generate stage template |
+| `SDLC: Create Structure` | - | **NEW**: Generate full folder structure |
+| `SDLC: Fix Structure` | - | **NEW**: Auto-fix structure issues |
+
+#### `.sdlc-config.json` Schema (SDLC 5.0.0)
+
+```json
+{
+  "$schema": "https://sdlc-orchestrator.io/schemas/config-v1.json",
+  "version": "1.0.0",
+  "project": {
+    "id": "uuid-from-server-or-local",
+    "name": "My Project",
+    "slug": "my-project"
+  },
+  "sdlc": {
+    "frameworkVersion": "5.0.0",
+    "tier": "STANDARD",
+    "stages": {
+      "00-foundation": "docs/00-foundation",
+      "01-planning": "docs/01-planning",
+      "02-design": "docs/02-design",
+      "03-integration": "docs/03-integration",
+      "04-build": "src",
+      "05-test": "tests"
+    }
+  },
+  "server": {
+    "url": "https://sdlc.mtsolution.com.vn",
+    "connected": true
+  },
+  "gates": {
+    "current": "G0.1",
+    "passed": []
+  }
+}
+```
 
 ---
 
@@ -817,3 +945,55 @@ describe('ComplianceChatParticipant', () => {
 2. Configure: VS Code Settings → SDLC Orchestrator → API URL
 3. Push tag: `git push origin v0.1.0`
 4. Sprint 28: Web Dashboard AI Integration
+5. **Sprint 32**: Phase 2 features (`/init` command, SDLC 5.0.0 structure generation)
+
+---
+
+## Phase 2 Implementation (Sprint 32) - SDLC 5.0.0
+
+### Onboarding Flow Reference
+
+See detailed specification: [ONBOARDING-FLOW-SPEC.md](../../05-test/07-E2E-Testing/ONBOARDING-FLOW-SPEC.md)
+
+### Key SDLC 5.0.0 Changes for VS Code Extension
+
+1. **Contract-First Stage Order**: Stage 03 is now `integration` (API Design BEFORE coding)
+2. **4-Tier Classification**: LITE, STANDARD, PROFESSIONAL, ENTERPRISE
+3. **Simplified Stage Names**: lowercase, hyphenated (e.g., `00-foundation`)
+4. **P0 Artifacts**: Required for PROFESSIONAL and ENTERPRISE tiers
+
+### Test Scenarios for Phase 2
+
+```gherkin
+Feature: VS Code Extension - /init Command
+
+Scenario: Initialize SDLC project in empty folder
+  Given user opens empty folder in VS Code
+  When user runs Cmd+Shift+I
+  Then tier selection dialog appears
+  When user selects STANDARD tier
+  Then SDLC 5.0.0 folder structure is generated
+  And .sdlc-config.json is created
+
+Scenario: Gap analysis for existing project
+  Given user opens folder with existing code but no .sdlc-config.json
+  When user runs /init command
+  Then gap analysis scans existing folders
+  And shows missing stages (e.g., "03-integration missing - Contract-First!")
+  And suggests stage mapping
+
+Scenario: Offline mode initialization
+  Given user has no internet connection
+  When user runs /init command
+  Then project is created with local UUID
+  And .sdlc-config.json shows "connected": false
+  When user connects to internet and runs "Connect to Server"
+  Then project syncs to SDLC Orchestrator server
+```
+
+---
+
+**Document Version**: 2.0.0
+**Updated**: December 13, 2025
+**Framework**: SDLC 5.0.0 (Contract-First, 4-Tier Classification)
+**Phase 2 Target**: Sprint 32

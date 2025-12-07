@@ -310,6 +310,27 @@ class ApiClient {
             return false;
         }
     }
+    // ============================================
+    // SDLC Init APIs (Sprint 32)
+    // ============================================
+    /**
+     * Gets the base URL for API requests
+     */
+    getBaseUrl() {
+        return this.baseUrl;
+    }
+    /**
+     * Initialize a new SDLC project on the server
+     */
+    async initProject(data) {
+        return this.post('/api/v1/projects/init', data);
+    }
+    /**
+     * Get SDLC structure template for a tier
+     */
+    async getSDLCTemplate(tier) {
+        return this.get(`/api/v1/templates/sdlc-structure?tier=${tier}&version=5.0.0`);
+    }
 }
 exports.ApiClient = ApiClient;
 //# sourceMappingURL=apiClient.js.map

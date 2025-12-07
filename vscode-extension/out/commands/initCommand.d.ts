@@ -1,0 +1,97 @@
+/**
+ * SDLC Init Command Handler
+ *
+ * Implements the /init command for creating SDLC 5.0.0 compliant project structures.
+ * Similar to Claude Code's /init command but for SDLC governance.
+ *
+ * Sprint 32 - SDLC 5.0.0 Onboarding
+ * @version 0.2.0
+ */
+import * as vscode from 'vscode';
+import { ApiClient } from '../services/apiClient';
+/**
+ * Init command options
+ */
+interface InitOptions {
+    offline?: boolean;
+    skipTemplates?: boolean;
+    force?: boolean;
+}
+/**
+ * SDLC Init Command Handler
+ */
+export declare class InitCommandHandler {
+    private readonly structureService;
+    private readonly apiClient;
+    constructor(apiClient?: ApiClient);
+    /**
+     * Execute the /init command
+     */
+    execute(options?: InitOptions): Promise<boolean>;
+    /**
+     * Handle initialization for new (empty) projects
+     */
+    private handleNewProject;
+    /**
+     * Handle initialization for existing projects (gap analysis)
+     */
+    private handleExistingProject;
+    /**
+     * Select SDLC tier via quick pick
+     */
+    private selectTier;
+    /**
+     * Confirm whether to create template files
+     */
+    private confirmCreateTemplates;
+    /**
+     * Show gap analysis results
+     */
+    private showGapAnalysisResults;
+    /**
+     * Generate HTML for gap analysis results
+     */
+    private generateGapAnalysisHtml;
+    /**
+     * Show success message with summary
+     */
+    private showSuccessMessage;
+    /**
+     * Open the Getting Started guide
+     */
+    private openGettingStarted;
+    /**
+     * Open the SDLC config file
+     */
+    private openConfig;
+    /**
+     * Get workspace root folder
+     */
+    private getWorkspaceRoot;
+    /**
+     * Get project name from folder or user input
+     */
+    private getProjectName;
+    /**
+     * Format folder name to project name
+     */
+    private formatProjectName;
+    /**
+     * Get server URL based on offline mode
+     */
+    private getServerUrl;
+    /**
+     * Sync project with SDLC Orchestrator server
+     */
+    private syncWithServer;
+    /**
+     * Run standalone gap analysis
+     */
+    runGapAnalysis(): Promise<void>;
+}
+/**
+ * Register the init command
+ */
+export declare function registerInitCommand(context: vscode.ExtensionContext, apiClient?: ApiClient): void;
+export {};
+//# sourceMappingURL=initCommand.d.ts.map

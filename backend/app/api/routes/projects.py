@@ -386,3 +386,407 @@ async def delete_project(
     await invalidate_projects_cache()
 
     return None
+
+
+# =========================================================================
+# SDLC 5.0.0 Project Initialization (Sprint 32)
+# =========================================================================
+
+
+class SDLCTier(str):
+    """SDLC tier enumeration."""
+
+    LITE = "LITE"
+    STANDARD = "STANDARD"
+    PROFESSIONAL = "PROFESSIONAL"
+    ENTERPRISE = "ENTERPRISE"
+
+
+class ProjectInitRequest(BaseModel):
+    """Request to initialize a new SDLC project from VS Code Extension."""
+
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="Project name",
+    )
+    tier: str = Field(
+        default="STANDARD",
+        description="SDLC tier: LITE, STANDARD, PROFESSIONAL, ENTERPRISE",
+    )
+    source: str = Field(
+        default="vscode",
+        description="Source of initialization: vscode, web, cli",
+    )
+    description: Optional[str] = Field(
+        default=None,
+        max_length=2000,
+        description="Project description",
+    )
+
+
+class SDLCConfigResponse(BaseModel):
+    """SDLC configuration for .sdlc-config.json."""
+
+    schema_url: str = Field(alias="$schema")
+    version: str
+    project: dict
+    sdlc: dict
+    server: dict
+    gates: dict
+
+    class Config:
+        populate_by_name = True
+
+
+class ProjectInitResponse(BaseModel):
+    """Response from project initialization."""
+
+    project_id: str
+    name: str
+    slug: str
+    tier: str
+    config: dict
+    message: str
+
+
+# SDLC 5.0.0 Stage Definitions (Contract-First Order)
+# Folder names use SHORT format: XX-name (e.g., 00-foundation)
+SDLC_STAGES = {
+    "00": {"name": "foundation", "folder": "00-foundation"},
+    "01": {"name": "planning", "folder": "01-planning"},
+    "02": {"name": "design", "folder": "02-design"},
+    "03": {"name": "integration", "folder": "03-integration"},
+    "04": {"name": "build", "folder": "src"},
+    "05": {"name": "test", "folder": "tests"},
+    "06": {"name": "deploy", "folder": "infrastructure"},
+    "07": {"name": "operate", "folder": "07-operate"},
+    "08": {"name": "collaborate", "folder": "08-collaborate"},
+    "09": {"name": "govern", "folder": "09-govern"},
+}
+
+TIER_REQUIRED_STAGES = {
+    "LITE": ["00", "01", "04", "05", "06"],
+    "STANDARD": ["00", "01", "02", "03", "04", "05", "06", "07"],
+    "PROFESSIONAL": ["00", "01", "02", "03", "04", "05", "06", "07", "08"],
+    "ENTERPRISE": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"],
+}
+
+
+def build_stage_mapping(tier: str) -> dict:
+    """Build stage mapping for .sdlc-config.json based on tier."""
+    required_stages = TIER_REQUIRED_STAGES.get(tier, TIER_REQUIRED_STAGES["STANDARD"])
+    mapping = {}
+
+    for stage_id in required_stages:
+        stage_info = SDLC_STAGES.get(stage_id, {})
+        stage_name = stage_info.get("name", "unknown")
+        folder = stage_info.get("folder", f"{stage_id}-Unknown")
+
+        # Code folders don't have docs/ prefix
+        if stage_id in ["04", "05", "06"]:
+            mapping[f"{stage_id}-{stage_name}"] = folder
+        else:
+            mapping[f"{stage_id}-{stage_name}"] = f"docs/{folder}"
+
+    return mapping
+
+
+@router.post(
+    "/init",
+    response_model=ProjectInitResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Initialize SDLC project",
+    description=(
+        "Initialize a new SDLC 5.0.0 project. Creates project in database "
+        "and returns configuration for .sdlc-config.json."
+    ),
+)
+async def init_project(
+    data: ProjectInitRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ProjectInitResponse:
+    """
+    Initialize a new SDLC 5.0.0 project.
+
+    Used by:
+    - VS Code Extension /init command
+    - Web Dashboard project creation
+    - CLI sdlcctl init command
+
+    Flow:
+    1. Create project in database
+    2. Add user as project owner
+    3. Generate .sdlc-config.json content
+    4. Return project ID and configuration
+
+    Args:
+        data: Project initialization request
+        current_user: Authenticated user
+
+    Returns:
+        ProjectInitResponse with project_id and config
+    """
+    # Validate tier
+    valid_tiers = ["LITE", "STANDARD", "PROFESSIONAL", "ENTERPRISE"]
+    tier = data.tier.upper()
+    if tier not in valid_tiers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid tier: {data.tier}. Must be one of: {valid_tiers}",
+        )
+
+    # Generate unique slug
+    base_slug = slugify(data.name)
+    slug = base_slug
+    counter = 1
+
+    while True:
+        result = await db.execute(select(Project).where(Project.slug == slug))
+        existing = result.scalar_one_or_none()
+        if not existing:
+            break
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+
+    # Create project
+    project = Project(
+        name=data.name,
+        slug=slug,
+        description=data.description or f"SDLC 5.0.0 {tier} project initialized from {data.source}",
+        owner_id=current_user.id,
+        is_active=True,
+    )
+    db.add(project)
+    await db.flush()
+
+    # Add owner as project member
+    member = ProjectMember(
+        project_id=project.id,
+        user_id=current_user.id,
+        role="owner",
+        joined_at=datetime.utcnow(),
+    )
+    db.add(member)
+    await db.commit()
+    await db.refresh(project)
+
+    # Invalidate cache
+    await invalidate_projects_cache()
+
+    # Build .sdlc-config.json content
+    stage_mapping = build_stage_mapping(tier)
+
+    config = {
+        "$schema": "https://sdlc-orchestrator.io/schemas/config-v1.json",
+        "version": "1.0.0",
+        "project": {
+            "id": str(project.id),
+            "name": project.name,
+            "slug": project.slug,
+        },
+        "sdlc": {
+            "frameworkVersion": "5.0.0",
+            "tier": tier,
+            "stages": stage_mapping,
+        },
+        "server": {
+            "url": "https://sdlc.mtsolution.com.vn",
+            "connected": True,
+        },
+        "gates": {
+            "current": "G0.1",
+            "passed": [],
+        },
+    }
+
+    return ProjectInitResponse(
+        project_id=str(project.id),
+        name=project.name,
+        slug=project.slug,
+        tier=tier,
+        config=config,
+        message=f"Project '{project.name}' initialized successfully with SDLC 5.0.0 {tier} tier",
+    )
+
+
+class MigrateStagesRequest(BaseModel):
+    """Request to migrate project stages to SDLC 5.0.0."""
+
+    old_stage_mapping: Optional[dict] = Field(
+        default=None,
+        description="Current stage mapping (if known)",
+    )
+    target_tier: str = Field(
+        default="STANDARD",
+        description="Target SDLC tier after migration",
+    )
+
+
+class MigrateStagesResponse(BaseModel):
+    """Response from stage migration."""
+
+    project_id: str
+    old_mapping: dict
+    new_mapping: dict
+    changes: list
+    config: dict
+
+
+# Old SDLC 4.x stage mapping (before restructure)
+OLD_STAGE_MAPPING = {
+    "00": "WHY",
+    "01": "WHAT",
+    "02": "HOW",
+    "03": "BUILD",
+    "04": "TEST",
+    "05": "DEPLOY",
+    "06": "OPERATE",
+    "07": "INTEGRATE",  # This moves to 03 in 5.0.0
+    "08": "COLLABORATE",
+    "09": "GOVERN",
+}
+
+
+@router.post(
+    "/{project_id}/migrate-stages",
+    response_model=MigrateStagesResponse,
+    summary="Migrate project stages to SDLC 5.0.0",
+    description=(
+        "Migrate project from old stage structure to SDLC 5.0.0. "
+        "Moves INTEGRATE from stage 07 to stage 03."
+    ),
+)
+async def migrate_stages(
+    project_id: UUID,
+    data: MigrateStagesRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> MigrateStagesResponse:
+    """
+    Migrate project stages to SDLC 5.0.0 structure.
+
+    Key change in SDLC 5.0.0:
+    - INTEGRATE moved from Stage 07 to Stage 03 (Contract-First)
+    - Stages 03-06 shifted by +1
+
+    Args:
+        project_id: UUID of project to migrate
+        data: Migration request with target tier
+        current_user: Authenticated user
+
+    Returns:
+        MigrateStagesResponse with old/new mappings and changes
+    """
+    # Check project exists and user has access
+    result = await db.execute(
+        select(Project).where(
+            Project.id == project_id,
+            Project.deleted_at.is_(None),
+        )
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    # Check permission
+    member_result = await db.execute(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == current_user.id,
+            ProjectMember.role.in_(["owner", "admin"]),
+        )
+    )
+    member = member_result.scalar_one_or_none()
+
+    if not member and not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only project owners/admins can migrate stages",
+        )
+
+    # Validate tier
+    tier = data.target_tier.upper()
+    if tier not in TIER_REQUIRED_STAGES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid tier: {data.target_tier}",
+        )
+
+    # Determine old mapping
+    old_mapping = data.old_stage_mapping or {
+        f"{k}-{v.lower()}": f"docs/{k}-{v}"
+        for k, v in OLD_STAGE_MAPPING.items()
+    }
+
+    # Generate new mapping
+    new_mapping = build_stage_mapping(tier)
+
+    # Calculate changes
+    changes = []
+
+    # Key change: INTEGRATE moves from 07 to 03
+    if "07-integrate" in str(old_mapping).lower():
+        changes.append({
+            "type": "move",
+            "from": "07-integrate → docs/07-Integration-Hub",
+            "to": "03-integration → docs/03-Integration-API",
+            "reason": "SDLC 5.0.0 Contract-First: API design before implementation",
+        })
+
+    # Stages 03-06 shift
+    stage_shifts = [
+        ("03-build", "04-build", "Shifted due to INTEGRATE move"),
+        ("04-test", "05-test", "Shifted due to INTEGRATE move"),
+        ("05-deploy", "06-deploy", "Shifted due to INTEGRATE move"),
+        ("06-operate", "07-operate", "Shifted due to INTEGRATE move"),
+    ]
+
+    for old_stage, new_stage, reason in stage_shifts:
+        if old_stage in str(old_mapping).lower():
+            changes.append({
+                "type": "rename",
+                "from": old_stage,
+                "to": new_stage,
+                "reason": reason,
+            })
+
+    # Build new config
+    config = {
+        "$schema": "https://sdlc-orchestrator.io/schemas/config-v1.json",
+        "version": "1.0.0",
+        "project": {
+            "id": str(project.id),
+            "name": project.name,
+            "slug": project.slug,
+        },
+        "sdlc": {
+            "frameworkVersion": "5.0.0",
+            "tier": tier,
+            "stages": new_mapping,
+            "migrated_from": "4.x",
+            "migrated_at": datetime.utcnow().isoformat(),
+        },
+        "server": {
+            "url": "https://sdlc.mtsolution.com.vn",
+            "connected": True,
+        },
+        "gates": {
+            "current": "G0.1",
+            "passed": [],
+        },
+    }
+
+    return MigrateStagesResponse(
+        project_id=str(project.id),
+        old_mapping=old_mapping,
+        new_mapping=new_mapping,
+        changes=changes,
+        config=config,
+    )

@@ -239,5 +239,30 @@ export declare class ApiClient {
      * Validates the current token
      */
     validateToken(): Promise<boolean>;
+    /**
+     * Gets the base URL for API requests
+     */
+    getBaseUrl(): string;
+    /**
+     * Initialize a new SDLC project on the server
+     */
+    initProject(data: {
+        name: string;
+        tier: string;
+        source: string;
+    }): Promise<{
+        project_id: string;
+        config: unknown;
+    }>;
+    /**
+     * Get SDLC structure template for a tier
+     */
+    getSDLCTemplate(tier: string): Promise<{
+        folders: string[];
+        files: {
+            path: string;
+            content: string;
+        }[];
+    }>;
 }
 //# sourceMappingURL=apiClient.d.ts.map

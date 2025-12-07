@@ -490,4 +490,42 @@ export class ApiClient {
             return false;
         }
     }
+
+    // ============================================
+    // SDLC Init APIs (Sprint 32)
+    // ============================================
+
+    /**
+     * Gets the base URL for API requests
+     */
+    getBaseUrl(): string {
+        return this.baseUrl;
+    }
+
+    /**
+     * Initialize a new SDLC project on the server
+     */
+    async initProject(data: {
+        name: string;
+        tier: string;
+        source: string;
+    }): Promise<{ project_id: string; config: unknown }> {
+        return this.post<{ project_id: string; config: unknown }>(
+            '/api/v1/projects/init',
+            data
+        );
+    }
+
+    /**
+     * Get SDLC structure template for a tier
+     */
+    async getSDLCTemplate(tier: string): Promise<{
+        folders: string[];
+        files: { path: string; content: string }[];
+    }> {
+        return this.get<{
+            folders: string[];
+            files: { path: string; content: string }[];
+        }>(`/api/v1/templates/sdlc-structure?tier=${tier}&version=5.0.0`);
+    }
 }
