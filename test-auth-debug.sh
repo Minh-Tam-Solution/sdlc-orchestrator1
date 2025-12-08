@@ -4,12 +4,24 @@
 # Tests authentication flow step-by-step
 #######################################
 
+# Load environment variables
+if [ -f .env.production ]; then
+  export $(grep -v '^#' .env.production | xargs)
+fi
+
+# Default values if .env not loaded
+: "${BACKEND_PORT:=8300}"
+: "${SECRET_KEY:=dev-secret-key-change-in-production-minimum-32-characters-long}"
+
+BACKEND_URL="http://localhost:${BACKEND_PORT}"
+
 echo "=== AUTH DEBUG - SPRINT 33 DAY 4 ==="
+echo "Backend URL: $BACKEND_URL"
 echo
 
 # Step 1: Login
 echo "Step 1: Login to get JWT token..."
-RESPONSE=$(curl -s -X POST http://localhost:8300/api/v1/auth/login \
+RESPONSE=$(curl -s -X POST ${BACKEND_URL}/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@sdlc-orchestrator.io","password":"Admin@123"}')
 
@@ -30,7 +42,7 @@ echo "Step 2: Decode token with Python JWT..."
 python3 <<PYEOF
 import jwt
 token = "$TOKEN"
-secret = "dev-secret-key-change-in-production-minimum-32-characters-long"
+secret = "$SECRET_KEY"
 try:
     payload = jwt.decode(token, secret, algorithms=["HS256"])
     print(f"✅ Token valid - User ID: {payload['sub']}, Type: {payload['type']}")
@@ -41,13 +53,13 @@ echo
 
 # Step 3: Test public endpoint (no auth)
 echo "Step 3: Test public endpoint /health..."
-curl -s http://localhost:8300/health | python3 -m json.tool | head -5
+curl -s ${BACKEND_URL}/health | python3 -m json.tool | head -5
 echo "✅ Public endpoint accessible"
 echo
 
 # Step 4: Test authenticated endpoint
 echo "Step 4: Test authenticated endpoint /api/v1/gates..."
-GATES_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" "http://localhost:8300/api/v1/gates?limit=5")
+GATES_RESPONSE=$(curl -s -H "Authorization: Bearer $TOKEN" "${BACKEND_URL}/api/v1/gates?limit=5")
 echo "$GATES_RESPONSE" | python3 -m json.tool | head -20
 
 if echo "$GATES_RESPONSE" | grep -q "Not authenticated"; then

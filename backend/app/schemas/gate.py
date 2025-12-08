@@ -26,7 +26,7 @@ Zero Mock Policy: Production-ready Pydantic models
 """
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -130,7 +130,7 @@ class GateResponse(BaseModel):
     stage: str = Field(..., description="SDLC stage")
     status: str = Field(..., description="Gate status (DRAFT, PENDING_APPROVAL, APPROVED, REJECTED)")
     description: Optional[str] = Field(None, description="Gate description")
-    exit_criteria: List[Dict[str, Any]] = Field(..., description="Exit criteria (JSONB)")
+    exit_criteria: List[Union[str, Dict[str, Any]]] = Field(..., description="Exit criteria (JSONB) - accepts both string and dict formats for backward compatibility")
     created_by: Optional[UUID] = Field(None, description="Creator user UUID")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
