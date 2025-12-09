@@ -54,6 +54,98 @@ I have reviewed the comprehensive SE 3.0 SASE Integration Plan and **fully appro
 
 ---
 
+## 🏛️ FRAMEWORK-FIRST PRINCIPLE (CRITICAL)
+
+### Mandate
+
+**Any feature added to SDLC Orchestrator MUST:**
+
+1. **Option A: Framework Enhancement First**
+   - Add to SDLC Framework as methodology/template
+   - Make tools-agnostic (works with any AI tool)
+   - Then build Orchestrator automation (Track 2)
+
+2. **Option B: Framework Compatibility**
+   - If Orchestrator-specific (e.g., Evidence Vault API)
+   - Ensure compatibility with Framework methodology
+   - Document alignment in ADR
+
+### Rationale
+
+- **Framework** = methodology layer (timeless, vendor-neutral)
+- **Orchestrator** = automation layer (specific implementation)
+- Framework survives even if Orchestrator is replaced
+
+### SE 3.0 SASE Compliance
+
+- ✅ **Track 1**: SASE artifacts added to Framework **first** (SDLC 5.1.0)
+- ⏳ **Track 2**: Orchestrator automation **deferred** (Q2 2026, conditional)
+- ✅ **Decoupled**: Teams can use SASE manually without Orchestrator
+
+### Repository Structure
+
+```yaml
+Framework Repo (Git Submodule):
+  URL: https://github.com/Minh-Tam-Solution/SDLC-Enterprise-Framework
+  Location: SDLC-Orchestrator/SDLC-Enterprise-Framework/ (submodule)
+  Version: SDLC 5.0.0 → 5.1.0 (SASE-enabled)
+  Workflow: Work directly on main branch
+
+Tool Repo (Main):
+  URL: https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+  Purpose: Automation layer for Framework
+  Dependency: Reads templates from Framework submodule
+```
+
+### Submodule Workflow
+
+**For developers cloning Orchestrator:**
+```bash
+# Clone with submodules
+git clone --recurse-submodules https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+
+# OR initialize after clone
+git clone https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+cd SDLC-Orchestrator
+git submodule init
+git submodule update
+```
+
+**For Framework development (Track 1 - SE 3.0):**
+```bash
+# Work in Framework submodule
+cd SDLC-Orchestrator/SDLC-Enterprise-Framework
+git checkout main
+git pull origin main
+
+# Make changes (add SASE templates)
+mkdir -p 03-Templates-Tools/SASE-Artifacts
+# ... create BRS, MRP, VCR templates
+
+# Commit to Framework repo
+git add .
+git commit -m "feat(SDLC 5.1.0): Add SASE artifact templates"
+git push origin main
+
+# Update main Orchestrator repo (submodule pointer)
+cd ..
+git submodule update --remote SDLC-Enterprise-Framework
+git add SDLC-Enterprise-Framework
+git commit -m "chore: Update Framework submodule - SASE templates"
+git push origin main
+```
+
+**For updating submodule to latest:**
+```bash
+cd SDLC-Orchestrator
+git submodule update --remote --merge
+git add SDLC-Enterprise-Framework
+git commit -m "chore: Update Framework submodule to latest"
+git push origin main
+```
+
+---
+
 ## 1. STRATEGIC CONTEXT
 
 ### 1.1 Research Foundation

@@ -7,6 +7,7 @@
 **Project**: SDLC Orchestrator - First Governance-First Platform on SDLC 5.0.0
 **Authority**: CTO + CPO + CEO Approved
 **Framework**: SDLC 5.0.0 Complete Lifecycle (10 Stages + 4-Tier Classification)
+**SE 3.0 Status**: Track 1 APPROVED - SDLC 5.1.0 Framework Enhancement (Dec 8, 2025)
 
 ---
 
@@ -94,6 +95,102 @@ You are an **AI Development Partner** working with the SDLC Orchestrator team to
 - Create **integration tests** (contract-first, OpenAPI validation)
 - Write **E2E tests** (user journey automation with Playwright)
 - Suggest **load tests** (100K concurrent users target)
+
+---
+
+## 🏛️ **FRAMEWORK-FIRST PRINCIPLE**
+
+### **CRITICAL MANDATE**
+
+**Any feature added to SDLC Orchestrator MUST:**
+
+1. **Option A: Framework Enhancement First** (Preferred)
+   - Add to SDLC Framework as methodology/template
+   - Make tools-agnostic (works with any AI tool: Claude, GPT-4, Gemini, Ollama)
+   - Then build Orchestrator automation (Track 2)
+
+2. **Option B: Framework Compatibility** (If Orchestrator-specific)
+   - If Orchestrator-specific feature (e.g., Evidence Vault API)
+   - Ensure compatibility with Framework methodology
+   - Document alignment in ADR
+
+### **Rationale**
+
+- **Framework** = methodology layer (timeless, vendor-neutral, universal)
+- **Orchestrator** = automation layer (specific implementation, tool-specific)
+- Framework survives even if Orchestrator is replaced
+
+### **Repository Structure**
+
+```yaml
+Main Repo (SDLC Orchestrator):
+  URL: https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+  Purpose: Automation layer, tool implementation
+  Location: /home/nqh/shared/SDLC-Orchestrator/
+  
+Framework Submodule:
+  URL: https://github.com/Minh-Tam-Solution/SDLC-Enterprise-Framework
+  Location: /home/nqh/shared/SDLC-Orchestrator/SDLC-Enterprise-Framework/
+  Type: Git submodule
+  Version: SDLC 5.0.0 → 5.1.0 (SE 3.0 SASE Integration)
+  Purpose: Methodology layer, templates, best practices
+```
+
+### **Submodule Workflow (For AI Assistants)**
+
+**When cloning Orchestrator:**
+```bash
+# Always use --recurse-submodules to initialize Framework
+git clone --recurse-submodules https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+
+# OR if already cloned without submodules:
+cd SDLC-Orchestrator
+git submodule init
+git submodule update
+```
+
+**When working on Framework (SE 3.0 SASE development):**
+```bash
+# Navigate to Framework submodule
+cd SDLC-Orchestrator/SDLC-Enterprise-Framework
+
+# Work on main branch directly (per CTO guidance)
+git checkout main
+git pull origin main
+
+# Make changes (e.g., add SASE templates)
+mkdir -p 03-Templates-Tools/SASE-Artifacts
+# ... create templates
+
+# Commit to Framework repo
+git add .
+git commit -m "feat(SDLC 5.1.0): Add SASE artifact templates"
+git push origin main
+
+# Update Orchestrator submodule pointer
+cd ..
+git submodule update --remote SDLC-Enterprise-Framework
+git add SDLC-Enterprise-Framework
+git commit -m "chore: Update Framework submodule - SASE templates"
+git push origin main
+```
+
+**When updating Framework to latest:**
+```bash
+cd SDLC-Orchestrator
+git submodule update --remote --merge
+git add SDLC-Enterprise-Framework
+git commit -m "chore: Update Framework submodule to latest"
+git push origin main
+```
+
+### **SE 3.0 SASE Integration Compliance**
+
+- ✅ **Track 1** (Q1 2026): SASE artifacts added to **Framework submodule** first
+- ⏳ **Track 2** (Q2 2026): Orchestrator automation (conditional on Track 1 success)
+- ✅ **Decoupled**: Teams can use SASE manually without Orchestrator
+
+**Reference:** `docs/09-govern/04-Strategic-Updates/SE3.0-SASE-Integration-Plan-APPROVED.md`
 
 ---
 
