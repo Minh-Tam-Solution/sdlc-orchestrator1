@@ -3,12 +3,12 @@
 FastAPI Main Application - SDLC Orchestrator Backend
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Version: 1.1.0
-Date: December 2, 2025
-Status: ACTIVE - Sprint 21 Day 2 (P0 Fixes)
+Version: 1.2.0
+Date: December 23, 2025
+Status: ACTIVE - Phase 2-Pilot Week 1 (SE 3.0 Track 1)
 Authority: Backend Lead + CTO Approved
 Foundation: ADR-003 (API Strategy), ADR-004 (Microservices Architecture)
-Framework: SDLC 4.9.1 Complete Lifecycle
+Framework: SDLC 5.1.0 Complete Lifecycle
 
 Purpose:
 - FastAPI application entry point
@@ -89,6 +89,7 @@ async def lifespan(app: FastAPI):
     print(f"📊 OpenAPI docs: http://{api_host}:{api_port}/api/docs")
     print(f"🔐 Authentication endpoints: http://{api_host}:{api_port}/api/v1/auth")
     print(f"🚪 Gates endpoints: http://{api_host}:{api_port}/api/v1/gates")
+    print(f"📝 SOP Generator (Phase 2-Pilot): http://{api_host}:{api_port}/api/v1/sop")
 
     startup_errors = []
 
@@ -178,13 +179,13 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, council, sdlc_structure
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, council, sdlc_structure, sop
 
 # Create FastAPI app with lifespan
 app = FastAPI(
     title="SDLC Orchestrator API",
     description="AI-Native SDLC Governance Platform with Quality Gates",
-    version="1.1.0",
+    version="1.2.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
@@ -243,6 +244,7 @@ app.include_router(triage.router, prefix="/api/v1", tags=["Triage"])
 app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
 app.include_router(council.router, prefix="/api/v1", tags=["AI Council"])  # Sprint 26 Day 3
 app.include_router(sdlc_structure.router, prefix="/api/v1", tags=["SDLC Structure"])  # Sprint 30 Day 3
+app.include_router(sop.router, prefix="/api/v1", tags=["SOP Generator"])  # Phase 2-Pilot Week 1
 
 # ============================================================================
 # Health Check Endpoints
@@ -256,7 +258,7 @@ async def health_check():
     """
     return {
         "status": "healthy",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "service": "sdlc-orchestrator-backend",
     }
 
@@ -361,7 +363,7 @@ async def root():
     """
     return {
         "service": "SDLC Orchestrator API",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "docs": "/api/docs",
         "health": "/health",
         "metrics": "/metrics",
