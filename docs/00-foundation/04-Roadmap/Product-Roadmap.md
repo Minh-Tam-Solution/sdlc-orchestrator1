@@ -1,13 +1,19 @@
 # Product Roadmap
 ## Strategic Timeline and Delivery Milestones
 
-**Version**: 3.0.0
-**Date**: December 3, 2025
+**Version**: 3.1.0
+**Date**: December 9, 2025
 **Status**: ✅ STAGE 03 BUILD - Week 10 of 13 (AI GOVERNANCE EXTENSION)
 **Authority**: CEO Approval (9.5/10 Confidence), Board Decision December 2024
 **Foundation**: Financial Model v1.0, Stakeholder Alignment v1.0
 **Current Stage**: Stage 03 (BUILD - Development & Implementation)
 **Framework**: SDLC 5.0.0 Complete Lifecycle (10 Stages + 4-Tier Classification)
+
+**Changelog v3.1.0** (Dec 9, 2025):
+- Added Q2 2026 "Agent Safety & Orchestration" milestone (SE 3.0 Track 2)
+- Sprint 35-38: Secret Redaction, Sandbox Execution, SASE Kanban Board
+- Evaluated from BloopAI/vibe-kanban and superagent-ai/vibekit
+- CTO + CPO dual approved (Security layer prioritized over UI)
 
 **Changelog v3.0.0** (Dec 3, 2025):
 - Added 4-Phase AI Governance Implementation Plan (PHASE-01 to PHASE-04)
@@ -691,6 +697,74 @@ Each gate answers a **fundamental risk** before burning resources on next stage.
 - LTV:CAC >3:1
 - Churn <5%/month
 - Team NPS 60+
+
+---
+
+### Q2 2026 (April-June 2026): Agent Safety & Orchestration ⭐ NEW
+**Goal**: Implement agent safety layer and orchestration capabilities (SE 3.0 Track 2)
+**Investment**: $120K (6 weeks development)
+**Team**: 10 FTE (existing team)
+**Dependency**: SE 3.0 Track 1 completion (SASE Framework in SDLC 5.1.0)
+
+**Background**:
+- Evaluated from BloopAI/vibe-kanban and superagent-ai/vibekit (Dec 2025)
+- CTO + CPO dual approved for Q2 2026 implementation
+- Security layer prioritized over UI per CPO guidance
+
+**Milestones**:
+
+**Sprint 35 (Week 1-2): Secret Redaction Service** ⭐ P1 - CRITICAL
+- Pattern-based secret detection (API keys, passwords, tokens, connection strings)
+- Integration with Evidence Vault (redact before storage)
+- Configurable patterns from Framework templates
+- Success: ≥99% redaction accuracy, <500ms overhead
+
+**Sprint 36 (Week 3-4): Sandbox Execution Service** ⭐ P2
+- Docker container isolation for agent-generated code
+- AGPL-safe adapter pattern (network-only access)
+- Timeout limits (30s default), resource limits (128MB RAM, 1 CPU)
+- Success: ≥95% execution success rate
+
+**Sprint 37 (Week 5-6): SASE Artifact Kanban Board** ⭐ P3
+- Kanban columns: BACKLOG → IN_PROGRESS → REVIEW → APPROVED
+- SASE artifact cards (BRS, MRP, VCR workflow visualization)
+- Agent status panel (active agents, progress tracking)
+- Success: 100% projects using orchestration view
+
+**Sprint 38 (Week 7): Integration & Testing**
+- End-to-end integration tests
+- Performance benchmarking (<500ms latency maintained)
+- Security audit (OWASP ASVS compliance)
+- Agent execution traces (Prometheus + Grafana dashboards)
+
+**Framework-First Compliance** (Required BEFORE implementation):
+```
+SDLC-Enterprise-Framework/
+├── 02-Core-Methodology/
+│   └── SDLC-Agent-Safety-Principles.md
+├── 03-Templates-Tools/
+│   ├── Agent-Safety/
+│   │   ├── Sandbox-Execution-Template.yaml
+│   │   ├── Secret-Redaction-Rules.yaml
+│   │   └── Agent-Trace-Template.yaml
+│   └── Agent-Orchestration/
+│       ├── TaskCard-Template.yaml
+│       └── WorkflowConfig-Template.yaml
+└── 05-Implementation-Guides/
+    └── Agent-Safety-Implementation-Guide.md
+```
+
+**Exit Criteria**:
+- ✅ Secret redaction ≥99% accuracy
+- ✅ Sandbox execution ≥95% success rate
+- ✅ Kanban board 100% project adoption
+- ✅ Agent traces 100% execution coverage
+- ✅ Performance overhead <500ms
+- ✅ Security audit PASS
+
+**Reference**:
+- Evaluation: `docs/09-govern/05-Operations/Agent-Safety-Orchestration-Evaluation.md`
+- Plan: `/home/dttai/.claude/plans/soft-frolicking-rainbow.md`
 
 ---
 

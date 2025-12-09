@@ -2162,3 +2162,56 @@ Date: "2025-12-15"
 > "All deliverables scoped for Alpha version (refinement in Phase 2-Pilot)"
 > "CTO review scheduled for Dec 20, 3pm (Friday)"
 > "Training workshop (Dec 10-11) must complete successfully before Week 2 starts"
+
+---
+
+## 🔮 TRACK 2 FUTURE ENHANCEMENT (Q2 2026)
+
+**Status:** CTO + CPO DUAL APPROVED (Dec 9, 2025)
+**Timeline:** Q2 2026 (after Phase 2-Pilot completion)
+**Investment:** $120K (Sprint 35-38)
+**Dependency:** SE 3.0 Track 1 completion
+
+### Background
+
+During Week 1, an evaluation was conducted on two external repositories for potential integration into SDLC Orchestrator:
+
+1. **BloopAI/vibe-kanban** - Agent orchestration Kanban board (Rust + React)
+   - Multi-agent task coordination
+   - Parallel/sequential workflow execution
+   - SASE artifact workflow visualization
+
+2. **superagent-ai/vibekit** - Safety layer for coding agents (TypeScript + Docker)
+   - Sandbox execution for agent-generated code
+   - Secret redaction (API keys, passwords, tokens)
+   - Agent execution traces
+
+### CTO + CPO Decision
+
+**Priority Order (CPO Guidance):**
+1. **P1 - Secret Redaction Service** (Sprint 35): Security-critical for Evidence Vault
+2. **P2 - Sandbox Execution Service** (Sprint 36): Agent code validation
+3. **P3 - SASE Kanban Board** (Sprint 37): Workflow visualization
+
+**Framework-First Compliance:**
+- Templates must be added to `SDLC-Enterprise-Framework/` submodule BEFORE implementation
+- New directories: `03-Templates-Tools/Agent-Safety/`, `03-Templates-Tools/Agent-Orchestration/`
+- See Product Roadmap v3.1.0 for detailed implementation plan
+
+### Link to Track 1
+
+| Track 1 (Framework) | Track 2 (Orchestrator) | Dependency |
+|---------------------|------------------------|------------|
+| SASE Artifacts (BRS, MRP, VCR) | Kanban Board columns | Track 1 defines workflow |
+| ACE/AEE Architecture | Sandbox Execution Service | Track 1 defines security model |
+| Agent Safety Principles | Secret Redaction patterns | Track 1 defines requirements |
+
+### Reference Documents
+
+- Evaluation Plan: `/home/dttai/.claude/plans/soft-frolicking-rainbow.md`
+- Product Roadmap: `docs/00-foundation/04-Roadmap/Product-Roadmap.md` (v3.1.0, Q2 2026 milestone)
+- Original Repos:
+  - https://github.com/BloopAI/vibe-kanban
+  - https://github.com/superagent-ai/vibekit
+
+**Note:** Track 2 implementation is CONDITIONAL on Track 1 success. If Phase 2-Pilot reveals fundamental SASE issues, Track 2 scope may be adjusted.
