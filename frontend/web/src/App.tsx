@@ -39,6 +39,8 @@ const CompliancePage = lazy(() => import('@/pages/CompliancePage'))
 const OnboardingPage = lazy(() => import('@/pages/OnboardingPage'))
 const GitHubCallbackPage = lazy(() => import('@/pages/GitHubCallbackPage'))
 const SOPGeneratorPage = lazy(() => import('@/pages/SOPGeneratorPage'))  // Phase 2-Pilot Week 3
+const SOPHistoryPage = lazy(() => import('@/pages/SOPHistoryPage'))  // Phase 2-Pilot Week 4
+const SOPDetailPage = lazy(() => import('@/pages/SOPDetailPage'))  // Phase 2-Pilot Week 4
 
 /**
  * Loading fallback component for Suspense
@@ -172,6 +174,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <SOPGeneratorPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sop-history"
+            element={
+              <ProtectedRoute>
+                <SOPHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sop/:sopId"
+            element={
+              <ProtectedRoute>
+                <SOPDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sop/:sopId/mrp"
+            element={
+              <ProtectedRoute>
+                <SOPDetailPage />
               </ProtectedRoute>
             }
           />

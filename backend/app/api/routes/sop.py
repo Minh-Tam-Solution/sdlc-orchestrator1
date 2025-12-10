@@ -322,6 +322,102 @@ async def generate_sop(
         )
 
 
+class SOPListItem(BaseModel):
+    """SOP list item for history view."""
+
+    sop_id: str
+    sop_type: str
+    title: str
+    status: str
+    created_at: str
+    completeness_score: float
+    has_vcr: bool
+
+
+class SOPListResponse(BaseModel):
+    """Response for SOP list endpoint."""
+
+    items: list[SOPListItem]
+    total: int
+    page: int
+    page_size: int
+
+
+@router.get(
+    "/list",
+    response_model=SOPListResponse,
+    summary="List generated SOPs",
+    description="Get paginated list of generated SOPs for history view (M4)",
+)
+async def list_sops(
+    page: int = 1,
+    page_size: int = 20,
+    sop_type: Optional[str] = None,
+    status: Optional[str] = None,
+) -> SOPListResponse:
+    """
+    List generated SOPs with pagination and filtering (M4 History).
+
+    Args:
+        page: Page number (1-indexed)
+        page_size: Items per page (max 100)
+        sop_type: Filter by SOP type
+        status: Filter by status
+
+    Returns:
+        Paginated list of SOPs
+    """
+    # Apply filters
+    filtered_sops = list(_sop_store.values())
+
+    if sop_type:
+        filtered_sops = [s for s in filtered_sops if s.sop_type.value == sop_type.lower()]
+
+    if status:
+        filtered_sops = [s for s in filtered_sops if s.status.value == status.lower()]
+
+    # Sort by created_at descending
+    filtered_sops.sort(key=lambda s: s.created_at, reverse=True)
+
+    # Pagination
+    total = len(filtered_sops)
+    page_size = min(page_size, 100)
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_items = filtered_sops[start:end]
+
+    # Build response items
+    items = []
+    for sop in page_items:
+        mrp = next(
+            (m for m in _mrp_store.values() if m.sop_id == sop.sop_id),
+            None,
+        )
+        vcr = next(
+            (v for v in _vcr_store.values() if v["sop_id"] == sop.sop_id),
+            None,
+        )
+
+        items.append(
+            SOPListItem(
+                sop_id=sop.sop_id,
+                sop_type=sop.sop_type.value,
+                title=sop.title,
+                status=sop.status.value,
+                created_at=sop.created_at.isoformat(),
+                completeness_score=mrp.completeness_score if mrp else 0.0,
+                has_vcr=vcr is not None,
+            )
+        )
+
+    return SOPListResponse(
+        items=items,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
 @router.get(
     "/{sop_id}",
     response_model=GeneratedSOPResponse,
