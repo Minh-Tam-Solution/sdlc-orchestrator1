@@ -1,0 +1,1585 @@
+# BRS-PHASE5A-MEGA-SCALE-001
+# Business Requirements Specification: SOP Generator - Phase 5A Mega-Scale
+# SASE Level 2: BRS + MRP + VCR + LPS
+
+metadata:
+  brs_id: BRS-PHASE5A-MEGA-SCALE-001
+  project_name: "SOP Generator - Phase 5A Mega-Scale"
+  version: "1.0.0"
+  created_date: "2026-07-07"
+  status: "DRAFT"
+  sase_level: "Level 2 (BRS + MRP + VCR + LPS)"
+  phase: "Phase 5A - Mega-Scale"
+  previous_phase: "Phase 4 - Enterprise Scale (VCR approved 5/5)"
+  classification: "PROFESSIONAL"
+
+authors:
+  - role: "CTO"
+    name: "NQH"
+    responsibility: "Overall approval, LPS validation, architecture review"
+  - role: "Product Manager"
+    name: "PM Lead"
+    responsibility: "Requirements definition, success metrics"
+  - role: "Tech Lead"
+    name: "Backend Lead"
+    responsibility: "Technical feasibility, multi-region architecture"
+  - role: "UX Lead"
+    name: "Frontend Lead"
+    responsibility: "User experience at scale, federation UX"
+  - role: "DevOps Lead"
+    name: "Infrastructure Lead"
+    responsibility: "Multi-region HA, Kubernetes federation"
+
+approvers:
+  - role: "CTO"
+    name: "NQH"
+    status: "PENDING"
+    date: null
+  - role: "CEO"
+    name: "CEO"
+    status: "PENDING"
+    date: null
+  - role: "CPO"
+    name: "CPO"
+    status: "PENDING"
+    date: null
+
+related_documents:
+  - id: "BRS-PHASE4-ENTERPRISE-SCALE-001"
+    title: "Phase 4 Enterprise Scale BRS"
+    url: "docs/00-Project-Foundation/03-Design-Thinking/BRS-PHASE4-ENTERPRISE-SCALE-001.yaml"
+  - id: "VCR-PHASE4-ENTERPRISE-SCALE-001"
+    title: "Phase 4 VCR (5/5 approval + Phase 5 authorization)"
+    url: "docs/03-Development-Implementation/06-Test-Reports/VCR-PHASE4-ENTERPRISE-SCALE-001.md"
+  - id: "LPS-PHASE4-ENTERPRISE-SCALE-001"
+    title: "Phase 4 LPS (CRDT, 100K scale proofs)"
+    url: "docs/03-Development-Implementation/06-Test-Reports/LPS-PHASE4-ENTERPRISE-SCALE-001.md"
+  - id: "SPRINT-34-PHASE4-WEEKS-7-12"
+    title: "Phase 4 Final Sprint Documentation"
+    url: "docs/03-Development-Implementation/02-Sprint-Plans/SPRINT-34-PHASE4-WEEKS-7-12.md"
+
+# ==============================================================================
+# EXECUTIVE SUMMARY
+# ==============================================================================
+
+executive_summary:
+  overview: |
+    Phase 5A-Mega-Scale represents the transformational leap from enterprise (20 teams)
+    to organizational-wide deployment (50 teams, 500 developers) - achieving 2.5x scale
+    with multi-region high availability and federated governance.
+
+    Building on Phase 4's exceptional success (5/5 VCR, 782% ROI, 86.7% adoption,
+    9.73/10 sprint quality), Phase 5A introduces:
+
+    **Platform Evolution:**
+    - Multi-Region Federation (US-East + US-West + EU-West)
+    - Team Hierarchy & Nested Permissions (business units → departments → teams)
+    - SOP Template Marketplace (organization-wide template sharing)
+    - AI-Powered SOP Recommendations (suggest relevant SOPs by context)
+    - Bulk Operations & Import/Export (migrate from legacy systems)
+
+    **Scale Guarantees:**
+    - 500K concurrent users load tested (5-year headroom beyond 500 devs)
+    - <50ms cross-region latency (global edge deployment)
+    - 99.99% uptime SLA (4.38 min downtime/month)
+
+    **SASE Level 2 LPS Proofs (4 new proofs):**
+    1. Multi-region consistency (eventual consistency <1s)
+    2. Federated RBAC correctness (permission inheritance)
+    3. Marketplace integrity (template versioning + signatures)
+    4. 500K concurrent user scalability
+
+  business_problem:
+    current_state: |
+      Phase 4-Enterprise-Scale Success (12 weeks, Q2 2026):
+      - 20 teams, 180 developers (4x from Phase 3)
+      - 287 SOPs generated (5x growth)
+      - 86.7% adoption rate (exceeded 80% target)
+      - 4.66/5 satisfaction (exceeded 4.5/5 target)
+      - 99.97% uptime (exceeded 99.9% target)
+      - 782% Year 1 ROI (exceeded 700% target)
+      - VCR 5/5 (4th consecutive perfect score)
+      - Sprint quality: 9.73/10 average
+
+      **Growth Constraints Discovered:**
+      1. Single-region deployment limits expansion to APAC/EMEA offices
+      2. Flat team structure doesn't scale to 50+ teams (no hierarchy)
+      3. Teams duplicate SOP templates (no sharing mechanism)
+      4. Manual SOP discovery (developers can't find relevant SOPs)
+      5. Legacy system migration blocked (no bulk import capability)
+
+      **Demand Pipeline:**
+      - 30 additional teams requesting access (500 developers total)
+      - 3 Fortune 500 customers signed (Phase 4), need multi-region
+      - APAC expansion blocked (latency from US-East: 250ms unacceptable)
+      - M&A integration (acquired company needs SOP migration)
+
+    desired_state: |
+      Phase 5A-Mega-Scale Target (16 weeks, Q3-Q4 2026):
+      - 50 teams, 500 developers (2.5x scale from Phase 4)
+      - 700+ SOPs generated (2.4x growth)
+      - ≥85% adoption rate maintained
+      - ≥4.5/5 satisfaction maintained
+      - 99.99% uptime SLA (enterprise-grade)
+      - 900% Year 1 ROI (economies of mega-scale)
+
+      **New Capabilities:**
+      1. Multi-region deployment (US + EU + APAC-ready)
+      2. Team hierarchy (Business Unit → Department → Team → Sub-team)
+      3. SOP Template Marketplace (share + discover + rate templates)
+      4. AI SOP Recommendations (context-aware suggestions)
+      5. Bulk operations (import 1000+ SOPs, export for backup/migration)
+
+      **Scalability Proven:**
+      - Load tested: 500K concurrent users (5-year headroom)
+      - Cross-region latency: <50ms (global edge)
+      - Database: Multi-master replication (write anywhere)
+      - Zero data loss: CRDT + conflict-free merge proven
+
+  key_stakeholders:
+    - name: "CTO (NQH)"
+      role: "Executive Sponsor"
+      interest: "Prove SDLC 5.0.0 scales to organizational-wide (50+ teams)"
+      success_criteria: "VCR 5/5 rating + 4 new LPS proofs validated"
+
+    - name: "CEO"
+      role: "Business Owner"
+      interest: "900% ROI + Fortune 500 expansion (10 customers by EOY)"
+      success_criteria: "50 teams onboarded + 3 new enterprise deals"
+
+    - name: "CPO"
+      role: "Product Strategy"
+      interest: "Template Marketplace adoption + AI recommendations accuracy"
+      success_criteria: "≥4.5/5 satisfaction + 50% marketplace usage"
+
+    - name: "50 Team Leads"
+      role: "End Users"
+      interest: "Team hierarchy, template sharing, cross-team collaboration"
+      success_criteria: "≥85% adoption + 700+ SOPs generated"
+
+    - name: "DevOps Lead"
+      role: "Infrastructure Owner"
+      interest: "Multi-region HA, <50ms latency, 99.99% uptime"
+      success_criteria: "0 P0 incidents + multi-region failover <30s"
+
+    - name: "Security Lead"
+      role: "Compliance Officer"
+      interest: "Federated RBAC, SOC 2 Type II certification"
+      success_criteria: "0 security findings + SOC 2 certified"
+
+    - name: "Enterprise Customers (3 signed)"
+      role: "External Stakeholders"
+      interest: "Multi-region support for global teams"
+      success_criteria: "EU + APAC regions available"
+
+  success_metrics:
+    adoption:
+      metric: "Active developers (last 7 days)"
+      baseline: "156/180 (86.7%) - Phase 4"
+      target: "≥425/500 (≥85%)"
+      measurement: "User analytics (Mixpanel + internal)"
+      timeline: "Week 16"
+
+    volume:
+      metric: "SOPs generated"
+      baseline: "287 SOPs - Phase 4"
+      target: "≥700 SOPs"
+      measurement: "Database query (SELECT COUNT(*) FROM sops)"
+      timeline: "Week 16"
+
+    satisfaction:
+      metric: "Developer satisfaction (NPS)"
+      baseline: "4.66/5 - Phase 4"
+      target: "≥4.5/5"
+      measurement: "Weekly survey (Google Forms)"
+      timeline: "Week 16"
+
+    marketplace:
+      metric: "Template Marketplace adoption"
+      baseline: "0% (not available) - Phase 4"
+      target: "≥50% of teams using marketplace templates"
+      measurement: "marketplace_downloads table"
+      timeline: "Week 16"
+
+    hierarchy:
+      metric: "Teams using hierarchy features"
+      baseline: "0% (flat structure) - Phase 4"
+      target: "≥80% of teams in hierarchy"
+      measurement: "team_hierarchy table"
+      timeline: "Week 16"
+
+    ai_recommendations:
+      metric: "AI SOP recommendation click-through rate"
+      baseline: "0% (not available) - Phase 4"
+      target: "≥30% CTR on recommendations"
+      measurement: "recommendation_clicks table"
+      timeline: "Week 16"
+
+    bulk_operations:
+      metric: "SOPs imported via bulk operations"
+      baseline: "0 (manual only) - Phase 4"
+      target: "≥200 SOPs imported from legacy systems"
+      measurement: "bulk_imports table"
+      timeline: "Week 16"
+
+    cross_region:
+      metric: "Multi-region user distribution"
+      baseline: "100% US-East - Phase 4"
+      target: "30% EU-West, 70% US (APAC ready)"
+      measurement: "User region analytics"
+      timeline: "Week 16"
+
+    latency:
+      metric: "Cross-region API latency (p95)"
+      baseline: "~80ms US-East only - Phase 4"
+      target: "<50ms per region, <150ms cross-region"
+      measurement: "Prometheus latency metrics"
+      timeline: "Week 16"
+
+    uptime:
+      metric: "System uptime"
+      baseline: "99.97% - Phase 4"
+      target: "≥99.99% (4.38 min downtime/month)"
+      measurement: "Prometheus uptime metric"
+      timeline: "Week 16"
+
+    incidents:
+      metric: "P0 production incidents"
+      baseline: "0 - Phase 4"
+      target: "0"
+      measurement: "PagerDuty incident count"
+      timeline: "Week 16"
+
+    roi:
+      metric: "Year 1 Return on Investment"
+      baseline: "782% - Phase 4"
+      target: "≥900% (mega-scale economies)"
+      calculation: "(Time_saved × $110/hr - $80K) / $80K × 100%"
+      timeline: "Week 16"
+
+# ==============================================================================
+# FUNCTIONAL REQUIREMENTS (FR26-FR35)
+# ==============================================================================
+
+functional_requirements:
+  # MEGA-SCALE FEATURES (Phase 5A)
+
+  - id: FR26
+    title: "Multi-Region Federation"
+    priority: "MANDATORY"
+    user_story: |
+      As a global organization, I need SOP Generator deployed in multiple regions
+      (US-East, US-West, EU-West) so that all developers have <50ms latency.
+
+    acceptance_criteria:
+      - criterion: "Deploy to 3 regions (US-East, US-West, EU-West)"
+        test_method: "Deployment verification: kubectl get nodes --context={region}"
+        expected_result: "3 Kubernetes clusters, each with 10+ nodes"
+
+      - criterion: "Automatic region routing (GeoDNS)"
+        test_method: "Manual test: Access from EU → routed to EU-West"
+        expected_result: "User routed to nearest region (<50ms latency)"
+
+      - criterion: "Cross-region data replication (<1s eventual consistency)"
+        test_method: "Integration test: Create SOP in US-East → visible in EU-West"
+        expected_result: "Data visible in all regions within 1 second"
+
+      - criterion: "Region failover (<30s automatic)"
+        test_method: "Chaos test: Kill US-East region → traffic routes to US-West"
+        expected_result: "Failover completes in <30s, 0 requests lost"
+
+      - criterion: "Region-specific compliance (EU data stays in EU)"
+        test_method: "Audit: Query EU user data → verify stored in EU-West only"
+        expected_result: "GDPR compliance: EU PII in EU region only"
+
+    technical_details:
+      implementation: |
+        Multi-Region Architecture:
+        - 3 Kubernetes clusters (us-east-1, us-west-2, eu-west-1)
+        - CockroachDB multi-active (replaces PostgreSQL for global writes)
+        - Redis Cluster per region (local cache, cross-region pub/sub)
+        - CloudFront + GeoDNS (automatic region routing)
+
+        Database Strategy:
+        - CockroachDB: Multi-active replication (write anywhere)
+        - Conflict resolution: Last-write-wins for metadata, CRDT for content
+        - Read replicas: 3 per region (local reads <10ms)
+
+        Compliance:
+        - EU data residency: Separate CockroachDB locality for EU
+        - GDPR: User chooses data region at signup
+        - Audit logs: Region-tagged for compliance
+
+      api_endpoints:
+        - "GET /api/v1/health/region - Region health check"
+        - "GET /api/v1/users/me/region - User's assigned region"
+        - "PUT /api/v1/users/me/region - Change data region"
+        - "GET /api/v1/regions - List available regions"
+
+      dependencies:
+        - "CockroachDB 23.1+ (BSL license - network access only)"
+        - "CloudFront (CDN + GeoDNS)"
+        - "Route 53 (DNS failover)"
+
+    estimated_effort:
+      backend: "8 days (2 FTE)"
+      devops: "10 days (2 FTE)"
+      testing: "3 days (1 FTE QA)"
+      total: "21 FTE-days"
+
+  - id: FR27
+    title: "Team Hierarchy & Nested Permissions"
+    priority: "MANDATORY"
+    user_story: |
+      As a large organization with 50 teams, I need a team hierarchy
+      (Business Unit → Department → Team → Sub-team) so that permissions
+      and templates cascade properly.
+
+    acceptance_criteria:
+      - criterion: "Create 4-level hierarchy (BU → Dept → Team → Sub-team)"
+        test_method: "Manual test: Create hierarchy Engineering → Platform → API → Auth"
+        expected_result: "Hierarchy visible in tree view"
+
+      - criterion: "Permission inheritance (parent → child)"
+        test_method: "Integration test: Grant 'SOP Editor' to BU → verify child teams have access"
+        expected_result: "All child teams inherit BU permissions"
+
+      - criterion: "Permission override (child overrides parent)"
+        test_method: "Manual test: Child team restricts permission → overrides parent"
+        expected_result: "Child-specific rules take precedence"
+
+      - criterion: "Cross-team SOP visibility (share with sibling teams)"
+        test_method: "Manual test: Team A shares SOP with Department (sibling teams see it)"
+        expected_result: "SOP visible to all teams in same department"
+
+      - criterion: "Hierarchy reporting (SOPs per BU/Dept/Team)"
+        test_method: "Manual test: View analytics by hierarchy level"
+        expected_result: "Drill-down: BU (100 SOPs) → Dept (40 SOPs) → Team (15 SOPs)"
+
+    technical_details:
+      implementation: |
+        Database Schema:
+        - `team_hierarchy` table (id, parent_id, level, path, name, metadata)
+        - Closure table pattern for efficient ancestor/descendant queries
+        - Materialized path: /engineering/platform/api/auth (fast prefix queries)
+
+        Permission Model:
+        - `team_permissions` table (team_id, permission, inherited_from, override)
+        - Inheritance: Check parent permissions recursively
+        - Override: Child explicit permission overrides parent
+
+        RBAC Extension:
+        - 5 new team-level roles: BU Admin, Dept Manager, Team Lead, Editor, Viewer
+        - Role hierarchy: BU Admin > Dept Manager > Team Lead > Editor > Viewer
+
+      api_endpoints:
+        - "POST /api/v1/teams - Create team with parent"
+        - "GET /api/v1/teams/hierarchy - Get full tree"
+        - "PUT /api/v1/teams/{id}/parent - Move team in hierarchy"
+        - "GET /api/v1/teams/{id}/permissions - Effective permissions (inherited + override)"
+        - "PUT /api/v1/teams/{id}/permissions - Set permission override"
+
+      dependencies:
+        - "PostgreSQL ltree extension (hierarchy queries)"
+        - "Tree view component (react-arborist library, MIT)"
+
+    estimated_effort:
+      backend: "5 days (2 FTE)"
+      frontend: "4 days (2 FTE)"
+      testing: "2 days (1 FTE QA)"
+      total: "11 FTE-days"
+
+  - id: FR28
+    title: "SOP Template Marketplace"
+    priority: "MANDATORY"
+    user_story: |
+      As a team lead, I want to share my SOP templates with other teams via a
+      marketplace so that best practices spread across the organization.
+
+    acceptance_criteria:
+      - criterion: "Publish SOP template to marketplace"
+        test_method: "Manual test: SOP → 'Publish to Marketplace' → Add description + tags"
+        expected_result: "Template visible in marketplace with author attribution"
+
+      - criterion: "Browse marketplace by category/tag"
+        test_method: "Manual test: Marketplace → Filter by 'Deployment' → See templates"
+        expected_result: "Templates filtered, sorted by downloads + rating"
+
+      - criterion: "Install template (fork to team)"
+        test_method: "Manual test: Click 'Install' → Template copied to team"
+        expected_result: "Template created with 'Forked from [original]' attribution"
+
+      - criterion: "Rate and review templates (1-5 stars + comment)"
+        test_method: "Manual test: Install → Rate 5 stars → Add comment"
+        expected_result: "Rating visible on template card, average updated"
+
+      - criterion: "Template versioning (updates to published templates)"
+        test_method: "Manual test: Update published template → Installers notified"
+        expected_result: "Notification: 'Template X updated, sync available'"
+
+      - criterion: "Curated collections (e.g., 'DevOps Essentials')"
+        test_method: "Manual test: Admin creates collection → Add templates"
+        expected_result: "Collection visible in marketplace home"
+
+    technical_details:
+      implementation: |
+        Database Schema:
+        - `marketplace_templates` (id, sop_id, title, description, tags[], category,
+          author_team_id, downloads, avg_rating, version, published_at)
+        - `marketplace_reviews` (id, template_id, user_id, rating, comment, created_at)
+        - `marketplace_installs` (id, template_id, team_id, installed_at, synced_version)
+        - `marketplace_collections` (id, name, description, template_ids[], curator_id)
+
+        Search:
+        - PostgreSQL full-text search (tsvector on title + description)
+        - Tag-based filtering (GIN index on tags[])
+        - Sort: downloads, rating, recent
+
+        Notifications:
+        - Template update → notify installers (in-app + email)
+        - New template in category → notify subscribers
+
+      api_endpoints:
+        - "POST /api/v1/marketplace/templates - Publish template"
+        - "GET /api/v1/marketplace/templates - Browse marketplace"
+        - "POST /api/v1/marketplace/templates/{id}/install - Fork to team"
+        - "POST /api/v1/marketplace/templates/{id}/reviews - Add review"
+        - "GET /api/v1/marketplace/collections - List collections"
+
+      dependencies:
+        - "PostgreSQL FTS (full-text search)"
+        - "SendGrid (email notifications, Apache 2.0 compatible)"
+
+    estimated_effort:
+      backend: "6 days (2 FTE)"
+      frontend: "5 days (2 FTE)"
+      testing: "2 days (1 FTE QA)"
+      total: "13 FTE-days"
+
+  - id: FR29
+    title: "AI-Powered SOP Recommendations"
+    priority: "MANDATORY"
+    user_story: |
+      As a developer, I want AI to recommend relevant SOPs based on my current
+      context (project, incident, code) so that I find SOPs faster.
+
+    acceptance_criteria:
+      - criterion: "Recommend SOPs based on current project"
+        test_method: "Manual test: View project → See 'Recommended SOPs' sidebar"
+        expected_result: "Top 5 relevant SOPs with relevance score"
+
+      - criterion: "Recommend SOPs from PagerDuty incident"
+        test_method: "Integration test: Incident triggered → SOP recommended in PD notes"
+        expected_result: "PagerDuty note: 'Suggested SOP: [API Rollback] (92% match)'"
+
+      - criterion: "Recommend SOPs from code context (VS Code extension)"
+        test_method: "Manual test: Open deployment script → Extension suggests 'Deploy API' SOP"
+        expected_result: "VS Code sidebar shows contextual SOP recommendations"
+
+      - criterion: "Learn from user interactions (click = positive signal)"
+        test_method: "Analytics test: User clicks SOP → recommendation model improves"
+        expected_result: "Clicked SOPs ranked higher in future recommendations"
+
+      - criterion: "Recommendation accuracy ≥30% CTR"
+        test_method: "A/B test: Measure click-through rate on recommendations"
+        expected_result: "≥30% of displayed recommendations are clicked"
+
+    technical_details:
+      implementation: |
+        AI Recommendation Engine:
+        - Embedding model: text-embedding-3-small (OpenAI, fallback: local sentence-transformers)
+        - Vector store: pgvector (PostgreSQL extension)
+        - Similarity: Cosine similarity on SOP embeddings
+
+        Context Sources:
+        1. Project context (project name, description, tags)
+        2. Incident context (PagerDuty alert title, service name)
+        3. Code context (file path, function names, comments)
+        4. User history (recently viewed SOPs, team SOPs)
+
+        Learning Loop:
+        - Implicit feedback: Click = positive, ignore = neutral
+        - Explicit feedback: 'Not helpful' button = negative
+        - Model retraining: Weekly batch update on click data
+
+        Caching:
+        - Redis: Cache top recommendations per project (1 hour TTL)
+        - Pre-compute: Nightly job generates recommendations for all projects
+
+      api_endpoints:
+        - "GET /api/v1/recommendations/project/{id} - SOPs for project"
+        - "GET /api/v1/recommendations/incident/{id} - SOPs for incident"
+        - "POST /api/v1/recommendations/code - SOPs for code snippet"
+        - "POST /api/v1/recommendations/feedback - Record click/dismiss"
+
+      dependencies:
+        - "OpenAI text-embedding-3-small API (external dependency)"
+        - "pgvector extension (Apache 2.0, safe)"
+        - "sentence-transformers (fallback, Apache 2.0)"
+
+    estimated_effort:
+      backend: "7 days (2 FTE)"
+      frontend: "3 days (1 FTE)"
+      ml_engineering: "5 days (1 FTE)"
+      testing: "2 days (1 FTE QA)"
+      total: "17 FTE-days"
+
+  - id: FR30
+    title: "Bulk Operations & Import/Export"
+    priority: "MANDATORY"
+    user_story: |
+      As an IT admin, I need to bulk import SOPs from legacy systems (Confluence,
+      SharePoint) and export SOPs for backup/compliance.
+
+    acceptance_criteria:
+      - criterion: "Bulk import from Confluence (API)"
+        test_method: "Integration test: Connect Confluence → Select pages → Import"
+        expected_result: "Confluence pages converted to SOPs with formatting preserved"
+
+      - criterion: "Bulk import from SharePoint (API)"
+        test_method: "Integration test: Connect SharePoint → Select docs → Import"
+        expected_result: "Word docs converted to SOPs with formatting preserved"
+
+      - criterion: "Bulk import from CSV (manual upload)"
+        test_method: "Manual test: Upload CSV with 100 SOPs → Import"
+        expected_result: "100 SOPs created with mapped fields"
+
+      - criterion: "Bulk export (JSON, CSV, Markdown)"
+        test_method: "Manual test: Select 50 SOPs → Export as ZIP"
+        expected_result: "ZIP file with 50 SOPs in selected format"
+
+      - criterion: "Import validation (duplicates, required fields)"
+        test_method: "Manual test: Import CSV with duplicates → Warning shown"
+        expected_result: "Report: '3 duplicates found, 97 imported'"
+
+      - criterion: "Import progress (async job with status)"
+        test_method: "Manual test: Import 1000 SOPs → See progress bar"
+        expected_result: "Progress: '543/1000 imported (54%)' with ETA"
+
+      - criterion: "Scheduled export (daily backup)"
+        test_method: "Manual test: Configure daily export → Verify next day"
+        expected_result: "ZIP file in S3 bucket at scheduled time"
+
+    technical_details:
+      implementation: |
+        Import Pipeline:
+        - Confluence API: /rest/api/content (HTML → Markdown)
+        - SharePoint API: /sites/{id}/drive/items (DOCX → Markdown)
+        - CSV: pandas + custom parser (field mapping UI)
+        - Conversion: html2text, mammoth (DOCX→HTML), markdownify
+
+        Export Pipeline:
+        - JSON: Native export (full SOP data)
+        - CSV: Configurable columns (field mapping UI)
+        - Markdown: Formatted with frontmatter (YAML metadata)
+        - ZIP: Multiple SOPs bundled
+
+        Async Processing:
+        - Celery workers (Redis broker)
+        - Job status: pending → processing → completed/failed
+        - Progress tracking: Redis hash (job_id → {progress, total, errors})
+
+        Scheduling:
+        - Celery Beat (cron syntax)
+        - Export to S3 bucket (versioned backups)
+
+      api_endpoints:
+        - "POST /api/v1/import/confluence - Import from Confluence"
+        - "POST /api/v1/import/sharepoint - Import from SharePoint"
+        - "POST /api/v1/import/csv - Import from CSV"
+        - "GET /api/v1/import/jobs/{id} - Job status"
+        - "POST /api/v1/export - Export SOPs"
+        - "GET /api/v1/export/download/{id} - Download export"
+        - "POST /api/v1/export/schedule - Schedule recurring export"
+
+      dependencies:
+        - "Confluence REST API v2 (external dependency)"
+        - "Microsoft Graph API (SharePoint, external dependency)"
+        - "Celery + Redis (async processing)"
+        - "mammoth (DOCX conversion, MIT)"
+        - "html2text (HTML→Markdown, GPL - use via subprocess)"
+
+    estimated_effort:
+      backend: "8 days (2 FTE)"
+      frontend: "4 days (2 FTE)"
+      testing: "3 days (1 FTE QA)"
+      total: "15 FTE-days"
+
+  - id: FR31
+    title: "Advanced Search & Filters"
+    priority: "MANDATORY"
+    user_story: |
+      As a developer in a 50-team organization, I need advanced search
+      (full-text, filters, facets) to find SOPs among 700+.
+
+    acceptance_criteria:
+      - criterion: "Full-text search across all SOP content"
+        test_method: "Manual test: Search 'rollback database' → Results with highlights"
+        expected_result: "SOPs containing phrase ranked by relevance, highlights shown"
+
+      - criterion: "Filter by team, type, author, date range"
+        test_method: "Manual test: Filter: Team=API, Type=Deployment, Last 30 days"
+        expected_result: "Results filtered, filter chips visible"
+
+      - criterion: "Faceted search (counts per filter option)"
+        test_method: "Manual test: Search 'deploy' → See facets: Type (Deployment: 15, Rollback: 8)"
+        expected_result: "Facets show counts for each filter option"
+
+      - criterion: "Search within hierarchy (BU/Dept scope)"
+        test_method: "Manual test: Search within 'Engineering BU' only"
+        expected_result: "Results limited to Engineering BU and child teams"
+
+      - criterion: "Saved searches (bookmark frequent queries)"
+        test_method: "Manual test: Search → 'Save Search' → Access from sidebar"
+        expected_result: "Saved search re-executes with 1 click"
+
+      - criterion: "Search performance <200ms (p95) for 700+ SOPs"
+        test_method: "Load test: 100 concurrent searches → Measure latency"
+        expected_result: "p95 latency <200ms"
+
+    technical_details:
+      implementation: |
+        Search Engine:
+        - PostgreSQL FTS (tsvector, GIN indexes)
+        - Indexed fields: title, content, tags, author, team
+        - Ranking: ts_rank + recency boost
+
+        Filters:
+        - Team: Foreign key filter (+ hierarchy with ltree)
+        - Type: Enum filter (13 SOP types)
+        - Author: User ID filter
+        - Date: Range filter (created_at, updated_at)
+
+        Facets:
+        - PostgreSQL COUNT(*) GROUP BY for each facet
+        - Parallel queries for facets (async)
+        - Cache facet counts (5 min TTL)
+
+        Performance:
+        - GIN index on tsvector column
+        - Partial indexes for common filters
+        - Query plan analysis (EXPLAIN ANALYZE)
+
+      api_endpoints:
+        - "GET /api/v1/sops/search - Full-text search with filters"
+        - "GET /api/v1/sops/search/facets - Facet counts"
+        - "POST /api/v1/sops/search/saved - Save search"
+        - "GET /api/v1/sops/search/saved - List saved searches"
+
+      dependencies:
+        - "PostgreSQL FTS (built-in)"
+
+    estimated_effort:
+      backend: "4 days (2 FTE)"
+      frontend: "3 days (1 FTE)"
+      testing: "1 day (1 FTE QA)"
+      total: "8 FTE-days"
+
+  - id: FR32
+    title: "SOP Workflows & Approval Chains"
+    priority: "RECOMMENDED"
+    user_story: |
+      As a compliance officer, I need SOP approval workflows (draft → review →
+      approved) so that critical SOPs go through proper governance.
+
+    acceptance_criteria:
+      - criterion: "Configure workflow stages (Draft → Review → Approved)"
+        test_method: "Manual test: Admin → Workflows → Create 3-stage workflow"
+        expected_result: "Workflow visible in team settings"
+
+      - criterion: "Assign reviewers per stage"
+        test_method: "Manual test: Review stage → Assign 'Tech Lead' + 'QA Lead'"
+        expected_result: "2 reviewers must approve before next stage"
+
+      - criterion: "Submit SOP for review (transitions Draft → Review)"
+        test_method: "Manual test: Author → 'Submit for Review' → Status changes"
+        expected_result: "SOP status = 'In Review', reviewers notified"
+
+      - criterion: "Approve/Reject with comments"
+        test_method: "Manual test: Reviewer → 'Approve' with comment → Next stage"
+        expected_result: "Approval recorded with timestamp, comment visible"
+
+      - criterion: "Workflow history (audit trail)"
+        test_method: "Manual test: View SOP → 'Workflow History' tab"
+        expected_result: "Timeline: Draft (Alice, 9am) → Review (Bob approved, 2pm) → Approved (3pm)"
+
+      - criterion: "Enforce workflow for specific SOP types"
+        test_method: "Manual test: 'Compliance Audit' type requires full workflow"
+        expected_result: "Cannot publish without completing all stages"
+
+    technical_details:
+      implementation: |
+        Database Schema:
+        - `workflows` (id, team_id, name, stages[])
+        - `workflow_stages` (id, workflow_id, name, order, required_approvers)
+        - `sop_workflow_state` (id, sop_id, workflow_id, current_stage_id, status)
+        - `workflow_approvals` (id, sop_id, stage_id, user_id, action, comment, timestamp)
+
+        State Machine:
+        - States: DRAFT, IN_REVIEW, CHANGES_REQUESTED, APPROVED, ARCHIVED
+        - Transitions: submit, approve, reject, request_changes, archive
+
+        Notifications:
+        - Reviewer assigned → email + in-app notification
+        - Approval/rejection → author notified
+        - Overdue review (>48h) → reminder email
+
+      api_endpoints:
+        - "POST /api/v1/workflows - Create workflow"
+        - "PUT /api/v1/sops/{id}/workflow/submit - Submit for review"
+        - "PUT /api/v1/sops/{id}/workflow/approve - Approve current stage"
+        - "PUT /api/v1/sops/{id}/workflow/reject - Reject with comment"
+        - "GET /api/v1/sops/{id}/workflow/history - Approval history"
+
+      dependencies:
+        - "python-transitions (state machine library, MIT)"
+
+    estimated_effort:
+      backend: "5 days (2 FTE)"
+      frontend: "4 days (2 FTE)"
+      testing: "2 days (1 FTE QA)"
+      total: "11 FTE-days"
+
+  - id: FR33
+    title: "Custom Branding & White-Label"
+    priority: "OPTIONAL"
+    user_story: |
+      As an enterprise customer, I want to customize the UI with my company's
+      branding (logo, colors, domain) for employee adoption.
+
+    acceptance_criteria:
+      - criterion: "Custom logo (replace SOP Generator logo)"
+        test_method: "Manual test: Settings → Upload logo → See in header"
+        expected_result: "Company logo displayed in navigation"
+
+      - criterion: "Custom color scheme (primary, secondary colors)"
+        test_method: "Manual test: Settings → Set brand colors → UI updates"
+        expected_result: "Buttons, links use custom colors"
+
+      - criterion: "Custom subdomain (acme.sop-generator.com)"
+        test_method: "Manual test: Configure subdomain → Access works"
+        expected_result: "Custom domain with SSL certificate"
+
+      - criterion: "Custom email templates (notifications use branding)"
+        test_method: "Manual test: Trigger notification → Check email"
+        expected_result: "Email has company logo and colors"
+
+    technical_details:
+      implementation: |
+        Database Schema:
+        - `organization_branding` (id, org_id, logo_url, primary_color,
+          secondary_color, custom_domain, email_template_id)
+
+        Frontend:
+        - CSS variables for colors (--primary-color, etc.)
+        - Dynamic logo component
+        - Theming provider (React context)
+
+        Domain:
+        - Wildcard SSL certificate (*.sop-generator.com)
+        - Nginx routing by hostname
+        - DNS CNAME for custom domains
+
+      api_endpoints:
+        - "PUT /api/v1/organization/branding - Update branding"
+        - "GET /api/v1/organization/branding - Get branding config"
+
+      dependencies:
+        - "Let's Encrypt (wildcard SSL, free)"
+
+    estimated_effort:
+      backend: "2 days (1 FTE)"
+      frontend: "3 days (1 FTE)"
+      devops: "2 days (1 FTE)"
+      testing: "1 day (1 FTE QA)"
+      total: "8 FTE-days"
+
+  - id: FR34
+    title: "Mobile App (Read-Only)"
+    priority: "OPTIONAL"
+    user_story: |
+      As an on-call engineer, I need to view SOPs on my phone during incidents
+      so that I can follow runbooks without a laptop.
+
+    acceptance_criteria:
+      - criterion: "View SOPs on iOS/Android"
+        test_method: "Manual test: Install app → Login → Browse SOPs"
+        expected_result: "SOPs readable with proper formatting"
+
+      - criterion: "Offline mode (cache recent SOPs)"
+        test_method: "Manual test: View SOP → Go offline → Still accessible"
+        expected_result: "Last 20 viewed SOPs available offline"
+
+      - criterion: "Search SOPs (text search)"
+        test_method: "Manual test: Search 'rollback' → See results"
+        expected_result: "Search works, results load <2s"
+
+      - criterion: "PagerDuty integration (deep link from incident)"
+        test_method: "Integration test: PD incident → Click SOP link → Opens app"
+        expected_result: "App opens directly to relevant SOP"
+
+    technical_details:
+      implementation: |
+        Tech Stack:
+        - React Native (shared codebase iOS + Android)
+        - Offline: AsyncStorage + SQLite (cache)
+        - Auth: OAuth 2.0 (same as web)
+
+        Features:
+        - Read-only (no editing on mobile)
+        - Markdown rendering (react-native-markdown-display)
+        - Deep linking (sop-generator://sops/{id})
+
+        Distribution:
+        - Internal: TestFlight (iOS), Internal Track (Android)
+        - Future: App Store / Play Store (if external customers)
+
+      api_endpoints:
+        - "Same as web API (mobile uses existing endpoints)"
+
+      dependencies:
+        - "React Native 0.73+ (MIT)"
+        - "Expo (managed workflow, MIT)"
+
+    estimated_effort:
+      mobile_dev: "10 days (1 FTE)"
+      testing: "3 days (1 FTE QA)"
+      total: "13 FTE-days"
+
+  - id: FR35
+    title: "API Rate Limiting & Quotas"
+    priority: "MANDATORY"
+    user_story: |
+      As a platform operator, I need API rate limiting (per user, per team, per org)
+      so that no single user can overwhelm the system at 500 users scale.
+
+    acceptance_criteria:
+      - criterion: "Per-user rate limit (100 req/min default)"
+        test_method: "Load test: Single user sends 150 req/min → 50 rejected"
+        expected_result: "HTTP 429 after 100 requests, Retry-After header present"
+
+      - criterion: "Per-team rate limit (1000 req/min)"
+        test_method: "Load test: Team of 20 users, 60 req/min each → Works"
+        expected_result: "1200 req/min total → 200 rejected at team level"
+
+      - criterion: "Per-org rate limit (10000 req/min)"
+        test_method: "Load test: Org with 50 teams → Aggregate limit"
+        expected_result: "Org limit prevents runaway usage"
+
+      - criterion: "Configurable limits per plan (Free/Pro/Enterprise)"
+        test_method: "Admin test: Set Enterprise plan → Higher limits"
+        expected_result: "Enterprise: 500/user, 5000/team, 50000/org"
+
+      - criterion: "Rate limit headers (X-RateLimit-Remaining)"
+        test_method: "API test: Check response headers"
+        expected_result: "Headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset"
+
+      - criterion: "Dashboard: Rate limit usage visualization"
+        test_method: "Manual test: Admin → Rate Limits → See usage graph"
+        expected_result: "Graph shows usage vs limits per user/team/org"
+
+    technical_details:
+      implementation: |
+        Rate Limiting:
+        - Algorithm: Token bucket (Redis-backed)
+        - Levels: User → Team → Org (hierarchical)
+        - Keys: ratelimit:{user_id}, ratelimit:team:{team_id}, ratelimit:org:{org_id}
+
+        Redis Commands:
+        - INCR + EXPIRE (sliding window)
+        - Lua script for atomic increment + check
+
+        Response:
+        - HTTP 429 Too Many Requests
+        - Retry-After: seconds until reset
+        - X-RateLimit-* headers
+
+        Configuration:
+        - Default limits in config
+        - Per-plan override in database
+        - Admin UI for custom limits
+
+      api_endpoints:
+        - "GET /api/v1/rate-limits - Current limits for user"
+        - "GET /api/v1/admin/rate-limits/usage - Usage stats (admin)"
+        - "PUT /api/v1/admin/rate-limits/{entity}/{id} - Set custom limit"
+
+      dependencies:
+        - "Redis (rate limit storage)"
+        - "slowapi (FastAPI rate limiting, MIT)"
+
+    estimated_effort:
+      backend: "3 days (1 FTE)"
+      frontend: "1 day (1 FTE)"
+      testing: "1 day (1 FTE QA)"
+      total: "5 FTE-days"
+
+# ==============================================================================
+# NON-FUNCTIONAL REQUIREMENTS (NFR21-NFR30)
+# ==============================================================================
+
+non_functional_requirements:
+  - id: NFR21
+    category: "Performance"
+    title: "500K Concurrent User Scalability"
+    requirement: |
+      System must support 500,000 concurrent users (5-year headroom beyond 500 devs)
+      with <100ms API latency (p95) and <50ms intra-region latency.
+
+    measurement:
+      test_method: "Load test with Locust (500K virtual users across 3 regions)"
+      success_criteria:
+        - "API p95 latency: <100ms (intra-region)"
+        - "API p95 latency: <150ms (cross-region)"
+        - "Dashboard load (TTI): <2s"
+        - "WebSocket connections: 500K stable"
+        - "CPU usage: <70% (scaled pods)"
+        - "Memory usage: <80% (scaled pods)"
+
+      test_scenarios:
+        - "Scenario 1: 500K users browsing (read-heavy, 3 regions)"
+        - "Scenario 2: 50K users editing (write-heavy, CRDT)"
+        - "Scenario 3: 25K concurrent real-time collaborations"
+
+    implementation:
+      - "Horizontal scaling: Kubernetes HPA (4 → 100 pods auto-scale)"
+      - "Database: CockroachDB multi-active (write to any region)"
+      - "Redis: Redis Cluster per region (12 nodes total)"
+      - "CDN: CloudFront for static assets (global edge)"
+      - "Load balancer: AWS ALB (least-connections, sticky sessions)"
+
+    estimated_effort: "8 days (2 FTE DevOps)"
+
+  - id: NFR22
+    category: "Reliability"
+    title: "99.99% Uptime SLA (Multi-Region HA)"
+    requirement: |
+      System must maintain 99.99% uptime (4.38 min downtime/month) with
+      multi-region HA and <30s region failover.
+
+    measurement:
+      test_method: "Chaos engineering (kill regions, zones, pods)"
+      success_criteria:
+        - "Uptime: ≥99.99% (measured monthly)"
+        - "Region failover: <30s (entire region failure)"
+        - "Pod failover: <5s (single pod failure)"
+        - "Data loss: 0 bytes (synchronous replication)"
+        - "P0 incidents: 0/month"
+
+      test_scenarios:
+        - "Kill US-East region → Traffic routes to US-West (<30s)"
+        - "Kill 50% of pods in region → HPA scales up (<60s)"
+        - "Database primary failover → Standby promoted (<10s)"
+
+    implementation:
+      - "Multi-region: US-East + US-West + EU-West (active-active)"
+      - "CockroachDB: Multi-active replication (survive region loss)"
+      - "Redis: Sentinel per region + cross-region backup"
+      - "DNS failover: Route 53 health checks (30s TTL)"
+      - "Monitoring: Prometheus + Alertmanager + PagerDuty (P0 SLA: 5 min)"
+
+    estimated_effort: "6 days (2 FTE DevOps)"
+
+  - id: NFR23
+    category: "Security"
+    title: "SOC 2 Type II Certified"
+    requirement: |
+      Achieve SOC 2 Type II certification (Security, Availability, Confidentiality)
+      with external audit by Big 4 firm.
+
+    measurement:
+      test_method: "External audit by Deloitte (6-month observation period)"
+      success_criteria:
+        - "0 critical findings"
+        - "0 high findings"
+        - "≤2 medium findings"
+        - "Certification issued"
+
+      controls:
+        - "Access control: RBAC with 18 roles (5 new hierarchy roles)"
+        - "Audit logging: Immutable logs (7-year retention)"
+        - "Encryption: AES-256 at-rest, TLS 1.3 in-transit"
+        - "Secrets: HashiCorp Vault (30-day rotation)"
+        - "Vulnerability: Weekly scans (Grype + Semgrep)"
+        - "Incident response: Runbooks + quarterly drills"
+        - "Business continuity: Multi-region failover tested monthly"
+
+    implementation:
+      - "SOC 2 readiness (Phase 4) → Certification audit (Phase 5A)"
+      - "Observation period: 6 months (continuous monitoring)"
+      - "Auditor: Deloitte Cyber (contracted Week 1)"
+      - "Remediation: Budget 2 weeks for findings"
+
+    estimated_effort: "10 days (2 FTE Security + External audit)"
+
+  - id: NFR24
+    category: "Performance"
+    title: "Cross-Region Latency <150ms (p95)"
+    requirement: |
+      Cross-region API calls must complete in <150ms (p95) with data consistency
+      guaranteed within 1 second.
+
+    measurement:
+      test_method: "Synthetic monitoring (Datadog from multiple regions)"
+      success_criteria:
+        - "US-East → EU-West: <150ms (p95)"
+        - "US-East → US-West: <100ms (p95)"
+        - "Intra-region: <50ms (p95)"
+        - "Data consistency: <1s (eventual consistency)"
+
+      test_scenarios:
+        - "User in EU reads SOP created in US → <150ms + <1s stale"
+        - "User in US-West writes SOP → Visible in US-East <1s"
+
+    implementation:
+      - "CockroachDB: Geo-partitioning for data locality"
+      - "Read replicas: Local reads <50ms"
+      - "Write routing: Route to nearest region"
+      - "CDN: Static assets served from edge"
+
+    estimated_effort: "4 days (2 FTE DevOps)"
+
+  - id: NFR25
+    category: "Data Integrity"
+    title: "Multi-Region Data Consistency"
+    requirement: |
+      Data must be consistent across all regions with <1s eventual consistency
+      and zero data loss during region failover.
+
+    measurement:
+      test_method: "Consistency test: Write to Region A, read from Region B"
+      success_criteria:
+        - "Eventual consistency: <1s"
+        - "Strong consistency: Available for critical paths (auth, payments)"
+        - "Data loss: 0 bytes during failover"
+
+      test_scenarios:
+        - "Write SOP in US-East → Read in EU-West → Visible <1s"
+        - "Kill US-East → Write to US-West → US-East recovery → Data consistent"
+
+    implementation:
+      - "CockroachDB: Raft consensus (strong consistency)"
+      - "CRDT: Eventual consistency for collaborative editing"
+      - "Conflict resolution: LWW for metadata, CRDT for content"
+
+    estimated_effort: "Covered in FR26 (no additional effort)"
+
+  - id: NFR26
+    category: "Compliance"
+    title: "GDPR + CCPA + Data Residency"
+    requirement: |
+      Support data residency requirements (EU data stays in EU) with
+      GDPR/CCPA compliance for all user data.
+
+    measurement:
+      test_method: "Compliance audit: Query EU user data location"
+      success_criteria:
+        - "EU user PII: 100% in EU-West region"
+        - "Data export: <24 hours"
+        - "Data deletion: <7 days"
+        - "Right to portability: JSON export"
+
+      controls:
+        - "Data residency: CockroachDB geo-partitioning"
+        - "Consent management: Cookie banner + preferences"
+        - "Data processing agreements: In place with all vendors"
+
+    implementation:
+      - "CockroachDB: PARTITION BY region for PII tables"
+      - "Export API: GET /api/v1/users/me/export"
+      - "Delete API: DELETE /api/v1/users/me (cascade + anonymize)"
+      - "Privacy policy: Updated for multi-region"
+
+    estimated_effort: "4 days (1 FTE Backend + 1 FTE Legal)"
+
+  - id: NFR27
+    category: "Maintainability"
+    title: "≥95% Test Coverage Maintained"
+    requirement: |
+      Maintain ≥95% test coverage despite 2.5x codebase growth
+      (new features: multi-region, marketplace, hierarchy).
+
+    measurement:
+      test_method: "pytest-cov (backend), vitest coverage (frontend)"
+      success_criteria:
+        - "Backend: ≥95%"
+        - "Frontend: ≥85%"
+        - "E2E: 80 critical user journeys (Playwright)"
+
+      test_types:
+        - "Unit: 750+ tests (backend + frontend)"
+        - "Integration: 120+ tests (API contracts)"
+        - "E2E: 80+ tests (Playwright)"
+        - "Multi-region: 20+ tests (cross-region scenarios)"
+
+    implementation:
+      - "Pre-commit hook: Block if coverage drops >1%"
+      - "CI/CD: Coverage report on every PR"
+      - "Test pyramid: 70% unit, 20% integration, 10% E2E"
+
+    estimated_effort: "Ongoing (2 FTE QA)"
+
+  - id: NFR28
+    category: "Observability"
+    title: "Full-Stack Distributed Tracing"
+    requirement: |
+      100% distributed tracing across all 3 regions with correlated logs,
+      metrics, and traces (observability stack).
+
+    measurement:
+      test_method: "End-to-end trace: Request → All services → Response"
+      success_criteria:
+        - "Traces: 100% of API requests (OpenTelemetry)"
+        - "Cross-region traces: Linked across regions"
+        - "Logs: Structured JSON, correlated with trace ID"
+        - "Metrics: 75+ Prometheus metrics (Grafana dashboards)"
+
+      tools:
+        - "Tracing: OpenTelemetry → Jaeger (multi-region)"
+        - "Logging: Python logging → Fluentd → Elasticsearch"
+        - "Metrics: Prometheus → Grafana"
+        - "Alerting: Alertmanager → PagerDuty"
+
+    implementation:
+      - "OpenTelemetry SDK: Auto-instrument FastAPI + React"
+      - "Trace context: W3C Trace Context (cross-region propagation)"
+      - "Dashboards: Region health, cross-region latency, error rates"
+
+    estimated_effort: "5 days (2 FTE DevOps)"
+
+  - id: NFR29
+    category: "Cost"
+    title: "AI Cost <$2.50/SOP (Mega-Scale Efficiency)"
+    requirement: |
+      Reduce AI generation cost from $2.87/SOP (Phase 4) to <$2.50/SOP through
+      caching, batching, and improved Ollama routing.
+
+    measurement:
+      test_method: "Cost tracking (ai_usage_logs table)"
+      success_criteria:
+        - "Average cost/SOP: <$2.50"
+        - "Ollama usage: ≥97%"
+        - "Total AI cost (16 weeks): <$1,750"
+
+      calculation:
+        - "700 SOPs × $2.50 = $1,750 budget"
+        - "Ollama: $0.00/SOP, Claude: $50/SOP, GPT-4o: $40/SOP"
+
+    implementation:
+      - "Prompt caching: Cache similar prompts (10% hit rate target)"
+      - "Batch generation: Queue non-urgent SOPs (night batch)"
+      - "Ollama load balancing: 3 replicas per region"
+      - "Fallback optimization: 3 retries before Claude fallback"
+
+    estimated_effort: "3 days (1 FTE Backend)"
+
+  - id: NFR30
+    category: "Zero Mock Policy"
+    title: "100% Real Implementations (No Mocks)"
+    requirement: |
+      Continue Zero Mock Policy - all features fully implemented with real
+      integrations (no placeholders, no TODOs).
+
+    measurement:
+      test_method: "Code review + pre-commit hook"
+      success_criteria:
+        - "0 occurrences: `// TODO`, `pass # implement`, `return { mock: true }`"
+        - "100% integration tests with real services (multi-region)"
+
+      enforcement:
+        - "Pre-commit hook: Grep for banned keywords"
+        - "CI/CD: Fail build if mocks detected"
+        - "Code review: 2+ approvers check for mocks"
+
+    implementation:
+      - "Same policy as Phase 4 (extended to multi-region)"
+      - "Multi-region tests: Real CockroachDB clusters (not mocked)"
+
+    estimated_effort: "0 days (existing policy)"
+
+# ==============================================================================
+# SUCCESS CRITERIA
+# ==============================================================================
+
+success_criteria:
+  launch_readiness:
+    - criterion: "All 10 FRs implemented (FR26-FR35)"
+      target: "10/10 (100%)"
+      mandatory: true
+
+    - criterion: "All 10 NFRs met (NFR21-NFR30)"
+      target: "10/10 (100%)"
+      mandatory: true
+
+    - criterion: "Multi-region deployment: 3 regions operational"
+      target: "US-East + US-West + EU-West"
+      mandatory: true
+
+    - criterion: "Load test: 500K concurrent users"
+      target: "p95 API latency <100ms, 0 errors"
+      mandatory: true
+
+    - criterion: "SOC 2 Type II: Certification audit passed"
+      target: "0 critical, 0 high findings"
+      mandatory: true
+
+    - criterion: "SASE Level 2: BRS + MRP + VCR + LPS complete"
+      target: "5/5 artifacts delivered"
+      mandatory: true
+
+  adoption_metrics:
+    - criterion: "≥85% adoption rate (425/500 developers active)"
+      measurement: "User analytics (last 7 days)"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥700 SOPs generated"
+      measurement: "Database count"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥50% marketplace adoption (25/50 teams using templates)"
+      measurement: "marketplace_installs table"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥80% teams in hierarchy (40/50 teams)"
+      measurement: "team_hierarchy table"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥30% AI recommendation CTR"
+      measurement: "recommendation_clicks table"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥200 SOPs imported via bulk operations"
+      measurement: "bulk_imports table"
+      timeline: "Week 16"
+      mandatory: false
+
+  quality_metrics:
+    - criterion: "≥4.5/5 developer satisfaction (NPS)"
+      measurement: "Weekly survey"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "0 P0 production incidents"
+      measurement: "PagerDuty incident log"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "99.99% system uptime (4.38 min downtime allowed)"
+      measurement: "Prometheus uptime metric"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "≥95% test coverage (unit + integration)"
+      measurement: "pytest-cov, vitest coverage"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "Cross-region latency <150ms (p95)"
+      measurement: "Prometheus latency metrics"
+      timeline: "Week 16"
+      mandatory: true
+
+  business_metrics:
+    - criterion: "≥900% Year 1 ROI"
+      calculation: "(Time_saved × $110/hr - $80K) / $80K × 100%"
+      target: "≥900%"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "<$2.50 AI cost per SOP"
+      measurement: "ai_usage_logs table"
+      timeline: "Week 16"
+      mandatory: true
+
+    - criterion: "3 additional enterprise customers signed"
+      measurement: "Sales contracts"
+      timeline: "Week 16"
+      mandatory: false
+
+    - criterion: "30% EU user base (GDPR compliance enables EU market)"
+      measurement: "User region analytics"
+      timeline: "Week 16"
+      mandatory: false
+
+# ==============================================================================
+# TIMELINE & BUDGET
+# ==============================================================================
+
+timeline:
+  start_date: "2026-07-07"
+  end_date: "2026-10-23"
+  duration: "16 weeks"
+  phases:
+    - phase: "Weeks 1-4: Multi-Region Foundation"
+      duration: "4 weeks"
+      deliverables:
+        - "Multi-region deployment (FR26)"
+        - "CockroachDB migration"
+        - "500K load test infrastructure (NFR21)"
+        - "GeoDNS + CDN setup"
+
+    - phase: "Weeks 5-8: Hierarchy & Marketplace"
+      duration: "4 weeks"
+      deliverables:
+        - "Team hierarchy (FR27)"
+        - "Template marketplace (FR28)"
+        - "Advanced search (FR31)"
+        - "Rate limiting (FR35)"
+
+    - phase: "Weeks 9-12: AI & Integrations"
+      duration: "4 weeks"
+      deliverables:
+        - "AI recommendations (FR29)"
+        - "Bulk import/export (FR30)"
+        - "Workflows & approvals (FR32)"
+        - "SOC 2 audit preparation"
+
+    - phase: "Weeks 13-16: Scale & Certification"
+      duration: "4 weeks"
+      deliverables:
+        - "500K load test execution (NFR21)"
+        - "SOC 2 Type II audit (NFR23)"
+        - "50-team onboarding"
+        - "SASE Level 2: MRP + VCR + LPS"
+        - "Optional: Branding (FR33), Mobile (FR34)"
+
+budget:
+  total: "$80,000"
+  breakdown:
+    backend_development:
+      cost: "$24,000"
+      allocation: "3 FTE × 16 weeks × $500/week"
+      responsibilities:
+        - "FR26-FR35 backend implementation"
+        - "CockroachDB migration"
+        - "Multi-region API"
+
+    frontend_development:
+      cost: "$16,000"
+      allocation: "2 FTE × 16 weeks × $500/week"
+      responsibilities:
+        - "FR26-FR35 frontend UI"
+        - "Marketplace UI"
+        - "Hierarchy management"
+
+    devops_infrastructure:
+      cost: "$20,000"
+      allocation: "2 FTE × 16 weeks × $625/week"
+      responsibilities:
+        - "Multi-region Kubernetes"
+        - "CockroachDB cluster"
+        - "500K load testing"
+        - "CDN + GeoDNS"
+
+    qa_testing:
+      cost: "$8,000"
+      allocation: "1 FTE × 16 weeks × $500/week"
+      responsibilities:
+        - "E2E test suite (80+ tests)"
+        - "Multi-region testing"
+        - "Load test execution"
+
+    security_audit:
+      cost: "$8,000"
+      allocation: "SOC 2 Type II certification audit"
+      responsibilities:
+        - "External auditor (Deloitte)"
+        - "Observation period support"
+        - "Remediation"
+
+    cloud_infrastructure:
+      cost: "$3,000"
+      allocation: "AWS/GCP multi-region costs"
+      items:
+        - "3 Kubernetes clusters"
+        - "CockroachDB (3 regions)"
+        - "CloudFront CDN"
+        - "Cross-region data transfer"
+
+    miscellaneous:
+      cost: "$1,000"
+      allocation: "Buffer (1.25%)"
+      items:
+        - "External API costs"
+        - "License costs"
+        - "Contingency"
+
+risks:
+  - risk: "CockroachDB migration causes data inconsistency"
+    impact: "CRITICAL"
+    probability: "LOW"
+    mitigation: |
+      - Dual-write strategy during migration (PostgreSQL + CockroachDB)
+      - Rollback plan: Keep PostgreSQL as fallback for 4 weeks
+      - Data validation: Checksums on all tables post-migration
+      - Migration rehearsal: Practice on staging environment
+
+  - risk: "500K load test reveals unexpected bottlenecks"
+    impact: "HIGH"
+    probability: "MEDIUM"
+    mitigation: |
+      - Early load test (Week 2) to identify issues
+      - Budget 2 weeks for optimization
+      - Fallback: Reduce target to 300K (still 5-year headroom)
+      - Expert consultation: AWS Solutions Architect
+
+  - risk: "SOC 2 audit finds critical gaps"
+    impact: "HIGH"
+    probability: "LOW"
+    mitigation: |
+      - Pre-audit (Week 8) to identify gaps
+      - Phase 4 SOC 2 readiness reduces risk
+      - Remediation budget: 2 weeks
+      - Experienced auditor (Deloitte, prior relationship)
+
+  - risk: "Multi-region latency exceeds targets"
+    impact: "MEDIUM"
+    probability: "MEDIUM"
+    mitigation: |
+      - Synthetic monitoring from Day 1
+      - Edge caching (CloudFront)
+      - Database geo-partitioning (data locality)
+      - Fallback: Increase latency target to <200ms
+
+  - risk: "50-team onboarding overwhelms support"
+    impact: "MEDIUM"
+    probability: "MEDIUM"
+    mitigation: |
+      - Self-service onboarding (automated)
+      - Champion program (2 champions per BU)
+      - Office hours (2x/week for first month)
+      - Knowledge base with video tutorials
+
+assumptions:
+  - assumption: "Phase 4 success (5/5 VCR) provides stable foundation"
+    validation: "Phase 4 metrics maintained in Phase 5A"
+
+  - assumption: "CockroachDB supports 500K concurrent connections"
+    validation: "Vendor confirmation + load test Week 2"
+
+  - assumption: "50 teams can be onboarded in 2 weeks"
+    validation: "10 teams/day with automated provisioning"
+
+  - assumption: "EU region complies with GDPR requirements"
+    validation: "Legal review of CockroachDB geo-partitioning"
+
+  - assumption: "Enterprise customers (3) will adopt multi-region"
+    validation: "Customer interviews confirm need (Phase 4)"
+
+# ==============================================================================
+# SASE LEVEL 2 ARTIFACTS
+# ==============================================================================
+
+sase_artifacts:
+  - artifact: "BRS-PHASE5A-MEGA-SCALE-001"
+    status: "DRAFT (this document)"
+    due_date: "2026-07-07"
+    owner: "PM Lead + CTO"
+
+  - artifact: "PHASE-05A-MEGA-SCALE-PLAN.md"
+    status: "PENDING"
+    due_date: "2026-07-08"
+    description: "16-week detailed implementation plan (Week 1-16 breakdown)"
+    owner: "Tech Lead + PM Lead"
+
+  - artifact: "MRP-PHASE5A-MEGA-SCALE-001.md"
+    status: "PENDING"
+    due_date: "2026-10-23"
+    description: "Evidence compilation (code, tests, load tests, SOC 2 report)"
+    owner: "QA Lead + Tech Lead"
+
+  - artifact: "VCR-PHASE5A-MEGA-SCALE-001.md"
+    status: "PENDING"
+    due_date: "2026-10-24"
+    description: "CTO approval document (target: 5/5 rating)"
+    owner: "CTO"
+
+  - artifact: "LPS-PHASE5A-MEGA-SCALE-001.md"
+    status: "PENDING"
+    due_date: "2026-10-24"
+    description: |
+      Logical Proof Statement with 4 new proofs:
+      1. Proof: Multi-region eventual consistency (<1s)
+      2. Proof: Federated RBAC correctness (permission inheritance)
+      3. Proof: Marketplace template integrity (versioning + signatures)
+      4. Proof: 500K concurrent user scalability (p95 <100ms)
+    owner: "CTO + Tech Lead"
+
+# ==============================================================================
+# APPROVAL SECTION
+# ==============================================================================
+
+approval:
+  status: "PENDING"
+  required_approvals:
+    - role: "CTO"
+      name: "NQH"
+      status: "PENDING"
+      comments: null
+
+    - role: "CEO"
+      name: "CEO"
+      status: "PENDING"
+      comments: null
+
+    - role: "CPO"
+      name: "CPO"
+      status: "PENDING"
+      comments: null
+
+  approval_criteria:
+    - criterion: "Budget approved ($80,000)"
+    - criterion: "Timeline feasible (16 weeks)"
+    - criterion: "Success criteria agreed (≥85% adoption, ≥700 SOPs)"
+    - criterion: "Multi-region architecture validated"
+    - criterion: "SOC 2 certification path approved"
+    - criterion: "Team capacity confirmed (8 FTE available)"
+
+# ==============================================================================
+# CHANGELOG
+# ==============================================================================
+
+changelog:
+  - version: "1.0.0"
+    date: "2026-07-07"
+    author: "PM Lead + CTO"
+    changes:
+      - "Initial BRS draft"
+      - "10 FRs defined (FR26-FR35)"
+      - "10 NFRs defined (NFR21-NFR30)"
+      - "16-week timeline + $80K budget"
+      - "SASE Level 2 artifacts planned (BRS + MRP + VCR + LPS)"
+
+# ==============================================================================
+# NOTES
+# ==============================================================================
+
+notes: |
+  **Phase 5A builds on Phase 4's exceptional success:**
+  - Phase 4: 20 teams, 86.7% adoption, 782% ROI, 99.97% uptime, VCR 5/5
+  - Phase 5A: 50 teams (2.5x scale), multi-region, SOC 2 certified
+
+  **Key Innovation: Multi-Region Federation**
+  - CockroachDB replaces PostgreSQL (multi-active writes)
+  - <50ms intra-region, <150ms cross-region latency
+  - GDPR compliance: EU data stays in EU
+  - 4 new LPS proofs for distributed system guarantees
+
+  **Enterprise Readiness:**
+  - SOC 2 Type II certification (not just readiness)
+  - 500K concurrent user scalability (5-year headroom)
+  - Template Marketplace (organizational knowledge sharing)
+  - Team hierarchy (scales to Fortune 500 org structure)
+
+  **SASE Level 2 continues:**
+  - 4 new LPS proofs (multi-region, RBAC, marketplace, 500K scale)
+  - 5th consecutive VCR 5/5 target
+
+  **CTO Authorization:** "Phase 5A approved based on Phase 4 success (VCR 5/5).
+  This is the transformation to organizational-wide deployment. Target: SOC 2
+  certified + VCR 5/5 + 4 LPS proofs validated."
