@@ -299,7 +299,7 @@ export default function SOPHistoryPage() {
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
                     <p className="text-sm text-muted-foreground">
                       Showing {(page - 1) * pageSize + 1} to{' '}
-                      {Math.min(page * pageSize, data.total)} of {data.total} SOPs
+                      {Math.min(page * pageSize, data?.total ?? 0)} of {data?.total ?? 0} SOPs
                     </p>
                     <div className="flex gap-2">
                       <Button

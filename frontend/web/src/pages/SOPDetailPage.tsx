@@ -14,7 +14,7 @@
  */
 
 import { useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -202,7 +202,6 @@ function MarkdownContent({ content }: { content: string }) {
 
 export default function SOPDetailPage() {
   const { sopId } = useParams<{ sopId: string }>()
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   // VCR form state

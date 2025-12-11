@@ -25,7 +25,6 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -331,7 +330,7 @@ export default function SOPGeneratorPage() {
     generateMutation.mutate({
       sop_type: sopType,
       workflow_description: workflowDescription,
-      additional_context: additionalContext || undefined,
+      ...(additionalContext ? { additional_context: additionalContext } : {}),
     })
   }
 
