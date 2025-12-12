@@ -4,8 +4,10 @@ SDLC 5.1.0 Folder Scanner.
 Scans project directory structure and identifies SDLC stages.
 Optimized for performance: <10s for 1000+ files.
 
-SDLC 5.1.0 Enhancement:
-- 10-Archive folder skip (CTO Knowledge Transfer LESSON 4)
+SDLC 5.1.0 Structure:
+- 10 stages: 00-09 (Foundation → Govern)
+- 10-archive: at docs root only (not a stage, holds unsorted legacy docs)
+- 99-legacy: within each stage (00-09) AND in backend, frontend, tools
 - Stage 03 INTEGRATE positioned correctly after Design
 """
 
@@ -51,15 +53,14 @@ class FolderScanner:
     Scanner for SDLC 5.1.0 folder structure.
 
     Identifies:
-    - SDLC stages (00-09)
+    - SDLC stages (00-09) - exactly 10 stages
     - Naming violations
     - Legacy/Archive folders (automatically skipped)
     - P0 artifact locations
 
-    Legacy/Archive Detection (CTO Knowledge Transfer):
-    - 99-Legacy (docs root, within stages, backend, frontend, tools)
-    - 10-Archive (docs root, within stages)
-    - legacy, archive (anywhere, case-insensitive)
+    Legacy/Archive Structure (CTO Knowledge Transfer):
+    - 10-archive: ONLY at docs root (not a stage, holds unsorted legacy docs)
+    - 99-legacy: within each stage (00-09) AND in backend, frontend, tools
     """
 
     # Patterns to ignore during scanning
@@ -79,13 +80,14 @@ class FolderScanner:
         ".DS_Store",
     }
 
-    # Legacy/Archive folder patterns - skip validation everywhere
-    # Locations: docs root, within each stage, backend, frontend, tools
+    # Legacy/Archive folder patterns - skip validation
+    # Structure:
+    #   - 10 stages: 00-09 (no stage 10)
+    #   - 10-archive: ONLY at docs root (not a stage, holds unsorted legacy docs)
+    #   - 99-legacy: within each stage (00-09) AND in backend, frontend, tools
     LEGACY_ARCHIVE_PATTERNS = [
-        re.compile(r"^99-[Ll]egacy$"),           # 99-Legacy, 99-legacy
-        re.compile(r"^10-[Aa]rchive$"),          # 10-Archive, 10-archive
-        re.compile(r"^legacy$", re.IGNORECASE),  # legacy (anywhere)
-        re.compile(r"^archive$", re.IGNORECASE), # archive (anywhere)
+        re.compile(r"^99-[Ll]egacy$"),           # 99-Legacy in stages, backend, frontend, tools
+        re.compile(r"^10-[Aa]rchive$"),          # 10-archive at docs root only (not a stage)
     ]
 
     # Keep backward compatibility
@@ -120,9 +122,8 @@ class FolderScanner:
         Check if folder is a legacy or archive folder.
 
         Matches:
-        - 99-Legacy, 99-legacy (in docs, stages, backend, frontend, tools)
-        - 10-Archive, 10-archive (in docs, stages)
-        - legacy, archive (anywhere, case-insensitive)
+        - 99-Legacy, 99-legacy (within stages 00-09, backend, frontend, tools)
+        - 10-archive (docs root ONLY, not a stage - holds unsorted legacy docs)
 
         Args:
             folder_name: Name of the folder to check

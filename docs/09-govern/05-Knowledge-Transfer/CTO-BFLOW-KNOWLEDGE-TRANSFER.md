@@ -102,25 +102,26 @@ class CrossReferenceValidator:
 
 ---
 
-### LESSON 4: 10-Archive Skip is Mandatory
+### LESSON 4: Legacy/Archive Folder Structure
 
-**Problem**: BFlow 10-Archive folder = 2,500 files (43% of total), should never be upgraded
+**SDLC 5.1.0 Structure**:
+- **10 stages**: 00-09 (Foundation → Govern) - exactly 10 stages
+- **10-archive**: at docs root ONLY (not a stage, holds unsorted legacy docs)
+- **99-legacy**: within each stage (00-09) AND in backend, frontend, tools
 
-**Current Status**:
-- ✅ `99-Legacy` handling exists
-- ❌ No `10-Archive` stage handling
+**Problem**: BFlow has 2,500+ legacy files that should never be upgraded
 
-**Action Required**:
+**Current Status**: ✅ IMPLEMENTED
+
+**Implementation**:
 ```python
-# Update scanner.py IGNORE_PATTERNS
-IGNORE_PATTERNS = {
-    "10-Archive",
-    "10-archive",
-    "**/10-Archive/**"
-}
+LEGACY_ARCHIVE_PATTERNS = [
+    re.compile(r"^99-[Ll]egacy$"),  # In stages, backend, frontend, tools
+    re.compile(r"^10-[Aa]rchive$"), # At docs root only (not a stage)
+]
 ```
 
-**Priority**: P0 | **Effort**: 0.5 days
+**Priority**: P0 | **Effort**: 0.5 days | **Status**: ✅ DONE
 
 ---
 
@@ -271,7 +272,7 @@ class AuditLogger:
 | Header Version Detection | 3 days | TBD | ⏳ Pending |
 | Cross-Reference Validator | 2 days | TBD | ⏳ Pending |
 | SDLC 5.1 + SASE Support | 3 days | TBD | ⏳ Pending |
-| 10-Archive Skip | 0.5 days | TBD | ⏳ Pending |
+| Legacy/Archive Folder Skip | 0.5 days | - | ✅ DONE |
 
 ### P1 - High (Sprint 33-34)
 
