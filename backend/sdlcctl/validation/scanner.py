@@ -1,8 +1,12 @@
 """
-SDLC 5.0.0 Folder Scanner.
+SDLC 5.1.0 Folder Scanner.
 
 Scans project directory structure and identifies SDLC stages.
 Optimized for performance: <10s for 1000+ files.
+
+SDLC 5.1.0 Enhancement:
+- 10-Archive folder skip (CTO Knowledge Transfer LESSON 4)
+- Stage 03 INTEGRATE positioned correctly after Design
 """
 
 import os
@@ -72,6 +76,9 @@ class FolderScanner:
 
     # Legacy folder pattern
     LEGACY_PATTERN = re.compile(r"^99-Legacy$", re.IGNORECASE)
+
+    # Archive folder pattern (Stage 10 - should be skipped in validation)
+    ARCHIVE_PATTERN = re.compile(r"^10-[Aa]rchive$", re.IGNORECASE)
 
     # Stage pattern (e.g., 00-Project-Foundation)
     STAGE_PATTERN = re.compile(r"^(\d{2})-(.+)$")
@@ -144,6 +151,11 @@ class FolderScanner:
                 legacy_folders.append(item)
                 continue
 
+            # Check for archive folder (Stage 10 - skip validation but note existence)
+            if self.ARCHIVE_PATTERN.match(folder_name):
+                legacy_folders.append(item)  # Treat as legacy for reporting
+                continue
+
             # Check for stage pattern
             match = self.STAGE_PATTERN.match(folder_name)
             if match:
@@ -207,8 +219,9 @@ class FolderScanner:
             # Skip ignored directories
             dirs[:] = [d for d in dirs if d not in self.ignore_patterns]
 
-            # Skip legacy folders
+            # Skip legacy and archive folders
             dirs[:] = [d for d in dirs if not self.LEGACY_PATTERN.match(d)]
+            dirs[:] = [d for d in dirs if not self.ARCHIVE_PATTERN.match(d)]
 
             # Calculate depth
             rel_path = Path(root).relative_to(stage_path)
