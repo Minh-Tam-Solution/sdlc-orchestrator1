@@ -89,10 +89,11 @@ export default defineConfig({
             return 'radix-vendor'
           }
 
-          // Charts library (only needed on Dashboard/Compliance pages)
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'charts-vendor'
-          }
+          // Charts library - DISABLED due to circular dependency issue
+          // Keep charts in main bundle to avoid "Cannot access 'P' before initialization" error
+          // if (id.includes('recharts') || id.includes('d3-')) {
+          //   return 'charts-vendor'
+          // }
 
           // Date utilities
           if (id.includes('date-fns')) {
