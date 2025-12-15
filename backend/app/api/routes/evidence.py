@@ -16,12 +16,13 @@ Purpose:
 - Evidence listing and filtering
 - Integrity check history
 
-API Endpoints (5):
+API Endpoints (6):
 1. POST /evidence/upload - Upload evidence file (multipart/form-data) ✅ REAL MinIO
 2. GET /evidence/{id} - Get evidence metadata ✅ Production-ready
 3. GET /evidence - List evidence with filters ✅ Production-ready
-4. POST /evidence/{id}/integrity-check - Run integrity check ✅ REAL SHA256
-5. GET /evidence/{id}/integrity-history - Get integrity check history ✅ Production-ready
+4. GET /evidence/{id}/download - Download evidence file ✅ Pre-signed URL (15 min)
+5. POST /evidence/{id}/integrity-check - Run integrity check ✅ REAL SHA256
+6. GET /evidence/{id}/integrity-history - Get integrity check history ✅ Production-ready
 
 Week 4 Day 3 Upgrade:
 ✅ MinIO integration COMPLETE (boto3 S3-compatible API)
@@ -408,6 +409,67 @@ async def list_evidence(
         page_size=page_size,
         pages=(total + page_size - 1) // page_size,
     )
+
+
+@router.get(
+    "/evidence/{evidence_id}/download",
+    summary="Download evidence file",
+    description="""
+    Get pre-signed URL for downloading evidence file (FR2 - Evidence Vault).
+
+    **Design Reference**: API-CHANGELOG.md v1.0.0
+    - Pre-signed URL with 15-minute expiry
+    - Increments download_count
+
+    **Response** (200 OK):
+    - Redirect to MinIO pre-signed download URL
+    - URL valid for 15 minutes (900 seconds)
+
+    **Response** (404 Not Found):
+    - Evidence not found
+    """,
+)
+async def download_evidence(
+    evidence_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Download evidence file via pre-signed URL."""
+    from fastapi.responses import RedirectResponse
+
+    # Fetch evidence
+    result = await db.execute(
+        select(GateEvidence).where(GateEvidence.id == evidence_id)
+    )
+    evidence = result.scalar_one_or_none()
+
+    if not evidence:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Evidence with ID {evidence_id} not found",
+        )
+
+    # Generate pre-signed download URL (15 min expiry per design)
+    try:
+        presigned_url = minio_service.generate_presigned_download_url(
+            evidence.s3_key,
+            expiration=900,  # 15 minutes as per design
+        )
+    except ClientError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate download URL: {str(e)}",
+        )
+
+    # Increment download count (if column exists)
+    # Note: download_count field specified in API-CHANGELOG.md but may not be in model yet
+    # This is a defensive approach - will work with or without the field
+    if hasattr(evidence, 'download_count'):
+        evidence.download_count = (evidence.download_count or 0) + 1
+        await db.commit()
+
+    # Redirect to pre-signed URL for direct download
+    return RedirectResponse(url=presigned_url, status_code=302)
 
 
 @router.post(

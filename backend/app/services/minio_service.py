@@ -69,12 +69,13 @@ class MinIOService:
     def __init__(self):
         """Initialize boto3 S3 client for MinIO."""
         self.endpoint_url = f"http://{settings.MINIO_ENDPOINT}"
+        self.public_url = getattr(settings, 'MINIO_PUBLIC_URL', None) or self.endpoint_url
         self.access_key = settings.MINIO_ACCESS_KEY
         self.secret_key = settings.MINIO_SECRET_KEY
         self.bucket_name = settings.MINIO_BUCKET
         self.secure = settings.MINIO_SECURE
 
-        # Create S3 client with MinIO endpoint
+        # Create S3 client with MinIO endpoint (for internal operations)
         self.client = boto3.client(
             's3',
             endpoint_url=self.endpoint_url,
@@ -84,7 +85,17 @@ class MinIOService:
             region_name='us-east-1',  # MinIO default region
         )
 
-        logger.info(f"MinIO service initialized: {self.endpoint_url}, bucket={self.bucket_name}")
+        # Create public S3 client for presigned URLs (browser-accessible)
+        self.public_client = boto3.client(
+            's3',
+            endpoint_url=self.public_url,
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            config=Config(signature_version='s3v4'),
+            region_name='us-east-1',
+        )
+
+        logger.info(f"MinIO service initialized: {self.endpoint_url}, public: {self.public_url}, bucket={self.bucket_name}")
 
     # ============================================================================
     # Bucket Management
@@ -513,6 +524,7 @@ class MinIOService:
 
         Returns:
             Presigned URL (valid for 1 hour by default)
+            Uses public_client for browser-accessible URLs.
 
         Example:
             url = minio.generate_presigned_download_url("evidence/gate-123/doc.pdf")
@@ -520,7 +532,8 @@ class MinIOService:
             # <a href={url} download>Download Evidence</a>
         """
         try:
-            url = self.client.generate_presigned_url(
+            # Use public_client to generate URL with browser-accessible endpoint
+            url = self.public_client.generate_presigned_url(
                 'get_object',
                 Params={
                     'Bucket': self.bucket_name,
