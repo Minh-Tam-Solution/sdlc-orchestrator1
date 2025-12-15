@@ -34,18 +34,20 @@ interface Gate {
  */
 export default function GatesPage() {
   // Fetch gates
-  const { data: gates, isLoading } = useQuery<Gate[]>({
+  const { data: gatesData, isLoading } = useQuery<{ items: Gate[], total: number }>({
     queryKey: ['gates'],
     queryFn: async () => {
       try {
-        const response = await apiClient.get<Gate[]>('/gates')
+        const response = await apiClient.get<{ items: Gate[], total: number }>('/gates')
         return response.data
       } catch {
         // Return empty array if API not available yet
-        return []
+        return { items: [], total: 0 }
       }
     },
   })
+
+  const gates = gatesData?.items || []
 
   const getStatusColor = (status: Gate['status']) => {
     switch (status) {
