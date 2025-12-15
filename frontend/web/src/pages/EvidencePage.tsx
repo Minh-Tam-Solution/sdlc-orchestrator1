@@ -195,12 +195,15 @@ export default function EvidencePage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Select value={selectedEvidenceType} onValueChange={setSelectedEvidenceType}>
+              <Select 
+                value={selectedEvidenceType || "all"} 
+                onValueChange={(value) => setSelectedEvidenceType(value === "all" ? "" : value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Evidence Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="DESIGN_DOCUMENT">Design Document</SelectItem>
                   <SelectItem value="TEST_RESULTS">Test Results</SelectItem>
                   <SelectItem value="CODE_REVIEW">Code Review</SelectItem>

@@ -77,7 +77,15 @@
       "Bash(mv:*)",
       "Bash(__NEW_LINE__ sed -i 's/Stage 05 DEPLOY/Stage 06 DEPLOY/g' README.md)",
       "Bash(__NEW_LINE__ echo \"Fixed Stage 05 DEPLOY → Stage 06 DEPLOY\")",
-      "Bash(trong từng stage và 99-legacy trong backend, frontend và tools\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(trong từng stage và 99-legacy trong backend, frontend và tools\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git submodule update:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjU2ODAyMzEsImlhdCI6MTc2NTY3NjYzMSwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.lwxqk44jeG-jIl4df6zixqLsGdyiRIqwtk7_rIIogm4\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjU3NjMyNjIsImlhdCI6MTc2NTc1OTY2MiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.-IQjNfcl7d4PyUw8NliXn4HlJZKizWHKVJyuHrQFBdw\")",
+      "Bash(npm install)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx vite build:*)",
+      "Bash(docker compose build:*)",
+      "Bash(docker compose logs:*)"
     ],
     "deny": [],
     "ask": []
