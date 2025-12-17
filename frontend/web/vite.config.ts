@@ -45,8 +45,8 @@ export default defineConfig({
   },
 
   server: {
-    // Port configurable via VITE_DEV_PORT env var (default: 3000)
-    port: parseInt(process.env.VITE_DEV_PORT || '3000'),
+    // Port 8310 per IT Admin PORT_ALLOCATION_MANAGEMENT.md
+    port: parseInt(process.env.VITE_DEV_PORT || '8310'),
     proxy: {
       '/api': {
         // Backend URL configurable via VITE_API_URL env var (default: http://localhost:8000)
