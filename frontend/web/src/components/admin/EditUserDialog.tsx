@@ -272,6 +272,7 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
             <Button
               type="submit"
               disabled={updateUserMutation.isPending}
+              className="min-w-[120px]"
             >
               {updateUserMutation.isPending ? 'Updating...' : 'Update User'}
             </Button>

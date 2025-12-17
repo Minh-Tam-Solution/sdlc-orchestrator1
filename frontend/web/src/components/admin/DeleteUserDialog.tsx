@@ -123,7 +123,7 @@ export function DeleteUserDialog({ user, open, onOpenChange }: DeleteUserDialogP
           <AlertDialogAction
             onClick={handleDelete}
             disabled={deleteUserMutation.isPending}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-red-600 hover:bg-red-700 min-w-[120px]"
           >
             {deleteUserMutation.isPending ? 'Deleting...' : 'Delete User'}
           </AlertDialogAction>

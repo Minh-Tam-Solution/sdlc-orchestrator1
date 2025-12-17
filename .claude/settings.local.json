@@ -103,7 +103,17 @@
       "Bash(source:*)",
       "Bash(docker-compose exec:*)",
       "Bash(docker compose exec:*)",
-      "Bash(docker compose restart:*)"
+      "Bash(docker compose restart:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs ps:*)",
+      "Bash(pkill:*)",
+      "Bash(fuser:*)",
+      "Bash(netstat:*)",
+      "Bash(sudo lsof:*)",
+      "Bash(xargs sudo kill -9)",
+      "Bash(docker stop:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []

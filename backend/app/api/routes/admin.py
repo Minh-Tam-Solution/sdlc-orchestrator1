@@ -98,11 +98,17 @@ async def get_admin_stats(
     Returns:
         AdminDashboardStats: Platform statistics
     """
-    # Count users
-    total_users = await db.scalar(select(func.count()).select_from(User))
-    active_users = await db.scalar(select(func.count()).where(User.is_active == True))
+    # Count users (exclude soft-deleted - Sprint 40 Part 2 fix)
+    total_users = await db.scalar(
+        select(func.count()).select_from(User).where(User.deleted_at.is_(None))
+    )
+    active_users = await db.scalar(
+        select(func.count()).where(User.is_active == True, User.deleted_at.is_(None))
+    )
     inactive_users = total_users - active_users
-    superusers = await db.scalar(select(func.count()).where(User.is_superuser == True))
+    superusers = await db.scalar(
+        select(func.count()).where(User.is_superuser == True, User.deleted_at.is_(None))
+    )
 
     # Count projects
     total_projects = await db.scalar(select(func.count()).select_from(Project))
@@ -168,8 +174,8 @@ async def list_users(
     Returns:
         AdminUserListResponse: Paginated user list
     """
-    # Build query
-    query = select(User)
+    # Build query - EXCLUDE soft-deleted users (Sprint 40 Part 2 fix)
+    query = select(User).where(User.deleted_at.is_(None))
 
     # Apply filters
     if search:

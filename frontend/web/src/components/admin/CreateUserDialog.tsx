@@ -256,6 +256,7 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
             <Button
               type="submit"
               disabled={createUserMutation.isPending}
+              className="min-w-[120px]"
             >
               {createUserMutation.isPending ? 'Creating...' : 'Create User'}
             </Button>
