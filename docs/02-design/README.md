@@ -506,6 +506,7 @@ Once Stage 02 is complete → **[Stage 04 (BUILD)](../03-Development-Implementat
 | **Performance** | ✅ | <100ms p95 target, Redis caching strategy |
 | **DevOps** | ✅ | CI/CD pipeline, Docker/Kubernetes ready |
 | **Testing** | ✅ | 95%+ coverage target, E2E with Playwright |
+| **Admin Panel** | ✅ | Sprint 37-40, Full CRUD, 121 E2E tests |
 
 ### ADRs (Architecture Decision Records):
 
@@ -516,3 +517,46 @@ Once Stage 02 is complete → **[Stage 04 (BUILD)](../03-Development-Implementat
 5. **ADR-005**: OAuth 2.0 (MVP) + SAML (Enterprise)
 6. **ADR-006**: OPA Policy-as-Code (CNCF graduated)
 7. **ADR-007**: Ollama AI Integration (95% cost savings)
+8. **ADR-017**: Admin Panel Architecture (Sprint 37-40)
+
+---
+
+## Admin Panel Design (Sprint 37-40)
+
+### Overview
+
+The Admin Panel provides platform-level user management for superusers:
+
+| Feature | Folder | Status |
+|---------|--------|--------|
+| Requirements | 08-Admin-Panel/ADMIN-PANEL-REQUIREMENTS.md | ✅ v2.0.0 |
+| API Design | 08-Admin-Panel/ADMIN-PANEL-API-DESIGN.md | ✅ v2.0.0 |
+| UI Specification | 08-Admin-Panel/ADMIN-PANEL-UI-SPECIFICATION.md | ✅ v1.0.0 |
+| Security Review | 08-Admin-Panel/ADMIN-PANEL-SECURITY-REVIEW.md | ✅ v1.0.0 |
+
+### Implementation Summary
+
+| Sprint | Deliverable | Lines |
+|--------|-------------|-------|
+| 37 | Backend (11 endpoints) + Frontend (5 pages) | ~2,500 |
+| 38 | E2E Tests (109 tests) | ~1,300 |
+| 39 | Toast Notifications | ~600 |
+| 40 | Full CRUD (Create, Soft Delete) | ~550 |
+
+### User Model Extensions (Sprint 40)
+
+```sql
+-- Soft delete support for audit trail
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP NULL;
+ALTER TABLE users ADD COLUMN deleted_by UUID REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX ix_users_deleted_at ON users(deleted_at);
+CREATE INDEX ix_users_active_not_deleted ON users(is_active, deleted_at);
+```
+
+### Security Enforcements
+
+- All admin endpoints require `is_superuser=true`
+- Cannot delete/deactivate self
+- Cannot delete last superuser
+- Password minimum 12 characters
+- All actions audit logged (SOC 2 compliant)

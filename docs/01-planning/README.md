@@ -353,3 +353,58 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 - 24 tables across 6 layers (Auth, Project, Gate, Policy, AI, System)
 - Seed data: 12 users, 4 projects, 26 gates, 46 evidence files
 - NQH Portfolio demo data (internal-first validation)
+
+---
+
+## Admin Panel & User Management (Sprint 37-40)
+
+### Platform Admin Features (Dec 2025)
+
+The Admin Panel was implemented in Sprint 37-40 to provide platform-level user management:
+
+| Feature | Sprint | Status |
+|---------|--------|--------|
+| Admin Dashboard | 37 | ✅ Implemented |
+| User List (paginated) | 37 | ✅ Implemented |
+| User Activate/Deactivate | 37 | ✅ Implemented |
+| User Superuser Toggle | 37 | ✅ Implemented |
+| Audit Logs (SOC 2) | 37 | ✅ Implemented |
+| System Settings (versioned) | 37 | ✅ Implemented |
+| System Health Dashboard | 37 | ✅ Implemented |
+| E2E Test Suite (121 tests) | 38 | ✅ Implemented |
+| Toast Notifications | 39 | ✅ Implemented |
+| Create User (POST) | 40 | ✅ Implemented |
+| Soft Delete (DELETE) | 40 | ✅ Implemented |
+
+### User Model Extensions
+
+```sql
+-- Sprint 40: Soft delete support
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP NULL;
+ALTER TABLE users ADD COLUMN deleted_by UUID REFERENCES users(id);
+CREATE INDEX ix_users_active_not_deleted ON users(is_active, deleted_at);
+```
+
+### API Endpoints (Admin Panel)
+
+```
+GET  /api/v1/admin/stats           - Dashboard statistics
+GET  /api/v1/admin/users           - List users (paginated)
+POST /api/v1/admin/users           - Create new user (Sprint 40)
+GET  /api/v1/admin/users/{id}      - Get user details
+PATCH /api/v1/admin/users/{id}     - Update user
+DELETE /api/v1/admin/users/{id}    - Soft delete user (Sprint 40)
+POST /api/v1/admin/users/bulk      - Bulk actions
+GET  /api/v1/admin/audit-logs      - Audit logs (SOC 2)
+GET  /api/v1/admin/settings        - System settings
+PATCH /api/v1/admin/settings/{key} - Update setting
+POST /api/v1/admin/settings/{key}/rollback - Rollback setting
+GET  /api/v1/admin/system/health   - System health
+```
+
+**Security Enforced**:
+- All endpoints require `is_superuser=true`
+- Cannot delete/demote self
+- Cannot delete last superuser
+- Password minimum 12 characters
+- All actions audit logged

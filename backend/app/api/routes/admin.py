@@ -13,8 +13,10 @@ Framework: SDLC 5.1.1 Complete Lifecycle
 Endpoints:
 - GET  /api/v1/admin/stats           - Dashboard statistics
 - GET  /api/v1/admin/users           - List users (paginated)
+- POST /api/v1/admin/users           - Create new user (Sprint 40)
 - GET  /api/v1/admin/users/{id}      - Get user details
 - PATCH /api/v1/admin/users/{id}     - Update user
+- DELETE /api/v1/admin/users/{id}    - Soft delete user (Sprint 40)
 - GET  /api/v1/admin/audit-logs      - Audit logs (paginated)
 - GET  /api/v1/admin/settings        - Get all settings
 - GET  /api/v1/admin/settings/{key}  - Get setting by key
@@ -32,6 +34,7 @@ Zero Mock Policy: Production-ready implementation
 =========================================================================
 """
 
+import bcrypt
 import math
 from datetime import datetime
 from typing import Optional
@@ -46,10 +49,12 @@ from app.api.dependencies import get_db, require_superuser
 from app.models import AuditLog, Gate, Project, SystemSetting, User
 from app.schemas.admin import (
     AdminDashboardStats,
+    AdminUserCreate,
     AdminUserDetail,
     AdminUserListItem,
     AdminUserListResponse,
     AdminUserUpdate,
+    AdminUserUpdateFull,
     AuditLogFilter,
     AuditLogItem,
     AuditLogListResponse,
@@ -400,6 +405,195 @@ async def update_user(
         created_at=user.created_at,
         updated_at=user.updated_at,
         last_login=user.last_login,
+    )
+
+
+@router.post(
+    "/users",
+    response_model=AdminUserDetail,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create new user",
+    description="Create a new user account with email and password (Sprint 40).",
+)
+async def create_user(
+    user_data: AdminUserCreate,
+    request: Request,
+    admin: User = Depends(require_superuser),
+    db: AsyncSession = Depends(get_db),
+) -> AdminUserDetail:
+    """
+    Create a new user account.
+
+    Security:
+        - Requires superuser access
+        - Email must be unique
+        - Password minimum 12 characters (enforced at schema level)
+        - All actions audit logged
+
+    Sprint 40 - CTO Approved: Dec 17, 2025
+
+    Returns:
+        AdminUserDetail: Created user details
+    """
+    # Check if email already exists
+    existing_user = await db.scalar(
+        select(User).where(User.email == user_data.email.lower())
+    )
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User with email '{user_data.email}' already exists",
+        )
+
+    # Hash password with bcrypt (cost=12)
+    password_hash = bcrypt.hashpw(
+        user_data.password.encode('utf-8'),
+        bcrypt.gensalt(rounds=12)
+    ).decode('utf-8')
+
+    # Create user
+    new_user = User(
+        email=user_data.email.lower(),
+        password_hash=password_hash,
+        name=user_data.name,
+        is_active=user_data.is_active,
+        is_superuser=user_data.is_superuser,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow(),
+    )
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    # Audit log
+    audit_service = get_audit_service(db)
+    await audit_service.log_action(
+        action=AuditAction.USER_CREATED,
+        actor_id=admin.id,
+        target_type="user",
+        target_id=new_user.id,
+        target_name=new_user.email,
+        details={
+            "email": new_user.email,
+            "name": new_user.name,
+            "is_active": new_user.is_active,
+            "is_superuser": new_user.is_superuser,
+        },
+        request=request,
+    )
+
+    # Count projects (new user has 0 projects)
+    project_count = 0
+
+    # Get OAuth providers (new user has none)
+    oauth_providers = []
+
+    return AdminUserDetail(
+        id=new_user.id,
+        email=new_user.email,
+        name=new_user.name,
+        avatar_url=new_user.avatar_url,
+        is_active=new_user.is_active,
+        is_superuser=new_user.is_superuser,
+        mfa_enabled=new_user.mfa_enabled,
+        oauth_providers=oauth_providers,
+        project_count=project_count,
+        created_at=new_user.created_at,
+        updated_at=new_user.updated_at,
+        last_login=new_user.last_login,
+    )
+
+
+@router.delete(
+    "/users/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete user (soft delete)",
+    description="Soft delete a user account with audit trail (Sprint 40).",
+)
+async def delete_user(
+    user_id: UUID,
+    request: Request,
+    admin: User = Depends(require_superuser),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Soft delete a user account.
+
+    Security:
+        - Requires superuser access
+        - Cannot delete self
+        - Cannot delete last superuser
+        - Sets deleted_at and deleted_by for audit trail
+        - All actions audit logged
+
+    Sprint 40 - CTO Approved: Dec 17, 2025
+
+    Returns:
+        204 No Content
+    """
+    # Get user
+    query = select(User).where(User.id == user_id)
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Check if already deleted
+    if user.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User is already deleted",
+        )
+
+    # Self-delete prevention
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own account",
+        )
+
+    # Last superuser prevention
+    if user.is_superuser:
+        superuser_count = await db.scalar(
+            select(func.count()).where(
+                User.is_superuser == True,
+                User.deleted_at.is_(None)
+            )
+        )
+        if superuser_count <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot delete the last superuser",
+            )
+
+    # Soft delete
+    user.deleted_at = datetime.utcnow()
+    user.deleted_by = admin.id
+    user.is_active = False  # Also deactivate
+    user.updated_at = datetime.utcnow()
+
+    await db.commit()
+
+    # Audit log
+    audit_service = get_audit_service(db)
+    await audit_service.log_action(
+        action=AuditAction.USER_DELETED,
+        actor_id=admin.id,
+        target_type="user",
+        target_id=user.id,
+        target_name=user.email,
+        details={
+            "email": user.email,
+            "name": user.name,
+            "was_superuser": user.is_superuser,
+            "deleted_at": user.deleted_at.isoformat(),
+        },
+        request=request,
     )
 
 

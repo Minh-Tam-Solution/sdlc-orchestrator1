@@ -1,12 +1,16 @@
 # Admin Panel - API Design Specification
 ## SDLC 5.1.1 Complete Lifecycle - Design Phase
 
-**Version**: 1.1.0
-**Date**: 2025-12-16
-**Status**: APPROVED - CTO Signed Dec 16, 2025
+**Version**: 2.0.0
+**Date**: 2025-12-17
+**Status**: IMPLEMENTED - Sprint 37-40 Complete
 **Author**: Backend Lead
 **Reviewer**: CTO
-**CTO Approval**: Version field added to system_settings per CTO condition
+
+**Changelog**:
+- v2.0.0 (Dec 17, 2025): Added POST /users, DELETE /users, soft delete (Sprint 40)
+- v1.1.0 (Dec 16, 2025): Version field added to system_settings (CTO condition)
+- v1.0.0 (Dec 16, 2025): Initial API design (Sprint 37)
 
 ---
 
@@ -171,6 +175,62 @@ Authorization: Bearer <admin_token>
 
 ---
 
+#### POST /api/v1/admin/users (Sprint 40 - NEW)
+
+Create a new user account with email and password.
+
+**Request**:
+```http
+POST /api/v1/admin/users
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "email": "newuser@example.com",
+  "password": "SecurePassword123!",
+  "name": "New User",
+  "is_active": true,
+  "is_superuser": false
+}
+```
+
+**Request Body**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| email | EmailStr | Yes | User email (must be unique) |
+| password | string | Yes | Password (min 12 chars) |
+| name | string | No | User full name |
+| is_active | boolean | No | Active status (default: true) |
+| is_superuser | boolean | No | Superuser status (default: false) |
+
+**Response** (201 Created):
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "email": "newuser@example.com",
+  "name": "New User",
+  "is_active": true,
+  "is_superuser": false,
+  "mfa_enabled": false,
+  "oauth_providers": [],
+  "project_count": 0,
+  "created_at": "2025-12-17T10:00:00Z",
+  "updated_at": "2025-12-17T10:00:00Z",
+  "last_login": null
+}
+```
+
+**Error Responses**:
+- 400: User with email already exists
+- 400: Password too short (min 12 characters)
+
+**Security**:
+- Password hashed with bcrypt (cost=12)
+- Email validated and lowercased
+- Audit log entry created (USER_CREATED)
+
+---
+
 #### PATCH /api/v1/admin/users/{user_id}
 
 Update user properties (activate/deactivate, change role).
@@ -220,7 +280,7 @@ Content-Type: application/json
 
 #### DELETE /api/v1/admin/users/{user_id}
 
-Soft delete user (set is_active=false, anonymize data).
+Soft delete user with full audit trail (Sprint 40 - CTO Approved).
 
 **Request**:
 ```http
@@ -228,24 +288,32 @@ DELETE /api/v1/admin/users/550e8400-e29b-41d4-a716-446655440000
 Authorization: Bearer <admin_token>
 ```
 
-**Response** (200 OK):
-```json
-{
-  "message": "User deleted successfully",
-  "user_id": "550e8400-e29b-41d4-a716-446655440000"
-}
+**Response** (204 No Content):
+```
+(empty body)
 ```
 
 **Error Responses**:
 - 400: Cannot delete own account
-- 400: Cannot delete only superuser
+- 400: Cannot delete last superuser
+- 400: User is already deleted
 - 404: User not found
 
 **Side Effects**:
-- Sets is_active=false
-- Anonymizes email: deleted_<timestamp>@deleted.local
-- Invalidates sessions
-- Creates audit log entry
+- Sets `deleted_at = NOW()` (soft delete timestamp)
+- Sets `deleted_by = admin.id` (accountability audit)
+- Sets `is_active = false` (deactivates user)
+- Creates audit log entry with USER_DELETED action
+- Preserves all user data for audit trail (no anonymization)
+
+**Database Schema Update (Sprint 40)**:
+```sql
+-- Added to users table
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP NULL;
+ALTER TABLE users ADD COLUMN deleted_by UUID REFERENCES users(id) ON DELETE SET NULL;
+CREATE INDEX ix_users_deleted_at ON users(deleted_at);
+CREATE INDEX ix_users_active_not_deleted ON users(is_active, deleted_at);
+```
 
 ---
 
@@ -609,29 +677,52 @@ async def create_audit_log(
 
 ## 5. Implementation Notes
 
-### 5.1 File Structure
+### 5.1 File Structure (Implemented)
 
 ```
 backend/app/
 ├── api/routes/
-│   └── admin.py              # NEW: Admin endpoints
+│   └── admin.py              # ✅ 1,152 lines - 11 endpoints
 ├── schemas/
-│   └── admin.py              # NEW: Admin schemas
+│   └── admin.py              # ✅ 511 lines - All admin schemas
 ├── services/
-│   └── admin_service.py      # NEW: Admin business logic
-│   └── audit_service.py      # NEW: Audit logging
+│   └── audit_service.py      # ✅ Enhanced for admin actions
 ├── models/
-│   └── audit_log.py          # NEW: AuditLog model
-│   └── system_setting.py     # NEW: SystemSetting model
-└── middleware/
-    └── admin_auth.py         # NEW: Admin auth middleware
+│   ├── audit_log.py          # ✅ AuditLog model
+│   ├── support.py            # ✅ SystemSetting model
+│   └── user.py               # ✅ Added deleted_at, deleted_by
+└── alembic/versions/
+    ├── m8h9i0j1k2l3_admin_panel_tables.py  # Sprint 37
+    └── n9i0j1k2l3m4_add_user_soft_delete.py # Sprint 40
 ```
 
-### 5.2 Migration
+### 5.2 Migrations Applied
 
 ```bash
-alembic revision --autogenerate -m "Add audit_logs and system_settings tables"
-alembic upgrade head
+# Sprint 37: Admin Panel tables
+alembic upgrade m8h9i0j1k2l3
+
+# Sprint 40: User soft delete
+alembic upgrade n9i0j1k2l3m4
+```
+
+### 5.3 Frontend Implementation
+
+```
+frontend/web/src/
+├── api/
+│   └── admin.ts              # ✅ 362 lines - React Query hooks
+├── pages/admin/
+│   ├── AdminDashboardPage.tsx   # ✅ 382 lines
+│   ├── UserManagementPage.tsx   # ✅ 468 lines (with CRUD)
+│   ├── AuditLogsPage.tsx        # ✅ 363 lines
+│   ├── SystemSettingsPage.tsx   # ✅ 422 lines
+│   └── SystemHealthPage.tsx     # ✅ 330 lines
+├── components/ui/
+│   ├── toast.tsx             # ✅ Sprint 39 - Toast component
+│   └── toaster.tsx           # ✅ Sprint 39 - Toaster container
+└── hooks/
+    └── useToast.ts           # ✅ Sprint 39 - Toast hook
 ```
 
 ---
@@ -640,10 +731,25 @@ alembic upgrade head
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Backend Lead | | | |
-| Security Lead | | | |
-| **CTO** | | | **REQUIRED** |
+| Backend Lead | | Dec 16, 2025 | ✅ |
+| Security Lead | | Dec 17, 2025 | ✅ |
+| Frontend Lead | | Dec 17, 2025 | ✅ |
+| **CTO** | | Dec 16-17, 2025 | **✅ APPROVED** |
 
 ---
 
-**Document Status**: DRAFT - Awaiting CTO Approval
+## 7. Test Coverage
+
+| Test Suite | Tests | Status |
+|------------|-------|--------|
+| admin-access-control.spec.ts | 18 | ✅ PASS |
+| admin-users.spec.ts | 24 | ✅ PASS |
+| admin-audit-logs.spec.ts | 20 | ✅ PASS |
+| admin-settings.spec.ts | 22 | ✅ PASS |
+| admin-health.spec.ts | 25 | ✅ PASS |
+| admin-toast-notifications.spec.ts | 12 | ✅ PASS |
+| **Total** | **121** | **✅ PASS** |
+
+---
+
+**Document Status**: ✅ IMPLEMENTED - Sprint 37-40 Complete

@@ -33,6 +33,8 @@ import {
   useBulkUserAction,
   AdminUserListItem,
 } from '@/api/admin'
+import { CreateUserDialog } from '@/components/admin/CreateUserDialog'
+import { DeleteUserDialog } from '@/components/admin/DeleteUserDialog'
 
 /**
  * User status badge
@@ -79,6 +81,10 @@ export default function UserManagementPage() {
 
   // Selected users for bulk actions
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+
+  // Dialog state (Sprint 40)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [deleteDialogUser, setDeleteDialogUser] = useState<AdminUserListItem | null>(null)
 
   // Fetch users
   const { data: usersData, isLoading, refetch } = useAdminUsers({
@@ -218,8 +224,16 @@ export default function UserManagementPage() {
               Manage user accounts, permissions, and access
             </p>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {usersData?.total ?? 0} users total
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              {usersData?.total ?? 0} users total
+            </div>
+            <Button onClick={() => setCreateDialogOpen(true)}>
+              <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create User
+            </Button>
           </div>
         </div>
 
@@ -414,6 +428,15 @@ export default function UserManagementPage() {
                               >
                                 {user.is_superuser ? 'Remove Admin' : 'Make Admin'}
                               </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => setDeleteDialogUser(user)}
+                                disabled={user.id === currentUser?.id}
+                                title={user.id === currentUser?.id ? 'Cannot delete your own account' : ''}
+                              >
+                                Delete
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -461,6 +484,17 @@ export default function UserManagementPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Dialogs (Sprint 40) */}
+        <CreateUserDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+        />
+        <DeleteUserDialog
+          user={deleteDialogUser}
+          open={deleteDialogUser !== null}
+          onOpenChange={(open) => !open && setDeleteDialogUser(null)}
+        />
       </div>
     </DashboardLayout>
   )

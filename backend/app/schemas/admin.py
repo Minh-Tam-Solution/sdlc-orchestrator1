@@ -135,6 +135,35 @@ class AdminUserDetail(BaseModel):
         from_attributes = True
 
 
+class AdminUserCreate(BaseModel):
+    """
+    Admin user creation request (Sprint 40).
+
+    Request Body:
+        {
+            "email": "newuser@example.com",
+            "password": "SecurePassword123!",
+            "name": "New User",
+            "is_active": true,
+            "is_superuser": false
+        }
+
+    Security:
+        - Password minimum 12 characters (enforced at schema level)
+        - Email must be unique (validated at endpoint)
+        - All fields are validated before database insertion
+        - Action is audit logged
+
+    CTO Approved: Dec 17, 2025
+    """
+
+    email: EmailStr = Field(..., description="User email (must be unique)")
+    password: str = Field(..., min_length=12, description="Password (min 12 characters)")
+    name: Optional[str] = Field(None, max_length=255, description="User full name")
+    is_active: bool = Field(default=True, description="Active status (default: true)")
+    is_superuser: bool = Field(default=False, description="Superuser status (default: false)")
+
+
 class AdminUserUpdate(BaseModel):
     """
     Admin user update request.
@@ -154,6 +183,36 @@ class AdminUserUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=255, description="User full name")
     is_active: Optional[bool] = Field(None, description="Active status")
     is_superuser: Optional[bool] = Field(None, description="Superuser status")
+
+
+class AdminUserUpdateFull(BaseModel):
+    """
+    Admin user full update request (Sprint 40).
+
+    Request Body:
+        {
+            "email": "updated@example.com",
+            "name": "Updated Name",
+            "is_active": true,
+            "is_superuser": false,
+            "new_password": "NewSecurePassword123!"
+        }
+
+    Security:
+        - Email change triggers warning (user must use new email to login)
+        - Password reset min 12 characters (optional)
+        - Email uniqueness validated at endpoint
+        - All changes audit logged
+        - Admin cannot demote self from superuser
+
+    CTO Approved: Dec 17, 2025
+    """
+
+    email: Optional[EmailStr] = Field(None, description="User email (must be unique)")
+    name: Optional[str] = Field(None, max_length=255, description="User full name")
+    is_active: Optional[bool] = Field(None, description="Active status")
+    is_superuser: Optional[bool] = Field(None, description="Superuser status")
+    new_password: Optional[str] = Field(None, min_length=12, description="New password (min 12 chars, optional)")
 
 
 class AdminUserListResponse(BaseModel):

@@ -1,11 +1,16 @@
 # Admin Panel - Functional Requirements
 ## SDLC 5.1.1 Complete Lifecycle - Design Phase
 
-**Version**: 1.0.0
-**Date**: 2025-12-16
-**Status**: APPROVED - CTO Signed Dec 16, 2025
+**Version**: 2.0.0
+**Date**: 2025-12-17
+**Status**: IMPLEMENTED - Sprint 37-40 Complete
 **Author**: Design Lead
 **Reviewer**: CTO
+
+**Changelog**:
+- v2.0.0 (Dec 17, 2025): Added Full CRUD, Soft Delete, Toast Notifications (Sprint 40)
+- v1.1.0 (Dec 17, 2025): Added E2E Tests (Sprint 38), Toast Notifications (Sprint 39)
+- v1.0.0 (Dec 16, 2025): Initial requirements (Sprint 37)
 
 ---
 
@@ -17,17 +22,24 @@ Admin Panel cung cấp giao diện quản trị cho Platform Admin để quản 
 
 | In Scope | Out of Scope |
 |----------|--------------|
-| User Management (CRUD, roles) | Billing/Payment |
-| System Settings | Multi-tenant admin |
-| Audit Logs | Custom reporting |
-| System Health Dashboard | Data export tools |
+| User Management (Full CRUD) | Billing/Payment |
+| - Create User (email/password) | Multi-tenant admin |
+| - Read (list, detail, search) | Custom reporting |
+| - Update (email, password, role) | Data export tools |
+| - Delete (soft delete with audit) | |
+| System Settings (version control) | |
+| Audit Logs (SOC 2 compliant) | |
+| System Health Dashboard | |
+| Toast Notifications (UX feedback) | |
 
 ### 1.2 Success Criteria
 
-- [ ] Admin có thể quản lý tất cả users
-- [ ] Mọi admin action được audit logged
-- [ ] System health visible trong dashboard
-- [ ] Response time < 200ms cho tất cả operations
+- [x] Admin có thể quản lý tất cả users (CRUD - Sprint 40)
+- [x] Mọi admin action được audit logged (SOC 2 - Sprint 37)
+- [x] System health visible trong dashboard (Sprint 37)
+- [x] Response time < 200ms cho tất cả operations (Sprint 37)
+- [x] Toast notifications cho user feedback (Sprint 39)
+- [x] E2E test coverage 100+ tests (Sprint 38)
 
 ---
 
@@ -357,24 +369,52 @@ Feature: System Settings
 
 | Dependency | Type | Status |
 |------------|------|--------|
-| User model | Backend | ✅ Exists |
-| Auth middleware | Backend | ✅ Exists |
-| Audit log table | Database | ❌ Need migration |
-| Admin routes | Backend | ❌ Need implementation |
-| Admin pages | Frontend | ❌ Need implementation |
+| User model | Backend | ✅ Complete (Sprint 40 - soft delete) |
+| Auth middleware | Backend | ✅ Complete |
+| Audit log table | Database | ✅ Complete (Sprint 37) |
+| Admin routes | Backend | ✅ Complete (11 endpoints) |
+| Admin pages | Frontend | ✅ Complete (5 pages) |
+| Toast notifications | Frontend | ✅ Complete (Sprint 39) |
+| E2E tests | Testing | ✅ Complete (121 tests) |
 
 ---
 
-## 5. Approval
+## 5. Sprint Implementation Summary
+
+### Sprint 37: Core Admin Panel
+- Backend: 11 API endpoints (~958 lines)
+- Frontend: 5 pages (Dashboard, Users, AuditLogs, Settings, Health)
+- Database: audit_logs, system_settings migrations
+
+### Sprint 38: E2E Testing
+- 109 E2E test cases for Admin Panel
+- Access control, user management, audit logs, settings, health tests
+- Non-superuser rejection tests added
+
+### Sprint 39: Toast Notifications
+- Radix UI Toast component with 6 variants
+- Integration with all Admin mutations
+- Auto-dismiss after 5 seconds
+
+### Sprint 40: Full CRUD Operations
+- POST /admin/users (create user)
+- DELETE /admin/users/{id} (soft delete)
+- Extended PATCH for email/password changes
+- User model: deleted_at, deleted_by fields
+- Soft delete with audit trail
+
+---
+
+## 6. Approval
 
 | Role | Name | Date | Signature |
 |------|------|------|-----------|
-| Design Lead | | | |
-| Backend Lead | | | |
-| Frontend Lead | | | |
-| Security Lead | | | |
-| **CTO** | | | **REQUIRED** |
+| Design Lead | | Dec 16, 2025 | ✅ |
+| Backend Lead | | Dec 16, 2025 | ✅ |
+| Frontend Lead | | Dec 17, 2025 | ✅ |
+| Security Lead | | Dec 17, 2025 | ✅ |
+| **CTO** | | Dec 16-17, 2025 | **✅ APPROVED** |
 
 ---
 
-**Document Status**: DRAFT - Awaiting CTO Approval
+**Document Status**: ✅ IMPLEMENTED - Sprint 37-40 Complete

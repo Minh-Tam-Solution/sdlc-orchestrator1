@@ -567,7 +567,72 @@ Incident: Compromised API Key
 
 ---
 
-## 12. References
+## 12. Platform Admin Security (Sprint 37-40)
+
+### Admin Panel Authorization
+
+**Objective**: Secure platform-level user management for superusers only.
+
+**Authorization Model**:
+```python
+# All admin endpoints require is_superuser=true
+async def require_superuser(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin access required"
+        )
+    return current_user
+```
+
+**Self-Action Prevention**:
+| Action | Protection |
+|--------|------------|
+| Deactivate self | ❌ Blocked (400 error) |
+| Delete self | ❌ Blocked (400 error) |
+| Demote self from superuser | ❌ Blocked (400 error) |
+| Delete last superuser | ❌ Blocked (400 error) |
+
+**Password Policy (Admin User Creation)**:
+- Minimum 12 characters (enforced at schema level)
+- bcrypt hash with cost=12 (~250ms hash time)
+- Password not logged or stored in plaintext
+
+**Soft Delete Audit Trail (Sprint 40)**:
+```sql
+-- Soft delete preserves audit trail for SOC 2 compliance
+UPDATE users SET
+  deleted_at = NOW(),     -- Timestamp of deletion
+  deleted_by = admin.id,  -- Admin who performed deletion
+  is_active = false       -- Account deactivated
+WHERE id = target_user_id;
+```
+
+**Admin Audit Actions**:
+| Action | Audit Event |
+|--------|-------------|
+| Create user | USER_CREATED |
+| Activate user | USER_ACTIVATED |
+| Deactivate user | USER_DEACTIVATED |
+| Grant superuser | USER_PROMOTED_ADMIN |
+| Revoke superuser | USER_DEMOTED_ADMIN |
+| Delete user | USER_DELETED |
+| Update setting | SETTING_UPDATED |
+| Rollback setting | SETTING_ROLLED_BACK |
+
+**Rate Limiting (Admin Endpoints)**:
+| Endpoint Type | Limit |
+|---------------|-------|
+| GET endpoints | 100/minute |
+| PATCH/DELETE | 30/minute |
+| Settings update | 10/minute |
+| Bulk actions | 5/minute |
+
+---
+
+## 13. References
 
 - [OWASP ASVS 4.0](https://owasp.org/www-project-application-security-verification-standard/) - Application Security Verification Standard
 - [OWASP Top 10 2021](https://owasp.org/Top10/) - Top 10 Web Application Security Risks

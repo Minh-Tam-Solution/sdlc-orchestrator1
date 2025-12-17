@@ -62,6 +62,8 @@ class User(Base):
         - mfa_secret: TOTP secret (encrypted, 32-byte base32)
         - backup_codes: One-time recovery codes (10 codes, hashed)
         - last_login: Last successful login timestamp
+        - deleted_at: Soft delete timestamp (NULL = active, NOT NULL = deleted)
+        - deleted_by: Foreign key to User who performed deletion (for audit)
         - created_at: Account creation timestamp
         - updated_at: Last update timestamp
 
@@ -106,6 +108,10 @@ class User(Base):
 
     # Session Management
     last_login = Column(DateTime, nullable=True)
+
+    # Soft Delete (Sprint 40 - Admin Panel CRUD)
+    deleted_at = Column(DateTime, nullable=True, index=True)  # Soft delete timestamp
+    deleted_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)  # Admin who deleted
 
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)

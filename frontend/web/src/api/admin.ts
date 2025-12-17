@@ -58,10 +58,26 @@ export interface AdminUserDetail {
   last_login: string | null
 }
 
+export interface AdminUserCreate {
+  email: string
+  password: string
+  name?: string
+  is_active?: boolean
+  is_superuser?: boolean
+}
+
 export interface AdminUserUpdate {
   name?: string
   is_active?: boolean
   is_superuser?: boolean
+}
+
+export interface AdminUserUpdateFull {
+  email?: string
+  name?: string
+  is_active?: boolean
+  is_superuser?: boolean
+  new_password?: string
 }
 
 export interface AdminUserListResponse {
@@ -234,6 +250,21 @@ export function useAdminUserDetail(userId: string) {
   })
 }
 
+export function useCreateAdminUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: AdminUserCreate) => {
+      const response = await apiClient.post<AdminUserDetail>('/admin/users', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.users() })
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats() })
+    },
+  })
+}
+
 export function useUpdateAdminUser() {
   const queryClient = useQueryClient()
 
@@ -245,6 +276,36 @@ export function useUpdateAdminUser() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.users() })
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.userDetail(variables.userId) })
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats() })
+    },
+  })
+}
+
+export function useUpdateAdminUserFull() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ userId, data }: { userId: string; data: AdminUserUpdateFull }) => {
+      const response = await apiClient.patch<AdminUserDetail>(`/admin/users/${userId}`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.users() })
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.userDetail(variables.userId) })
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats() })
+    },
+  })
+}
+
+export function useDeleteAdminUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      await apiClient.delete(`/admin/users/${userId}`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.users() })
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats() })
     },
   })
