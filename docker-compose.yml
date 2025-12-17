@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_secure_password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "5451:5432"  # IT Admin: SDLC PostgreSQL (5450 used by bflow-auth-db)
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme_redis_password}
     ports:
-      - "6382:6379"  # Use 6382 to avoid conflict with redis-master on 6379
+      - "6395:6379"  # IT Admin: SDLC Orchestrator Redis on 6395
     volumes:
       - redis_data:/data
     healthcheck:
@@ -62,8 +62,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin_changeme}
       MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
     ports:
-      - "9097:9000"  # S3 API - Use 9097 to avoid conflict with Sentry/Clickhouse
-      - "9098:9001"  # Web Console - Use 9098
+      - "9097:9000"  # SDLC MinIO API (9010/9011 used by SOP Generator)
+      - "9098:9001"  # SDLC MinIO Console
     volumes:
       - minio_data:/data
     healthcheck:
@@ -108,7 +108,7 @@ services:
       - "--log-level=info"
       - "/policies"
     ports:
-      - "8181:8181"
+      - "8185:8181"  # IT Admin: SDLC OPA on 8185
     volumes:
       - ./policy-packs/rego:/policies:ro
     healthcheck:
@@ -157,7 +157,7 @@ services:
       GF_SERVER_ROOT_URL: http://localhost:3001
       GF_INSTALL_PLUGINS: grafana-oncall-app
     ports:
-      - "3001:3000"
+      - "3002:3000"  # IT Admin: SDLC Grafana (3001 used by bflow-staging-grafana)
     volumes:
       - grafana_data:/var/lib/grafana
       - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
