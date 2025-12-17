@@ -55,17 +55,17 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
     const newErrors: Record<string, string> = {}
 
     // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format'
+    if (!formData['email']) {
+      newErrors['email'] = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData['email'])) {
+      newErrors['email'] = 'Invalid email format'
     }
 
     // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required'
-    } else if (formData.password.length < 12) {
-      newErrors.password = 'Password must be at least 12 characters'
+    if (!formData['password']) {
+      newErrors['password'] = 'Password is required'
+    } else if (formData['password'].length < 12) {
+      newErrors['password'] = 'Password must be at least 12 characters'
     }
 
     setErrors(newErrors)
@@ -80,13 +80,24 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
     }
 
     try {
-      await createUserMutation.mutateAsync({
+      const createPayload: {
+        email: string
+        password: string
+        name?: string
+        is_active: boolean
+        is_superuser: boolean
+      } = {
         email: formData.email,
         password: formData.password,
-        name: formData.name || undefined,
         is_active: formData.is_active,
         is_superuser: formData.is_superuser,
-      })
+      }
+
+      if (formData.name) {
+        createPayload.name = formData.name
+      }
+
+      await createUserMutation.mutateAsync(createPayload as any)
 
       toast({
         title: 'User Created',
@@ -158,10 +169,10 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
                   setFormData({ ...formData, email: e.target.value })
                   setErrors({ ...errors, email: '' })
                 }}
-                className={errors.email ? 'border-red-500' : ''}
+                className={errors['email'] ? 'border-red-500' : ''}
               />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email}</p>
+              {errors['email'] && (
+                <p className="text-sm text-red-500">{errors['email']}</p>
               )}
             </div>
 
