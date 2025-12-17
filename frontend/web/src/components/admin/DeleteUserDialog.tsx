@@ -43,6 +43,9 @@ export function DeleteUserDialog({ user, open, onOpenChange }: DeleteUserDialogP
   const handleDelete = async () => {
     if (!user) return
 
+    // Prevent double-click/double-submit
+    if (deleteUserMutation.isPending) return
+
     try {
       await deleteUserMutation.mutateAsync(user.id)
 

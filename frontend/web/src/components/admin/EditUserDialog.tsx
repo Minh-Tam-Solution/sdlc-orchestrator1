@@ -99,6 +99,11 @@ export function EditUserDialog({ user, open, onOpenChange }: EditUserDialogProps
       return
     }
 
+    // Prevent double-submit
+    if (updateUserMutation.isPending) {
+      return
+    }
+
     try {
       const updatePayload: Partial<{
         email: string

@@ -79,6 +79,11 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
       return
     }
 
+    // Prevent double-submit
+    if (createUserMutation.isPending) {
+      return
+    }
+
     try {
       const createPayload: {
         email: string
