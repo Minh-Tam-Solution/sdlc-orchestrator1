@@ -291,23 +291,29 @@ async def get_user_detail(
     "/users/{user_id}",
     response_model=AdminUserDetail,
     summary="Update user",
-    description="Update user information (name, is_active, is_superuser).",
+    description="Update user information (name, email, password, is_active, is_superuser) - Sprint 40 Part 2.",
 )
 async def update_user(
     user_id: UUID,
-    update_data: AdminUserUpdate,
+    update_data: AdminUserUpdateFull,
     request: Request,
     admin: User = Depends(require_superuser),
     db: AsyncSession = Depends(get_db),
 ) -> AdminUserDetail:
     """
-    Update user information.
+    Update user information (Enhanced in Sprint 40 Part 2).
 
     Security:
         - Requires superuser access
         - Cannot modify own account (is_active, is_superuser)
         - System must have at least one superuser
+        - Email must be unique if changed
+        - Password must be 12+ characters if provided
         - All changes are audit logged
+
+    Sprint 40 Part 2 Additions:
+        - Email change support
+        - Password reset support (new_password field)
 
     Returns:
         AdminUserDetail: Updated user details
@@ -338,9 +344,43 @@ async def update_user(
     # Initialize audit service
     audit_service = get_audit_service(db)
 
+    # Track changes for audit log
+    changes = {}
+
+    # Update email (Sprint 40 Part 2)
+    if update_data.email is not None and update_data.email.lower() != user.email:
+        # Check if new email already exists
+        existing_user = await db.scalar(
+            select(User).where(
+                User.email == update_data.email.lower(),
+                User.id != user_id
+            )
+        )
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"User with email '{update_data.email}' already exists",
+            )
+
+        old_email = user.email
+        user.email = update_data.email.lower()
+        changes['email'] = {'old': old_email, 'new': user.email}
+
+    # Update password (Sprint 40 Part 2)
+    if update_data.new_password is not None:
+        # Hash password with bcrypt (cost=12)
+        password_hash = bcrypt.hashpw(
+            update_data.new_password.encode('utf-8'),
+            bcrypt.gensalt(rounds=12)
+        ).decode('utf-8')
+        user.password_hash = password_hash
+        changes['password'] = 'reset'
+
     # Update name
-    if update_data.name is not None:
+    if update_data.name is not None and update_data.name != user.name:
+        old_name = user.name
         user.name = update_data.name
+        changes['name'] = {'old': old_name, 'new': user.name}
 
     # Update is_active
     if update_data.is_active is not None and update_data.is_active != user.is_active:
@@ -377,6 +417,21 @@ async def update_user(
             target_user_id=user.id,
             target_email=user.email,
             is_granting=update_data.is_superuser,
+            request=request,
+        )
+
+    # Audit log for email/password/name changes (Sprint 40 Part 2)
+    if changes:
+        await audit_service.log(
+            action=AuditAction.USER_UPDATED,
+            user_id=admin.id,
+            resource_type="user",
+            resource_id=user.id,
+            target_name=user.email,
+            details={
+                "changes": changes,
+                "updated_by": admin.email,
+            },
             request=request,
         )
 
