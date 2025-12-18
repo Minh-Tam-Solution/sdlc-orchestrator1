@@ -71,8 +71,8 @@ test.describe('Admin User Management', () => {
       // Wait for search results
       await page.waitForTimeout(500) // Debounce
 
-      // Should filter results
-      await expect(page.getByText(/admin@/i)).toBeVisible()
+      // Should filter results - use table scope to avoid strict mode violation
+      await expect(page.getByRole('table').getByText(/admin@/i)).toBeVisible()
     })
 
     test('should show no results message for non-matching search', async ({ page }) => {
@@ -217,10 +217,10 @@ test.describe('Admin User Management', () => {
       if (isVisible) {
         await firstCheckbox.click()
 
-        // Should show bulk action bar
-        await expect(page.getByText(/\d+ user\(s\) selected/i)).toBeVisible()
-        await expect(page.getByRole('button', { name: /activate selected/i })).toBeVisible()
-        await expect(page.getByRole('button', { name: /deactivate selected/i })).toBeVisible()
+        // Should show bulk action bar - use exact name to avoid strict mode violation
+        await expect(page.getByText(/\d+ user\(s\) selected/i).first()).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Activate Selected', exact: true })).toBeVisible()
+        await expect(page.getByRole('button', { name: 'Deactivate Selected', exact: true })).toBeVisible()
       }
     })
 
@@ -234,7 +234,7 @@ test.describe('Admin User Management', () => {
 
       if (isVisible) {
         await firstCheckbox.click()
-        await expect(page.getByText(/\d+ user\(s\) selected/i)).toBeVisible()
+        await expect(page.getByText(/\d+ user\(s\) selected/i).first()).toBeVisible()
 
         // Click clear selection
         await page.getByRole('button', { name: /clear selection/i }).click()
@@ -249,8 +249,8 @@ test.describe('Admin User Management', () => {
       const headerCheckbox = page.locator('thead input[type="checkbox"]')
       await headerCheckbox.click()
 
-      // Should show selection count
-      await expect(page.getByText(/\d+ user\(s\) selected/i)).toBeVisible()
+      // Should show selection count - use first() for strict mode
+      await expect(page.getByText(/\d+ user\(s\) selected/i).first()).toBeVisible()
     })
   })
 

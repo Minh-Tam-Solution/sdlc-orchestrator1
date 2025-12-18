@@ -80,9 +80,9 @@ test.describe('Admin User CRUD Operations (Sprint 40)', () => {
       // Dialog should close
       await expect(page.getByRole('heading', { name: /create new user/i })).not.toBeVisible({ timeout: 5000 })
 
-      // New user should appear in the list
+      // New user should appear in the list - use first() for strict mode
       await page.waitForTimeout(2000) // Wait for table refresh
-      await expect(page.getByText(testEmail)).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(testEmail).first()).toBeVisible({ timeout: 5000 })
     })
 
     test('should show validation error for invalid email format', async ({ page }) => {
@@ -112,8 +112,8 @@ test.describe('Admin User CRUD Operations (Sprint 40)', () => {
       // Submit form
       await page.getByRole('button', { name: /create user$/i }).click()
 
-      // Should show validation error
-      await expect(page.getByText(/at least 12 characters/i)).toBeVisible({ timeout: 5000 })
+      // Should show validation error - use first() for strict mode
+      await expect(page.getByText(/at least 12 characters/i).first()).toBeVisible({ timeout: 5000 })
     })
 
     test('should show error when creating user with duplicate email', async ({ page }) => {
@@ -127,8 +127,8 @@ test.describe('Admin User CRUD Operations (Sprint 40)', () => {
       // Submit form
       await page.getByRole('button', { name: /create user$/i }).click()
 
-      // Should show error toast
-      await expect(page.getByText(/already exists/i)).toBeVisible({ timeout: 10000 })
+      // Should show error toast - use first() for strict mode
+      await expect(page.getByText(/already exists/i).first()).toBeVisible({ timeout: 10000 })
     })
 
     test('should create user with is_active checkbox checked by default', async ({ page }) => {
@@ -169,10 +169,10 @@ test.describe('Admin User CRUD Operations (Sprint 40)', () => {
       // Should show success toast - use first() to avoid strict mode
       await expect(page.getByText('User Created').first()).toBeVisible({ timeout: 10000 })
 
-      // Wait and verify user has Admin badge in the list
+      // Wait and verify user has Admin badge in the list - use first() for strict mode
       await page.waitForTimeout(2000)
-      const userRow = page.locator('tbody tr').filter({ hasText: testEmail })
-      await expect(userRow.getByText('Admin')).toBeVisible({ timeout: 5000 })
+      const userRow = page.locator('tbody tr').filter({ hasText: testEmail }).first()
+      await expect(userRow.getByText('Admin').first()).toBeVisible({ timeout: 5000 })
     })
 
     test('should close dialog when clicking Cancel', async ({ page }) => {
@@ -362,15 +362,15 @@ test.describe('Admin User CRUD Operations (Sprint 40)', () => {
       // Create user
       await page.getByRole('button', { name: /create user/i }).click()
       await page.getByLabel(/email/i).fill(testEmail)
-      await page.getByLabel(/^password/i).fill('ToastTest12345!')  // 15 chars
+      await page.getByLabel(/^password/i).fill('ToastTest12345!!')  // 16 chars - meets 12 char minimum
       await page.getByRole('button', { name: /create user$/i }).click()
 
       // Toast should show success - use first() for strict mode
       await expect(page.getByText('User Created').first()).toBeVisible({ timeout: 10000 })
 
-      // User should appear in the list (confirms creation was successful)
+      // User should appear in the list (confirms creation was successful) - use first() for strict mode
       await page.waitForTimeout(2000)
-      await expect(page.getByText(testEmail)).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(testEmail).first()).toBeVisible({ timeout: 5000 })
     })
 
     test('should show error toast on create failure', async ({ page }) => {
