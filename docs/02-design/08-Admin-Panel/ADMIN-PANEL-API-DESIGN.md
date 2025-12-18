@@ -1,13 +1,14 @@
 # Admin Panel - API Design Specification
 ## SDLC 5.1.1 Complete Lifecycle - Design Phase
 
-**Version**: 2.0.0
-**Date**: 2025-12-17
-**Status**: IMPLEMENTED - Sprint 37-40 Complete
+**Version**: 2.1.0
+**Date**: 2025-12-18
+**Status**: DESIGN - Sprint 40 Part 3 (Bulk Delete)
 **Author**: Backend Lead
 **Reviewer**: CTO
 
 **Changelog**:
+- v2.1.0 (Dec 18, 2025): Added DELETE /users/bulk endpoint (Sprint 40 Part 3) - CTO APPROVED
 - v2.0.0 (Dec 17, 2025): Added POST /users, DELETE /users, soft delete (Sprint 40)
 - v1.1.0 (Dec 16, 2025): Version field added to system_settings (CTO condition)
 - v1.0.0 (Dec 16, 2025): Initial API design (Sprint 37)
@@ -313,6 +314,150 @@ ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP NULL;
 ALTER TABLE users ADD COLUMN deleted_by UUID REFERENCES users(id) ON DELETE SET NULL;
 CREATE INDEX ix_users_deleted_at ON users(deleted_at);
 CREATE INDEX ix_users_active_not_deleted ON users(is_active, deleted_at);
+```
+
+---
+
+#### DELETE /api/v1/admin/users/bulk (Sprint 40 Part 3 - NEW)
+
+Bulk soft delete multiple users with full audit trail. **CTO APPROVED Dec 18, 2025**.
+
+**Request**:
+```http
+DELETE /api/v1/admin/users/bulk
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "user_ids": [
+    "550e8400-e29b-41d4-a716-446655440001",
+    "550e8400-e29b-41d4-a716-446655440002",
+    "550e8400-e29b-41d4-a716-446655440003"
+  ]
+}
+```
+
+**Request Body**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| user_ids | UUID[] | Yes | Array of user IDs to delete (max 50) |
+
+**Response** (200 OK):
+```json
+{
+  "success_count": 3,
+  "failed_count": 0,
+  "deleted_users": [
+    {"user_id": "550e8400-e29b-41d4-a716-446655440001", "email": "user1@example.com"},
+    {"user_id": "550e8400-e29b-41d4-a716-446655440002", "email": "user2@example.com"},
+    {"user_id": "550e8400-e29b-41d4-a716-446655440003", "email": "user3@example.com"}
+  ],
+  "failed_users": []
+}
+```
+
+**Partial Success Response** (200 OK):
+```json
+{
+  "success_count": 2,
+  "failed_count": 1,
+  "deleted_users": [
+    {"user_id": "550e8400-e29b-41d4-a716-446655440001", "email": "user1@example.com"},
+    {"user_id": "550e8400-e29b-41d4-a716-446655440002", "email": "user2@example.com"}
+  ],
+  "failed_users": [
+    {"user_id": "550e8400-e29b-41d4-a716-446655440003", "reason": "User is the last superuser"}
+  ]
+}
+```
+
+**Error Responses**:
+- 400: `{"detail": "Cannot delete your own account"}` - Self-delete prevention
+- 400: `{"detail": "Cannot delete the last superuser"}` - Last admin protection
+- 400: `{"detail": "Maximum 50 users per request"}` - Batch size limit (CTO condition)
+- 400: `{"detail": "user_ids array cannot be empty"}` - Empty array validation
+- 403: `{"detail": "Admin access required"}` - Non-admin user
+
+**CTO Conditions Applied**:
+1. **Batch Size Limit**: Maximum 50 users per request to prevent DOS and protect DB performance
+2. **Partial Success Handling**: Returns detailed report with success/failed counts and reasons
+3. **Rate Limiting**: 5 requests/minute per admin (applied at middleware level)
+
+**Side Effects**:
+- Each deleted user: `deleted_at = NOW()`, `deleted_by = admin.id`, `is_active = false`
+- Creates individual audit log entry for each deleted user (USER_DELETED)
+- Invalidates sessions for all deleted users
+- Returns deleted users' emails for confirmation toast
+
+**Implementation Pattern**:
+```python
+@router.delete("/users/bulk")
+async def bulk_delete_users(
+    request: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+) -> BulkDeleteResponse:
+    # Validate batch size
+    if len(request.user_ids) > 50:
+        raise HTTPException(400, "Maximum 50 users per request")
+
+    # Check self-delete
+    if str(current_user.id) in request.user_ids:
+        raise HTTPException(400, "Cannot delete your own account")
+
+    # Process deletions with partial success handling
+    results = {"success": [], "failed": []}
+    for user_id in request.user_ids:
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                results["failed"].append({"user_id": user_id, "reason": "User not found"})
+                continue
+
+            # Check last superuser
+            if user.is_superuser and is_last_superuser(db, user_id):
+                results["failed"].append({"user_id": user_id, "reason": "User is the last superuser"})
+                continue
+
+            # Soft delete
+            user.deleted_at = datetime.utcnow()
+            user.deleted_by = current_user.id
+            user.is_active = False
+
+            # Audit log
+            create_audit_log(db, "user.bulk_deleted", current_user, "user", user_id, user.email)
+
+            results["success"].append({"user_id": user_id, "email": user.email})
+        except Exception as e:
+            results["failed"].append({"user_id": user_id, "reason": str(e)})
+
+    db.commit()
+    return BulkDeleteResponse(
+        success_count=len(results["success"]),
+        failed_count=len(results["failed"]),
+        deleted_users=results["success"],
+        failed_users=results["failed"]
+    )
+```
+
+**Pydantic Schemas**:
+```python
+class BulkDeleteRequest(BaseModel):
+    user_ids: List[UUID] = Field(..., min_items=1, max_items=50)
+
+class DeletedUser(BaseModel):
+    user_id: UUID
+    email: str
+
+class FailedUser(BaseModel):
+    user_id: UUID
+    reason: str
+
+class BulkDeleteResponse(BaseModel):
+    success_count: int
+    failed_count: int
+    deleted_users: List[DeletedUser]
+    failed_users: List[FailedUser]
 ```
 
 ---
@@ -641,7 +786,8 @@ async def require_admin(
 | Endpoint | Limit |
 |----------|-------|
 | GET endpoints | 100/minute |
-| PATCH/DELETE | 30/minute |
+| PATCH/DELETE (single) | 30/minute |
+| DELETE /users/bulk | 5/minute (CTO condition) |
 | Settings update | 10/minute |
 
 ### 4.3 Audit Logging
@@ -743,13 +889,27 @@ frontend/web/src/
 | Test Suite | Tests | Status |
 |------------|-------|--------|
 | admin-access-control.spec.ts | 18 | ✅ PASS |
-| admin-users.spec.ts | 24 | ✅ PASS |
+| admin-users.spec.ts | 18 | ✅ PASS |
+| admin-users-crud.spec.ts | 23 | ✅ PASS |
 | admin-audit-logs.spec.ts | 20 | ✅ PASS |
 | admin-settings.spec.ts | 22 | ✅ PASS |
 | admin-health.spec.ts | 25 | ✅ PASS |
 | admin-toast-notifications.spec.ts | 12 | ✅ PASS |
-| **Total** | **121** | **✅ PASS** |
+| **Total (Sprint 40 Part 1-2)** | **138** | **✅ PASS** |
+
+### Sprint 40 Part 3: Bulk Delete Tests (PLANNED)
+
+| Test Case | Status |
+|-----------|--------|
+| Bulk delete 3 users successfully | 📋 PLANNED |
+| Self-delete prevention | 📋 PLANNED |
+| Last superuser protection | 📋 PLANNED |
+| Partial failure handling | 📋 PLANNED |
+| Cancel bulk delete flow | 📋 PLANNED |
+| Empty selection edge case | 📋 PLANNED |
+| Batch size limit (>50 users) | 📋 PLANNED |
+| **Total New Tests** | **7** |
 
 ---
 
-**Document Status**: ✅ IMPLEMENTED - Sprint 37-40 Complete
+**Document Status**: 📋 DESIGN - Sprint 40 Part 3 (CTO Approved Dec 18, 2025)

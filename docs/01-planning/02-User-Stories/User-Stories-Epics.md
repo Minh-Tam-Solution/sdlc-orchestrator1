@@ -1,12 +1,15 @@
 # User Stories & Epics
 ## User Journeys and Acceptance Criteria
 
-**Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: PM + Product Owner Review (PENDING)
-**Foundation**: FRD v1.0, User Personas (Stage 00)
+**Version**: 1.1.0
+**Date**: December 18, 2025
+**Status**: ACTIVE - Updated for Admin Panel (Sprint 40)
+**Authority**: PM + Product Owner Review (APPROVED)
+**Foundation**: FRD v2.1, User Personas (Stage 00)
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+
+**Changelog**:
+- v1.1.0 (Dec 18, 2025): Added E8 User Management stories (US8.1-US8.5) including Bulk Delete
 
 ---
 
@@ -34,7 +37,7 @@ This document defines user stories (WHO + WHAT + WHY) mapped to epics and functi
 | E5 | Dashboard | 6 | P1 | FR4 | 8-9 |
 | E6 | VS Code Extension | 5 | P0 | FR5 | 6-7 |
 | E7 | Integrations | 6 | P1 | FR11-FR15 | 7-8 |
-| E8 | User Management | 4 | P1 | - | 9 |
+| E8 | User Management | 5 | P0 | FR-ADMIN | 9 |
 | E9 | Reports & Analytics | 3 | P2 | FR16-FR20 | Post-MVP |
 | E10 | Mobile App | 3 | P2 | FR21 | Post-MVP |
 
@@ -406,6 +409,95 @@ This document defines user stories (WHO + WHAT + WHY) mapped to epics and functi
 - [ ] Option to disable AI if budget exceeded
 
 **Related FR**: FR6.5 (AI Multi-Provider Strategy)
+
+---
+
+## E8: User Management (5 Stories) - NEW Sprint 40
+
+### US8.1: List All Users
+**Story**: As a Platform Admin, I want to list all users with search and filter, so that I can find and manage specific users.
+
+**Acceptance Criteria**:
+- [x] User table with columns: Name, Email, Role, Status, Created, Last Login
+- [x] Server-side pagination (20 users per page)
+- [x] Search by email (debounced 300ms)
+- [x] Filter by status (Active/Inactive) and role (Admin/User)
+- [x] Response time <200ms (NFR1)
+
+**Related FR**: FR-ADMIN-01 (User Listing)
+**Status**: ✅ Implemented (Sprint 37)
+
+---
+
+### US8.2: Create User
+**Story**: As a Platform Admin, I want to create new user accounts, so that I can onboard team members.
+
+**Acceptance Criteria**:
+- [x] Form fields: Email, Password, Full Name, is_active, is_superuser
+- [x] Email validation (format, uniqueness)
+- [x] Password validation (12+ characters)
+- [x] Success toast notification
+- [x] Audit log records creation
+
+**Related FR**: FR-ADMIN-02 (User Creation)
+**Status**: ✅ Implemented (Sprint 40 Part 1)
+
+---
+
+### US8.3: Edit User
+**Story**: As a Platform Admin, I want to edit user details (email, password, roles), so that I can update user information.
+
+**Acceptance Criteria**:
+- [x] Edit dialog with pre-filled values
+- [x] Email change validation (uniqueness)
+- [x] Password change optional (leave blank to keep)
+- [x] Toggle is_active and is_superuser
+- [x] Cannot demote self or last superuser
+- [x] Audit log records changes
+
+**Related FR**: FR-ADMIN-03 (User Editing)
+**Status**: ✅ Implemented (Sprint 40 Part 2)
+
+---
+
+### US8.4: Delete Single User
+**Story**: As a Platform Admin, I want to delete a user account, so that I can remove users who no longer need access.
+
+**Acceptance Criteria**:
+- [x] Delete confirmation dialog with user email
+- [x] Soft delete (sets deleted_at, keeps data for audit)
+- [x] Cannot delete self
+- [x] Cannot delete last superuser
+- [x] User removed from list after deletion
+- [x] Audit log records deletion
+
+**Related FR**: FR-ADMIN-04 (User Deletion)
+**Status**: ✅ Implemented (Sprint 40 Part 2)
+
+---
+
+### US8.5: Bulk Delete Selected Users (NEW)
+**Story**: As a Platform Admin, I want to delete multiple users at once, so that I can efficiently manage large numbers of user accounts.
+
+**Acceptance Criteria**:
+- [ ] Select multiple users via checkboxes
+- [ ] "Delete Selected" button in bulk action bar
+- [ ] Confirmation dialog shows list of users to delete
+- [ ] Type "DELETE" to confirm (safety measure)
+- [ ] Cannot bulk delete if self is selected
+- [ ] Cannot bulk delete last superuser (auto-deselect)
+- [ ] Success toast: "X users deleted successfully"
+- [ ] Audit log records each deletion
+
+**API Contract**:
+```
+DELETE /api/v1/admin/users/bulk
+Request: { "user_ids": ["uuid1", "uuid2", "uuid3"] }
+Response: { "deleted_count": 3, "failed_count": 0, "failures": [] }
+```
+
+**Related FR**: FR-ADMIN-05 (Bulk User Deletion)
+**Status**: 📋 Design Phase (Sprint 40 Part 3)
 
 ---
 

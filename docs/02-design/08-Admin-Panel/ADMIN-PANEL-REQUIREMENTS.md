@@ -240,10 +240,16 @@ Feature: Bulk Delete Selected Users
 - Soft delete only (sets deleted_at, deleted_by)
 - Toast shows count of successfully deleted users
 
+**CTO Conditions (Dec 18, 2025)**:
+1. **Batch Size Limit**: Maximum 50 users per request to prevent DOS
+2. **Partial Success Handling**: Return detailed report with success/failed counts
+3. **Rate Limiting**: 5 requests/minute per admin to prevent abuse
+
 **UI Components**:
 - Bulk Action Bar: Add "Delete Selected" button (red/destructive variant)
-- Confirmation Dialog: Show list of users to be deleted
+- Confirmation Dialog: Show list of users to be deleted (type "DELETE" to confirm)
 - Progress indicator for large deletions
+- Show partial success report if some deletions fail
 
 ---
 
@@ -493,27 +499,37 @@ Feature: System Settings
 - Protection: Cannot delete self, last superuser
 - Audit log for each deleted user
 
-**API Design**:
+**API Design** (CTO Approved Dec 18, 2025):
 ```yaml
 DELETE /api/v1/admin/users/bulk
 Request Body:
   {
-    "user_ids": ["uuid1", "uuid2", "uuid3"]
+    "user_ids": ["uuid1", "uuid2", "uuid3"]  # max 50 users
   }
 Response (200 OK):
   {
-    "deleted_count": 3,
+    "success_count": 3,
     "failed_count": 0,
-    "failures": []
+    "deleted_users": [
+      {"user_id": "uuid1", "email": "user1@example.com"},
+      {"user_id": "uuid2", "email": "user2@example.com"},
+      {"user_id": "uuid3", "email": "user3@example.com"}
+    ],
+    "failed_users": []
+  }
+Response (200 OK - Partial Success):
+  {
+    "success_count": 2,
+    "failed_count": 1,
+    "deleted_users": [...],
+    "failed_users": [
+      {"user_id": "uuid3", "reason": "User is the last superuser"}
+    ]
   }
 Response (400 Bad Request):
-  {
-    "detail": "Cannot delete your own account"
-  }
+  {"detail": "Cannot delete your own account"}
 Response (400 Bad Request):
-  {
-    "detail": "Cannot delete last superuser"
-  }
+  {"detail": "Maximum 50 users per request"}
 ```
 
 **Frontend Components**:
