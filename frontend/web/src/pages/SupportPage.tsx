@@ -67,7 +67,7 @@ interface DocCategory {
 
 /**
  * Static documentation data
- * Links to dedicated UI pages for better UX
+ * Links to markdown documentation viewer for complete content
  */
 const DOCUMENTATION_CATEGORIES: DocCategory[] = [
   {
@@ -80,13 +80,13 @@ const DOCUMENTATION_CATEGORIES: DocCategory[] = [
         id: '01',
         title: 'Getting Started',
         description: '5-minute quick start guide',
-        path: '/support/getting-started'
+        path: '/support/docs/01-Getting-Started.md'
       },
       {
         id: '02',
         title: 'SDLC Framework Overview',
         description: 'Understanding SDLC 5.1.1 Framework',
-        path: '/support/framework-overview'
+        path: '/support/docs/02-SDLC-Framework-Overview.md'
       }
     ]
   },
@@ -100,19 +100,19 @@ const DOCUMENTATION_CATEGORIES: DocCategory[] = [
         id: '03',
         title: 'Platform Features',
         description: 'Complete feature overview',
-        path: '/support/platform-features'
+        path: '/support/docs/03-Platform-Features.md'
       },
       {
         id: '04',
         title: 'User Roles & Permissions',
         description: 'Access control and roles',
-        path: '/support/user-roles'
+        path: '/support/docs/04-User-Roles-Permissions.md'
       },
       {
         id: '05',
         title: 'Common Tasks',
         description: 'Step-by-step how-to guides',
-        path: '/support/common-tasks'
+        path: '/support/docs/05-Common-Tasks.md'
       }
     ]
   },
@@ -126,25 +126,25 @@ const DOCUMENTATION_CATEGORIES: DocCategory[] = [
         id: '06',
         title: 'Troubleshooting',
         description: 'Common issues and solutions',
-        path: '/support/troubleshooting'
+        path: '/support/docs/06-Troubleshooting.md'
       },
       {
         id: '07',
         title: 'FAQ',
         description: 'Frequently asked questions',
-        path: '/support/faq'
+        path: '/support/docs/07-FAQ.md'
       },
       {
         id: '08',
         title: 'Best Practices',
         description: 'Optimization and guidelines',
-        path: '/support/best-practices'
+        path: '/support/docs/08-Best-Practices.md'
       },
       {
         id: '09',
         title: 'Support Channels',
         description: 'Contact and support options',
-        path: '/support/support-channels'
+        path: '/support/docs/09-Support-Channels.md'
       }
     ]
   }
