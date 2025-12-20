@@ -361,7 +361,15 @@ export function useBulkDeleteUsers() {
 
   return useMutation({
     mutationFn: async (data: BulkDeleteRequest) => {
-      const response = await apiClient.delete<BulkDeleteResponse>('/admin/users/bulk', { data })
+      // Axios DELETE with body requires explicit config
+      const response = await apiClient.request<BulkDeleteResponse>({
+        method: 'DELETE',
+        url: '/admin/users/bulk',
+        data: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
       return response.data
     },
     onSuccess: () => {

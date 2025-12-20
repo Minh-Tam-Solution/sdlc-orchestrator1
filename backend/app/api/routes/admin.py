@@ -38,17 +38,21 @@ Zero Mock Policy: Production-ready implementation
 """
 
 import bcrypt
+import logging
 import math
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.dependencies import get_db, require_superuser
+
+logger = logging.getLogger(__name__)
 from app.models import AuditLog, Gate, Project, SystemSetting, User
 from app.schemas.admin import (
     AdminDashboardStats,
@@ -570,6 +574,133 @@ async def create_user(
         created_at=new_user.created_at,
         updated_at=new_user.updated_at,
         last_login=new_user.last_login,
+    )
+
+
+# =========================================================================
+# User Deletion - Sprint 40 Part 3
+# =========================================================================
+# NOTE: Bulk delete MUST be defined before single delete {user_id}
+#       to prevent FastAPI from matching "bulk" as a UUID parameter
+
+
+@router.delete(
+    "/users/bulk",
+    response_model=BulkDeleteResponse,
+    summary="Bulk delete users (soft delete)",
+    description="Soft delete multiple users at once with full audit trail (Sprint 40 Part 3).",
+)
+async def bulk_delete_users(
+    delete_request: BulkDeleteRequest,
+    admin: User = Depends(require_superuser),
+    db: AsyncSession = Depends(get_db),
+    request: Request = None,
+) -> BulkDeleteResponse:
+    logger.info("=== BULK DELETE ENDPOINT CALLED ===")
+    logger.info(f"Received delete request for {len(delete_request.user_ids)} users")
+    logger.info(f"User IDs: {delete_request.user_ids}")
+
+    # Validate batch size (redundant with schema, but explicit)
+    if len(delete_request.user_ids) > 50:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 50 users per request",
+        )
+
+    # Check self-delete prevention (fail early)
+    if admin.id in delete_request.user_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete your own account",
+        )
+
+    # Count total superusers (for last superuser protection)
+    total_superusers = await db.scalar(
+        select(func.count()).where(
+            User.is_superuser == True,
+            User.deleted_at.is_(None)
+        )
+    )
+
+    # Track superusers being deleted in this batch
+    superusers_to_delete = 0
+
+    # Initialize audit service
+    audit_service = get_audit_service(db)
+
+    # Process deletions
+    deleted_users: list[DeletedUserInfo] = []
+    failed_users: list[FailedUserInfo] = []
+
+    for user_id in delete_request.user_ids:
+        # Get user
+        query = select(User).where(User.id == user_id)
+        result = await db.execute(query)
+        user = result.scalar_one_or_none()
+
+        if not user:
+            failed_users.append(FailedUserInfo(
+                user_id=user_id,
+                reason="User not found",
+            ))
+            continue
+
+        # Check if already deleted
+        if user.deleted_at is not None:
+            failed_users.append(FailedUserInfo(
+                user_id=user_id,
+                reason="User is already deleted",
+            ))
+            continue
+
+        # Last superuser protection
+        if user.is_superuser:
+            # Check if deleting this user would leave no superusers
+            remaining_superusers = total_superusers - superusers_to_delete - 1
+            if remaining_superusers < 1:
+                failed_users.append(FailedUserInfo(
+                    user_id=user_id,
+                    reason="User is the last superuser",
+                ))
+                continue
+            superusers_to_delete += 1
+
+        # Soft delete
+        user.deleted_at = datetime.utcnow()
+        user.deleted_by = admin.id
+        user.is_active = False
+        user.updated_at = datetime.utcnow()
+
+        # Audit log for each user
+        await audit_service.log(
+            action=AuditAction.USER_DELETED,
+            user_id=admin.id,
+            resource_type="user",
+            resource_id=user.id,
+            target_name=user.email,
+            details={
+                "email": user.email,
+                "name": user.name,
+                "was_superuser": user.is_superuser,
+                "deleted_at": user.deleted_at.isoformat(),
+                "bulk_delete": True,
+            },
+            request=request,
+        )
+
+        deleted_users.append(DeletedUserInfo(
+            user_id=user.id,
+            email=user.email,
+        ))
+
+    # Commit all changes
+    await db.commit()
+
+    return BulkDeleteResponse(
+        success_count=len(deleted_users),
+        failed_count=len(failed_users),
+        deleted_users=deleted_users,
+        failed_users=failed_users,
     )
 
 
@@ -1218,137 +1349,3 @@ async def bulk_user_action(
         failed_users=failed_users,
     )
 
-
-@router.delete(
-    "/users/bulk",
-    response_model=BulkDeleteResponse,
-    summary="Bulk delete users (soft delete)",
-    description="Soft delete multiple users at once with full audit trail (Sprint 40 Part 3).",
-)
-async def bulk_delete_users(
-    delete_request: BulkDeleteRequest,
-    request: Request,
-    admin: User = Depends(require_superuser),
-    db: AsyncSession = Depends(get_db),
-) -> BulkDeleteResponse:
-    """
-    Bulk soft delete multiple users.
-
-    Security:
-        - Requires superuser access
-        - Cannot delete self (blocked at request validation)
-        - Cannot delete last superuser (per-user check)
-        - Maximum 50 users per request (CTO condition)
-        - Rate limited to 5 requests per minute (CTO condition)
-        - All deletions are audit logged individually
-
-    CTO Conditions (Dec 18, 2025):
-        1. Batch Size Limit: Maximum 50 users per request
-        2. Partial Success Handling: Returns detailed report
-        3. Rate Limiting: 5 requests/minute per admin
-
-    Returns:
-        BulkDeleteResponse: Detailed report of deleted and failed users
-    """
-    # Validate batch size (redundant with schema, but explicit)
-    if len(delete_request.user_ids) > 50:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Maximum 50 users per request",
-        )
-
-    # Check self-delete prevention (fail early)
-    if admin.id in delete_request.user_ids:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete your own account",
-        )
-
-    # Count total superusers (for last superuser protection)
-    total_superusers = await db.scalar(
-        select(func.count()).where(
-            User.is_superuser == True,
-            User.deleted_at.is_(None)
-        )
-    )
-
-    # Track superusers being deleted in this batch
-    superusers_to_delete = 0
-
-    # Initialize audit service
-    audit_service = get_audit_service(db)
-
-    # Process deletions
-    deleted_users: list[DeletedUserInfo] = []
-    failed_users: list[FailedUserInfo] = []
-
-    for user_id in delete_request.user_ids:
-        # Get user
-        query = select(User).where(User.id == user_id)
-        result = await db.execute(query)
-        user = result.scalar_one_or_none()
-
-        if not user:
-            failed_users.append(FailedUserInfo(
-                user_id=user_id,
-                reason="User not found",
-            ))
-            continue
-
-        # Check if already deleted
-        if user.deleted_at is not None:
-            failed_users.append(FailedUserInfo(
-                user_id=user_id,
-                reason="User is already deleted",
-            ))
-            continue
-
-        # Last superuser protection
-        if user.is_superuser:
-            # Check if deleting this user would leave no superusers
-            remaining_superusers = total_superusers - superusers_to_delete - 1
-            if remaining_superusers < 1:
-                failed_users.append(FailedUserInfo(
-                    user_id=user_id,
-                    reason="User is the last superuser",
-                ))
-                continue
-            superusers_to_delete += 1
-
-        # Soft delete
-        user.deleted_at = datetime.utcnow()
-        user.deleted_by = admin.id
-        user.is_active = False
-        user.updated_at = datetime.utcnow()
-
-        # Audit log for each user
-        await audit_service.log(
-            action=AuditAction.USER_DELETED,
-            user_id=admin.id,
-            resource_type="user",
-            resource_id=user.id,
-            target_name=user.email,
-            details={
-                "email": user.email,
-                "name": user.name,
-                "was_superuser": user.is_superuser,
-                "deleted_at": user.deleted_at.isoformat(),
-                "bulk_delete": True,
-            },
-            request=request,
-        )
-
-        deleted_users.append(DeletedUserInfo(
-            user_id=user.id,
-            email=user.email,
-        ))
-
-    # Commit all changes
-    await db.commit()
-
-    return BulkDeleteResponse(
-        success_count=len(deleted_users),
-        failed_count=len(failed_users),
-        deleted_users=deleted_users,
-        failed_users=failed_users,
-    )

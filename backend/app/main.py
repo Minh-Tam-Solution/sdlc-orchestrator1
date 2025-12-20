@@ -193,6 +193,34 @@ app = FastAPI(
 )
 
 # ============================================================================
+# Exception Handlers (Debug)
+# ============================================================================
+
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+import logging
+
+logger = logging.getLogger(__name__)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    """
+    Custom handler for Pydantic validation errors (422).
+    Logs detailed error information for debugging.
+    """
+    logger.error(f"Validation error on {request.method} {request.url}")
+    logger.error(f"Errors: {exc.errors()}")
+    logger.error(f"Body: {exc.body}")
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "body": str(exc.body) if exc.body else None,
+        }
+    )
+
+# ============================================================================
 # Middleware Configuration
 # ============================================================================
 
