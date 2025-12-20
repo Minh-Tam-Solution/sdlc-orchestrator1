@@ -45,6 +45,7 @@ const GitHubCallbackPage = lazy(() => import('@/pages/GitHubCallbackPage'))
 const SOPGeneratorPage = lazy(() => import('@/pages/SOPGeneratorPage'))  // Phase 2-Pilot Week 3
 const SOPHistoryPage = lazy(() => import('@/pages/SOPHistoryPage'))  // Phase 2-Pilot Week 4
 const SOPDetailPage = lazy(() => import('@/pages/SOPDetailPage'))  // Phase 2-Pilot Week 4
+const SupportPage = lazy(() => import('@/pages/SupportPage'))  // User Support & Documentation
 
 // Admin Panel pages (Sprint 37)
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'))
@@ -169,6 +170,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/support"
+            element={
+              <ProtectedRoute>
+                <SupportPage />
               </ProtectedRoute>
             }
           />
