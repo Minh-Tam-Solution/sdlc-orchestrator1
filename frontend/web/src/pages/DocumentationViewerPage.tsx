@@ -19,112 +19,89 @@ import { Badge } from '@/components/ui/badge'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { ArrowLeft, Download, BookOpen } from 'lucide-react'
 import apiClient from '@/api/client'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 /**
- * Markdown renderer component (simple approach from SOPDetailPage)
+ * Markdown renderer component using react-markdown with GitHub Flavored Markdown
  */
 function MarkdownContent({ content }: { content: string }) {
-  const renderMarkdown = (md: string) => {
-    return md.split('\n').map((line, index) => {
-      if (line.startsWith('# ')) {
-        return (
-          <h1 key={index} className="text-2xl font-bold mt-6 mb-4">
-            {line.slice(2)}
-          </h1>
-        )
-      }
-      if (line.startsWith('## ')) {
-        return (
-          <h2 key={index} className="text-xl font-semibold mt-5 mb-3 border-b pb-2">
-            {line.slice(3)}
-          </h2>
-        )
-      }
-      if (line.startsWith('### ')) {
-        return (
-          <h3 key={index} className="text-lg font-medium mt-4 mb-2">
-            {line.slice(4)}
-          </h3>
-        )
-      }
-      if (line.startsWith('#### ')) {
-        return (
-          <h4 key={index} className="text-base font-medium mt-3 mb-2">
-            {line.slice(5)}
-          </h4>
-        )
-      }
-      if (line.startsWith('- ')) {
-        return (
-          <li key={index} className="ml-6 list-disc my-1">
-            {line.slice(2)}
-          </li>
-        )
-      }
-      if (line.match(/^\d+\.\s/)) {
-        return (
-          <li key={index} className="ml-6 list-decimal my-1">
-            {line.replace(/^\d+\.\s/, '')}
-          </li>
-        )
-      }
-      if (line.startsWith('- [ ]')) {
-        return (
-          <div key={index} className="ml-6 flex items-center gap-2 my-1">
-            <input type="checkbox" className="rounded" disabled />
-            <span>{line.slice(6)}</span>
-          </div>
-        )
-      }
-      if (line.startsWith('- [x]')) {
-        return (
-          <div key={index} className="ml-6 flex items-center gap-2 my-1">
-            <input type="checkbox" className="rounded" checked disabled />
-            <span className="line-through text-muted-foreground">{line.slice(6)}</span>
-          </div>
-        )
-      }
-      if (line.includes('**')) {
-        const parts = line.split(/\*\*(.*?)\*\*/g)
-        return (
-          <p key={index} className="my-2">
-            {parts.map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : part))}
-          </p>
-        )
-      }
-      if (line.startsWith('|')) {
-        const cells = line.split('|').filter((c) => c.trim())
-        if (line.includes('---')) return null
-        return (
-          <tr key={index} className="border-b">
-            {cells.map((cell, i) => (
-              <td key={i} className="px-3 py-2 text-sm">
-                {cell.trim()}
-              </td>
-            ))}
-          </tr>
-        )
-      }
-      if (line.startsWith('```')) {
-        return (
-          <div key={index} className="bg-muted p-3 rounded-md font-mono text-sm my-2">
-            {line.slice(3)}
-          </div>
-        )
-      }
-      if (!line.trim()) {
-        return <div key={index} className="h-2" />
-      }
-      return (
-        <p key={index} className="my-2 leading-relaxed">
-          {line}
-        </p>
-      )
-    })
-  }
-
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert">{renderMarkdown(content)}</div>
+    <div className="prose prose-sm max-w-none dark:prose-invert">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          // Custom heading styles
+          h1: ({ node, ...props }) => (
+            <h1 className="text-2xl font-bold mt-6 mb-4 border-b pb-2" {...props} />
+          ),
+          h2: ({ node, ...props }) => (
+            <h2 className="text-xl font-semibold mt-5 mb-3 border-b pb-2" {...props} />
+          ),
+          h3: ({ node, ...props }) => (
+            <h3 className="text-lg font-medium mt-4 mb-2" {...props} />
+          ),
+          h4: ({ node, ...props }) => (
+            <h4 className="text-base font-medium mt-3 mb-2" {...props} />
+          ),
+          // Custom list styles
+          ul: ({ node, ...props }) => (
+            <ul className="list-disc ml-6 my-3 space-y-1" {...props} />
+          ),
+          ol: ({ node, ...props }) => (
+            <ol className="list-decimal ml-6 my-3 space-y-1" {...props} />
+          ),
+          li: ({ node, ...props }) => (
+            <li className="my-1" {...props} />
+          ),
+          // Custom table styles
+          table: ({ node, ...props }) => (
+            <div className="overflow-x-auto my-4">
+              <table className="min-w-full border-collapse border border-border" {...props} />
+            </div>
+          ),
+          thead: ({ node, ...props }) => (
+            <thead className="bg-muted" {...props} />
+          ),
+          th: ({ node, ...props }) => (
+            <th className="border border-border px-3 py-2 text-left font-semibold" {...props} />
+          ),
+          td: ({ node, ...props }) => (
+            <td className="border border-border px-3 py-2" {...props} />
+          ),
+          // Custom code block styles
+          code: ({ node, className, children, ...props }) => {
+            const isInline = !className
+            return isInline ? (
+              <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                {children}
+              </code>
+            ) : (
+              <code className={`block bg-muted p-3 rounded-md font-mono text-sm my-2 overflow-x-auto ${className || ''}`} {...props}>
+                {children}
+              </code>
+            )
+          },
+          pre: ({ node, ...props }) => (
+            <pre className="bg-muted p-3 rounded-md overflow-x-auto my-3" {...props} />
+          ),
+          // Custom paragraph styles
+          p: ({ node, ...props }) => (
+            <p className="my-2 leading-relaxed" {...props} />
+          ),
+          // Custom blockquote styles
+          blockquote: ({ node, ...props }) => (
+            <blockquote className="border-l-4 border-primary pl-4 italic my-3 text-muted-foreground" {...props} />
+          ),
+          // Custom link styles
+          a: ({ node, ...props }) => (
+            <a className="text-primary hover:underline" target="_blank" rel="noopener noreferrer" {...props} />
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
   )
 }
 
