@@ -280,4 +280,5 @@ All guidance based on battle-tested projects:
 
 **Framework**: SDLC 5.1.1 Complete Lifecycle  
 **Platform**: SDLC Orchestrator v1.2.0  
-**Documentation**: v1.0 (Dec 20, 2025)
+**Documentation**: v1.0 (Dec 20, 2025)  
+**Author**: Mr. Tai (taidt@mtsolution.com.vn, +84 939 116 006)

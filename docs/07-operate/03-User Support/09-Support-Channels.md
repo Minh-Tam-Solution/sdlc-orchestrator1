@@ -179,7 +179,7 @@ Team communication:
 
 **Email**:
 ```
-Platform Admin: admin@nhatquangholding.com
+Platform Admin: taidt@mtsolution.com.vn
 Subject: [SDLC] Your Issue Summary
 
 Include:
@@ -320,7 +320,7 @@ Any other information
 
 **Emergency Contact**:
 ```
-Phone: [Emergency Hotline Number]
+Phone: +84 939 116 006 (Mr. Tai)
 Available: 24/7/365
 
 When calling:
@@ -622,10 +622,11 @@ Documentation:
   API: https://sdlc.nhatquangholding.com/api/docs
 
 Support Email:
+  Primary: taidt@mtsolution.com.vn
   General: support@nhatquangholding.com
-  Admin: admin@nhatquangholding.com
+  Admin: taidt@mtsolution.com.vn
   Security: security@nhatquangholding.com
-  Emergency: emergency@nhatquangholding.com
+  Emergency: taidt@mtsolution.com.vn
   Feedback: feedback@nhatquangholding.com
 
 Platform:
@@ -633,7 +634,8 @@ Platform:
   Status Page: [URL if available]
   
 Emergency:
-  Hotline: [Number]
+  Phone: +84 939 116 006 (Mr. Tai)
+  Email: taidt@mtsolution.com.vn
   Available: 24/7/365
 ```
 
@@ -680,11 +682,12 @@ We're Here to Help! 🚀
 - Community grows stronger together
 ```
 
-**Questions about support channels?** Ask your admin or email support@nhatquangholding.com
+**Questions about support channels?** Contact Mr. Tai at taidt@mtsolution.com.vn or +84 939 116 006
 
 ---
 
 **Framework**: SDLC 5.1.1 Complete Lifecycle  
 **Platform**: SDLC Orchestrator v1.2.0  
 **Support**: Here to help you succeed  
+**Author**: Mr. Tai (taidt@mtsolution.com.vn, +84 939 116 006)  
 **Last Updated**: December 20, 2025
