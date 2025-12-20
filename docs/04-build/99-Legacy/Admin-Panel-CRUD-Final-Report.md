@@ -235,13 +235,13 @@ await audit_service.log(
 
 ### New Documents
 
-7. **docs/03-build/02-sprints/SPRINT-40-PART-1-SUMMARY.md** (575 lines)
+7. **docs/04-build/99-Legacy/Admin-Panel-CRUD-Summary.md** (575 lines)
    - Comprehensive sprint summary
    - Implementation details
    - Security implementation
    - Metrics and performance
 
-8. **docs/03-build/02-sprints/SPRINT-40-PART-1-FINAL-REPORT.md** (This document)
+8. **docs/04-build/99-Legacy/Admin-Panel-CRUD-Final-Report.md** (This document)
 
 ---
 
@@ -473,7 +473,7 @@ If issues occur in production:
 - dcdea6c: Port allocation
 
 ### Documents
-- SPRINT-40-PART-1-SUMMARY.md (575 lines)
+- Admin-Panel-CRUD-Summary.md (575 lines)
 - ADMIN-PANEL-REQUIREMENTS.md (v2.0.0)
 - ADMIN-PANEL-API-DESIGN.md (v2.0.0)
 - Security-Baseline.md (Section 12 added)

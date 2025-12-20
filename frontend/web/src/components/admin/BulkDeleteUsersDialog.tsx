@@ -206,8 +206,13 @@ export function BulkDeleteUsersDialog({
             Cancel
           </AlertDialogCancel>
           <Button
+            type="button"
             variant="destructive"
-            onClick={handleDelete}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleDelete()
+            }}
             disabled={!isConfirmValid || bulkDeleteMutation.isPending}
             className="min-w-[140px]"
           >
