@@ -32,6 +32,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { Link } from 'react-router-dom'
 import { 
   BookOpen, 
   ExternalLink, 
@@ -261,14 +262,12 @@ export default function SupportPage() {
                   <ul className="space-y-3" role="list">
                     {category.docs.map((doc) => (
                       <li key={doc.id}>
-                        <a
-                          href={doc.path}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          to={doc.path}
                           className="group flex items-start gap-2 text-base font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-sm"
-                          aria-label={`Open ${doc.title} in new tab`}
+                          aria-label={`View ${doc.title}`}
                         >
-                          <ExternalLink
+                          <BookOpen
                             className="h-4 w-4 mt-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100"
                             aria-hidden="true"
                           />
@@ -278,7 +277,7 @@ export default function SupportPage() {
                               {doc.description}
                             </div>
                           </div>
-                        </a>
+                        </Link>
                       </li>
                     ))}
                   </ul>
