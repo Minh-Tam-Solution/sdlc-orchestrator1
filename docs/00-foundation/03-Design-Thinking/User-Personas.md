@@ -1,12 +1,20 @@
 # SDLC Orchestrator - User Personas
 ## Evidence-Based Persona Development (Design Thinking: EMPATHIZE)
 
-**Version**: 1.0.0
-**Date**: November 13, 2025
+**Version**: 1.1.0
+**Date**: December 21, 2025
 **Status**: ACTIVE - VALIDATED WITH 10+ INTERVIEWS
 **Authority**: CPO + PM Approved
-**Foundation**: Product Vision 1.0.0, BRD 1.0.0
+**Foundation**: Product Vision 3.1.0, BRD 1.2.0
 **Stage**: Stage 00 (WHY) - Design Thinking EMPATHIZE Phase
+**Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v1.1.0** (Dec 21, 2025):
+- Updated framework to SDLC 5.1.1
+- Updated foundation references
+- Added EP-04/05/06 strategic context to persona needs
+- Added NQH AI Platform as technology context
+- Added AI Safety Layer governance needs
 
 ---
 
@@ -700,8 +708,9 @@ This document defines **WHO** our users are through evidence-based personas deve
 ---
 
 **Document**: SDLC-Orchestrator-User-Personas
-**Framework**: SDLC 4.8 Stage 00 (WHY) - Design Thinking EMPATHIZE
+**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking EMPATHIZE
 **Component**: User Research & Persona Development
 **Review**: Monthly with CPO (validate personas remain accurate)
+**Last Updated**: December 21, 2025
 
 *"Empathize deeply to build the RIGHT solution for the RIGHT users"* 👥
