@@ -347,8 +347,9 @@ use_cases:
 | 1 | Product Vision update | Add "Codegen Engine – Dual Mode" section to Vision v3.1 |
 | 2 | IR v0 schemas | JSON schemas: AppBlueprint, ModuleSpec, PageSpec, DataModelSpec |
 | 3 | Codegen service API v0 | 3 endpoints: `/generate/module`, `/generate/tests`, `/refactor` |
-| 4 | OSS model integration | CodeLlama 13B + DeepSeek Coder via OllamaService |
-| 5 | Non-tech founder journey | Storyboard mapping idea → MVP → deploy with SDLC artifacts |
+| 4 | OSS model integration | **qwen2.5-coder:32b** (92.7% HumanEval) via OllamaService |
+| 5 | Model Roles Strategy | Configure 5 roles: default, chat, edit, apply, autocomplete |
+| 6 | Non-tech founder journey | Storyboard mapping idea → MVP → deploy with SDLC artifacts |
 
 ### 5.2. Out of Scope (EP-06)
 
@@ -398,26 +399,55 @@ backend/app/schemas/codegen/
 | 🇻🇳 **qwen3:14b** | 9.3GB | ~4s | N/A | Vietnamese Chat |
 | 💨 **ministral-3:8b** | 6GB | ~3s | N/A | Quick Processing |
 
-#### Model Selection Strategy
+#### Model Roles Strategy (IT Admin Update - Dec 2025)
+
+```json
+{
+  "modelRoles": {
+    "default": "qwen2.5-coder:32b-instruct-q4_K_M",   // PRIMARY CODE - 92.7% HumanEval
+    "chat": "qwen2.5:32b",                            // General + Vietnamese support
+    "edit": "qwen2.5-coder:32b-instruct-q4_K_M",      // Accurate code changes
+    "apply": "qwen2.5-coder:32b-instruct-q4_K_M",     // Precise modifications
+    "autocomplete": "qwen2.5:14b-instruct"            // Fast (~4s)
+  }
+}
+```
+
+#### Task-to-Model Mapping (Aligned with Continue.dev Config)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  CODEGEN MODEL SELECTION (Leveraging IT Admin's Infrastructure)            │
+│  CODEGEN MODEL ROLES (Leveraging IT Admin's 10-Model Strategy)             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  USE CASE                           MODEL                                   │
-│  ─────────────────────────────────  ──────────────────────────────────────  │
-│  Backend API generation             qwen2.5-coder:32b (92.7% HumanEval)    │
-│  Frontend component generation      qwen2.5-coder:32b (same quality)       │
-│  Fast autocomplete                  qwen2.5:14b-instruct (~4s response)    │
-│  Vietnamese prompts/docs            qwen3:14b (excellent Vietnamese)        │
-│  Quick drafts/prototypes            qwen3:8b (<3s response)                 │
+│  ROLE              MODEL                         SPEED   PURPOSE            │
+│  ────────────────  ────────────────────────────  ──────  ─────────────────  │
+│  default/edit      qwen2.5-coder:32b-instruct    ~6s     Production code    │
+│  chat              qwen2.5:32b                   ~8s     General + Viet     │
+│  autocomplete      qwen2.5:14b-instruct          ~4s     Tab completion     │
+│  vietnamese        qwen3:14b                     ~4s     VN docs/comments   │
+│  ultra-fast        qwen3:8b                      <3s     Quick drafts       │
 │                                                                             │
-│  Continue.dev Integration:          Already configured by IT Admin!         │
-│  sdlcctl codegen:                   Will use same models via api.nqh.vn    │
+│  Continue.dev + Claude Strategy:                                            │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  • Continue.dev: Quick edits, autocomplete, <500 lines, simple tasks       │
+│  • Claude Code: Multi-file refactor, architecture, complex debug            │
+│  • Mode C Hybrid: SDLC Orchestrator handles failover seamlessly            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+#### Model Selection by Task Type
+
+| Task Type | Model | Rationale |
+|-----------|-------|-----------|
+| **Production Code** | qwen2.5-coder:32b-instruct | PRIMARY - 92.7% HumanEval, ~6s |
+| **Quick Edits** | qwen2.5:14b-instruct | Fast (~4s), replaced qwen2.5-coder:14b |
+| **Tab Autocomplete** | qwen2.5:14b-instruct | Real-time suggestions |
+| **Vietnamese Docs** | qwen3:14b | Best Vietnamese support |
+| **Ultra-fast Drafts** | qwen3:8b | Fastest (<3s) |
+| **General Chat** | qwen2.5:32b | Good bilingual support |
+| **Multi-file Refactor** | Claude Code (BYO) | Complex, needs 200K context |
 
 #### Configuration
 

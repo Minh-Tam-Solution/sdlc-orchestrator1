@@ -163,7 +163,16 @@ class Settings(BaseSettings):
     CODEGEN_MODEL_PRIMARY: str = "qwen2.5-coder:32b-instruct-q4_K_M"  # 92.7% HumanEval - PRIMARY
     CODEGEN_MODEL_FAST: str = "qwen2.5:14b-instruct"  # ~4s response for autocomplete
     CODEGEN_MODEL_VIETNAMESE: str = "qwen3:14b"  # Excellent Vietnamese support
+    CODEGEN_MODEL_CHAT: str = "qwen2.5:32b"  # General chat + Vietnamese (~8s)
+    CODEGEN_MODEL_ULTRAFAST: str = "qwen3:8b"  # Quick drafts (<3s)
     CODEGEN_TIMEOUT: int = 120  # Longer timeout for code generation
+    
+    # EP-06 Model Roles (aligned with Continue.dev config - IT Admin Dec 2025)
+    # Role mapping for different task types
+    # default/edit: qwen2.5-coder:32b-instruct - Production code
+    # chat: qwen2.5:32b - General + Vietnamese
+    # autocomplete: qwen2.5:14b-instruct - Fast tab completion
+    # See: 03_Advanced_Usage.md Section 6.1 Model Roles
 
     # Cloud AI Fallback (when Ollama unavailable)
     ANTHROPIC_API_KEY: Optional[str] = None
