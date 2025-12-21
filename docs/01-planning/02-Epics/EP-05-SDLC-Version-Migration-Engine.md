@@ -152,23 +152,84 @@ Total time: 2 minutes 34 seconds (vs 44+ hours manual)
 
 ### SDLC Version Configuration
 
+> **Note:** SDLC Orchestrator uses the **official SDLC 5.1 folder naming convention** (e.g., `00-Project-Foundation`, not `00-foundation`). For large projects that use legacy/short folder names, the migration engine supports custom folder name mappings via `folder_aliases`.
+
 ```yaml
 # config/sdlc_versions/5.1.yaml
 version: "5.1.0"
 release_date: "2025-12-11"
 
+# Official SDLC 5.1 Stage Definitions (10 stages)
 stages:
   "00":
     name: "Foundation"
     category: "WHY"
-    folder: "00-Project-Foundation"
+    folder: "00-Project-Foundation"          # Official SDLC 5.1 naming
     description: "Vision, business case, requirements"
   "01":
     name: "Planning"
     category: "WHAT"
     folder: "01-Planning-Analysis"
     description: "Backlog, roadmap, sprint planning"
-  # ... 10 stages total
+  "02":
+    name: "Design"
+    category: "HOW"
+    folder: "02-Design-Architecture"
+    description: "Architecture, database, API specs"
+  "03":
+    name: "Integration"
+    category: "CONNECT"
+    folder: "03-Integration-APIs"
+    description: "API contracts, service integration"
+  "04":
+    name: "Development"
+    category: "BUILD"
+    folder: "04-Development-Implementation"
+    description: "Implementation, coding"
+  "05":
+    name: "Testing"
+    category: "VERIFY"
+    folder: "05-Testing-Quality"
+    description: "Unit, integration, E2E testing"
+  "06":
+    name: "Deployment"
+    category: "RELEASE"
+    folder: "06-Deployment-Release"
+    description: "CI/CD, infrastructure, releases"
+  "07":
+    name: "Operations"
+    category: "OPERATE"
+    folder: "07-Operations-Maintenance"
+    description: "Monitoring, maintenance, support"
+  "08":
+    name: "Collaboration"
+    category: "TEAMWORK"
+    folder: "08-Team-Management"
+    description: "Team mgmt, sprint reports, compliance"
+  "09":
+    name: "Governance"
+    category: "GOVERN"
+    folder: "09-Executive-Reports"
+    description: "Executive reports, strategic oversight"
+
+# Legacy/Custom Folder Name Aliases (for large projects like Bflow)
+# Maps non-standard folder names to official SDLC 5.1 stages
+folder_aliases:
+  # Short names (Bflow legacy pattern)
+  "00-foundation": "00"
+  "01-planning": "01"
+  "02-design": "02"
+  "03-integration": "03"
+  "04-development": "04"
+  "05-testing": "05"
+  "06-deployment": "06"
+  "07-operations": "07"
+  "08-collaboration": "08"
+  "09-governance": "09"
+  # Alternative naming patterns
+  "00-Project-Foundations": "00"      # Typo with 's'
+  "05-Deployment-Operations": "06"    # Old SDLC 4.x naming
+  "06-Maintenance-Support": "07"      # Old SDLC 4.x naming
 
 header_requirements:
   python:
@@ -194,6 +255,12 @@ upgrade_paths:
     new_features:
       - "SASE Artifacts"
       - "Agentic Maturity Model"
+
+# Project-specific overrides (optional)
+project_config:
+  # For projects that can't rename folders (like Bflow)
+  preserve_folder_names: false        # Set to true to skip folder renames
+  rename_folders_to_standard: true    # Rename to official SDLC 5.1 names
 ```
 
 ---
