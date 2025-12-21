@@ -18,7 +18,7 @@ Tôi, với vai trò CTO, **PHÊ DUYỆT** Product Roadmap 2026 - Software 3.0 D
 **Từ:** "Project Governance Tool"  
 **Sang:** "AI-Native SDLC Governance & Safety Platform"
 
-**Tagline:** *"The control plane that keeps Cursor/Copilot compliant with your architecture & standards."*
+**Tagline:** *"The control plane that keeps Claude Code/Cursor/Copilot compliant with your architecture & standards."*
 
 **Rationale:**
 - AI dev tools (Cursor, Copilot, Claude Code) đang tạo ra governance gaps
