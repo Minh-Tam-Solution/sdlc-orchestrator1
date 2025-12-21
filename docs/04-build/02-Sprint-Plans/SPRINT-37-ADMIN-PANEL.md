@@ -22,11 +22,11 @@
 Sprint 37 implements the Admin Panel feature for SDLC Orchestrator platform administrators. This sprint delivers user management, audit logging, system health monitoring, and configuration management capabilities.
 
 **Design Documents** (Pending CTO Approval):
-- [ADMIN-PANEL-REQUIREMENTS.md](../../02-design/08-Admin-Panel/ADMIN-PANEL-REQUIREMENTS.md)
-- [ADMIN-PANEL-API-DESIGN.md](../../02-design/08-Admin-Panel/ADMIN-PANEL-API-DESIGN.md)
-- [ADMIN-PANEL-UI-SPECIFICATION.md](../../02-design/08-Admin-Panel/ADMIN-PANEL-UI-SPECIFICATION.md)
-- [ADMIN-PANEL-SECURITY-REVIEW.md](../../02-design/08-Admin-Panel/ADMIN-PANEL-SECURITY-REVIEW.md)
-- [ADR-017-ADMIN-PANEL-ARCHITECTURE.md](../../02-design/03-ADRs/ADR-017-ADMIN-PANEL-ARCHITECTURE.md)
+- [ADMIN-PANEL-REQUIREMENTS.md](../../02-design/10-Admin-Panel-Design/ADMIN-PANEL-REQUIREMENTS.md)
+- [ADMIN-PANEL-API-DESIGN.md](../../02-design/10-Admin-Panel-Design/ADMIN-PANEL-API-DESIGN.md)
+- [ADMIN-PANEL-UI-SPECIFICATION.md](../../02-design/10-Admin-Panel-Design/ADMIN-PANEL-UI-SPECIFICATION.md)
+- [ADMIN-PANEL-SECURITY-REVIEW.md](../../02-design/10-Admin-Panel-Design/ADMIN-PANEL-SECURITY-REVIEW.md)
+- [ADR-017-ADMIN-PANEL-ARCHITECTURE.md](../../02-design/01-ADRs/ADR-017-ADMIN-PANEL-ARCHITECTURE.md)
 
 ---
 

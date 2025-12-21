@@ -421,8 +421,8 @@ CREATE INDEX idx_tasks_session ON decomposed_tasks(session_id);
 
 ## 10. References
 
-- [ADR-011: AI Governance Layer](../../02-Design-Architecture/03-ADRs/ADR-011-AI-Governance-Layer.md)
-- [ADR-012: Context-Aware Requirements](../../02-Design-Architecture/03-ADRs/ADR-012-Context-Aware-Requirements.md)
+- [ADR-011: AI Governance Layer](../../02-design/01-ADRs/ADR-011-AI-Governance-Layer.md)
+- [ADR-012: Context-Aware Requirements](../../02-design/01-ADRs/ADR-012-Context-Aware-Requirements.md)
 - [Product Roadmap v3.0.0](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
 - [Sprint 26 Plan](../02-Sprint-Plans/SPRINT-26-AI-COUNCIL-SERVICE.md)
 

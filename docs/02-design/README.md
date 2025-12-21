@@ -21,45 +21,69 @@ This stage transforms requirements (Stage 01 - WHAT) into technical architecture
 
 ---
 
-## Folder Structure (SDLC 4.9.1 Compliant)
+## Folder Structure (SDLC 5.1.1 Compliant)
 
 ```
-02-Design-Architecture/
+02-design/
 ├── README.md (this file)
-├── 01-System-Architecture/
+├── 01-ADRs/ (Architecture Decision Records - Consolidated)
+│   ├── ADR-001 to ADR-019 (15 ADRs total) ✅
+│   └── All architecture decisions in one place
+├── 02-System-Architecture/
 │   ├── System-Architecture-Document.md ✅
-│   ├── Component-Diagram.md ✅
-│   └── ADRs/ (Architecture Decision Records) ✅
-├── 02-Database-Design/
-│   ├── Database-Architecture.md ✅
-│   └── Alembic-Migration-Strategy.md ✅
-├── 03-API-Design/
-│   ├── openapi.yml (139KB, 30+ endpoints) ✅
+│   ├── Component-Architecture.md ✅
+│   ├── Technical-Design-Document.md ✅
+│   ├── Integration-Architecture.md ✅
+│   ├── Event-Driven-Architecture.md ✅
+│   └── C4-ARCHITECTURE-DIAGRAMS.md ✅
+├── 03-Database-Design/
+│   └── Database-Architecture.md ✅
+├── 04-API-Design/
 │   ├── API-DEVELOPER-GUIDE.md ✅
+│   ├── API-CHANGELOG.md ✅
+│   ├── API-Frontend-Validation-Checklist.md ✅
 │   ├── CURL-EXAMPLES.md ✅
+│   ├── OPENAPI-ENHANCEMENT-SUMMARY.md ✅
 │   └── TROUBLESHOOTING-GUIDE.md ✅
-├── 04-Interface-Design/
+├── 05-Interface-Design/
 │   └── Interface-Design-Document.md ✅
-├── 05-Data-Architecture/
+├── 06-Data-Architecture/
 │   └── Data-Flow-Architecture.md ✅
-├── 06-Security-RBAC/
+├── 07-Security-Design/
 │   ├── Security-Baseline.md (OWASP ASVS Level 2) ✅
 │   └── SOC2-TYPE-I-CONTROLS-MATRIX.md ✅
-├── 07-User-Experience/
+├── 08-User-Experience/
 │   ├── User-Onboarding-Flow-Architecture.md ✅
 │   └── GitHub-Integration-Design-Clarification.md ✅
-├── 08-DevOps-Architecture/
-│   ├── CI-CD-Pipeline.md ✅
-│   └── Infrastructure-as-Code.md ✅
-├── 09-Performance-Architecture/
-│   ├── Performance-Baseline.md ✅
-│   └── Caching-Strategy.md ✅
-├── 10-Testing-Strategy/
+├── 09-UI-Design/
+│   ├── FRONTEND-DESIGN-SPECIFICATION.md ✅
+│   ├── AI-COUNCIL-CHAT-DESIGN.md ✅
+│   ├── DESIGN-EVIDENCE-LOG.md ✅
+│   └── Support-Page-Design.md ✅
+├── 10-Admin-Panel-Design/
+│   ├── ADMIN-PANEL-REQUIREMENTS.md ✅
+│   ├── ADMIN-PANEL-API-DESIGN.md ✅
+│   ├── ADMIN-PANEL-UI-SPECIFICATION.md ✅
+│   └── ADMIN-PANEL-SECURITY-REVIEW.md ✅
+├── 11-DevOps-Design/
+│   ├── Infrastructure-Architecture.md ✅
+│   ├── Network-Architecture.md ✅
+│   ├── Monitoring-Observability-Architecture.md ✅
+│   ├── Operability-Architecture.md ✅
+│   └── Disaster-Recovery-Plan.md ✅
+├── 12-Performance-Design/
+│   ├── Performance-Budget.md ✅
+│   └── Scalability-Architecture.md ✅
+├── 13-Testing-Strategy/
 │   └── Testing-Architecture.md ✅
-├── 11-UI-UX-Design/
-│   └── Wireframes.md ✅
+├── 14-Technical-Specs/
+│   ├── AI-Safety-Layer-v1.md ✅
+│   ├── AI-Detection-Service-Interface.md ✅
+│   ├── Analytics-Events-Taxonomy-v1.md ✅
+│   ├── Design-Partner-Scorecard-v1.md ✅
+│   └── Workshop-Deck-AI-Safety-v1.md ✅
 └── 99-Legacy/
-    └── (archived planning docs)
+    └── (archived docs, duplicate ADRs)
 ```
 
 ---
@@ -105,50 +129,77 @@ This stage transforms requirements (Stage 01 - WHAT) into technical architecture
 
 ## Progress Tracker
 
-### 01-System-Architecture (100% complete)
+### 01-ADRs (100% complete)
+- ✅ ADR-001 to ADR-019 (15 Architecture Decision Records)
+- ✅ All decisions consolidated in single folder
+
+### 02-System-Architecture (100% complete)
 - ✅ System-Architecture-Document.md (568 lines, 4-layer architecture)
-- ✅ Component-Diagram.md (bridge-first pattern)
-- ✅ ADRs/ (7 Architecture Decision Records)
+- ✅ Component-Architecture.md (bridge-first pattern)
+- ✅ Technical-Design-Document.md
+- ✅ Integration-Architecture.md
+- ✅ Event-Driven-Architecture.md
+- ✅ C4-ARCHITECTURE-DIAGRAMS.md
 
-### 02-Database-Design (100% complete)
+### 03-Database-Design (100% complete)
 - ✅ Database-Architecture.md (24 tables, 6-layer design)
-- ✅ Alembic-Migration-Strategy.md
 
-### 03-API-Design (100% complete)
-- ✅ openapi.yml (139KB, 30+ endpoints)
+### 04-API-Design (100% complete)
 - ✅ API-DEVELOPER-GUIDE.md
+- ✅ API-CHANGELOG.md
+- ✅ API-Frontend-Validation-Checklist.md
 - ✅ CURL-EXAMPLES.md
+- ✅ OPENAPI-ENHANCEMENT-SUMMARY.md
 - ✅ TROUBLESHOOTING-GUIDE.md
 
-### 04-Interface-Design (100% complete)
+### 05-Interface-Design (100% complete)
 - ✅ Interface-Design-Document.md
 
-### 05-Data-Architecture (100% complete)
+### 06-Data-Architecture (100% complete)
 - ✅ Data-Flow-Architecture.md
 
-### 06-Security-RBAC (100% complete)
+### 07-Security-Design (100% complete)
 - ✅ Security-Baseline.md (OWASP ASVS Level 2, 264/264)
 - ✅ SOC2-TYPE-I-CONTROLS-MATRIX.md
 
-### 07-User-Experience (100% complete)
+### 08-User-Experience (100% complete)
 - ✅ User-Onboarding-Flow-Architecture.md (<30 min TTFV)
 - ✅ GitHub-Integration-Design-Clarification.md
 
-### 08-DevOps-Architecture (100% complete)
-- ✅ CI-CD-Pipeline.md (GitHub Actions)
-- ✅ Infrastructure-as-Code.md (Terraform + Kubernetes)
+### 09-UI-Design (100% complete)
+- ✅ FRONTEND-DESIGN-SPECIFICATION.md
+- ✅ AI-COUNCIL-CHAT-DESIGN.md
+- ✅ DESIGN-EVIDENCE-LOG.md
+- ✅ Support-Page-Design.md
 
-### 09-Performance-Architecture (100% complete)
-- ✅ Performance-Baseline.md (<100ms p95 target)
-- ✅ Caching-Strategy.md (Redis layer)
+### 10-Admin-Panel-Design (100% complete)
+- ✅ ADMIN-PANEL-REQUIREMENTS.md (v2.0.0)
+- ✅ ADMIN-PANEL-API-DESIGN.md (v2.0.0)
+- ✅ ADMIN-PANEL-UI-SPECIFICATION.md (v1.0.0)
+- ✅ ADMIN-PANEL-SECURITY-REVIEW.md (v1.0.0)
 
-### 10-Testing-Strategy (100% complete)
+### 11-DevOps-Design (100% complete)
+- ✅ Infrastructure-Architecture.md
+- ✅ Network-Architecture.md
+- ✅ Monitoring-Observability-Architecture.md
+- ✅ Operability-Architecture.md
+- ✅ Disaster-Recovery-Plan.md
+
+### 12-Performance-Design (100% complete)
+- ✅ Performance-Budget.md (<100ms p95 target)
+- ✅ Scalability-Architecture.md
+
+### 13-Testing-Strategy (100% complete)
 - ✅ Testing-Architecture.md (95%+ coverage target)
 
-### 11-UI-UX-Design (100% complete)
-- ✅ Wireframes.md (Dashboard, Gates, Evidence)
+### 14-Technical-Specs (100% complete)
+- ✅ AI-Safety-Layer-v1.md
+- ✅ AI-Detection-Service-Interface.md
+- ✅ Analytics-Events-Taxonomy-v1.md
+- ✅ Design-Partner-Scorecard-v1.md
+- ✅ Workshop-Deck-AI-Safety-v1.md
 
-**Overall Progress**: ✅ 100% (24 documents complete)
+**Overall Progress**: ✅ 100% (60+ documents complete)
 
 ---
 
@@ -529,10 +580,10 @@ The Admin Panel provides platform-level user management for superusers:
 
 | Feature | Folder | Status |
 |---------|--------|--------|
-| Requirements | 08-Admin-Panel/ADMIN-PANEL-REQUIREMENTS.md | ✅ v2.0.0 |
-| API Design | 08-Admin-Panel/ADMIN-PANEL-API-DESIGN.md | ✅ v2.0.0 |
-| UI Specification | 08-Admin-Panel/ADMIN-PANEL-UI-SPECIFICATION.md | ✅ v1.0.0 |
-| Security Review | 08-Admin-Panel/ADMIN-PANEL-SECURITY-REVIEW.md | ✅ v1.0.0 |
+| Requirements | 10-Admin-Panel-Design/ADMIN-PANEL-REQUIREMENTS.md | ✅ v2.0.0 |
+| API Design | 10-Admin-Panel-Design/ADMIN-PANEL-API-DESIGN.md | ✅ v2.0.0 |
+| UI Specification | 10-Admin-Panel-Design/ADMIN-PANEL-UI-SPECIFICATION.md | ✅ v1.0.0 |
+| Security Review | 10-Admin-Panel-Design/ADMIN-PANEL-SECURITY-REVIEW.md | ✅ v1.0.0 |
 
 ### Implementation Summary
 

@@ -220,16 +220,16 @@ await audit_service.log(
    - Added Admin Panel section
    - Referenced ADR-017
 
-4. **docs/02-design/08-Admin-Panel/ADMIN-PANEL-REQUIREMENTS.md**
+4. **docs/02-design/10-Admin-Panel-Design/ADMIN-PANEL-REQUIREMENTS.md**
    - Updated status: DRAFT → IMPLEMENTED
    - Added Sprint 37-40 timeline
 
-5. **docs/02-design/08-Admin-Panel/ADMIN-PANEL-API-DESIGN.md**
+5. **docs/02-design/10-Admin-Panel-Design/ADMIN-PANEL-API-DESIGN.md**
    - Added POST /admin/users specification
    - Updated DELETE with soft delete schema
    - Added test coverage section
 
-6. **docs/02-design/06-Security-RBAC/Security-Baseline.md**
+6. **docs/02-design/07-Security-Design/Security-Baseline.md**
    - Added Section 12: Platform Admin Security
    - Authorization model, password policy, soft delete
 

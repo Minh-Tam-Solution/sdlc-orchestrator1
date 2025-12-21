@@ -1913,7 +1913,7 @@ Response (400 Bad Request - Regression Tests Failed):
 
 **Business Value**: Enable any PM to apply CEO-level governance decisions automatically.
 
-**ADR Reference**: [ADR-011-Context-Aware-Requirements](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-011-Context-Aware-Requirements.md)
+**ADR Reference**: [ADR-011-Context-Aware-Requirements](../../02-design/01-ADRs/ADR-011-Context-Aware-Requirements.md)
 
 ---
 
@@ -1966,7 +1966,7 @@ Response (400 Bad Request - Regression Tests Failed):
 
 **Business Value**: Reduce PM task decomposition time from 30-45min to <2min with same quality.
 
-**ADR Reference**: [ADR-012-AI-Task-Decomposition](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-012-AI-Task-Decomposition.md)
+**ADR Reference**: [ADR-012-AI-Task-Decomposition](../../02-design/01-ADRs/ADR-012-AI-Task-Decomposition.md)
 
 ---
 
@@ -2020,7 +2020,7 @@ Response (400 Bad Request - Regression Tests Failed):
 
 **Business Value**: Full traceability from code commit to business value.
 
-**ADR Reference**: [ADR-013-Planning-Hierarchy](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-013-Planning-Hierarchy.md)
+**ADR Reference**: [ADR-013-Planning-Hierarchy](../../02-design/01-ADRs/ADR-013-Planning-Hierarchy.md)
 
 ---
 
@@ -2072,7 +2072,7 @@ Response (400 Bad Request - Regression Tests Failed):
 
 **Business Value**: Consistent project structure across all repositories.
 
-**ADR Reference**: [ADR-014-SDLC-Structure-Validator](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-014-SDLC-Structure-Validator.md)
+**ADR Reference**: [ADR-014-SDLC-Structure-Validator](../../02-design/01-ADRs/ADR-014-SDLC-Structure-Validator.md)
 
 ---
 

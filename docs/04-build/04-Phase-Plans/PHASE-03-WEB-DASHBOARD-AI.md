@@ -489,8 +489,8 @@ CREATE INDEX idx_backlog_project ON backlog_items(project_id);
 
 ## 7. References
 
-- [ADR-012: Context-Aware Requirements](../../02-Design-Architecture/03-ADRs/ADR-012-Context-Aware-Requirements.md)
-- [ADR-013: 4-Level Planning Hierarchy](../../02-Design-Architecture/03-ADRs/ADR-013-Planning-Hierarchy.md)
+- [ADR-012: Context-Aware Requirements](../../02-design/01-ADRs/ADR-012-Context-Aware-Requirements.md)
+- [ADR-013: 4-Level Planning Hierarchy](../../02-design/01-ADRs/ADR-013-Planning-Hierarchy.md)
 - [Product Roadmap v3.0.0](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
 - [Sprint 28 Plan](../02-Sprint-Plans/SPRINT-28-WEB-DASHBOARD-AI.md)
 

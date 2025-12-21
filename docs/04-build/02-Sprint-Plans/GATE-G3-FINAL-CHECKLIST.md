@@ -37,7 +37,7 @@ Sprint 33 successfully delivered a **production-ready SDLC Orchestrator** with *
 | **Evidence Vault** | ✅ PASS | [Database Tables](SPRINT-33-DAY4-STATUS-REPORT.md#database-status) | 46 evidence records, MinIO S3 operational |
 | **Policy Engine (OPA)** | ✅ PASS | [Day 3 Deployment](../09-govern/01-CTO-Reports/2025-12-16-CTO-SPRINT-33-DAY3-STATUS.md) | 110 policies loaded, real-time evaluation |
 | **GitHub Integration** | ✅ PASS | [System Architecture](../../02-Design-Architecture/System-Architecture-Document.md) | Read-only sync (Issues, PRs, Projects) |
-| **AI Context Engine** | ✅ PASS | [Ollama Integration](../../02-Design-Architecture/03-ADRs/ADR-007-AI-Context-Engine-Ollama-Integration.md) | Multi-provider fallback, <100ms latency |
+| **AI Context Engine** | ✅ PASS | [Ollama Integration](../../02-design/01-ADRs/ADR-007-AI-Context-Engine-Ollama-Integration.md) | Multi-provider fallback, <100ms latency |
 | **Compliance Scanning** | ✅ PASS | [Database Schema](SPRINT-33-DAY4-STATUS-REPORT.md#database-status) | Real-time scanning, violation management |
 | **Dashboard (React)** | ✅ PASS | [External Access](SPRINT-33-DAY4-STATUS-REPORT.md#external-access-verification) | https://sdlc.nqh.vn accessible, shadcn/ui |
 

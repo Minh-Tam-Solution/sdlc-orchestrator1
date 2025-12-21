@@ -604,7 +604,7 @@ Branch protection rules:
 
 ## 10. References
 
-- [ADR-014: SDLC Structure Validator](../../02-Design-Architecture/03-ADRs/ADR-014-SDLC-Validator.md)
+- [ADR-014: SDLC Structure Validator](../../02-design/01-ADRs/ADR-014-SDLC-Validator.md)
 - [SDLC 5.0.0 Framework](../../../SDLC-Enterprise-Framework/)
 - [Product Roadmap v3.0.0](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
 - [Sprint 29 Detailed Plan](../02-Sprint-Plans/SPRINT-29-SDLC-VALIDATOR-CLI.md)

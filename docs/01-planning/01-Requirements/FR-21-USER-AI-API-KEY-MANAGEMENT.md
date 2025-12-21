@@ -366,7 +366,7 @@ CREATE INDEX idx_user_ai_providers_user_valid ON user_ai_providers(user_id, is_v
 ## Related Documents
 
 - [CTO/CPO Review](./../../09-Executive-Reports/01-CTO-Reports/2025-12-13-CTO-CPO-PLAN-REVIEW.md)
-- [ADR-007: AI Context Engine](./../../02-Design-Architecture/03-ADRs/ADR-007-AI-Context-Engine.md)
+- [ADR-007: AI Context Engine](./../../02-design/01-ADRs/ADR-007-AI-Context-Engine.md)
 - [Security Baseline](./../../02-Design-Architecture/Security-Baseline.md)
 
 ---

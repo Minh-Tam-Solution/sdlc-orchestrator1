@@ -244,7 +244,7 @@ Reviewer: CTO
 
 Acceptance Criteria:
   - [ ] Check if ADR-008, ADR-009, ADR-010 decisions exist
-  - [ ] If yes: Document in /docs/02-Design-Architecture/01-System-Architecture/Architecture-Decisions/
+  - [ ] If yes: Document in /docs/02-design/01-ADRs/
   - [ ] If no: Add placeholder or note in ADR index
   - [ ] Update ADR index with status
 
@@ -766,7 +766,7 @@ Risks:
 - [Monitoring Setup Guide](../../05-Deployment-Release/MONITORING-OBSERVABILITY-GUIDE.md)
 
 **Security**:
-- [Security Baseline (OWASP ASVS L2)](../../02-Design-Architecture/06-Security-RBAC/Security-Baseline.md)
+- [Security Baseline (OWASP ASVS L2)](../../02-design/07-Security-Design/Security-Baseline.md)
 - [OWASP ASVS L2 Checklist](../../05-Deployment-Release/OWASP-ASVS-L2-SECURITY-CHECKLIST.md)
 
 ---

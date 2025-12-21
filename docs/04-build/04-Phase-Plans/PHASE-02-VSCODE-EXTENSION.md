@@ -412,7 +412,7 @@ sdlc-orchestrator-vscode/
 
 ## 10. References
 
-- [ADR-009: VS Code Extension Architecture](../../02-Design-Architecture/03-ADRs/ADR-009-VSCode-Extension.md) (to be created)
+- [ADR-009: VS Code Extension Architecture](../../02-design/01-ADRs/ADR-009-VSCode-Extension.md) (to be created)
 - [Product Roadmap v3.0.0](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
 - [Sprint 27 Plan](../02-Sprint-Plans/SPRINT-27-VSCODE-EXTENSION.md)
 - [VS Code Extension API](https://code.visualstudio.com/api)

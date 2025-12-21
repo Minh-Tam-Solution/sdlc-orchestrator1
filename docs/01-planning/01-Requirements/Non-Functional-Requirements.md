@@ -601,10 +601,10 @@ And violations listed with fix suggestions
 **Related Documents**:
 - [Functional Requirements Document](./Functional-Requirements-Document.md) (v2.0.0)
 - [Product Roadmap](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
-- [ADR-011-Context-Aware-Requirements](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-011-Context-Aware-Requirements.md)
-- [ADR-012-AI-Task-Decomposition](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-012-AI-Task-Decomposition.md)
-- [ADR-013-Planning-Hierarchy](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-013-Planning-Hierarchy.md)
-- [ADR-014-SDLC-Structure-Validator](../../02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-014-SDLC-Structure-Validator.md)
+- [ADR-011-Context-Aware-Requirements](../../02-design/01-ADRs/ADR-011-Context-Aware-Requirements.md)
+- [ADR-012-AI-Task-Decomposition](../../02-design/01-ADRs/ADR-012-AI-Task-Decomposition.md)
+- [ADR-013-Planning-Hierarchy](../../02-design/01-ADRs/ADR-013-Planning-Hierarchy.md)
+- [ADR-014-SDLC-Structure-Validator](../../02-design/01-ADRs/ADR-014-SDLC-Structure-Validator.md)
 
 ---
 

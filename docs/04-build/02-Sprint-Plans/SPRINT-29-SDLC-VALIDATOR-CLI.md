@@ -457,7 +457,7 @@ Optimization Techniques:
 
 - [PHASE-04: SDLC Structure Validator](../04-Phase-Plans/PHASE-04-SDLC-VALIDATOR.md)
 - [SDLC 5.0.0 Framework](../../../SDLC-Enterprise-Framework/)
-- [ADR-014: SDLC Structure Validator](../../02-Design-Architecture/03-ADRs/ADR-014-SDLC-Validator.md)
+- [ADR-014: SDLC Structure Validator](../../02-design/01-ADRs/ADR-014-SDLC-Validator.md)
 
 ---
 

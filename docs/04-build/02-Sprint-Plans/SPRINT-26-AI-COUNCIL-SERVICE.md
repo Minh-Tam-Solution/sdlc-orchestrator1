@@ -333,7 +333,7 @@ async def test_auto_fallback_on_timeout():
 | # | Task | File | Est. | Owner | Status |
 |---|------|------|------|-------|--------|
 | 5.1 | Update OpenAPI spec | `docs/02-Design-Architecture/03-API-Design/openapi.yml` | 1h | BE | ✅ DONE |
-| 5.2 | Create ADR-015 | `docs/02-Design-Architecture/01-System-Architecture/Architecture-Decisions/ADR-015-AI-Council-Testing.md` | 1h | BE | ✅ DONE |
+| 5.2 | Create ADR-015 | `docs/02-design/01-ADRs/ADR-015-AI-Council-Testing.md` | 1h | BE | ✅ DONE |
 | 5.3 | CTO Sign-off Report | `docs/09-Executive-Reports/01-CTO-Reports/2025-12-04-CTO-SPRINT-26-FINAL-SIGNOFF.md` | 1h | BE | ✅ DONE |
 | 5.4 | Update Sprint Plan | This document | 0.5h | BE | ✅ DONE |
 
