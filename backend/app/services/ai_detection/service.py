@@ -5,6 +5,7 @@ SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
 Framework: SDLC 5.1.1
 Epic: EP-02 AI Safety Layer v1
+CTO Review: P1 Metrics Integrated
 
 Purpose:
 Orchestrate multiple AI detection strategies with weighted voting.
@@ -15,11 +16,13 @@ Architecture:
 - Weighted voting: Metadata (40%), Commit (40%), Pattern (20%)
 - Decision threshold: 0.50 confidence
 - Async/await for performance
+- Prometheus metrics for observability
 
 Performance Target: <600ms p95 latency
 """
 
 import asyncio
+import logging
 import time
 from typing import List, Tuple
 
@@ -27,6 +30,23 @@ from . import AIDetectionResult, AIDetectionService, DetectionMethod, DetectionR
 from .commit_detector import CommitDetector
 from .metadata_detector import MetadataDetector
 from .pattern_detector import PatternDetector
+
+# Structured logging (CTO P2)
+logger = logging.getLogger(__name__)
+
+# Import metrics (may fail in test environment)
+try:
+    from app.middleware.ai_detection_metrics import (
+        record_detection_error,
+        record_detection_request,
+        record_detection_result,
+        record_strategy_result,
+    )
+
+    METRICS_ENABLED = True
+except ImportError:
+    METRICS_ENABLED = False
+    logger.warning("Prometheus metrics not available - running without metrics")
 
 
 class GitHubAIDetectionService(AIDetectionService):
@@ -68,6 +88,7 @@ class GitHubAIDetectionService(AIDetectionService):
         2. Calculate weighted confidence score
         3. Determine detected tool (highest confidence wins)
         4. Aggregate evidence from all detectors
+        5. Record Prometheus metrics (CTO P1)
 
         Args:
             pr_data: GitHub PR object (title, body, labels, etc.)
@@ -84,59 +105,150 @@ class GitHubAIDetectionService(AIDetectionService):
         """
         start_time = time.time()
 
-        # Run all detectors in parallel
-        tasks = [
-            detector.detect(pr_data, commits, diff) for detector, _ in self.detectors
-        ]
-        results = await asyncio.gather(*tasks)
+        # Record detection request (CTO P1)
+        if METRICS_ENABLED:
+            record_detection_request()
 
-        # Calculate weighted confidence
-        total_confidence = sum(
-            result.confidence * weight
-            for result, (_, weight) in zip(results, self.detectors)
+        # Structured logging (CTO P2)
+        logger.info(
+            "Starting AI detection",
+            extra={
+                "pr_title": pr_data.get("title", "")[:50],
+                "commit_count": len(commits),
+                "diff_size": len(diff),
+            },
         )
 
-        # Determine detected tool (highest confidence wins)
-        detected_results = [r for r in results if r.detected]
-        detected_tool = None
-        detected_model = None
+        try:
+            # Run all detectors in parallel with timing
+            strategy_times = {}
+            tasks = []
+            for detector, _ in self.detectors:
+                tasks.append(self._run_detector_with_timing(detector, pr_data, commits, diff, strategy_times))
 
-        if detected_results:
-            best_result = max(detected_results, key=lambda x: x.confidence)
-            detected_tool = best_result.tool
-            # Try to extract model from metadata evidence
-            if best_result.method == DetectionMethod.METADATA:
-                detected_model = self._extract_model_from_evidence(
-                    best_result.evidence
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Handle exceptions from individual detectors
+            processed_results = []
+            strategy_names = ["metadata", "commit", "pattern"]
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logger.error(
+                        f"Detector {strategy_names[i]} failed: {result}",
+                        exc_info=True,
+                    )
+                    if METRICS_ENABLED:
+                        record_detection_error(strategy_names[i], type(result).__name__)
+                    # Use empty result on error
+                    processed_results.append(DetectionResult(
+                        detected=False,
+                        confidence=0.0,
+                        tool=None,
+                        method=DetectionMethod.METADATA,
+                        evidence={"error": str(result)},
+                    ))
+                else:
+                    processed_results.append(result)
+                    # Record strategy metrics (CTO P1)
+                    if METRICS_ENABLED:
+                        record_strategy_result(
+                            strategy=strategy_names[i],
+                            confidence=result.confidence,
+                            duration_seconds=strategy_times.get(strategy_names[i], 0),
+                        )
+
+            # Calculate weighted confidence
+            total_confidence = sum(
+                result.confidence * weight
+                for result, (_, weight) in zip(processed_results, self.detectors)
+            )
+
+            # Determine detected tool (highest confidence wins)
+            detected_results = [r for r in processed_results if r.detected]
+            detected_tool = None
+            detected_model = None
+
+            if detected_results:
+                best_result = max(detected_results, key=lambda x: x.confidence)
+                detected_tool = best_result.tool
+                # Try to extract model from metadata evidence
+                if best_result.method == DetectionMethod.METADATA:
+                    detected_model = self._extract_model_from_evidence(
+                        best_result.evidence
+                    )
+
+            # Aggregate evidence from all detectors
+            combined_evidence = {
+                "metadata": processed_results[0].evidence,
+                "commit": processed_results[1].evidence,
+                "pattern": processed_results[2].evidence,
+                "weights": {"metadata": 0.4, "commit": 0.4, "pattern": 0.2},
+                "individual_confidences": {
+                    "metadata": processed_results[0].confidence,
+                    "commit": processed_results[1].confidence,
+                    "pattern": processed_results[2].confidence,
+                },
+                "strategy_durations_ms": {
+                    k: int(v * 1000) for k, v in strategy_times.items()
+                },
+            }
+
+            # Calculate duration
+            duration_seconds = time.time() - start_time
+            duration_ms = int(duration_seconds * 1000)
+
+            # Record detection result metrics (CTO P1)
+            if METRICS_ENABLED:
+                record_detection_result(
+                    detected=total_confidence > 0.50,
+                    tool=detected_tool,
+                    method=DetectionMethod.COMBINED,
+                    confidence=total_confidence,
+                    duration_seconds=duration_seconds,
                 )
 
-        # Aggregate evidence from all detectors
-        combined_evidence = {
-            "metadata": results[0].evidence,
-            "commit": results[1].evidence,
-            "pattern": results[2].evidence,
-            "weights": {"metadata": 0.4, "commit": 0.4, "pattern": 0.2},
-            "individual_confidences": {
-                "metadata": results[0].confidence,
-                "commit": results[1].confidence,
-                "pattern": results[2].confidence,
-            },
-        }
+            # Structured logging (CTO P2)
+            logger.info(
+                "AI detection completed",
+                extra={
+                    "is_ai_generated": total_confidence > 0.50,
+                    "confidence": round(total_confidence, 3),
+                    "detected_tool": detected_tool.value if detected_tool else None,
+                    "duration_ms": duration_ms,
+                },
+            )
 
-        # Calculate duration
-        duration_ms = int((time.time() - start_time) * 1000)
+            return AIDetectionResult(
+                is_ai_generated=total_confidence > 0.50,
+                confidence=total_confidence,
+                detected_tool=detected_tool,
+                detected_model=detected_model,
+                detected_model_version=None,
+                detection_method=DetectionMethod.COMBINED,
+                strategies_used=["metadata", "commit", "pattern"],
+                detection_evidence=combined_evidence,
+                detection_duration_ms=duration_ms,
+            )
 
-        return AIDetectionResult(
-            is_ai_generated=total_confidence > 0.50,
-            confidence=total_confidence,
-            detected_tool=detected_tool,
-            detected_model=detected_model,
-            detected_model_version=None,
-            detection_method=DetectionMethod.COMBINED,
-            strategies_used=["metadata", "commit", "pattern"],
-            detection_evidence=combined_evidence,
-            detection_duration_ms=duration_ms,
-        )
+        except Exception as e:
+            logger.error(f"AI detection failed: {e}", exc_info=True)
+            if METRICS_ENABLED:
+                record_detection_error("combined", type(e).__name__)
+            raise
+
+    async def _run_detector_with_timing(
+        self,
+        detector,
+        pr_data: dict,
+        commits: List[dict],
+        diff: str,
+        timing_dict: dict,
+    ) -> DetectionResult:
+        """Run a detector and record its execution time."""
+        start = time.time()
+        result = await detector.detect(pr_data, commits, diff)
+        timing_dict[detector.get_strategy_name()] = time.time() - start
+        return result
 
     def _extract_model_from_evidence(self, evidence: dict) -> str | None:
         """
