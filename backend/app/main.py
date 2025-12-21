@@ -179,7 +179,7 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, council, sdlc_structure, sop, admin, docs
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs  # Sprint 41: analytics_v2
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -269,7 +269,8 @@ app.include_router(compliance.router, prefix="/api/v1", tags=["Compliance"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(feedback.router, prefix="/api/v1", tags=["Feedback"])
 app.include_router(triage.router, prefix="/api/v1", tags=["Triage"])
-app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])  # Sprint 24 (legacy session tracking)
+app.include_router(analytics_v2.router, prefix="/api/v1", tags=["Analytics v2"])  # Sprint 41 (Mixpanel + PostgreSQL)
 app.include_router(council.router, prefix="/api/v1", tags=["AI Council"])  # Sprint 26 Day 3
 app.include_router(sdlc_structure.router, prefix="/api/v1", tags=["SDLC Structure"])  # Sprint 30 Day 3
 app.include_router(sop.router, prefix="/api/v1", tags=["SOP Generator"])  # Phase 2-Pilot Week 1
