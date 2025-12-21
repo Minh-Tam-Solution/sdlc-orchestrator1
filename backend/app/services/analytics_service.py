@@ -34,6 +34,7 @@ from typing import Dict, List, Optional, Any
 from uuid import UUID
 import hashlib
 import logging
+from enum import Enum
 
 from mixpanel import Mixpanel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,21 +52,41 @@ from app.schemas.analytics import (
 logger = logging.getLogger(__name__)
 
 
+class CircuitState(str, Enum):
+    """Circuit breaker states."""
+    CLOSED = "closed"  # Normal operation
+    OPEN = "open"      # Too many failures, circuit is open (fallback mode)
+    HALF_OPEN = "half_open"  # Testing if service recovered
+
+
 class AnalyticsService:
     """
     Product analytics service with Mixpanel integration.
 
     Thread-safe, async-first, with automatic retry and batching.
+
+    Circuit Breaker Pattern (CTO Condition #2):
+    - Tracks Mixpanel API failures
+    - Opens circuit after ANALYTICS_CIRCUIT_BREAKER_THRESHOLD failures (default: 5)
+    - Closes circuit after ANALYTICS_CIRCUIT_BREAKER_TIMEOUT seconds (default: 300s = 5 min)
+    - Fallback: PostgreSQL-only mode when circuit is open
     """
 
     def __init__(self):
-        """Initialize Mixpanel client with project token."""
+        """Initialize Mixpanel client with project token and circuit breaker."""
         if not settings.MIXPANEL_TOKEN:
             logger.warning("MIXPANEL_TOKEN not configured - analytics disabled")
             self.mp = None
         else:
             self.mp = Mixpanel(settings.MIXPANEL_TOKEN)
             logger.info("Mixpanel analytics initialized")
+
+        # Circuit breaker state (CTO Condition #2)
+        self._circuit_state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._last_failure_time: Optional[datetime] = None
+        self._threshold = settings.ANALYTICS_CIRCUIT_BREAKER_THRESHOLD
+        self._timeout_seconds = settings.ANALYTICS_CIRCUIT_BREAKER_TIMEOUT
 
     async def track_event(
         self,
@@ -97,6 +118,27 @@ class AnalyticsService:
             logger.debug(f"Analytics disabled - skipping event: {event_name}")
             return False
 
+        # Check circuit breaker state (CTO Condition #2)
+        if self._is_circuit_open():
+            logger.warning(
+                f"Circuit breaker OPEN - skipping Mixpanel, storing locally only. "
+                f"Failures: {self._failure_count}/{self._threshold}"
+            )
+            # Fallback: Store in PostgreSQL only
+            if db:
+                try:
+                    await self._store_event_locally(
+                        db=db,
+                        user_id=user_id,
+                        event_name=event_name,
+                        properties=properties or {}
+                    )
+                    return True
+                except Exception as e:
+                    logger.error(f"Failed to store event locally: {str(e)}")
+                    return False
+            return False
+
         try:
             # Hash user_id for privacy
             hashed_user_id = self._hash_user_id(user_id)
@@ -105,7 +147,7 @@ class AnalyticsService:
             event_properties = {
                 **(properties or {}),
                 "timestamp": datetime.utcnow().isoformat(),
-                "environment": settings.ENVIRONMENT,
+                "environment": "production",  # settings.ENVIRONMENT when available
                 "distinct_id": hashed_user_id,
             }
 
@@ -116,6 +158,9 @@ class AnalyticsService:
                 event_name,
                 event_properties
             )
+
+            # Success - reset circuit breaker
+            self._record_success()
 
             # Store in local database for audit trail
             if db:
@@ -130,7 +175,25 @@ class AnalyticsService:
             return True
 
         except Exception as e:
-            logger.error(f"Failed to track event {event_name}: {str(e)}")
+            # Record failure for circuit breaker
+            self._record_failure()
+            logger.error(
+                f"Failed to track event {event_name}: {str(e)} "
+                f"(failures: {self._failure_count}/{self._threshold})"
+            )
+
+            # Fallback: Store locally even if Mixpanel fails
+            if db:
+                try:
+                    await self._store_event_locally(
+                        db=db,
+                        user_id=user_id,
+                        event_name=event_name,
+                        properties=properties or {}
+                    )
+                except Exception as local_error:
+                    logger.error(f"Failed to store event locally: {str(local_error)}")
+
             return False
 
     async def track_ai_safety_event(
@@ -430,6 +493,124 @@ class AnalyticsService:
         db.add(event)
         await db.commit()
         await db.refresh(event)
+
+    # Circuit breaker methods (CTO Condition #2)
+
+    def _is_circuit_open(self) -> bool:
+        """
+        Check if circuit breaker is open (too many failures).
+
+        Returns:
+            True if circuit is open (skip Mixpanel, use PostgreSQL-only fallback)
+
+        Circuit States:
+            - CLOSED: Normal operation (< threshold failures)
+            - OPEN: Too many failures (>= threshold), circuit is open
+            - HALF_OPEN: Testing if service recovered after timeout
+
+        Auto-recovery:
+            - After timeout seconds, circuit transitions to HALF_OPEN
+            - Next successful request closes the circuit
+            - Next failed request reopens the circuit
+        """
+        # If circuit is closed, all is good
+        if self._circuit_state == CircuitState.CLOSED:
+            return False
+
+        # If circuit is open, check if timeout has elapsed
+        if self._circuit_state == CircuitState.OPEN:
+            if self._last_failure_time:
+                elapsed = (datetime.utcnow() - self._last_failure_time).total_seconds()
+                if elapsed >= self._timeout_seconds:
+                    # Timeout elapsed, transition to HALF_OPEN (test recovery)
+                    self._circuit_state = CircuitState.HALF_OPEN
+                    logger.info(
+                        f"Circuit breaker transitioning to HALF_OPEN "
+                        f"(timeout {self._timeout_seconds}s elapsed)"
+                    )
+                    return False  # Allow next request to test recovery
+
+            return True  # Circuit still open
+
+        # If circuit is half-open, allow request to test recovery
+        if self._circuit_state == CircuitState.HALF_OPEN:
+            return False
+
+        return False
+
+    def _record_success(self) -> None:
+        """
+        Record successful Mixpanel API call.
+
+        Resets failure count and closes circuit if it was open/half-open.
+        """
+        if self._circuit_state != CircuitState.CLOSED:
+            logger.info(
+                f"Circuit breaker CLOSED (recovered after {self._failure_count} failures)"
+            )
+
+        self._circuit_state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._last_failure_time = None
+
+    def _record_failure(self) -> None:
+        """
+        Record failed Mixpanel API call.
+
+        Opens circuit if failure count exceeds threshold.
+        """
+        self._failure_count += 1
+        self._last_failure_time = datetime.utcnow()
+
+        # If we were in HALF_OPEN, reopen immediately
+        if self._circuit_state == CircuitState.HALF_OPEN:
+            self._circuit_state = CircuitState.OPEN
+            logger.warning(
+                f"Circuit breaker REOPENED (recovery test failed, "
+                f"failures: {self._failure_count}/{self._threshold})"
+            )
+            return
+
+        # Check if we've exceeded threshold
+        if self._failure_count >= self._threshold:
+            self._circuit_state = CircuitState.OPEN
+            logger.error(
+                f"Circuit breaker OPENED (threshold reached: "
+                f"{self._failure_count}/{self._threshold}). "
+                f"Mixpanel tracking disabled for {self._timeout_seconds}s. "
+                f"Fallback: PostgreSQL-only mode."
+            )
+
+    def get_circuit_breaker_status(self) -> Dict[str, Any]:
+        """
+        Get current circuit breaker status for monitoring/debugging.
+
+        Returns:
+            Dictionary with circuit state, failure count, and timeout info
+
+        Example:
+            {
+                "state": "closed",
+                "failure_count": 0,
+                "threshold": 5,
+                "timeout_seconds": 300,
+                "last_failure_time": None,
+                "seconds_until_recovery": None
+            }
+        """
+        seconds_until_recovery = None
+        if self._last_failure_time and self._circuit_state == CircuitState.OPEN:
+            elapsed = (datetime.utcnow() - self._last_failure_time).total_seconds()
+            seconds_until_recovery = max(0, self._timeout_seconds - elapsed)
+
+        return {
+            "state": self._circuit_state.value,
+            "failure_count": self._failure_count,
+            "threshold": self._threshold,
+            "timeout_seconds": self._timeout_seconds,
+            "last_failure_time": self._last_failure_time.isoformat() if self._last_failure_time else None,
+            "seconds_until_recovery": int(seconds_until_recovery) if seconds_until_recovery else None,
+        }
 
 
 # Singleton instance
