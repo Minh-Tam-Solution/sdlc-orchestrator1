@@ -156,10 +156,13 @@ class Settings(BaseSettings):
     OLLAMA_TIMEOUT: int = 30
     
     # EP-06 Codegen Engine - OSS Model Configuration
-    # Mode B: Native OSS codegen using company GPU server
-    CODEGEN_OLLAMA_URL: str = "http://api.nhatquangholding.com:11434"
-    CODEGEN_MODEL_BACKEND: str = "codellama:13b"  # CodeLlama for backend generation
-    CODEGEN_MODEL_FRONTEND: str = "codellama:7b"   # Lighter model for UI components
+    # Mode B: Native OSS codegen using NQH AI Platform (IT Admin infrastructure)
+    # RTX 5090 32GB with 10 production models - December 2025
+    # Docs: /home/nqh/shared/models/docs/NQH-SOPs/07_Training/05_IT_Training/03_AI_Platform_Training/07_Continue_Dev_Integration
+    CODEGEN_OLLAMA_URL: str = "https://api.nqh.vn"  # Cloudflare Tunnel to 192.168.1.2:11434
+    CODEGEN_MODEL_PRIMARY: str = "qwen2.5-coder:32b-instruct-q4_K_M"  # 92.7% HumanEval - PRIMARY
+    CODEGEN_MODEL_FAST: str = "qwen2.5:14b-instruct"  # ~4s response for autocomplete
+    CODEGEN_MODEL_VIETNAMESE: str = "qwen3:14b"  # Excellent Vietnamese support
     CODEGEN_TIMEOUT: int = 120  # Longer timeout for code generation
 
     # Cloud AI Fallback (when Ollama unavailable)

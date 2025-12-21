@@ -26,12 +26,77 @@
 
 > **Không cạnh tranh trực diện với các AI codex mạnh như Claude Code / Cursor, mà dùng SDLC 5.0 + governance + IR decomposition để biến model open-source tầm trung (7–14B) thành một "codex đủ xài nhưng an toàn và được kiểm soát".**
 
-### Dual Mode Strategy
+### Tri-Mode Strategy (Updated Dec 2025)
 
 | Mode | Target Users | AI Backend | Orchestrator Role |
 |------|--------------|------------|-------------------|
 | **Mode A – BYO Codex** | Enterprise dev teams | Claude Code / Cursor / Copilot | AI Safety & Governance Layer |
-| **Mode B – Native OSS** | SME / non-tech founders | CodeLlama 13B / DeepSeek Coder | Full codegen + governance |
+| **Mode B – Native OSS** | SME / non-tech founders | **qwen2.5-coder:32b** (92.7% HumanEval) | Full codegen + governance |
+| **Mode C – Hybrid Fallback** | Dev teams (credit exhausted) | Claude Code → Continue.dev | **Seamless failover orchestration** |
+
+> **UPDATE Dec 2025:** IT Admin đã deploy 10 models trên RTX 5090, bao gồm qwen2.5-coder:32b với 92.7% HumanEval score - cao hơn dự kiến ban đầu (CodeLlama 13B ~60%)!
+
+### 🔥 NEW: Mode C – Hybrid Fallback (Real Pain Point from Dev Team)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  MODE C: HYBRID FALLBACK - "Never Stop Coding"                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  CURRENT PROBLEM (Dec 2025):                                                │
+│  ───────────────────────────                                                │
+│  • Team dùng Claude Code vì long context (200K) → dễ kiểm soát chất lượng  │
+│  • Khi credit hết limit → PHẢI CHỜ RENEW → Downtime 🔴                      │
+│  • IT Admin đã có Continue.dev + Ollama ready → nhưng team không dùng      │
+│  • Lý do: Thiếu SDLC governance để đảm bảo chất lượng với smaller context   │
+│                                                                             │
+│  SOLUTION: SDLC ORCHESTRATOR AS QUALITY EQUALIZER                           │
+│  ─────────────────────────────────────────────────                          │
+│                                                                             │
+│  ┌───────────────┐                           ┌───────────────┐              │
+│  │  Claude Code  │  Credit OK ✓              │  Continue.dev │              │
+│  │  (200K ctx)   │◄─────────────────────────▶│ + qwen2.5-32b │              │
+│  │  $100-200/mo  │                           │  (32K ctx)    │              │
+│  └───────┬───────┘     SDLC Orchestrator     └───────┬───────┘              │
+│          │             orchestrates both             │                      │
+│          │                    │                      │                      │
+│          └────────────────────┼──────────────────────┘                      │
+│                               ▼                                             │
+│                    ┌─────────────────────┐                                  │
+│                    │  IR Decomposition   │  ◄── Key to quality parity!      │
+│                    │  (5-10KB per task)  │                                  │
+│                    └─────────────────────┘                                  │
+│                               │                                             │
+│                               ▼                                             │
+│                    ┌─────────────────────┐                                  │
+│                    │  AI Safety Layer    │  ◄── Same governance both modes  │
+│                    │  + Quality Gates    │                                  │
+│                    └─────────────────────┘                                  │
+│                               │                                             │
+│                               ▼                                             │
+│                    ┌─────────────────────┐                                  │
+│                    │  CONSISTENT OUTPUT  │  ◄── Team doesn't notice switch! │
+│                    │  (VCR Checkpoint)   │                                  │
+│                    └─────────────────────┘                                  │
+│                                                                             │
+│  BENEFITS:                                                                  │
+│  ─────────                                                                  │
+│  ✅ Zero downtime when Claude credits exhausted                             │
+│  ✅ Same code quality via IR decomposition + governance                     │
+│  ✅ Leverage IT Admin's existing infrastructure (ROI!)                      │
+│  ✅ Team confidence: "SDLC Orchestrator đảm bảo chất lượng"                 │
+│  ✅ Cost savings: $0 for overflow usage                                     │
+│                                                                             │
+│  AUTO-FAILOVER LOGIC:                                                       │
+│  ────────────────────                                                       │
+│  if (claude_api.status == 429 || credit_remaining < threshold):             │
+│      log("Claude credit exhausted, switching to Continue.dev + Ollama")     │
+│      backend = "qwen2.5-coder:32b"  # IT Admin's infrastructure             │
+│      decompose_context_to_IR()       # Break 200K → multiple 5K chunks      │
+│      apply_same_governance()         # AI Safety Layer                      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Key Insight: Governance > Raw Model IQ
 
@@ -51,7 +116,7 @@
 │                                    Stage 04: Feature 2 → Code (5KB context) │
 │                                                                             │
 │  Context: 128K tokens              Context: 5K tokens per step              │
-│  Model: Claude 3.5 ($20/mo)        Model: CodeLlama 7B (free local)         │
+│  Model: Claude 3.5 ($20/mo)        Model: qwen2.5-coder:32b (free, 92.7%)   │
 │  Risk: Uncontrolled drift          Risk: Controlled by VCR checkpoints      │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -93,9 +158,31 @@ Current AI codex tools assume:
 | No quality gates | Bugs slip to production |
 | No evidence trail | Compliance/security issues |
 
+### Pain Point 4: Credit Exhaustion Downtime (Real Issue - Dec 2025) 🔥
+
+> **From Dev Team:** "Team vẫn dùng Claude Code vì long context nên dễ kiểm soát chất lượng hơn, tuy nhiên khi credit đến limit thì phải chờ renew"
+
+| Current Situation | Impact |
+|-------------------|--------|
+| Team uses Claude Code exclusively | Single point of failure |
+| Claude credit exhausted → wait for renewal | **Productivity loss (days)** |
+| IT Admin has Continue.dev + Ollama ready | Infrastructure underutilized |
+| Team won't use OSS models directly | **Fear of quality degradation** |
+
+**Root Cause Analysis:**
+```
+WHY team không chuyển sang Continue.dev khi hết Claude credit?
+    └── Vì sợ chất lượng code giảm
+        └── Vì qwen2.5-coder chỉ có 32K context vs Claude 200K
+            └── Vì cần send toàn bộ codebase làm context
+                └── Vì THIẾU SDLC governance để decompose task! ◄── ROOT CAUSE
+```
+
+**Solution:** SDLC Orchestrator làm **Context Equalizer** - decompose 200K context thành nhiều 5K chunks với IR, apply same governance → cùng output quality!
+
 ---
 
-## 3. Solution: Codegen Engine with Dual Mode
+## 3. Solution: Codegen Engine with Tri-Mode
 
 ### 3.1. Architecture Overview
 
@@ -296,21 +383,64 @@ backend/app/schemas/codegen/
 | `/api/v1/codegen/tests` | POST | Generate tests for existing module |
 | `/api/v1/codegen/refactor` | POST | Refactor code based on instructions |
 
-### 6.4. OSS Model Integration
+### 6.4. OSS Model Integration (NQH AI Platform - December 2025)
 
-- **Inference Endpoint:** `api.nhatquangholding.com` (Company GPU server)
-- **Model selection:** CodeLlama 13B (backend), CodeLlama 7B (frontend)
-- **Alternative:** DeepSeek Coder 6.7B (instruction-tuned)
-- **Integration:** Via existing `OllamaService` with codegen extensions
-- **Config:** timeout (120s), retry, logging, token usage tracking
+> **IT Admin Infrastructure:** RTX 5090 32GB with 10 production models already deployed!
+> **API Endpoint:** `https://api.nqh.vn` (Cloudflare Tunnel to 192.168.1.2:11434)
+
+#### Available Models (via Continue.dev Training Docs)
+
+| Model | Size | Speed | HumanEval | Use Case |
+|-------|------|-------|-----------|----------|
+| 🎯 **qwen2.5-coder:32b-instruct** | 19GB | ~6s | **92.7%** | **Production Code - PRIMARY** |
+| ⚡ **qwen2.5:14b-instruct** | 9GB | ~4s | N/A | Fast Tasks, Autocomplete |
+| 🇻🇳 **qwen2.5:32b** | 19GB | ~8s | N/A | Vietnamese + Code |
+| 🇻🇳 **qwen3:14b** | 9.3GB | ~4s | N/A | Vietnamese Chat |
+| 💨 **ministral-3:8b** | 6GB | ~3s | N/A | Quick Processing |
+
+#### Model Selection Strategy
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  CODEGEN MODEL SELECTION (Leveraging IT Admin's Infrastructure)            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  USE CASE                           MODEL                                   │
+│  ─────────────────────────────────  ──────────────────────────────────────  │
+│  Backend API generation             qwen2.5-coder:32b (92.7% HumanEval)    │
+│  Frontend component generation      qwen2.5-coder:32b (same quality)       │
+│  Fast autocomplete                  qwen2.5:14b-instruct (~4s response)    │
+│  Vietnamese prompts/docs            qwen3:14b (excellent Vietnamese)        │
+│  Quick drafts/prototypes            qwen3:8b (<3s response)                 │
+│                                                                             │
+│  Continue.dev Integration:          Already configured by IT Admin!         │
+│  sdlcctl codegen:                   Will use same models via api.nqh.vn    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Configuration
 
 ```python
 # Configuration (backend/app/core/config.py)
-CODEGEN_OLLAMA_URL = "http://api.nhatquangholding.com:11434"
-CODEGEN_MODEL_BACKEND = "codellama:13b"   # For API/service generation
-CODEGEN_MODEL_FRONTEND = "codellama:7b"   # For UI component generation
+CODEGEN_OLLAMA_URL = "https://api.nqh.vn"  # IT Admin's Cloudflare Tunnel
+CODEGEN_MODEL_PRIMARY = "qwen2.5-coder:32b-instruct-q4_K_M"  # 92.7% HumanEval!
+CODEGEN_MODEL_FAST = "qwen2.5:14b-instruct"  # For autocomplete
+CODEGEN_MODEL_VIETNAMESE = "qwen3:14b"  # For Vietnamese prompts
 CODEGEN_TIMEOUT = 120  # Longer timeout for code generation
 ```
+
+#### Why This Changes Everything
+
+| Metric | Original Plan (CodeLlama 13B) | With IT Admin's qwen2.5-coder:32b |
+|--------|-------------------------------|-----------------------------------|
+| HumanEval Score | ~60% | **92.7%** (+32.7%) |
+| Code Quality | Moderate | **Near-Copilot level** |
+| Vietnamese Support | Poor | **Excellent** (via qwen3:14b) |
+| Infrastructure | Need to setup | **Already deployed!** |
+| Continue.dev | Need to integrate | **Already integrated by IT Admin** |
+
+> **Key Insight:** IT Admin đã build hạ tầng AI hoàn chỉnh, nhưng dev team chưa dùng nhiều vì thiếu SDLC automation (EP-04/EP-05). EP-06 sẽ bridge gap này bằng cách integrate sdlcctl với Continue.dev + Ollama infrastructure.
 
 ### 6.5. Non-Tech Founder Journey Doc
 

@@ -125,7 +125,11 @@
       "Bash(pgrep:*)",
       "Bash(docker compose up:*)",
       "Bash(python3 -c \"import sys, json; print\\(json.load\\(sys.stdin\\)[''access_token'']\\)\" curl -X DELETE http://localhost:8300/api/v1/admin/users/bulk  -H \"Content-Type: application/json\"  -H \"Authorization: Bearer $TOKEN\"  -d '{\"\"user_ids\"\":[\"\"a0000000-0000-0000-0000-000000000002\"\"]}')",
-      "Bash(curl -s -X POST http://localhost:8300/api/v1/auth/login  -H \"Content-Type: application/json\"  -d '{\"\"username\"\":\"\"admin@sdlc.local\"\",\"\"password\"\":\"\"Admin123!@#\"\"}' cat /tmp/login.json)"
+      "Bash(curl -s -X POST http://localhost:8300/api/v1/auth/login  -H \"Content-Type: application/json\"  -d '{\"\"username\"\":\"\"admin@sdlc.local\"\",\"\"password\"\":\"\"Admin123!@#\"\"}' cat /tmp/login.json)",
+      "Bash(/home/nqh/shared/SDLC-Orchestrator/docs/02-design/03-Technical-Specs/AI-Safety-Layer-v1.md)",
+      "Bash(/home/nqh/shared/SDLC-Orchestrator/docs/08-operate/99-Legacy/Hotfixes/2025-12-20-bulk-delete-422-fix.md)",
+      "Bash(rmdir:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []
