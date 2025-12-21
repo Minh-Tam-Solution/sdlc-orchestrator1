@@ -384,8 +384,29 @@ class AnalyticsService:
     # Private helper methods
 
     def _hash_user_id(self, user_id: UUID) -> str:
-        """Hash user ID for privacy (GDPR compliance)."""
-        return hashlib.sha256(str(user_id).encode()).hexdigest()[:16]
+        """
+        Hash user ID for privacy (GDPR compliance).
+
+        Uses SHA256 with salt to prevent rainbow table attacks.
+        Salt must be configured in settings.ANALYTICS_USER_SALT.
+
+        Returns:
+            16-character hash (first 16 chars of SHA256)
+
+        Security:
+            - Salt prevents rainbow table attacks
+            - Truncated to 16 chars for Mixpanel distinct_id length limit
+            - Hash is deterministic (same user_id → same hash)
+
+        CTO Approval Condition #1: Add salt for privacy protection
+        """
+        if not settings.ANALYTICS_USER_SALT:
+            logger.warning("ANALYTICS_USER_SALT not configured - using unsalted hash")
+            salt = ""
+        else:
+            salt = settings.ANALYTICS_USER_SALT
+
+        return hashlib.sha256(f"{salt}{user_id}".encode()).hexdigest()[:16]
 
     async def _store_event_locally(
         self,

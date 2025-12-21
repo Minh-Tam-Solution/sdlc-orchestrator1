@@ -166,6 +166,13 @@ class Settings(BaseSettings):
     CODEGEN_MODEL_CHAT: str = "qwen2.5:32b"  # General chat + Vietnamese (~8s)
     CODEGEN_MODEL_ULTRAFAST: str = "qwen3:8b"  # Quick drafts (<3s)
     CODEGEN_TIMEOUT: int = 120  # Longer timeout for code generation
+
+    # Analytics (Sprint 41 - AI Safety Foundation)
+    MIXPANEL_TOKEN: Optional[str] = None  # Mixpanel project token (get from https://mixpanel.com/settings/project)
+    ANALYTICS_USER_SALT: str = secrets.token_urlsafe(32)  # Salt for hashing user IDs (GDPR privacy)
+    ANALYTICS_RETENTION_DAYS: int = 90  # Retention period for analytics_events table
+    ANALYTICS_CIRCUIT_BREAKER_THRESHOLD: int = 5  # Max failures before circuit opens
+    ANALYTICS_CIRCUIT_BREAKER_TIMEOUT: int = 300  # Circuit breaker timeout in seconds (5 min)
     
     # EP-06 Model Roles (aligned with Continue.dev config - IT Admin Dec 2025)
     # Role mapping for different task types
