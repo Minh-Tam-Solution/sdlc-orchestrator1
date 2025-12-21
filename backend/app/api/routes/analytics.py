@@ -1,11 +1,13 @@
 """
-Usage Analytics API Routes - Sprint 24 Day 4
+Usage Analytics API Routes - Sprint 24 Day 4 + Sprint 41 Enhancement
 
 Endpoints for tracking and reporting user activity:
-- Session management
-- Event tracking
-- Usage analytics
-- Pilot metrics
+- Session management (Sprint 24)
+- Event tracking (Sprint 24)
+- Usage analytics (Sprint 24)
+- Pilot metrics (Sprint 24)
+- Retention management (Sprint 41 - CTO Condition #3)
+- Circuit breaker status (Sprint 41 - CTO Condition #2)
 """
 
 from datetime import datetime, timedelta
@@ -20,6 +22,8 @@ from app.api.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.usage_tracking import EventType
 from app.services.usage_tracking_service import UsageTrackingService
+from app.services.analytics_service import analytics_service  # Sprint 41
+from app.tasks.analytics_retention import AnalyticsRetentionTask  # Sprint 41
 
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -495,4 +499,91 @@ async def calculate_today_metrics(
         "active_users": metrics.active_users,
         "total_sessions": metrics.total_sessions,
         "message": "Pilot metrics calculated successfully",
+    }
+
+
+# ============================================================================
+# Sprint 41 - Analytics Retention & Circuit Breaker Endpoints
+# CTO Approval Conditions #2 and #3
+# ============================================================================
+
+
+@router.get("/retention/stats")
+async def get_retention_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Get analytics data retention statistics.
+
+    Returns current storage metrics and events older than retention period.
+
+    CTO Condition #3: Monitor retention compliance
+    """
+    task = AnalyticsRetentionTask()
+    stats = await task.get_retention_stats(db)
+
+    return {
+        "success": True,
+        "stats": stats,
+        "retention_policy_days": stats["retention_days"],
+    }
+
+
+@router.post("/retention/cleanup")
+async def run_retention_cleanup(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Manually trigger analytics retention cleanup.
+
+    Deletes events older than retention period (default: 90 days).
+    This is typically run by cron job daily at 2:00 AM UTC.
+
+    Requires: Admin role (future enhancement)
+
+    CTO Condition #3: Manual cleanup trigger for testing/emergency
+    """
+    task = AnalyticsRetentionTask()
+
+    # Get stats before cleanup
+    stats_before = await task.get_retention_stats(db)
+
+    # Run cleanup
+    result = await task.cleanup_old_events(db)
+
+    # Get stats after cleanup
+    stats_after = await task.get_retention_stats(db)
+
+    return {
+        "success": result["status"] == "success",
+        "cleanup_result": result,
+        "stats_before": stats_before,
+        "stats_after": stats_after,
+    }
+
+
+@router.get("/circuit-breaker/status")
+async def get_circuit_breaker_status(
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Get Mixpanel circuit breaker status.
+
+    Returns current circuit state, failure count, and recovery info.
+
+    Circuit States:
+    - CLOSED: Normal operation (Mixpanel enabled)
+    - OPEN: Too many failures (Mixpanel disabled, PostgreSQL-only)
+    - HALF_OPEN: Testing recovery after timeout
+
+    CTO Condition #2: Monitor circuit breaker health
+    """
+    status = analytics_service.get_circuit_breaker_status()
+
+    return {
+        "success": True,
+        "circuit_breaker": status,
+        "health": "healthy" if status["state"] == "closed" else "degraded",
     }
