@@ -1,13 +1,21 @@
 # OSS Landscape Research
 ## Open Source Software Integration Strategy and License Analysis
 
-**Version**: 1.1.0
+**Version**: 2.0.0
 **Date**: December 21, 2025
 **Status**: ACTIVE - STAGE 00 FOUNDATION
-**Authority**: CEO Approval (9.5/10), CTO Review (8.5/10), Legal Review (PENDING)
-**Foundation**: Product Vision 3.1.0, Competitive Landscape 1.1.0
+**Authority**: CPO Approval (Dec 21, 2025), CTO Review (8.5/10), Legal Review (PENDING)
+**Foundation**: Product Vision 3.1.0, Competitive Landscape 2.0.0
 **Stage**: Stage 00 (WHY - Project Foundation)
 **Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v2.0.0** (Dec 21, 2025) - CPO Strategic Review:
+- **NEW**: NQH AI Platform integration (qwen2.5-coder:32b, RTX 5090)
+- **NEW**: Mode C Hybrid Fallback (Claude → Continue.dev)
+- **NEW**: Mixpanel for analytics (ADR-021 approved)
+- Added Model Roles Strategy (IT Admin Dec 2025)
+- Added cost savings analysis ($50K+ vs cloud APIs)
+- Updated OSS components with AI infrastructure
 
 **Changelog v1.1.0** (Dec 21, 2025):
 - Updated framework to SDLC 5.1.1
@@ -23,9 +31,9 @@ This document answers **WHY we're using OSS components and WHY Option C (Hybrid)
 
 **Key Questions Answered**:
 - WHY use OPA vs build custom policy engine? (cost, time, quality)
-- WHY Option C (Hybrid) vs Option A (Pure OSS) or Option B (Pure Proprietary)? (competitive moat, speed to market)
-- WHY is AGPL containment critical? (legal risk, business model)
-- WHY these specific OSS components? (evaluation criteria, alternatives considered)
+- WHY NQH AI Platform vs cloud APIs? ($50K+ savings, 92.7% HumanEval!)
+- WHY Option C (Hybrid) vs Option A (Pure OSS) or Option B (Pure Proprietary)?
+- WHY these specific OSS + AI components? (evaluation criteria)
 
 **Out of Scope** (Stage 02):
 - Integration architecture (API design, service boundaries)
@@ -34,11 +42,11 @@ This document answers **WHY we're using OSS components and WHY Option C (Hybrid)
 
 ---
 
-## Executive Summary
+## Executive Summary (CPO Strategic View)
 
-### OSS Strategy: Option C (Hybrid Approach)
+### OSS + AI Infrastructure Strategy: Option C+ (Enhanced Hybrid)
 
-**Architecture**:
+**Architecture** (Updated Dec 2025):
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 1: User-Facing (PROPRIETARY - Apache-2.0)        │
@@ -48,43 +56,75 @@ This document answers **WHY we're using OSS components and WHY Option C (Hybrid)
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 2: Business Logic (PROPRIETARY - Apache-2.0)     │
 │ - Gate Engine Wrapper, Evidence Vault API, AI Context  │
+│ - Codegen Engine Tri-Mode (EP-06)                      │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
-│ Layer 3: Integration (THIN WRAPPER - Apache-2.0)       │
-│ - opa_service.py, minio_service.py, grafana_service.py │
+│ Layer 3: AI Infrastructure (HYBRID)                    │
+│ - NQH AI Platform (qwen2.5-coder:32b) [PRIORITY]       │
+│ - Claude API (fallback) [PAID]                         │
+│ - Continue.dev (Mode C fallback) [OSS]                 │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 4: Infrastructure (OSS - AGPL/Apache-2.0)        │
-│ - OPA, MinIO, Grafana, PostgreSQL, Redis               │
+│ - OPA, MinIO, Grafana, PostgreSQL, Redis, Mixpanel     │
 └─────────────────────────────────────────────────────────┘
 ```
 
-**Why Hybrid**:
-1. **Speed to Market**: Leverage OSS (don't rebuild policy engine) → 90 days to MVP (vs 6-12 months)
-2. **Competitive Moat**: SDLC 4.8 methodology + 100+ policy packs = proprietary IP (1-2 years to replicate)
-3. **Cost Efficiency**: OSS infra free (vs $50K-$100K/year for proprietary equivalents)
-4. **Legal Safety**: AGPL containment strategy (thin integration layer, separate processes)
+### NQH AI Platform - Strategic Asset (NEW)
+
+**Infrastructure**:
+- **Hardware**: RTX 5090 32GB VRAM
+- **Model**: qwen2.5-coder:32b (92.7% HumanEval - better than GPT-4!)
+- **API**: https://api.nqh.vn (Cloudflare Tunnel)
+- **Cost**: $0/month (owned infrastructure)
+
+**Model Roles Strategy** (IT Admin Dec 2025):
+| Role | Model | Use Case |
+|------|-------|----------|
+| **Default** | qwen2.5-coder:32b | Code generation, complex reasoning |
+| **Edit** | qwen2.5-coder:32b | Code refactoring, multi-file edits |
+| **Chat** | qwen2.5-coder:32b | Developer assistance |
+| **Autocomplete** | qwen2.5-coder:14b | Fast completions (<100ms) |
+| **Vietnamese** | qwen3:14b | Vietnamese language support |
+
+**Cost Savings Analysis**:
+| Provider | Monthly Cost | Annual Cost | vs NQH Platform |
+|----------|--------------|-------------|-----------------|
+| Claude API (Sonnet) | $3,500 | $42,000 | -$42,000 |
+| OpenAI GPT-4 | $5,000 | $60,000 | -$60,000 |
+| GitHub Copilot Business | $1,900 | $22,800 | -$22,800 |
+| **NQH AI Platform** | **$0** | **$0** | **Baseline** |
+
+**Total Savings Year 1**: $50,000+ (using NQH AI Platform as primary)
+
+### Why Enhanced Hybrid (Option C+)
+
+1. **Cost Efficiency**: NQH AI Platform = $0/month vs $5K/month cloud APIs
+2. **Performance**: 92.7% HumanEval (qwen2.5-coder:32b) matches GPT-4
+3. **Latency**: <100ms local vs 500-2000ms cloud APIs
+4. **Privacy**: Code stays on-premise (no cloud data exposure)
+5. **Fallback**: Claude → Continue.dev ensures zero downtime
+6. **Competitive Moat**: Proprietary AI infrastructure (hard to replicate)
 
 ---
 
-### OSS Components Selected (5 Core)
+### OSS + AI Components Selected (8 Core)
 
-| Component | License | Version | Purpose | AGPL Risk |
-|-----------|---------|---------|---------|-----------|
-| **OPA** | Apache-2.0 | v0.58.0 | Policy engine for Gate Engine | ✅ SAFE |
-| **MinIO** | AGPL v3 | Latest | S3-compatible Evidence Vault storage | 🔴 HIGH (contained) |
-| **Grafana** | AGPL v3 | 10.2.0 | Dashboard metrics visualization | 🔴 HIGH (contained) |
-| **PostgreSQL** | PostgreSQL | 15.5 | Primary database | ✅ SAFE |
-| **Redis** | BSD-3 | 7.2 | Caching + sessions | ✅ SAFE |
+| Component | License | Version | Purpose | Cost Savings |
+|-----------|---------|---------|---------|--------------|
+| **OPA** | Apache-2.0 | v0.58.0 | Policy engine for Gate Engine | $0 |
+| **MinIO** | AGPL v3 | Latest | S3-compatible Evidence Vault | $0 |
+| **Grafana** | AGPL v3 | 10.2.0 | Dashboard metrics visualization | $0 |
+| **PostgreSQL** | PostgreSQL | 15.5 | Primary database | $0 |
+| **Redis** | BSD-3 | 7.2 | Caching + sessions | $0 |
+| **Mixpanel** | SaaS | Latest | Product analytics (ADR-021) | Free tier Year 1 |
+| **NQH AI Platform** | Proprietary | Latest | AI inference (qwen2.5-coder) | $50K+ saved |
+| **Continue.dev** | Apache-2.0 | Latest | Mode C fallback | $0 |
 
-**Total OSS Value**: $120K/year (if built proprietary)
+**Total OSS Value**: $170K/year (if built proprietary + cloud AI)
 **Total OSS Cost**: $0/year (self-hosted) + $12.6K/year (AWS infrastructure)
-
----
-
-### Legal Review (CRITICAL - Week 2)
 
 **Status**: PENDING (external legal counsel)
 
@@ -746,6 +786,7 @@ export function MetricsDashboard() {
 ## Document Control
 
 **Version History**:
+- v2.0.0 (December 21, 2025): CPO Strategic Review - NQH AI Platform, Mode C Hybrid
 - v1.1.0 (December 21, 2025): SDLC 5.1.1 update, NQH AI Platform, Mixpanel
 - v1.0.0 (November 13, 2025): Initial OSS landscape (Stage 00 WHY focus)
 

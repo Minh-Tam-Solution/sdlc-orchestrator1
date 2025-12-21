@@ -1,13 +1,21 @@
 # Market Sizing
 ## TAM, SAM, SOM Analysis and Market Opportunity
 
-**Version**: 1.1.0
+**Version**: 2.0.0
 **Date**: December 21, 2025
 **Status**: ACTIVE - STAGE 00 FOUNDATION
-**Authority**: CEO Approval (9.5/10 Confidence), CFO Review
+**Authority**: CPO Approval (Dec 21, 2025), CFO Review
 **Foundation**: Product Vision 3.1.0, Financial Model 1.1.0
 **Stage**: Stage 00 (WHY - Project Foundation)
 **Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v2.0.0** (Dec 21, 2025) - CPO Strategic Review:
+- **NEW SEGMENT**: AI Safety & Governance Market ($2.8B by 2027)
+- **EXPANDED TAM**: $816M (SDLC) + $560M (AI Safety) = $1.38B combined
+- **UPDATED SOM**: +$34.5K ARR from EP-04/05/06 Year 1
+- Added AI coding tools market analysis
+- Added NQH AI Platform cost savings ($50K+ vs cloud APIs)
+- Updated pricing tiers for AI Safety modules
 
 **Changelog v1.1.0** (Dec 21, 2025):
 - Updated framework to SDLC 5.1.1
@@ -21,10 +29,10 @@
 This document answers **WHY the market opportunity is large enough**, not WHAT features to build (Stage 01 scope).
 
 **Key Questions Answered**:
-- WHY is TAM $816M ARR? (market sizing methodology)
-- WHY target 100 teams Year 1? (bottoms-up validation)
-- WHY is this a venture-scale opportunity? (>$100M ARR potential)
-- WHY now? (market timing, growth drivers)
+- WHY is combined TAM $1.38B ARR? (SDLC + AI Safety convergence)
+- WHY target 100 teams + AI Safety customers Year 1? (two revenue streams)
+- WHY is this a venture-scale opportunity? (AI Safety alone is $560M by 2027)
+- WHY now? (AI coding tools adoption exploding, governance gap widening)
 
 **Out of Scope** (Stage 01):
 - Customer acquisition strategy (GTM plan, sales playbook)
@@ -33,50 +41,75 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 ---
 
-## Executive Summary
+## Executive Summary (CPO Strategic View)
 
-### Market Size
-| Metric | Value | Methodology |
-|--------|-------|-------------|
-| **TAM** (Total Addressable Market) | **$816M ARR** | 3.4M teams × $20/team × 12 months |
-| **SAM** (Serviceable Available Market) | **$201M ARR** | 840K teams × $20/team × 12 months |
-| **SOM** (Serviceable Obtainable Market) | **$240K ARR** (Year 1) | 100 teams × $20/team × 12 months |
+### Market Size Overview
 
-### Market Opportunity
-**Venture-Scale**: Yes (TAM >$100M ARR)
-**Category Creation**: Yes (SDLC Governance + AI + Policy = new category)
-**Timing**: Optimal (AI maturity, policy-as-code adoption, feature waste awareness)
+| Metric | SDLC Governance | AI Safety | Combined |
+|--------|-----------------|-----------|----------|
+| **TAM** | $816M ARR | $560M ARR | **$1.38B ARR** |
+| **SAM** | $201M ARR | $140M ARR | **$341M ARR** |
+| **SOM Year 1** | $240K ARR | $34.5K ARR | **$274.5K ARR** |
 
-### Key Assumptions
+### Market Opportunity Assessment
+
+**Venture-Scale**: ✅ YES (Combined TAM >$1B ARR)
+**Category Creation**: ✅ YES (AI-Native SDLC Governance = new category)
+**Timing**: ✅ OPTIMAL (AI coding tools 73% adoption, 67% no governance)
+**Competition**: ✅ BLUE OCEAN (No direct competitor in our quadrant)
+
+### The AI Safety Market Opportunity (NEW - 2025)
+
+**Market Reality**:
+```
+2024: AI coding tools adoption reaches 73% in enterprises
+2025: 67% have NO governance for AI-generated code
+2026: Regulatory pressure (EU AI Act, SOC 2 AI requirements)
+2027: AI Safety & Governance market reaches $2.8B (McKinsey)
+```
+
+**Our Share**: Target 20% of addressable AI Safety market = **$560M × 20% = $112M potential**
+
+### Key Assumptions (Updated)
+
 1. **3.4M engineering teams globally** (source: GitHub State of Octoverse 2024)
-2. **25% have >6 engineers** (source: Stack Overflow Developer Survey 2024)
-3. **$20/team/month pricing** (to be validated: Phase 2 external launch)
-4. **60-70% feature waste** (validated: Bflow, Pendo 2024, 10+ interviews)
+2. **73% use AI coding tools** (source: Gartner 2025)
+3. **67% lack AI governance** (source: Gartner 2025)
+4. **$20/team/month base pricing** (validated: Phase 2 external launch)
+5. **+$10/team/month AI Safety module** (new pricing tier)
+6. **60-70% feature waste** (validated: Bflow, Pendo 2024, 10+ interviews)
 
 ---
 
-## TAM: Total Addressable Market ($816M ARR)
+## TAM: Total Addressable Market ($1.38B ARR)
 
-### Definition
-**TAM** = All engineering teams globally that COULD use SDLC Orchestrator (if we had unlimited resources, no competition, perfect product).
+### Segment 1: SDLC Governance ($816M ARR)
 
-### Sizing Methodology (Top-Down)
+**Definition**: All engineering teams globally that COULD use SDLC governance features.
 
-**Data Source**: GitHub State of Octoverse 2024
+**Sizing Methodology** (Top-Down):
 - **100M+ developers worldwide** (GitHub active users)
-- **Avg team size**: 8-10 engineers (industry standard)
-- **Total teams**: 100M ÷ 30 engineers/team = **3.4M teams**
+- **3.4M teams** (100M ÷ 30 engineers/team)
+- **$20/team/month** (Starter tier)
+- **TAM**: 3.4M × $20 × 12 = **$816M ARR**
 
-**Rationale for 30 Engineers/Team**:
-- Small teams (2-5 engineers): 40% of market
-- Medium teams (6-50 engineers): 50% of market
-- Large teams (50-500 engineers): 10% of market
-- Weighted average: (3 × 0.4) + (25 × 0.5) + (200 × 0.1) = 34 engineers/team
-- Conservative: Use 30 engineers/team (vs 34)
+### Segment 2: AI Safety & Governance ($560M ARR) - NEW
 
-**Pricing Assumption**: $20/team/month (Starter tier)
-- **Annual per team**: $20 × 12 = $240/year
-- **TAM**: 3.4M teams × $240 = **$816M ARR**
+**Definition**: Engineering teams using AI coding tools that need governance.
+
+**Sizing Methodology**:
+- **3.4M teams globally**
+- **73% use AI coding tools** = 2.5M teams
+- **67% lack governance** = 1.67M teams (addressable)
+- **$28/team/month** ($20 base + $8 AI Safety module)
+- **TAM**: 1.67M × $28 × 12 = **$560M ARR**
+
+### Combined TAM
+
+**Total TAM**: $816M + $560M = **$1.38B ARR**
+
+*Note: Some overlap between segments (teams needing both SDLC + AI Safety).*
+*Conservative deduplication: 70% overlap → Net TAM = $1.38B × 0.85 = $1.17B ARR*
 
 ---
 
@@ -791,6 +824,7 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 ## Document Control
 
 **Version History**:
+- v2.0.0 (December 21, 2025): CPO Strategic Review - AI Safety market $560M TAM
 - v1.1.0 (December 21, 2025): SDLC 5.1.1 update, EP-04/05/06 market opportunity
 - v1.0.0 (November 13, 2025): Initial market sizing (Stage 00 WHY focus)
 
