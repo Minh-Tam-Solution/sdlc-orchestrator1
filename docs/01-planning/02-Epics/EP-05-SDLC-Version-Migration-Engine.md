@@ -160,57 +160,58 @@ version: "5.1.0"
 release_date: "2025-12-11"
 
 # SDLC 5.1 Stage Definitions (10 stages) - Short Naming Convention
+# Reference: SDLC-Enterprise-Framework/02-Core-Methodology/Documentation-Standards/SDLC-Document-Naming-Standards.md
 stages:
   "00":
     name: "Foundation"
     category: "WHY"
-    folder: "00-foundation"                  # Short naming (standard)
-    description: "Vision, business case, requirements"
+    folder: "00-foundation"
+    description: "Design Thinking + Business Case"
   "01":
     name: "Planning"
     category: "WHAT"
     folder: "01-planning"
-    description: "Backlog, roadmap, sprint planning"
+    description: "Requirements + User Stories"
   "02":
     name: "Design"
     category: "HOW"
     folder: "02-design"
-    description: "Architecture, database, API specs"
+    description: "Architecture + ADRs"
   "03":
-    name: "Integration"
-    category: "CONNECT"
-    folder: "03-integration"
-    description: "API contracts, service integration"
+    name: "Integrate"
+    category: "INTEGRATE"
+    folder: "03-integrate"
+    description: "API Contracts + Third-party"
   "04":
-    name: "Development"
+    name: "Build"
     category: "BUILD"
     folder: "04-build"
-    description: "Implementation, coding"
+    description: "Development + Sprint Plans"
   "05":
-    name: "Testing"
-    category: "VERIFY"
+    name: "Test"
+    category: "TEST"
     folder: "05-test"
-    description: "Unit, integration, E2E testing"
+    description: "QA + Test Reports"
   "06":
-    name: "Deployment"
-    category: "RELEASE"
+    name: "Deploy"
+    category: "DEPLOY"
     folder: "06-deploy"
-    description: "CI/CD, infrastructure, releases"
+    description: "Release + Deployment Guides"
   "07":
-    name: "Operations"
+    name: "Operate"
     category: "OPERATE"
     folder: "07-operate"
-    description: "Monitoring, maintenance, support"
+    description: "Runbooks + Monitoring"
   "08":
-    name: "Collaboration"
-    category: "TEAMWORK"
+    name: "Collaborate"
+    category: "COLLABORATE"
     folder: "08-collaborate"
-    description: "Team mgmt, sprint reports, compliance"
+    description: "Team + Training"
   "09":
-    name: "Governance"
+    name: "Govern"
     category: "GOVERN"
     folder: "09-govern"
-    description: "Executive reports, strategic oversight"
+    description: "Compliance + Executive Reports"
 
 # Legacy/Long Folder Name Aliases
 # Maps old verbose names to standard short names
