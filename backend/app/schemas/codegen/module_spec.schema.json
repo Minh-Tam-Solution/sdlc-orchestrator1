@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://sdlc-orchestrator.io/schemas/codegen/module-spec.json",
+  "title": "ModuleSpec",
+  "description": "Module specification for backend/frontend code generation with IR-based prompting",
+  "type": "object",
+  "required": ["module_id", "app_id", "type", "framework"],
+  "properties": {
+    "module_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique module identifier (e.g., booking-api, payment-service)"
+    },
+    "app_id": {
+      "type": "string",
+      "description": "Parent app blueprint ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable module name"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["backend", "frontend", "shared"],
+      "description": "Module type determines generation templates"
+    },
+    "framework": {
+      "type": "string",
+      "enum": ["fastapi", "django", "express", "react", "vue", "nextjs"],
+      "description": "Target framework for code generation"
+    },
+    "description": {
+      "type": "string"
+    },
+    "data_models": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Entity names used by this module (from DataModelSpec)"
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "method", "path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Endpoint function name (snake_case)"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+          },
+          "path": {
+            "type": "string",
+            "description": "URL path (e.g., /bookings, /bookings/{id})"
+          },
+          "auth_required": {
+            "type": "boolean",
+            "default": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Required roles for access (empty = any authenticated)"
+          },
+          "request_body": {
+            "type": "string",
+            "description": "Request body schema reference (entity name or custom)"
+          },
+          "response": {
+            "type": "string",
+            "description": "Response schema reference"
+          },
+          "response_list": {
+            "type": "boolean",
+            "default": false,
+            "description": "Response is a list of the schema"
+          },
+          "pagination": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable pagination for list endpoints"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "API endpoints to generate (backend modules)"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][a-zA-Z0-9]*Service$",
+            "description": "Service class name (e.g., BookingService)"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "params": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Parameter names with types (e.g., 'booking_id: str')"
+                },
+                "returns": {
+                  "type": "string",
+                  "description": "Return type"
+                },
+                "async": {
+                  "type": "boolean",
+                  "default": true
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "Service classes to generate"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Other module IDs this depends on"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Coding constraints for the LLM (e.g., 'use async/await', 'no raw SQL', 'follow repository pattern')"
+    },
+    "tests": {
+      "type": "object",
+      "properties": {
+        "coverage_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 70,
+          "description": "Target code coverage percentage"
+        },
+        "test_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e"]
+          },
+          "default": ["unit"],
+          "description": "Types of tests to generate"
+        },
+        "frameworks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Test frameworks (e.g., pytest, jest, vitest)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "template": {
+      "type": "string",
+      "description": "Template ID to use as base (from template library)"
+    },
+    "output_structure": {
+      "type": "object",
+      "properties": {
+        "base_path": {
+          "type": "string",
+          "description": "Base output path (e.g., app/api/v1/)"
+        },
+        "router_file": {
+          "type": "string"
+        },
+        "service_file": {
+          "type": "string"
+        },
+        "schema_file": {
+          "type": "string"
+        },
+        "test_file": {
+          "type": "string"
+        }
+      },
+      "description": "Custom output file structure"
+    },
+    "codegen_backend": {
+      "type": "string",
+      "enum": ["native_oss", "external_codex"],
+      "default": "native_oss",
+      "description": "Which codegen backend to use (Mode A or Mode B)"
+    }
+  },
+  "additionalProperties": false
+}

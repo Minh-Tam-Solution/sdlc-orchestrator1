@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://sdlc-orchestrator.io/schemas/codegen/data-model.json",
+  "title": "DataModelSpec",
+  "description": "Data model specification defining entities and their relationships for code generation",
+  "type": "object",
+  "required": ["entities"],
+  "properties": {
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/entity"
+      }
+    }
+  },
+  "definitions": {
+    "entity": {
+      "type": "object",
+      "required": ["name", "fields"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][a-zA-Z0-9]*$",
+          "description": "Entity name in PascalCase (e.g., Booking, PaymentTransaction)"
+        },
+        "table": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Database table name in snake_case (auto-generated if not provided)"
+        },
+        "description": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/field"
+          },
+          "minItems": 1
+        },
+        "timestamps": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-add created_at, updated_at fields"
+        },
+        "soft_delete": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add deleted_at field for soft deletes"
+        },
+        "indexes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["fields"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "unique": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          },
+          "description": "Composite indexes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Field name in snake_case"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "uuid",
+            "string",
+            "text",
+            "integer",
+            "bigint",
+            "float",
+            "decimal",
+            "boolean",
+            "datetime",
+            "date",
+            "time",
+            "json",
+            "enum",
+            "array"
+          ],
+          "description": "Field data type"
+        },
+        "primary": {
+          "type": "boolean",
+          "default": false,
+          "description": "Is primary key"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true,
+          "description": "Is required (NOT NULL)"
+        },
+        "unique": {
+          "type": "boolean",
+          "default": false,
+          "description": "Has unique constraint"
+        },
+        "indexed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create index on this field"
+        },
+        "default": {
+          "description": "Default value (can be any type)"
+        },
+        "enum": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Enum values (only for type: enum)"
+        },
+        "ref": {
+          "type": "string",
+          "description": "Foreign key reference to another entity name"
+        },
+        "ref_field": {
+          "type": "string",
+          "default": "id",
+          "description": "Field to reference in the foreign entity"
+        },
+        "on_delete": {
+          "type": "string",
+          "enum": ["CASCADE", "SET_NULL", "RESTRICT", "NO_ACTION"],
+          "default": "CASCADE",
+          "description": "Foreign key on delete behavior"
+        },
+        "description": {
+          "type": "string"
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "min_length": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_length": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "number"
+            },
+            "max_value": {
+              "type": "number"
+            },
+            "pattern": {
+              "type": "string",
+              "description": "Regex pattern for validation"
+            }
+          },
+          "additionalProperties": false,
+          "description": "Validation constraints"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

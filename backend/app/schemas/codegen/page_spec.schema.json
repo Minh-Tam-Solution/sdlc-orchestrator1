@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://sdlc-orchestrator.io/schemas/codegen/page-spec.json",
+  "title": "PageSpec",
+  "description": "Page/component specification for UI code generation with IR-based prompting",
+  "type": "object",
+  "required": ["page_id", "type", "route"],
+  "properties": {
+    "page_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Unique page identifier (e.g., booking-checkout, admin-dashboard)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable page name"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["page", "component", "layout", "modal"],
+      "description": "Page/component type"
+    },
+    "route": {
+      "type": "string",
+      "description": "URL route (e.g., /bookings, /bookings/:id, /admin/dashboard)"
+    },
+    "layout": {
+      "type": "string",
+      "description": "Layout component to wrap this page (e.g., MainLayout, AdminLayout)"
+    },
+    "auth_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Require authentication to access"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Required roles to access (empty = any authenticated)"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "name"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["form", "table", "list", "card", "chart", "hero", "navbar", "footer", "sidebar", "custom"],
+            "description": "Component type for template selection"
+          },
+          "name": {
+            "type": "string",
+            "description": "Component name"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "label", "type"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Field name (for form binding)"
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Display label"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "email",
+                    "password",
+                    "number",
+                    "tel",
+                    "url",
+                    "date",
+                    "datetime",
+                    "time",
+                    "select",
+                    "multiselect",
+                    "checkbox",
+                    "radio",
+                    "textarea",
+                    "file",
+                    "image",
+                    "hidden"
+                  ],
+                  "description": "Input type"
+                },
+                "required": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "placeholder": {
+                  "type": "string"
+                },
+                "default_value": {
+                  "description": "Default value"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["value", "label"],
+                    "properties": {
+                      "value": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "description": "Options for select/radio/checkbox"
+                },
+                "options_api": {
+                  "type": "string",
+                  "description": "API endpoint to fetch options dynamically"
+                },
+                "validation": {
+                  "type": "object",
+                  "properties": {
+                    "min_length": {
+                      "type": "integer"
+                    },
+                    "max_length": {
+                      "type": "integer"
+                    },
+                    "min_value": {
+                      "type": "number"
+                    },
+                    "max_value": {
+                      "type": "number"
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "description": "Regex pattern"
+                    },
+                    "custom_message": {
+                      "type": "string",
+                      "description": "Custom validation error message"
+                    }
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "description": "Form fields (for form components)"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["key", "label"],
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "sortable": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "filterable": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "format": {
+                  "type": "string",
+                  "enum": ["text", "number", "currency", "date", "datetime", "badge", "avatar", "link"],
+                  "default": "text"
+                }
+              }
+            },
+            "description": "Table columns (for table components)"
+          },
+          "data_source": {
+            "type": "object",
+            "properties": {
+              "api": {
+                "type": "string",
+                "description": "API endpoint to fetch data"
+              },
+              "method": {
+                "type": "string",
+                "enum": ["GET", "POST"],
+                "default": "GET"
+              },
+              "params": {
+                "type": "object",
+                "description": "Query parameters"
+              },
+              "refresh_interval": {
+                "type": "integer",
+                "description": "Auto-refresh interval in seconds"
+              }
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type"],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["submit", "reset", "navigate", "api_call", "modal", "custom"]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "api": {
+                  "type": "string",
+                  "description": "API endpoint for api_call type"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+                },
+                "redirect": {
+                  "type": "string",
+                  "description": "Redirect path after action"
+                },
+                "confirm": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Show confirmation dialog"
+                },
+                "confirm_message": {
+                  "type": "string"
+                },
+                "variant": {
+                  "type": "string",
+                  "enum": ["primary", "secondary", "danger", "success", "warning"],
+                  "default": "primary"
+                }
+              }
+            },
+            "description": "Action buttons"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Components on this page"
+    },
+    "style_guidelines": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Styling instructions (e.g., 'use Tailwind', 'primary color blue-600', 'rounded corners')"
+    },
+    "locale": {
+      "type": "string",
+      "default": "en-US",
+      "description": "Page locale for i18n"
+    },
+    "seo": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "og_image": {
+          "type": "string"
+        }
+      },
+      "description": "SEO metadata"
+    },
+    "use_case_ref": {
+      "type": "string",
+      "pattern": "^UC-[0-9]{3}$",
+      "description": "Reference to use case ID this page implements"
+    },
+    "loading_state": {
+      "type": "object",
+      "properties": {
+        "skeleton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show skeleton loader"
+        },
+        "spinner": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Loading state configuration"
+    },
+    "error_handling": {
+      "type": "object",
+      "properties": {
+        "fallback_component": {
+          "type": "string"
+        },
+        "retry_enabled": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "description": "Error handling configuration"
+    },
+    "responsive": {
+      "type": "object",
+      "properties": {
+        "mobile_first": {
+          "type": "boolean",
+          "default": true
+        },
+        "breakpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["sm", "md", "lg", "xl", "2xl"]
+          },
+          "default": ["sm", "md", "lg"]
+        }
+      },
+      "description": "Responsive design configuration"
+    }
+  },
+  "additionalProperties": false
+}

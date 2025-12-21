@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://sdlc-orchestrator.io/schemas/codegen/app-blueprint.json",
+  "title": "AppBlueprint",
+  "description": "High-level application blueprint defining domain, actors, entities, and modules for IR-based code generation",
+  "type": "object",
+  "required": ["id", "name", "domain", "locale", "modules"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the app blueprint"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable app name"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "E_COMMERCE",
+        "HOSPITALITY",
+        "HEALTHCARE",
+        "EDUCATION",
+        "FINTECH",
+        "SAAS",
+        "MARKETPLACE",
+        "SOCIAL",
+        "PRODUCTIVITY",
+        "OTHER"
+      ],
+      "description": "Business domain category for template selection"
+    },
+    "locale": {
+      "type": "string",
+      "default": "en-US",
+      "description": "Primary locale (e.g., vi-VN, en-US)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the app purpose"
+    },
+    "actors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Actor name (e.g., Guest, Admin, Staff)"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["internal", "external"],
+            "description": "Internal = staff/admin, External = customer/guest"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "System actors (users/roles)"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of module IDs in this app"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "data_model.schema.json#/definitions/entity"
+      },
+      "description": "Data entities (can also be defined in DataModelSpec)"
+    },
+    "use_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^UC-[0-9]{3}$",
+            "description": "Use case ID (e.g., UC-001)"
+          },
+          "name": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string",
+            "description": "Primary actor for this use case"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "High-level steps in the use case"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["must_have", "should_have", "nice_to_have"],
+            "default": "must_have"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Use cases mapped to pages and modules"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "$ref": "page_spec.schema.json"
+      },
+      "description": "UI pages (can also be defined separately)"
+    },
+    "non_functional": {
+      "type": "object",
+      "properties": {
+        "auth": {
+          "type": "string",
+          "enum": ["none", "email_password", "email_otp", "social", "sso"],
+          "default": "email_password",
+          "description": "Authentication method"
+        },
+        "security": {
+          "type": "string",
+          "enum": ["basic", "standard", "strict"],
+          "default": "standard",
+          "description": "Security level (affects generated guards)"
+        },
+        "performance": {
+          "type": "string",
+          "enum": ["sme", "professional", "enterprise"],
+          "default": "sme",
+          "description": "Performance tier (affects caching, optimization)"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Non-functional requirements"
+    },
+    "policies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Policy pack IDs to apply from AI Safety Layer"
+    },
+    "tech_stack": {
+      "type": "object",
+      "properties": {
+        "frontend": {
+          "type": "string",
+          "enum": ["react", "vue", "nextjs", "none"],
+          "default": "react"
+        },
+        "backend": {
+          "type": "string",
+          "enum": ["fastapi", "django", "express", "none"],
+          "default": "fastapi"
+        },
+        "database": {
+          "type": "string",
+          "enum": ["postgresql", "mysql", "sqlite", "mongodb"],
+          "default": "postgresql"
+        },
+        "styling": {
+          "type": "string",
+          "enum": ["tailwind", "bootstrap", "mui", "none"],
+          "default": "tailwind"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Technology stack selection"
+    },
+    "sdlc_config": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["LITE", "STANDARD", "PROFESSIONAL", "ENTERPRISE"],
+          "default": "STANDARD"
+        },
+        "maturity_level": {
+          "type": "string",
+          "enum": ["L0", "L1", "L2", "L3"],
+          "default": "L1",
+          "description": "Agentic Maturity Level"
+        },
+        "require_vcr": {
+          "type": "boolean",
+          "default": true,
+          "description": "Require human VCR approval for generated code"
+        }
+      },
+      "description": "SDLC Orchestrator configuration"
+    }
+  },
+  "additionalProperties": false
+}
