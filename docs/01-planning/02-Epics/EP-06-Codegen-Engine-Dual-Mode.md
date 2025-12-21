@@ -298,9 +298,19 @@ backend/app/schemas/codegen/
 
 ### 6.4. OSS Model Integration
 
-- Model selection: CodeLlama 13B, DeepSeek Coder 6.7B
-- Integration via existing `OllamaService`
-- Config: timeout, retry, logging, token usage tracking
+- **Inference Endpoint:** `api.nhatquangholding.com` (Company GPU server)
+- **Model selection:** CodeLlama 13B (backend), CodeLlama 7B (frontend)
+- **Alternative:** DeepSeek Coder 6.7B (instruction-tuned)
+- **Integration:** Via existing `OllamaService` with codegen extensions
+- **Config:** timeout (120s), retry, logging, token usage tracking
+
+```python
+# Configuration (backend/app/core/config.py)
+CODEGEN_OLLAMA_URL = "http://api.nhatquangholding.com:11434"
+CODEGEN_MODEL_BACKEND = "codellama:13b"   # For API/service generation
+CODEGEN_MODEL_FRONTEND = "codellama:7b"   # For UI component generation
+CODEGEN_TIMEOUT = 120  # Longer timeout for code generation
+```
 
 ### 6.5. Non-Tech Founder Journey Doc
 
@@ -369,8 +379,17 @@ All generated code must:
 |------------|--------|-------------|
 | AI Safety Layer v1 (EP-02) | ✅ Existing | Sprint 50 |
 | OllamaService | ✅ Existing | Sprint 53 |
+| Company GPU Server | ✅ **CEO Approved** | Sprint 53 |
 | Git integration (GitHub/GitLab) | ✅ Existing | Sprint 55 |
 | Analytics (usage tracking) | ⏳ Planned | Sprint 55 |
+
+### 10.1. Infrastructure (CEO Approved)
+
+| Resource | Endpoint | Purpose |
+|----------|----------|---------|
+| Company GPU Server | `api.nhatquangholding.com:11434` | Mode B OSS inference |
+| Models Available | CodeLlama 7B/13B, Llama2, DeepSeek | Code generation |
+| Cost | $0 (company infrastructure) | No additional cost |
 
 ---
 

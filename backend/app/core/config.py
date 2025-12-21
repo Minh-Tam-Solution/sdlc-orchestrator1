@@ -150,9 +150,17 @@ class Settings(BaseSettings):
 
     # Ollama AI (Sprint 21 - Local LLM Integration)
     # ADR-007: Cost optimization - $50/month vs $1,000/month cloud APIs
-    OLLAMA_URL: str = "http://localhost:11434"
+    # EP-06: Company GPU server for Mode B (Native OSS Codegen)
+    OLLAMA_URL: str = "http://api.nhatquangholding.com:11434"
     OLLAMA_MODEL: str = "llama2:13b"
     OLLAMA_TIMEOUT: int = 30
+    
+    # EP-06 Codegen Engine - OSS Model Configuration
+    # Mode B: Native OSS codegen using company GPU server
+    CODEGEN_OLLAMA_URL: str = "http://api.nhatquangholding.com:11434"
+    CODEGEN_MODEL_BACKEND: str = "codellama:13b"  # CodeLlama for backend generation
+    CODEGEN_MODEL_FRONTEND: str = "codellama:7b"   # Lighter model for UI components
+    CODEGEN_TIMEOUT: int = 120  # Longer timeout for code generation
 
     # Cloud AI Fallback (when Ollama unavailable)
     ANTHROPIC_API_KEY: Optional[str] = None
