@@ -42,7 +42,9 @@ class MetadataDetector(AIDetectionStrategy):
             r"cursor\s+management",
             r"connection\.cursor",
             r"cursor\s+leak",
-            r"with.*cursor.*as",
+            # Python context manager pattern: "with conn.cursor() as cur"
+            # Must be specific to avoid matching "with Cursor AI assistant"
+            r"with\s+\w+\.cursor\s*\(\s*\)\s+as",
         ],
         AIToolType.COPILOT: [
             # Aviation/vehicle copilot contexts
