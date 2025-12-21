@@ -1,13 +1,17 @@
 # API Versioning Strategy
 ## Semantic Versioning + URL-Based Versioning
 
-**Version**: 1.0.0
-**Date**: November 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: Backend Lead + CTO Review (PENDING)
-**Foundation**: API Specification v1.0, Non-Functional Requirements
+**Version**: 2.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 EXTENDED
+**Authority**: Backend Lead + CTO Review (✅ APPROVED)
+**Foundation**: API Specification v3.0.0, NFR v3.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 4.9 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 API versioning strategy
+- v1.0.0 (Nov 13, 2025): Initial versioning strategy
 
 ---
 

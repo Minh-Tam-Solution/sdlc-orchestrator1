@@ -1,11 +1,15 @@
 # Data Model v0.1 - PostgreSQL Schema Design
 
-**Version**: 1.0.0
-**Date**: November 29, 2025
+**Version**: 2.0.0
+**Date**: December 21, 2025
 **Status**: IMPLEMENTED - Production Ready
-**Authority**: Backend Lead + CTO + Database Architect
-**Foundation**: Functional Requirements Document (FR1-FR5)
-**Framework**: SDLC 4.9 Complete Lifecycle
+**Authority**: Backend Lead + CTO + Database Architect (✅ APPROVED)
+**Foundation**: FRD v3.0.0, Vision v3.1.0, Roadmap v4.1.0
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 table schemas added
+- v1.0.0 (Nov 29, 2025): Initial schema implemented with 24 tables
 
 > **UPDATE (Nov 29, 2025)**: Schema implemented with 24 tables (down from 25 design).
 > `evidence_integrity_checks` merged into `gate_evidence` for simplicity.

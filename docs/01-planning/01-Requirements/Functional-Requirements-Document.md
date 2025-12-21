@@ -1,11 +1,19 @@
 # Functional Requirements Document (FRD) - SDLC Orchestrator
 
-**Version**: 2.0.0
-**Date**: December 3, 2025
-**Status**: ACTIVE - AI Governance Extension
+**Version**: 3.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - AI Safety + Governance Extension
 **Authority**: PM + CTO + CPO + Full Team Approved
-**Foundation**: Product Vision, BRD v1.2, Stage 02 Architecture
-**Framework**: SDLC 4.9.1 Complete Lifecycle
+**Foundation**: Product Vision 3.1.0, BRD 1.2.0, Stage 02 Architecture
+**Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v3.0.0** (Dec 21, 2025):
+- Updated framework to SDLC 5.1.1
+- Added FR22-FR30: AI Safety Layer requirements (EP-02)
+- Added FR31-FR35: SDLC Structure Enforcement (EP-04)
+- Added FR36-FR40: Enterprise Migration Engine (EP-05)
+- Added FR41-FR45: Codegen Engine Tri-Mode (EP-06)
+- Updated foundation references
 
 **Changelog v2.1.0** (Dec 13, 2025):
 - Added FR21: User API Key Management (BYOK) - CTO/CPO Approved

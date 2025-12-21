@@ -1,15 +1,24 @@
 # User Stories & Epics
 ## User Journeys and Acceptance Criteria
 
-**Version**: 1.1.0
-**Date**: December 18, 2025
-**Status**: ACTIVE - Updated for Admin Panel (Sprint 40)
+**Version**: 2.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 Stories Added
 **Authority**: PM + Product Owner Review (APPROVED)
-**Foundation**: FRD v2.1, User Personas (Stage 00)
+**Foundation**: FRD v3.0.0, User Personas 1.1.0, Product Vision 3.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+**Framework**: SDLC 5.1.1 Complete Lifecycle
 
-**Changelog**:
-- v1.1.0 (Dec 18, 2025): Added E8 User Management stories (US8.1-US8.5) including Bulk Delete
+**Changelog v2.0.0** (Dec 21, 2025):
+- Updated framework to SDLC 5.1.1
+- Added E9-E11: AI Safety Layer stories (EP-02)
+- Added E12-E14: SDLC Structure Enforcement stories (EP-04)
+- Added E15-E17: Enterprise Migration stories (EP-05)
+- Added E18-E20: Codegen Engine stories (EP-06)
+- Updated foundation references
+
+**Changelog v1.1.0** (Dec 18, 2025):
+- Added E8 User Management stories (US8.1-US8.5) including Bulk Delete
 
 ---
 
@@ -557,12 +566,24 @@ US1.2: Evaluate gate G0.1 (Problem Definition)
 ## Document Control
 
 **Version History**:
-- v1.0.0 (January 13, 2025): Initial user stories (50+ stories, 10 epics)
+- v2.0.0 (December 21, 2025): SDLC 5.1.1 update, EP-04/05/06 stories added
+- v1.1.0 (December 18, 2025): Added E8 User Management stories
+- v1.0.0 (November 13, 2025): Initial user stories (50+ stories, 10 epics)
 
 **Related Documents**:
-- [FRD](../01-Requirements/Functional-Requirements-Document.md)
-- [User Personas](../../00-Project-Foundation/03-Design-Thinking/User-Personas.md)
+- [FRD](../01-Requirements/Functional-Requirements-Document.md) (v3.0.0)
+- [User Personas](../../00-foundation/03-Design-Thinking/User-Personas.md) (v1.1.0)
+- [Product Vision](../../00-foundation/01-Vision/Product-Vision.md) (v3.1.0)
+- [EP-04 SDLC Structure Enforcement](../02-Epics/EP-04-SDLC-Structure-Enforcement.md)
+- [EP-05 Enterprise Migration](../02-Epics/EP-05-ENTERPRISE-SDLC-MIGRATION.md)
+- [EP-06 Codegen Engine](../02-Epics/EP-06-Codegen-Engine-Dual-Mode.md)
 
 ---
 
-**End of User Stories v1.0.0**
+**Document**: SDLC-Orchestrator-User-Stories-Epics
+**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Component**: User Stories and Epic Breakdown
+**Review**: Sprint planning sessions
+**Last Updated**: December 21, 2025
+
+*"User stories bridge the gap between vision and implementation."* 📝

@@ -1,20 +1,19 @@
 # API Specification (OpenAPI 3.0)
 ## Complete REST + GraphQL Endpoints
 
-**Version**: 2.0.0
-**Date**: December 3, 2025
-**Status**: ACTIVE - AI Governance Extension
-**Authority**: Backend Lead + CTO Review (APPROVED)
-**Foundation**: Functional Requirements v2.0.0, Data Model ERD v2.0
+**Version**: 3.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 EXTENDED
+**Authority**: Backend Lead + CTO Review (✅ APPROVED)
+**Foundation**: FRD v3.0.0, Data Model ERD v3.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 4.9.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
 
-**Changelog v2.0.0** (Dec 3, 2025):
-- Added Context-Aware Requirements endpoints (/requirements, /context-profiles)
-- Added Task Decomposition endpoints (/decompose)
-- Added Planning Hierarchy endpoints (/roadmaps, /phases, /sprints, /backlog)
-- Added SDLC Structure Validation endpoints (/validate)
-- Total endpoints: 19 → 35 endpoints
+**Changelog v3.0.0** (Dec 21, 2025):
+- SDLC 5.1.1 update with EP-04/05/06 endpoint specifications
+- Added SDLC Structure Validation v2 endpoints
+- Added Codegen Engine endpoints (/codegen, /modes)
+- Total endpoints: 35 → 52 endpoints
 
 ---
 

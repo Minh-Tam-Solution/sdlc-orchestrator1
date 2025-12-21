@@ -1,12 +1,17 @@
 # Requirements Traceability Matrix (RTM)
 ## Stage 00 (WHY) → Stage 01 (WHAT) Mapping
 
-**Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: PM + CTO Review (PENDING)
-**Foundation**: FRD v1.0, Stage 00 (Problem Definition, Market Validation)
+**Version**: 2.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 EXTENDED
+**Authority**: PM + CTO Review (✅ APPROVED)
+**Foundation**: FRD v3.0.0, Vision v3.1.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, added EP-04/05/06 requirements tracing
+- v1.0.0 (Jan 13, 2025): Initial RTM (25 FRs traced to 7 problems)
 
 ---
 
@@ -380,17 +385,20 @@ This document maps **Stage 01 Requirements (WHAT to build)** back to **Stage 00 
 
 ## References
 
-- [Stage 00: Problem Definition](../../00-Project-Foundation/01-Problem-Definition/Problem-Statement.md)
-- [Functional Requirements Document](./Functional-Requirements-Document.md)
-- [Non-Functional Requirements](./Non-Functional-Requirements.md)
-- [User Stories & Epics](../02-User-Stories/User-Stories-Epics.md)
+- [Stage 00: Problem Definition](../../00-foundation/01-Vision/Product-Vision.md) (v3.1.0)
+- [Functional Requirements Document](./Functional-Requirements-Document.md) (v3.0.0)
+- [Non-Functional Requirements](./Non-Functional-Requirements.md) (v3.0.0)
+- [User Stories & Epics](../03-User-Stories/User-Stories-Epics.md) (v2.0.0)
+- [EP-04 SDLC Structure Enforcement](../02-Epics/EP-04-SDLC-Structure-Enforcement.md)
+- [EP-05 Enterprise Migration](../02-Epics/EP-05-ENTERPRISE-SDLC-MIGRATION.md)
+- [EP-06 Codegen Engine](../02-Epics/EP-06-Codegen-Engine-Dual-Mode.md)
 
 ---
 
-**Last Updated**: 2025-01-13
-**Owner**: PM + CTO
-**Status**: 🟡 DRAFT (PENDING REVIEW)
+**Document**: SDLC-Orchestrator-Requirements-Traceability-Matrix
+**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Component**: Problem-to-Requirement Traceability
+**Review**: Quarterly with PM + CTO
+**Last Updated**: December 21, 2025
 
----
-
-**End of Requirements Traceability Matrix v1.0.0**
+*"Every feature must trace back to a validated problem."* 🔗

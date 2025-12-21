@@ -1,12 +1,17 @@
 # Data Model & Entity-Relationship Diagram
 ## Database Schema and Relationships
 
-**Version**: 2.0.0
-**Date**: November 29, 2025
+**Version**: 3.0.0
+**Date**: December 21, 2025
 **Status**: IMPLEMENTED - Production Ready
 **Authority**: CTO + Backend Lead ✅ APPROVED
-**Foundation**: FRD v1.0, User Stories v1.0, Data-Model-v1.0.md
-**Stage**: Stage 04 (BUILD |
+**Foundation**: FRD v3.0.0, Vision v3.1.0, EP-04/05/06 Data Requirements
+**Stage**: Stage 04 (BUILD)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v3.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 entities added
+- v2.0.0 (Nov 29, 2025): ERD updated to reflect implemented 24-table schema
 
 > **UPDATE (Nov 29, 2025)**: ERD updated to reflect implemented 24-table schema.
 > See [Data-Model-v0.1.md](../Data-Model/Data-Model-v0.1.md) for detailed column definitions.

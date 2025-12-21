@@ -1,13 +1,17 @@
 # API Authentication & Authorization
 ## JWT + OAuth 2.0 + C-Suite RBAC
 
-**Version**: 1.0.0
-**Date**: November 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: Backend Lead + Security Lead + CTO Review (PENDING)
-**Foundation**: NFR8 (Authentication & Authorization), Data Model ERD v1.0
+**Version**: 2.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 EXTENDED
+**Authority**: Backend Lead + Security Lead + CTO Review (✅ APPROVED)
+**Foundation**: NFR v3.0.0, Data Model ERD v3.0.0, ADR-021 Analytics
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 4.9 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, FR-21 BYOK API key integration
+- v1.0.0 (Nov 13, 2025): Initial auth specification
 
 ---
 

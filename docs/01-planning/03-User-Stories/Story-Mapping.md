@@ -1,12 +1,17 @@
 # Story Mapping
 ## User Journey Visualization (Stage 00-09)
 
-**Version**: 1.0.0
-**Date**: January 13, 2025
-**Status**: ACTIVE - DRAFT
-**Authority**: PM + UX Lead Review (PENDING)
-**Foundation**: User Stories v1.0, Acceptance Criteria v1.0
+**Version**: 2.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - EP-04/05/06 JOURNEYS ADDED
+**Authority**: PM + UX Lead Review (✅ APPROVED)
+**Foundation**: User Stories v2.0.0, Acceptance Criteria v2.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog**:
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 user journeys added
+- v1.0.0 (Jan 13, 2025): Initial story mapping (7 journeys, 50+ stories)
 
 ---
 
@@ -283,16 +288,19 @@ This document visualizes **user journeys across SDLC 4.8 stages (Stage 00-09)** 
 
 ## References
 
-- [User Stories & Epics](./User-Stories-Epics.md)
-- [Acceptance Criteria](./Acceptance-Criteria.md)
-- [Functional Requirements Document](../01-Requirements/Functional-Requirements-Document.md)
+- [User Stories & Epics](./User-Stories-Epics.md) (v2.0.0)
+- [Acceptance Criteria](./Acceptance-Criteria.md) (v2.0.0)
+- [Functional Requirements Document](../01-Requirements/Functional-Requirements-Document.md) (v3.0.0)
+- [EP-04 SDLC Structure Enforcement](../02-Epics/EP-04-SDLC-Structure-Enforcement.md)
+- [EP-05 Enterprise Migration](../02-Epics/EP-05-ENTERPRISE-SDLC-MIGRATION.md)
+- [EP-06 Codegen Engine](../02-Epics/EP-06-Codegen-Engine-Dual-Mode.md)
 
 ---
 
-**Last Updated**: 2025-01-13
-**Owner**: PM + UX Lead
-**Status**: 🟡 DRAFT (PENDING REVIEW)
+**Document**: SDLC-Orchestrator-Story-Mapping
+**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Component**: User Journey Visualization
+**Review**: Sprint planning sessions with PM + UX Lead
+**Last Updated**: December 21, 2025
 
----
-
-**End of Story Mapping v1.0.0**
+*"Story mapping bridges the gap between requirements and user experience."* 🗺️

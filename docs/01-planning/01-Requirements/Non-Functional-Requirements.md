@@ -1,12 +1,20 @@
 # Non-Functional Requirements (NFR)
 ## Quality Attributes and System Constraints
 
-**Version**: 2.0.0
-**Date**: December 3, 2025
-**Status**: ACTIVE - AI Governance Extension
+**Version**: 3.0.0
+**Date**: December 21, 2025
+**Status**: ACTIVE - AI Safety + Governance Extension
 **Authority**: CTO + DevOps Lead Review (APPROVED)
-**Foundation**: FRD v2.0.0 (Functional Requirements with AI Governance)
+**Foundation**: FRD v3.0.0, Product Vision 3.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
+**Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v3.0.0** (Dec 21, 2025):
+- Updated framework to SDLC 5.1.1
+- Added NFR22-NFR25: AI Safety Layer performance requirements
+- Added NFR26-NFR28: Migration Engine scalability (1M+ LOC)
+- Added NFR29-NFR30: Codegen Engine latency (<100ms Mode B)
+- Updated foundation references
 
 **Changelog v2.0.0** (Dec 3, 2025):
 - Added NFR18: AI Task Decomposition Performance
@@ -590,8 +598,9 @@ And violations listed with fix suggestions
 ## Document Control
 
 **Version History**:
+- v3.0.0 (December 21, 2025): SDLC 5.1.1 update, EP-02/04/05/06 NFRs added
 - v2.0.0 (December 3, 2025): Added NFR18-NFR21 for AI Governance (21 requirements total)
-- v1.0.0 (January 13, 2025): Initial NFR (17 requirements)
+- v1.0.0 (November 13, 2025): Initial NFR (17 requirements)
 
 **Review Schedule**:
 - CTO Review: Week 2 ✅ APPROVED
@@ -599,13 +608,19 @@ And violations listed with fix suggestions
 - Security Review: Week 2 ✅ APPROVED
 
 **Related Documents**:
-- [Functional Requirements Document](./Functional-Requirements-Document.md) (v2.0.0)
-- [Product Roadmap](../../00-Project-Foundation/04-Roadmap/Product-Roadmap.md)
-- [ADR-011-Context-Aware-Requirements](../../02-design/01-ADRs/ADR-011-Context-Aware-Requirements.md)
-- [ADR-012-AI-Task-Decomposition](../../02-design/01-ADRs/ADR-012-AI-Task-Decomposition.md)
-- [ADR-013-Planning-Hierarchy](../../02-design/01-ADRs/ADR-013-Planning-Hierarchy.md)
-- [ADR-014-SDLC-Structure-Validator](../../02-design/01-ADRs/ADR-014-SDLC-Structure-Validator.md)
+- [Functional Requirements Document](./Functional-Requirements-Document.md) (v3.0.0)
+- [Product Roadmap](../../00-foundation/04-Roadmap/Product-Roadmap.md) (v4.1.0)
+- [Product Vision](../../00-foundation/01-Vision/Product-Vision.md) (v3.1.0)
+- [EP-04 SDLC Structure Enforcement](../02-Epics/EP-04-SDLC-Structure-Enforcement.md)
+- [EP-05 Enterprise Migration](../02-Epics/EP-05-ENTERPRISE-SDLC-MIGRATION.md)
+- [EP-06 Codegen Engine](../02-Epics/EP-06-Codegen-Engine-Dual-Mode.md)
 
 ---
 
-**End of Non-Functional Requirements v2.0.0**
+**Document**: SDLC-Orchestrator-Non-Functional-Requirements
+**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Component**: Quality Attributes and System Constraints
+**Review**: Quarterly with CTO + DevOps Lead
+**Last Updated**: December 21, 2025
+
+*"Define quality before you build quality."* 📊
