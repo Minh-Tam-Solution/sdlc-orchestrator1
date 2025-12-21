@@ -1,0 +1,404 @@
+# Grafana Alert Rules - Analytics Service
+# SDLC Stage: 05 - OPERATE
+# Sprint: 41 - AI Safety Foundation (CTO Recommendation #2)
+# Framework: SDLC 5.1.1
+
+---
+
+# Alert Configuration
+apiVersion: 1
+
+groups:
+  - name: analytics_service
+    interval: 1m  # Evaluation interval
+    rules:
+
+      # ====================================================================
+      # CTO Recommendation #2 (HIGH): Circuit Breaker Alerts
+      # ====================================================================
+
+      - uid: analytics_circuit_breaker_open
+        title: Analytics Circuit Breaker Open
+        condition: circuit_breaker_open
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600  # Last 10 minutes
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: analytics_circuit_breaker_state == 1
+              instant: true
+              range: false
+
+        # Trigger alert if circuit breaker is OPEN for >10 minutes
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+
+        annotations:
+          summary: "Analytics circuit breaker is OPEN"
+          description: |
+            Mixpanel tracking disabled for >10 minutes.
+            PostgreSQL-only fallback mode active.
+
+            **Failure Count**: {{ $values.A.Value }}
+            **Threshold**: 5 consecutive failures
+            **Recovery**: Auto-recovery after 5-minute timeout
+
+            **Action Required**:
+            1. Check Mixpanel API status: https://status.mixpanel.com
+            2. Review circuit breaker metrics: GET /api/v1/analytics/circuit-breaker/status
+            3. Check PostgreSQL fallback working: GET /api/v1/analytics/retention/stats
+
+          runbook_url: https://docs.sdlc-orchestrator.com/runbooks/circuit-breaker-open
+
+        labels:
+          severity: critical
+          service: analytics
+          component: circuit_breaker
+          team: backend
+
+        # PagerDuty integration
+        annotations:
+          pagerduty_severity: critical
+          pagerduty_summary: "Analytics circuit breaker OPEN >10min - Mixpanel unavailable"
+
+
+      - uid: analytics_circuit_breaker_failures
+        title: Analytics Circuit Breaker High Failure Rate
+        condition: high_failure_rate
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300  # Last 5 minutes
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: rate(analytics_circuit_breaker_failures_total[5m]) > 0.5
+              instant: false
+              range: true
+
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+
+        annotations:
+          summary: "Analytics circuit breaker failure rate >50%"
+          description: |
+            Mixpanel API experiencing high failure rate.
+            Circuit breaker may open soon (threshold: 5 failures).
+
+            **Failure Rate**: {{ $values.A.Value }} failures/sec
+            **Warning**: Circuit will open if 5 consecutive failures occur
+
+            **Action Required**:
+            1. Check Mixpanel API health
+            2. Review network connectivity
+            3. Check application logs for API errors
+
+        labels:
+          severity: warning
+          service: analytics
+          component: circuit_breaker
+          team: backend
+
+        # Slack integration
+        annotations:
+          slack_channel: "#analytics-alerts"
+          slack_message: ":warning: Analytics API experiencing high failure rate ({{ $values.A.Value }}/sec)"
+
+
+      # ====================================================================
+      # Event Tracking Alerts
+      # ====================================================================
+
+      - uid: analytics_event_tracking_failure_rate
+        title: Event Tracking Failure Rate High
+        condition: high_event_failure_rate
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: |
+                rate(analytics_events_tracked_total{status="failure"}[5m])
+                /
+                rate(analytics_events_tracked_total[5m])
+                > 0.05
+              instant: false
+              range: true
+
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+
+        annotations:
+          summary: "Event tracking failure rate >5%"
+          description: |
+            More than 5% of analytics events failing to track.
+
+            **Failure Rate**: {{ $values.A.Value | humanizePercentage }}
+            **Threshold**: 5%
+
+            **Possible Causes**:
+            - Mixpanel API issues (check circuit breaker)
+            - PostgreSQL connection issues
+            - Invalid event payloads
+
+            **Action Required**:
+            1. Check circuit breaker status
+            2. Review PostgreSQL connection pool
+            3. Check application logs for validation errors
+
+        labels:
+          severity: warning
+          service: analytics
+          component: event_tracking
+          team: backend
+
+        annotations:
+          slack_channel: "#analytics-alerts"
+
+
+      # ====================================================================
+      # Retention Cleanup Alerts (CTO Condition #3)
+      # ====================================================================
+
+      - uid: analytics_retention_cleanup_duration
+        title: Retention Cleanup Duration High
+        condition: slow_cleanup
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400  # Last 24 hours
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: histogram_quantile(0.95, rate(analytics_retention_cleanup_duration_seconds_bucket[24h])) > 300
+              instant: true
+              range: false
+
+        noDataState: OK
+        execErrState: Alerting
+        for: 1m
+
+        annotations:
+          summary: "Retention cleanup taking >5 minutes (p95)"
+          description: |
+            Analytics retention cleanup exceeding 5-minute target.
+
+            **P95 Duration**: {{ $values.A.Value }} seconds
+            **Threshold**: 300 seconds (5 minutes)
+
+            **Impact**:
+            - Cron job may timeout
+            - Database performance degradation
+            - Compliance risk (GDPR 90-day retention)
+
+            **Action Required**:
+            1. Check database query performance
+            2. Review batch size (current: 1000 records)
+            3. Check table size: SELECT count(*) FROM analytics_events
+            4. Consider adding database indexes
+
+        labels:
+          severity: warning
+          service: analytics
+          component: retention_cleanup
+          team: backend
+
+        annotations:
+          email_to: backend-team@sdlc-orchestrator.com
+
+
+      - uid: analytics_retention_cleanup_failure
+        title: Retention Cleanup Failed
+        condition: cleanup_failed
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 86400
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: increase(analytics_retention_cleanup_failures_total[24h]) > 0
+              instant: true
+              range: false
+
+        noDataState: OK
+        execErrState: Alerting
+        for: 1m
+
+        annotations:
+          summary: "Analytics retention cleanup FAILED"
+          description: |
+            Scheduled retention cleanup job failed in last 24 hours.
+
+            **Failure Count**: {{ $values.A.Value }}
+            **Compliance Risk**: HIGH (GDPR 90-day retention not enforced)
+
+            **Action Required** (URGENT):
+            1. Check cron job logs: /var/log/analytics-cleanup.log
+            2. Manually trigger cleanup: POST /api/v1/analytics/retention/cleanup
+            3. Check PostgreSQL connection
+            4. Review error logs for root cause
+
+        labels:
+          severity: critical
+          service: analytics
+          component: retention_cleanup
+          team: backend
+
+        annotations:
+          pagerduty_severity: high
+          pagerduty_summary: "Analytics retention cleanup FAILED - GDPR compliance at risk"
+
+
+      - uid: analytics_retention_old_events
+        title: Events Older Than Retention Policy
+        condition: compliance_violation
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: analytics_retention_events_older_than_policy{table="analytics_events"} > 10000
+              instant: true
+              range: false
+
+        noDataState: OK
+        execErrState: Alerting
+        for: 1h
+
+        annotations:
+          summary: ">10K events older than 90-day retention policy"
+          description: |
+            Significant number of events violating retention policy.
+
+            **Old Events Count**: {{ $values.A.Value }}
+            **Threshold**: 10,000 events
+            **Compliance**: GDPR Article 5(1)(e) violation
+
+            **Action Required**:
+            1. Manually trigger cleanup: POST /api/v1/analytics/retention/cleanup
+            2. Check cron job status (should run daily at 2:00 AM UTC)
+            3. Verify cleanup job succeeded
+
+        labels:
+          severity: warning
+          service: analytics
+          component: retention_compliance
+          team: backend
+
+        annotations:
+          email_to: compliance-team@sdlc-orchestrator.com
+
+
+      # ====================================================================
+      # Engagement Metrics Alerts
+      # ====================================================================
+
+      - uid: analytics_dau_drop
+        title: Daily Active Users Drop
+        condition: dau_decrease
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 172800  # Last 2 days
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: |
+                (analytics_daily_active_users - analytics_daily_active_users offset 1d)
+                /
+                analytics_daily_active_users offset 1d
+                < -0.2
+              instant: true
+              range: false
+
+        noDataState: OK
+        execErrState: OK  # Don't alert on errors (data might not exist yet)
+        for: 1h
+
+        annotations:
+          summary: "Daily Active Users dropped >20%"
+          description: |
+            Significant decrease in Daily Active Users.
+
+            **DAU Drop**: {{ $values.A.Value | humanizePercentage }}
+            **Threshold**: -20%
+
+            **Possible Causes**:
+            - Service outage
+            - Weekend/holiday effect
+            - Onboarding issues
+            - Product issue
+
+            **Action Required**:
+            1. Check service health
+            2. Review user feedback
+            3. Analyze funnel drop-off
+
+        labels:
+          severity: info
+          service: analytics
+          component: engagement
+          team: product
+
+        annotations:
+          slack_channel: "#product-analytics"
+
+
+# ====================================================================
+# Notification Templates
+# ====================================================================
+
+# PagerDuty (Critical Alerts)
+contactPoints:
+  - name: pagerduty_analytics
+    uid: pagerduty_analytics
+    type: pagerduty
+    settings:
+      integrationKey: ${PAGERDUTY_ANALYTICS_KEY}
+      severity: "{{ .Labels.pagerduty_severity }}"
+      summary: "{{ .Annotations.pagerduty_summary }}"
+
+# Slack (Warnings)
+  - name: slack_analytics
+    uid: slack_analytics
+    type: slack
+    settings:
+      url: ${SLACK_WEBHOOK_ANALYTICS}
+      title: "{{ .Labels.severity | toUpper }}: {{ .Annotations.summary }}"
+      text: "{{ .Annotations.description }}"
+
+# Email (Non-urgent)
+  - name: email_backend_team
+    uid: email_backend_team
+    type: email
+    settings:
+      addresses: "backend-team@sdlc-orchestrator.com"
+      singleEmail: true
+
+
+# ====================================================================
+# Notification Policies
+# ====================================================================
+
+policies:
+  - receiver: pagerduty_analytics
+    object_matchers:
+      - severity = critical
+
+  - receiver: slack_analytics
+    object_matchers:
+      - severity = warning
+
+  - receiver: email_backend_team
+    object_matchers:
+      - severity = info
