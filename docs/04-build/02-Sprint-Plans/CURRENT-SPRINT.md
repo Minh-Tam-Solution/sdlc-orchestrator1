@@ -125,6 +125,8 @@ CIRCUIT_BREAKER_ENABLED=true
 → [IT Team Port Allocation](../../06-deploy/01-Deployment-Strategy/IT-TEAM-PORT-ALLOCATION-ALIGNMENT.md)
 → [Monitoring Alert Thresholds](../../07-operate/01-Monitoring-Alerting/MONITORING-ALERT-THRESHOLDS.md)
 
+**Note**: Structure cleaned up per SDLC 5.1.1 (Dec 22, 2025) - consolidated 05-operate, 07-operate, 08-operate into single `07-operate/`
+
 ### Sprint 33 Objectives
 
 **Focus**: Beta Pilot Deployment with 5 internal teams (38 users)
@@ -318,9 +320,9 @@ CIRCUIT_BREAKER_ENABLED=true
 → [Sprint 42 Final Review](../../09-govern/01-CTO-Reports/2025-12-22-SPRINT-42-FINAL-REVIEW.md)  
 → [AI Detection Service Design](../../03-design/ai-detection/AI-Detection-Service-Interface.md)  
 → [Validation Pipeline Design](../../03-design/validation/Validation-Pipeline-Interface.md)  
-→ [Partner Onboarding Guide](../ai-detection/PARTNER-ONBOARDING-GUIDE.md)  
-→ [API Specification](../ai-detection/API-SPECIFICATION.md)  
-→ [Integration Guide](../ai-detection/INTEGRATION-GUIDE.md)
+→ [Partner Onboarding Guide](../07-AI-Detection/PARTNER-ONBOARDING-GUIDE.md)
+→ [API Specification](../07-AI-Detection/API-SPECIFICATION.md)
+→ [Integration Guide](../07-AI-Detection/INTEGRATION-GUIDE.md)
 
 ---
 
