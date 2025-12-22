@@ -146,7 +146,11 @@
       "Bash(backend/tests/fixtures/ai_detection_test_dataset.py )",
       "Bash(backend/tests/unit/test_ai_detection_accuracy.py )",
       "Bash(backend/run_p0_validation.py)",
-      "Bash(backend/config/ai_detection.env.example)"
+      "Bash(backend/config/ai_detection.env.example)",
+      "Bash(# Check if design docs exist for Sprint 43 components find /home/nqh/shared/SDLC-Orchestrator/docs/02-design -name \"\"*.md\"\" | xargs grep -l -i \"\"policy\\\\|opa\\\\|evidence\\\\|timeline\"\")",
+      "Bash(# Check SASE Artifacts ls -la /home/nqh/shared/SDLC-Orchestrator/docs/ | grep -i sase || find /home/nqh/shared/SDLC-Orchestrator/docs -type d -name \"\"*SASE*\"\")",
+      "Bash(# Check if SASE artifacts exist find /home/nqh/shared/SDLC-Orchestrator -type f -name \"\"*BRS*\"\")",
+      "Bash(# Check existing OPA policies ls -la /home/nqh/shared/SDLC-Orchestrator/backend/policy-packs/ || echo \"\"No policy-packs folder found\"\" find /home/nqh/shared/SDLC-Orchestrator -name \"\"*.rego\"\")"
     ],
     "deny": [],
     "ask": []
