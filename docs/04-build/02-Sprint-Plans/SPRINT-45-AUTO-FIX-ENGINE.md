@@ -10,13 +10,15 @@
 | **Sprint ID** | SPRINT-45 |
 | **Epic** | EP-06: IR-Based Codegen Engine |
 | **Duration** | 2 weeks (Jan 6-17, 2026) |
-| **Status** | CEO APPROVED ✅ (Dec 23, 2025) |
+| **Status** | **CTO APPROVED ✅** (Dec 23, 2025) - Ready to Start |
 | **Priority** | **P0 Must Have** |
 | **Team** | 1 Backend Lead + 0.5 Architect |
 | **Story Points** | 13 SP |
 | **Budget** | $3,000 |
 | **Framework** | SDLC 5.1.1 + SASE Level 2 |
 | **Strategic Context** | [Expert Feedback Integration](../../09-govern/05-Knowledge-Transfer/02-Expert-Response/FINAL-EXECUTIVE-SUMMARY.md) |
+| **CEO Approval** | ✅ Dec 23, 2025 |
+| **CTO Approval** | ✅ Dec 23, 2025 |
 
 ---
 
@@ -105,6 +107,7 @@
 - `POST /api/v1/codegen/generate`
 - `POST /api/v1/codegen/validate`
 - `GET /api/v1/codegen/providers`
+- `POST /api/v1/codegen/estimate` (optional in Sprint 45; keep non-blocking)
 
 ---
 
@@ -136,9 +139,72 @@
 ## Demo Definition
 
 Given a minimal `AppBlueprint` JSON, the system:
-- Lists available providers
-- Generates code via Ollama
-- Runs provider validation
+- Lists available providers via `GET /codegen/providers`
+- Generates code via Ollama using `POST /codegen/generate`
+- Runs provider validation via `POST /codegen/validate`
+
+---
+
+## 🚦 CTO Go Conditions (Non-Negotiable)
+
+### Mandatory Requirements
+
+| Condition | Description | Verification |
+|-----------|-------------|--------------|
+| **No DeepCode-first** | DeepCode is stub/placeholder only, NO hard dependency, NO blocking when key/SDK missing | Code review |
+| **CodegenProvider contract** | Interface has `generate`, `validate`, `estimate_cost` methods | Unit test |
+| **Registry + routing** | Provider discovery, config-based selection, fallback chain working | Integration test |
+| **Core API endpoints** | `generate`, `validate`, `providers` endpoints operational (estimate is optional) | Smoke test |
+| **Ollama as primary** | Ollama provider runs end-to-end with IR input | Demo |
+
+### Test/Quality Gates
+
+| Gate | Requirement | Evidence |
+|------|-------------|----------|
+| **Integration test** | Routing + fallback chain tested | pytest pass |
+| **Ollama-only boot** | System boots when Claude/DeepCode disabled | Runbook + test |
+| **No provider hard dependency** | Documented disable procedure | README section |
+
+---
+
+## ✅ Definition of Done (Sprint 45 Gate)
+
+### Demo Checklist
+
+- [ ] `GET /api/v1/codegen/providers` returns list of available providers
+- [ ] `POST /api/v1/codegen/generate` with minimal AppBlueprint produces output via Ollama
+- [ ] `POST /api/v1/codegen/validate` runs validation per provider
+- [ ] (Optional) `POST /api/v1/codegen/estimate` returns a cost estimate
+- [ ] System boots with Ollama-only (Claude/DeepCode disabled)
+- [ ] Runbook documenting how to disable providers exists
+
+### Quality Checklist
+
+- [ ] All P0 objectives complete
+- [ ] Integration test for routing + fallback
+- [ ] Unit tests for CodegenProvider contract
+- [ ] No hard dependencies on external provider SDKs
+
+---
+
+## ⚠️ Risks & Mitigations (CTO Guidance)
+
+| Risk | Mitigation | Owner |
+|------|------------|-------|
+| **Output contract scope creep** | Sprint 45 returns implementation-defined bundle only; NO zip/artifact spec (defer to Sprint 46) | Backend Lead |
+| **IR schema changes** | Map to existing schemas only; NO schema modifications without CTO approval | Architect |
+| **Provider timeout handling** | Define error model in Architect review (Day 1) | Architect |
+
+---
+
+## 🚀 Action Items Before Sprint Start (Day 1)
+
+| # | Action | Owner | Due |
+|---|--------|-------|-----|
+| 1 | Finalize provider config format + location | Backend Lead | Day 1 AM |
+| 2 | Write `ollama-only-boot` integration test | Backend Lead | Day 1 AM |
+| 3 | 60-min Architect review: interface + routing + error model | Architect | Day 1 PM |
+| 4 | Confirm fallback chain behavior (provider missing/timeout) | Backend Lead + Architect | Day 1 PM |
 
 ---
 
@@ -146,7 +212,8 @@ Given a minimal `AppBlueprint` JSON, the system:
 
 | Field | Value |
 |-------|-------|
-| **Version** | 2.0.0 |
+| **Version** | 3.0.0 |
 | **Last Updated** | December 23, 2025 |
 | **Owner** | CTO + PM Team |
-| **Approved By** | CEO ✅ (Dec 23, 2025) |
+| **CEO Approval** | ✅ Dec 23, 2025 |
+| **CTO Approval** | ✅ Dec 23, 2025 - Ready to Start |

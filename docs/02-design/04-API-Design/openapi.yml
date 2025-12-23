@@ -76,6 +76,8 @@ tags:
     description: AI Council Service - Multi-LLM deliberation for compliance recommendations
   - name: SDLC Structure Validation
     description: SDLC 5.0.0 folder structure validation - 11 stages, 4-tier classification
+  - name: Codegen
+    description: EP-06 IR-Based Code Generation - Multi-provider architecture (Ollama, Claude, DeepCode)
 
 security:
   - BearerAuth: []
@@ -3513,6 +3515,231 @@ paths:
         '403':
           description: User does not have access to this project
 
+  # ============================================================
+  # CODEGEN (EP-06)
+  # ============================================================
+
+  /codegen/providers:
+    get:
+      tags: [Codegen]
+      summary: List available codegen providers
+      description: |
+        List all registered codegen providers with availability status.
+
+        **Fallback Chain**: When preferred provider is unavailable, the system
+        automatically falls back to the next available provider in the chain:
+        `ollama → claude → deepcode`
+
+        **Provider Status**:
+        - `ollama`: Primary provider, Ollama-based (cost-effective)
+        - `claude`: Fallback, requires ANTHROPIC_API_KEY
+        - `deepcode`: Stub, deferred to Q2 2026
+      operationId: listCodegenProviders
+      responses:
+        '200':
+          description: List of providers with availability status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodegenProvidersResponse'
+              example:
+                providers:
+                  - name: ollama
+                    available: true
+                    primary: true
+                    status: healthy
+                  - name: claude
+                    available: false
+                    primary: false
+                    status: not_configured
+                  - name: deepcode
+                    available: false
+                    primary: false
+                    status: deferred_q2_2026
+                fallback_chain:
+                  - ollama
+                  - claude
+                  - deepcode
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /codegen/generate:
+    post:
+      tags: [Codegen]
+      summary: Generate code from IR specification
+      description: |
+        Generate production-ready code from an IR (Intermediate Representation) specification.
+
+        **IR-Based Generation Benefits**:
+        - 96% token reduction vs full context
+        - 10x faster generation (<3s vs 30s)
+        - 25x cheaper ($0.02 vs $0.50 per generation)
+
+        **Supported Languages**: Python, TypeScript, JavaScript
+        **Supported Frameworks**: FastAPI, Flask, Next.js, React
+
+        **Vietnamese SME Focus**:
+        - Comments in Vietnamese for complex logic
+        - Optimized for F&B, Hospitality, Retail domains
+      operationId: generateCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodegenGenerateRequest'
+            example:
+              app_blueprint:
+                name: Restaurant Order System
+                version: "1.0.0"
+                business_domain: restaurant
+                modules:
+                  - name: orders
+                    entities:
+                      - Order
+                      - OrderItem
+                    operations:
+                      - create
+                      - list
+                      - update_status
+              language: python
+              framework: fastapi
+              preferred_provider: ollama
+      responses:
+        '200':
+          description: Code generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodegenGenerateResponse'
+              example:
+                success: true
+                result:
+                  success: true
+                  files:
+                    - path: app/models/order.py
+                      content: "from sqlalchemy import Column, Integer, String..."
+                      language: python
+                    - path: app/api/routes/orders.py
+                      content: "from fastapi import APIRouter..."
+                      language: python
+                  provider: ollama
+                  tokens_used: 2500
+                  generation_time_ms: 3200
+                  metadata:
+                    model: qwen2.5-coder:14b
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: No codegen providers available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: service_unavailable
+                message: No codegen providers available
+
+  /codegen/validate:
+    post:
+      tags: [Codegen]
+      summary: Validate generated code
+      description: |
+        Validate generated code against quality standards.
+
+        **Validation Checks**:
+        - Syntax validation
+        - Security patterns (OWASP)
+        - Code style (PEP8/ESLint)
+        - Framework best practices
+
+        **Severity Levels**:
+        - `error`: Must fix before deployment
+        - `warning`: Should fix, not blocking
+        - `info`: Suggestions for improvement
+      operationId: validateCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodegenValidateRequest'
+            example:
+              code: "from sqlalchemy import Column..."
+              context:
+                language: python
+                framework: fastapi
+                check_security: true
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodegenValidateResponse'
+              example:
+                success: true
+                result:
+                  valid: true
+                  issues:
+                    - severity: warning
+                      message: Consider adding input validation for user_id
+                      file: app/api/routes/orders.py
+                      line: 45
+                      rule: SEC-001
+                  suggestions:
+                    - Add type hints for all function parameters
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '503':
+          description: No codegen providers available
+
+  /codegen/estimate:
+    post:
+      tags: [Codegen]
+      summary: Estimate generation cost
+      description: |
+        Estimate the cost of code generation across all available providers.
+
+        **Cost Comparison**:
+        - Ollama: ~$0.001 per 1K tokens (self-hosted)
+        - Claude: ~$0.015 per 1K tokens (API)
+        - DeepCode: TBD (Q2 2026)
+
+        Use this endpoint to compare costs before generation.
+      operationId: estimateCost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodegenEstimateRequest'
+      responses:
+        '200':
+          description: Cost estimates per provider
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodegenEstimateResponse'
+              example:
+                estimates:
+                  ollama:
+                    provider: ollama
+                    estimated_tokens: 5000
+                    estimated_cost_usd: 0.005
+                    confidence: 0.8
+                  claude:
+                    provider: claude
+                    estimated_tokens: 5000
+                    estimated_cost_usd: 0.075
+                    confidence: 0.7
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 # ============================================================
 # COMPONENTS
 # ============================================================
@@ -3930,6 +4157,254 @@ components:
               type: integer
             LOW:
               type: integer
+
+    # ============================================================
+    # CODEGEN (EP-06) - Sprint 45
+    # ============================================================
+
+    CodegenLanguage:
+      type: string
+      enum: [python, typescript, javascript]
+      description: Target programming language
+      example: python
+
+    CodegenFramework:
+      type: string
+      enum: [fastapi, flask, nextjs, react]
+      description: Target framework
+      example: fastapi
+
+    CodegenProviderInfo:
+      type: object
+      required: [name, available, primary]
+      properties:
+        name:
+          type: string
+          description: Provider identifier
+          example: ollama
+        available:
+          type: boolean
+          description: Whether provider is currently available
+          example: true
+        primary:
+          type: boolean
+          description: Whether this is the primary provider
+          example: true
+        status:
+          type: string
+          description: Current status message
+          example: healthy
+
+    CodegenProvidersResponse:
+      type: object
+      required: [providers, fallback_chain]
+      properties:
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodegenProviderInfo'
+        fallback_chain:
+          type: array
+          items:
+            type: string
+          description: Ordered list of providers for fallback
+          example: [ollama, claude, deepcode]
+
+    GeneratedFile:
+      type: object
+      required: [path, content, language]
+      properties:
+        path:
+          type: string
+          description: Relative file path
+          example: app/models/order.py
+        content:
+          type: string
+          description: File content
+          example: "from sqlalchemy import Column..."
+        language:
+          type: string
+          description: File language/type
+          example: python
+
+    CodegenResult:
+      type: object
+      required: [success, files, provider, tokens_used, generation_time_ms]
+      properties:
+        success:
+          type: boolean
+          description: Generation success status
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedFile'
+          description: List of generated files
+        provider:
+          type: string
+          description: Provider that generated the code
+          example: ollama
+        tokens_used:
+          type: integer
+          description: Total tokens consumed
+          example: 2500
+        generation_time_ms:
+          type: integer
+          description: Generation time in milliseconds
+          example: 3200
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional provider-specific metadata
+          example:
+            model: qwen2.5-coder:14b
+            prompt_tokens: 800
+            completion_tokens: 1700
+
+    CodegenGenerateRequest:
+      type: object
+      required: [app_blueprint]
+      properties:
+        app_blueprint:
+          type: object
+          additionalProperties: true
+          description: AppBlueprint JSON from IR schema
+        target_module:
+          type: string
+          description: Specific module to generate (null = all)
+          example: orders
+        language:
+          $ref: '#/components/schemas/CodegenLanguage'
+        framework:
+          $ref: '#/components/schemas/CodegenFramework'
+        preferred_provider:
+          type: string
+          description: Preferred provider name
+          example: ollama
+
+    CodegenGenerateResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        result:
+          $ref: '#/components/schemas/CodegenResult'
+        error:
+          type: string
+          description: Error message if success is false
+
+    CodegenValidationIssue:
+      type: object
+      required: [severity, message]
+      properties:
+        severity:
+          type: string
+          enum: [error, warning, info]
+          example: warning
+        message:
+          type: string
+          example: Consider adding input validation for user_id
+        file:
+          type: string
+          example: app/api/routes/orders.py
+        line:
+          type: integer
+          example: 45
+        rule:
+          type: string
+          example: SEC-001
+
+    CodegenValidationResult:
+      type: object
+      required: [valid, issues]
+      properties:
+        valid:
+          type: boolean
+          description: Overall validation passed
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodegenValidationIssue'
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Improvement suggestions
+
+    CodegenValidateRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          description: Code to validate
+        context:
+          type: object
+          additionalProperties: true
+          description: Validation context (language, framework, etc.)
+        provider:
+          type: string
+          description: Specific provider for validation
+
+    CodegenValidateResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+        result:
+          $ref: '#/components/schemas/CodegenValidationResult'
+        error:
+          type: string
+
+    CostEstimate:
+      type: object
+      required: [provider, estimated_tokens, estimated_cost_usd, confidence]
+      properties:
+        provider:
+          type: string
+          example: ollama
+        estimated_tokens:
+          type: integer
+          example: 5000
+        estimated_cost_usd:
+          type: number
+          format: float
+          example: 0.005
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.8
+
+    CodegenEstimateRequest:
+      type: object
+      required: [app_blueprint]
+      properties:
+        app_blueprint:
+          type: object
+          additionalProperties: true
+        language:
+          $ref: '#/components/schemas/CodegenLanguage'
+        framework:
+          $ref: '#/components/schemas/CodegenFramework'
+
+    CodegenEstimateResponse:
+      type: object
+      required: [estimates]
+      properties:
+        estimates:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/CostEstimate'
+          description: Cost estimates keyed by provider name
+          example:
+            ollama:
+              provider: ollama
+              estimated_tokens: 5000
+              estimated_cost_usd: 0.005
+              confidence: 0.8
 
     # ============================================================
     # SDLC 5.0.0 STRUCTURE VALIDATION (Sprint 30)
