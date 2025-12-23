@@ -47,7 +47,7 @@ from app.core.security import get_password_hash
 # ============================================================================
 
 # Test database URL (separate from development database)
-TEST_DATABASE_URL = settings.database_url.replace(
+TEST_DATABASE_URL = settings.DATABASE_URL.replace(
     "sdlc_orchestrator", "sdlc_orchestrator_test"
 )
 

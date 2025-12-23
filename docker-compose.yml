@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_secure_password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5451:5432"  # IT Admin: SDLC PostgreSQL (5450 used by bflow-auth-db)
+      - "5450:5432"  # IT Admin: SDLC PostgreSQL (PORT_ALLOCATION_MANAGEMENT.md)
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -62,8 +62,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin_changeme}
       MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
     ports:
-      - "9097:9000"  # SDLC MinIO API (9010/9011 used by SOP Generator)
-      - "9098:9001"  # SDLC MinIO Console
+      - "9010:9000"  # IT Admin: SDLC MinIO API (PORT_ALLOCATION_MANAGEMENT.md)
+      - "9011:9001"  # IT Admin: SDLC MinIO Console (PORT_ALLOCATION_MANAGEMENT.md)
     volumes:
       - minio_data:/data
     healthcheck:
@@ -259,7 +259,14 @@ services:
       # App
       ENVIRONMENT: development
       DEBUG: "true"
-      ALLOWED_ORIGINS: https://sdlc.nhatquangholding.com,https://sdlc.nqh.vn,http://localhost:8310,http://localhost:3000,http://localhost:4000,http://localhost:5173
+      ALLOWED_ORIGINS: https://sdlc.nhatquangholding.com,http://localhost:8310,http://localhost:3000,http://localhost:4000,http://localhost:5173
+
+      # Codegen Service (Sprint 45 - EP-06)
+      # GPU Server: Use http://host.docker.internal:11434 to access Ollama from container
+      CODEGEN_OLLAMA_URL: ${CODEGEN_OLLAMA_URL:-http://host.docker.internal:11434}
+      CODEGEN_MODEL_PRIMARY: ${CODEGEN_MODEL_PRIMARY:-qwen2.5-coder:32b-instruct-q4_K_M}
+      CODEGEN_MODEL_FAST: ${CODEGEN_MODEL_FAST:-qwen2.5:14b-instruct}
+      CODEGEN_TIMEOUT: ${CODEGEN_TIMEOUT:-120}
 
     ports:
       - "8300:8300"

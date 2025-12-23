@@ -151,7 +151,8 @@ class Settings(BaseSettings):
     # Ollama AI (Sprint 21 - Local LLM Integration)
     # ADR-007: Cost optimization - $50/month vs $1,000/month cloud APIs
     # EP-06: Company GPU server for Mode B (Native OSS Codegen)
-    OLLAMA_URL: str = "http://api.nhatquangholding.com:11434"
+    # Ollama AI Service (set via OLLAMA_URL env var)
+    OLLAMA_URL: str = ""  # Must be set via environment variable
     OLLAMA_MODEL: str = "llama2:13b"
     OLLAMA_TIMEOUT: int = 30
     
@@ -159,7 +160,9 @@ class Settings(BaseSettings):
     # Mode B: Native OSS codegen using NQH AI Platform (IT Admin infrastructure)
     # RTX 5090 32GB with 10 production models - December 2025
     # Docs: /home/nqh/shared/models/docs/NQH-SOPs/07_Training/05_IT_Training/03_AI_Platform_Training/07_Continue_Dev_Integration
-    CODEGEN_OLLAMA_URL: str = "https://api.nhatquangholding.com"  # NAT to internal Ollama server
+    #
+    # NOTE: Set via CODEGEN_OLLAMA_URL env var based on deployment environment
+    CODEGEN_OLLAMA_URL: str = ""  # Must be set via environment variable
     CODEGEN_MODEL_PRIMARY: str = "qwen2.5-coder:32b-instruct-q4_K_M"  # 92.7% HumanEval - PRIMARY
     CODEGEN_MODEL_FAST: str = "qwen2.5:14b-instruct"  # ~4s response for autocomplete
     CODEGEN_MODEL_VIETNAMESE: str = "qwen3:14b"  # Excellent Vietnamese support

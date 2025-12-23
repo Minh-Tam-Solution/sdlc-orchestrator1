@@ -4,9 +4,7 @@
 **Version**: 1.1.0
 **Date**: December 23, 2025
 **Author**: Backend Lead
-
-> **NOTE**: The canonical version of this document is at:
-> `docs/06-deploy/CODEGEN-SERVICE-RUNBOOK.md`
+**Location**: `docs/06-deploy/CODEGEN-SERVICE-RUNBOOK.md` (canonical)
 
 ---
 

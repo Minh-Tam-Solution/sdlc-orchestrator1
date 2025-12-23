@@ -58,7 +58,7 @@ class OllamaCodegenProvider(CodegenProvider):
     Ollama-based code generation provider.
 
     Primary provider for Vietnam SME codegen (EP-06 Mode B).
-    Uses company GPU server via NAT for cost efficiency.
+    Uses company GPU server for cost efficiency.
 
     Features:
     - Vietnamese-optimized prompts
@@ -67,10 +67,10 @@ class OllamaCodegenProvider(CodegenProvider):
     - Retry with exponential backoff
     - Structured file output parsing
 
-    Configuration:
-    - CODEGEN_OLLAMA_URL: https://api.nhatquangholding.com
-    - CODEGEN_MODEL_PRIMARY: qwen2.5-coder:32b-instruct-q4_K_M
-    - CODEGEN_TIMEOUT: 120 seconds
+    Configuration (via environment variables):
+    - CODEGEN_OLLAMA_URL: Ollama server URL
+    - CODEGEN_MODEL_PRIMARY: Primary model for code generation
+    - CODEGEN_TIMEOUT: Request timeout in seconds
 
     Example:
         >>> provider = OllamaCodegenProvider()
