@@ -1,23 +1,28 @@
 # Product Roadmap
-## AI-Native SDLC Governance & Safety Platform
+## Operating System for Software 3.0
 
-**Version**: 4.1.0
-**Date**: December 21, 2025
-**Status**: ✅ CTO APPROVED - Q1-Q2 2026 AI Safety First + EP-04/05/06
-**Authority**: CTO Approval (Dec 21, 2025), Board Decision December 2024
-**Foundation**: Financial Model v1.0, Product Vision v3.1.0
+**Version**: 5.0.0
+**Date**: December 23, 2025
+**Status**: ✅ CTO APPROVED - Software 3.0 Pivot + EP-06 P0
+**Authority**: CTO Approval (Dec 23, 2025), Board Decision December 2024
+**Foundation**: Financial Model v1.0, Product Vision v4.0.0
 **Framework**: SDLC 5.1.1 + SASE Level 2
+
+**Changelog v5.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Control Plane for AI Coders positioning
+- **EP-06 IR-Based Codegen**: Sprint 45-50 (not Tri-Mode), P0 priority
+- **Founder Plan**: $99/team/month for Vietnam SME (GA launch Q1 2026)
+- **Year 1 Target**: 30-50 teams (realistic, founder-led sales)
+- **Dual Wedge Strategy**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **Multi-Provider**: Ollama → Claude → DeepCode (deferred Q2 2026)
+- **Sprint 45-50 Design Complete**: All 5 technical specs approved
 
 **Changelog v4.1.0** (Dec 21, 2025):
 - **EP-04**: SDLC Structure Enforcement (Sprint 41-46, $16.5K, 117 SP)
-- **EP-05**: Enterprise SDLC Migration Engine (Sprint 47-50, $58K, 89 SP)
-- **EP-06**: Codegen Engine Tri-Mode (Sprint 51-55, ~$50K, 99 SP)
-- **Mode C Hybrid Fallback**: Claude → Continue.dev auto-failover
-- **Model Roles Strategy**: IT Admin 10-model structure integrated
+- **EP-05**: Enterprise SDLC Migration Engine (deprioritized, pending EP-06 success)
+- **EP-06**: Codegen Engine initial scope defined
 - **NQH AI Platform**: qwen2.5-coder:32b (92.7% HumanEval) ready
 - **.sdlc-config.json**: 1KB replaces 700KB manual compliance docs
-- **Total Investment**: $74.5K+ committed (305+ SP)
-- **Revenue Projection**: +$34.5K ARR Year 1 from new epics
 
 **Changelog v4.0.0** (Dec 20, 2025):
 - **POSITIONING PIVOT**: "Project Governance Tool" → "AI-Native SDLC Governance & Safety Platform"
@@ -32,23 +37,31 @@
 
 ## Executive Summary
 
-### New Positioning (v4.0.0)
+### New Positioning (v5.0.0)
 
-> **Product Category**: AI-Native SDLC Governance & Safety Platform  
-> **Tagline**: *"The control plane that keeps Claude Code/Cursor/Copilot compliant with your architecture & standards."*
+> **Product Category**: Operating System for Software 3.0
+> **Tagline**: *"The Operating System for Software 3.0 - Where AI coders are governed, not feared."*
 
 **Core Value Proposition**:
 - AI coding tools (Cursor, Copilot, Claude Code) increase throughput but create governance gaps
-- SDLC Orchestrator is the **governance and safety layer** that certifies AI-generated code before production
-- Differentiation: AI Council pattern + Policy-as-Code + Evidence Vault + SDLC 5.x expertise
+- SDLC Orchestrator is the **control plane** that sits ABOVE AI coders, not alongside them
+- Differentiation: 3-Layer Architecture + IR-Based Codegen + Founder Plan for Vietnam SME
+
+**3-Layer Architecture**:
+```
+Layer 3: AI Coders (Claude/Cursor/Copilot/OSS) ← We orchestrate
+Layer 2: SDLC Orchestrator (Governance + Codegen) ← Our product
+Layer 1: SDLC-Enterprise-Framework (Methodology) ← Our foundation
+```
 
 ### 2026 Strategic Themes
 
 | Theme | Description | Success Metric |
 |-------|-------------|----------------|
-| **AI-Intent-First Adoption** | Orchestrator = entry point for ideas & projects | ≥70% internal PM/EM use weekly |
-| **AI Safety & Governance** | Every AI change validated before merge | 0 unreviewed AI PRs merged |
-| **Ecosystem & Enterprise** | Marketplace + SSO + Self-hosted | ≥5 external policy contributors |
+| **EP-06 Codegen P0** | IR-based codegen for Vietnam SME | 10 pilots, 8/10 satisfaction, TTFV <30min |
+| **Founder Plan GA** | $99/team/month Vietnam SME | 30-50 teams Year 1 |
+| **AI Governance** | Every AI change validated before merge | 0 unreviewed AI PRs merged |
+| **Multi-VCS** | GitLab/Bitbucket support | Q3 2026 |
 
 ---
 
@@ -93,12 +106,14 @@
 
 | Quarter | Theme | Primary Epics | Investment |
 |---------|-------|---------------|------------|
-| **Q1-Q2 2026** | AI Safety First | EP-01, EP-02, EP-03 | $60,000 |
-| **Q1-Q2 2026** | Structure & Migration | EP-04, EP-05 | $74,500 |
-| **Q2-Q3 2026** | Codegen Engine | EP-06 | ~$50,000 |
-| **Q3 2026** | Ecosystem & Marketplace | EP-07, EP-08 | $80,000 |
+| **Q1 2026** | **EP-06 Codegen P0** | Sprint 45-50 (IR Codegen + Pilot) | ~$50,000 |
+| **Q1-Q2 2026** | AI Safety | EP-01, EP-02, EP-03 | $60,000 |
+| **Q2 2026** | Structure Enforcement | EP-04 (Sprint 41-46) | $16,500 |
+| **Q3 2026** | Multi-VCS + Marketplace | EP-07, EP-08 | $80,000 |
 | **Q4 2026** | Enterprise Governance | EP-09, EP-10 | $100,000 |
-| **2027** | Become the Standard | EP-11+ | TBD |
+| **2027** | Scale to 150-300 teams | EP-11+ | TBD |
+
+**Note**: EP-05 (Enterprise Migration) deprioritized until EP-06 success validated.
 
 ---
 
@@ -208,18 +223,26 @@
 
 ---
 
-## Pricing Tiers (v4.0.0)
+## Pricing Tiers (v5.0.0)
 
-| Tier | Price | Projects | Policies | AI Safety | Support |
-|------|-------|----------|----------|-----------|---------|
-| **Free** | $0 | 1 | 5 rules | 2 devs max | Community |
-| **Team** | $149/mo | 10 | Unlimited | Full validators | Email |
-| **Enterprise** | $500+/mo | Unlimited | Custom | SSO + RBAC | Dedicated |
+| Tier | Price | Target | Features | Support |
+|------|-------|--------|----------|---------|
+| **Founder Plan** | $99/team/mo | Vietnam SME | IR Codegen, 1 product, unlimited users | Email + Community |
+| **Standard** | $30/user/mo | Global EM 6-50 eng | Full governance, 10 projects | Email |
+| **Enterprise** | Custom | CTO 50-500 eng | SSO, RBAC, self-hosted, unlimited | Dedicated |
 
-**Design Partner Offer**:
-- 6-9 months free or symbolic pricing
-- Grandfathered pricing at GA
-- Dedicated support channel
+**Vietnam SME Special** (Founder Plan):
+- ~2.5M VND/month (competitive local pricing)
+- 3 domain templates: F&B, Hotel, Retail
+- Vietnamese onboarding flow
+- IR-based code generation included
+- Free 3 months for pilot participants
+
+**Year 1 Revenue Target**:
+- Founder Plan (60%): 18-30 teams × $99 × 12 = $21K-$36K
+- Standard (30%): 9-15 teams × $30 × 10 users × 12 = $32K-$54K
+- Enterprise (10%): 3-5 teams × custom = $33K-$54K
+- **Total: $86K-$144K ARR**
 
 ---
 
@@ -252,17 +275,25 @@
 | **Sprint 49** | Apr 28 - May 9 | Real-time Compliance | 22 SP |
 | **Sprint 50** | May 12-23 | Dashboard + Enterprise | 22 SP |
 
-### EP-06: Codegen Engine Tri-Mode (Sprint 51-55) - ~$50K
+### EP-06: IR-Based Codegen Engine (Sprint 45-50) - ~$50K ⭐ P0 PRIORITY
 
-| Sprint | Dates | Focus | Story Points |
-|--------|-------|-------|-------------|
-| **Sprint 51** | May 26 - Jun 6 | IR v0 Schemas + Codegen API | ~20 SP |
-| **Sprint 52** | Jun 9-20 | Mode B: qwen2.5-coder:32b | ~20 SP |
-| **Sprint 53** | Jun 23 - Jul 4 | Mode A: BYO Integration | ~20 SP |
-| **Sprint 54** | Jul 7-18 | Mode C: Hybrid Fallback | ~20 SP |
-| **Sprint 55** | Jul 21 - Aug 1 | Non-Tech Journey + Polish | ~19 SP |
+| Sprint | Dates | Focus | Story Points | Design Spec |
+|--------|-------|-------|-------------|-------------|
+| **Sprint 45** | Feb 17-28 | Multi-Provider Architecture | ~20 SP | ✅ ADR-022, Tech Spec |
+| **Sprint 46** | Mar 3-14 | IR Processor (Backend scaffold) | ~20 SP | ✅ IR-Processor-Specification.md |
+| **Sprint 47** | Mar 17-28 | Vietnamese Domain Templates | ~18 SP | ✅ Vietnamese-Domain-Templates-Specification.md |
+| **Sprint 48** | Mar 31 - Apr 11 | Quality Gates for Codegen | ~20 SP | ✅ Quality-Gates-Codegen-Specification.md |
+| **Sprint 49** | Apr 14-25 | Vietnam SME Pilot (10 founders) | ~18 SP | ✅ Pilot-Execution-Specification.md |
+| **Sprint 50** | Apr 28 - May 9 | Productization + GA | ~20 SP | ✅ Productization-Baseline-Specification.md |
 
-**Total Investment (Sprint 41-55)**: $184.5K (459+ SP)
+**EP-06 Success Gate (End of Sprint 50)**:
+- 10 pilot founders complete onboarding
+- TTFV <30 minutes (median)
+- Satisfaction ≥8/10
+- Quality gate pass rate ≥95%
+- DeepCode Q2 decision gate prepared
+
+**Total Investment (Sprint 41-50)**: ~$126.5K (350+ SP)
 
 ---
 
@@ -290,13 +321,14 @@ Previous roadmap versions archived at:
 
 | Role | Name | Approval Date | Status |
 |------|------|---------------|--------|
-| **CTO** | Mr. Tai | December 21, 2025 | ✅ APPROVED (v4.1.0) |
+| **CTO** | Mr. Tai | December 23, 2025 | ✅ APPROVED (v5.0.0) |
 | **CPO** | TBD | Pending | ⏳ |
 | **CEO** | TBD | Pending | ⏳ |
 
-**Session Log**: [SESSION-2025-12-21-CTO-Strategic-Planning.md](../../01-planning/99-Session-Logs/SESSION-2025-12-21-CTO-Strategic-Planning.md)
+**EP-06 Design Approval**: December 23, 2025 (Sprint 45-50 specs committed)
+**Session Log**: [SESSION-2025-12-23-Stage00-Foundation-Update.md](../../01-planning/99-Session-Logs/SESSION-2025-12-23-Stage00-Foundation-Update.md)
 **Next Review**: December 27, 2025 (CTO Review Meeting, 3pm)
-**Sprint 41 Kickoff**: January 6, 2026, 9am
+**Sprint 45 Kickoff**: February 17, 2026, 9am
 
 ---
 

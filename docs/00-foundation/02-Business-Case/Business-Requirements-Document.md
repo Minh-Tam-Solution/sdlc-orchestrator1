@@ -1,13 +1,21 @@
 # SDLC Orchestrator - Business Requirements Document (BRD)
 ## WHY We Need This Solution - Problem Validation & Business Case
 
-**Version**: 1.2.0
-**Date**: December 21, 2025
-**Status**: ACTIVE - STAGE 00 FOUNDATION (Updated)
+**Version**: 2.0.0
+**Date**: December 23, 2025
+**Status**: ACTIVE - STAGE 00 FOUNDATION (Software 3.0 Pivot)
 **Authority**: CEO + CPO Approved
-**Foundation**: Product Vision 3.1.0
+**Foundation**: Product Vision 4.0.0
 **Stage**: Stage 00 (WHY) - Project Foundation
 **Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog v2.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Operating System for Software 3.0 positioning
+- **EP-06 P0**: IR-Based Codegen (Sprint 45-50) as top priority
+- **Founder Plan**: $99/team/month for Vietnam SME
+- **Year 1 Target**: 30-50 teams (realistic, founder-led sales)
+- **Dual Wedge Strategy**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **3-Layer Architecture**: Framework → Orchestrator → AI Coders
 
 **Changelog v1.2.0** (Dec 21, 2025):
 - Updated framework to SDLC 5.1.1 (from 4.9)
@@ -60,16 +68,28 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 
 ### The Opportunity
 
-**Market Size**:
-- **TAM**: 3.4 million engineering teams globally × $2,400/year = **$816M ARR**
-- **SAM**: 840,000 teams (English-speaking, cloud-native) = **$201M ARR**
-- **SOM Year 1**: 100 teams = **$240K ARR**
+**Market Size (Dual Wedge Strategy)**:
+
+**Segment 1: Vietnam SME (40% of Year 1)**
+- **TAM**: 800,000+ Vietnam SMEs
+- **SAM**: 100,000 SMEs (F&B, Hotel, Retail seeking digitalization)
+- **SOM Year 1**: 18-30 teams × $99/month × 12 = **$21K-$36K ARR**
+
+**Segment 2: Global EM (40% of Year 1)**
+- **TAM**: 3.4 million engineering teams globally
+- **SAM**: 840,000 teams (English-speaking, cloud-native)
+- **SOM Year 1**: 9-15 teams × $30/user × 10 users × 12 = **$32K-$54K ARR**
+
+**Segment 3: Enterprise (20% of Year 1)**
+- **SOM Year 1**: 3-5 teams × custom = **$33K-$54K ARR**
+
+**Total Year 1 ARR: $86K-$144K** (realistic, founder-led sales)
 
 **Why Now**:
-- AI-native tools becoming standard (Copilot, Cursor, v0)
+- AI-native tools becoming standard (Copilot, Cursor, Claude Code)
 - Compliance requirements increasing (SOC 2, ISO 27001 now table stakes)
-- Remote work demands better process enforcement
-- **SDLC 4.9 framework** validated (Bflow Platform proof of concept, upgraded November 2025)
+- Vietnam SME digitalization government push (8% → 30% target by 2030)
+- **SDLC 5.1.1 framework** validated (Bflow Platform proof of concept)
 
 ### What is SDLC 5.1.1? (Framework Foundation)
 
@@ -284,26 +304,27 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 
 **Requirement**: SDLC Orchestrator must generate sustainable revenue.
 
-**Pricing Model** (Tiered SaaS):
+**Pricing Model (v2.0.0 - Dual Wedge)**:
 
-| Tier | Price/Month | Target Customer | Expected Mix |
-|------|-------------|-----------------|--------------|
-| **Lite** | $99 | 6-15 engineers | 40% (40 teams) |
-| **Standard** | $299 | 15-30 engineers | 50% (50 teams) |
-| **Enterprise** | $999 | 30-50 engineers | 10% (10 teams) |
+| Tier | Price | Target Customer | Expected Mix |
+|------|-------|-----------------|--------------|
+| **Founder Plan** | $99/team/mo | Vietnam SME (F&B, Hotel, Retail) | 60% (18-30 teams) |
+| **Standard** | $30/user/mo | Global EM (6-50 engineers) | 30% (9-15 teams) |
+| **Enterprise** | Custom | CTO (50-500 engineers) | 10% (3-5 teams) |
 
-**Revenue Projections**:
-- Year 1 ARR: $240K (100 teams)
-- Year 2 ARR: $1.3M (454 teams)
-- Year 3 ARR: $3.85M (1,342 teams)
+**Revenue Projections (Realistic)**:
+- Year 1 ARR: **$86K-$144K** (30-50 teams, founder-led sales)
+- Year 2 ARR: $432K-$864K (150-300 teams, sales team hired)
+- Year 3 ARR: $1.4M-$2.9M (500-1,000 teams)
 
 **Unit Economics**:
-- LTV (Lifetime Value): $10,800/team (36 months)
-- CAC (Customer Acquisition Cost): $2,650/team (Year 1)
-- LTV:CAC ratio: 4.08:1 (healthy: >3:1)
-- Gross margin: 72% (target: >70%)
+- Founder Plan LTV: $2,376/team (24 months × $99)
+- Standard Plan LTV: $10,800/team (36 months × 10 users × $30)
+- CAC (Year 1): ~$1,500/team (founder-led, low-cost channels)
+- LTV:CAC ratio: 3:1 to 7:1 (healthy: >3:1)
+- Gross margin: 80%+ (SaaS + codegen, minimal variable cost)
 
-**Status**: ✅ VALIDATED (see Financial Model 1.0.0)
+**Status**: ✅ VALIDATED (see Financial Model 2.0.0)
 
 ---
 
@@ -321,15 +342,17 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 | **Backstage** | Developer portal | Turnkey SaaS (vs DIY open-source) |
 
 **Competitive Moat** (1-2 years to replicate):
-1. **SDLC 4.8 Framework**: Proprietary methodology, 4+ years development
-2. **Policy Packs**: 100+ pre-built gates (Lite, Standard, Enterprise)
-3. **AI Stage-Aware Prompts**: 50+ prompts aligned to SDLC stages
-4. **Evidence Vault**: Automated compliance (SOC 2, ISO 27001)
+1. **3-Layer Architecture**: Framework → Orchestrator → AI Coders (unique positioning)
+2. **SDLC 5.1.1 Framework**: Proprietary methodology, 5+ years development
+3. **IR-Based Codegen**: Domain-specific code generation for Vietnam SME
+4. **Policy Packs**: 100+ pre-built gates (Lite, Standard, Enterprise)
+5. **AI Stage-Aware Prompts**: 50+ prompts aligned to SDLC stages
+6. **Evidence Vault**: Automated compliance (SOC 2, ISO 27001)
 
 **Positioning**:
-- Category: "AI-Native Software Governance" (new category we define)
-- Tagline: "The ONLY platform ensuring teams build the RIGHT things RIGHT"
-- Differentiation: Process enforcement + AI assistance (not just tracking)
+- Category: "Operating System for Software 3.0" (new category we define)
+- Tagline: "The Operating System for Software 3.0 - Where AI coders are governed, not feared"
+- Differentiation: Control plane for AI coders + IR-based codegen for SME
 
 **Status**: ✅ VALIDATED
 
@@ -456,23 +479,25 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 
 ---
 
-### Year 1 Success Criteria
+### Year 1 Success Criteria (Realistic)
 
-**Beta Launch** (Month 4):
-- 20 teams onboarded
-- 80%+ gate completion rate
-- Developer NPS: >7.0/10
+**EP-06 Pilot (Sprint 49 - Q1 2026)**:
+- 10 Vietnam SME founders onboarded
+- TTFV <30 minutes (median)
+- Satisfaction: 8/10 average
+- Quality gate pass rate: ≥95%
 
-**Paid Launch** (Month 7):
-- 50% beta→paid conversion (10/20 teams)
-- 15 new paid customers/month
-- <5% monthly churn
+**Founder Plan GA (Sprint 50 - Q2 2026)**:
+- 18-30 Founder Plan teams
+- Productization complete (docs, observability, support)
+- DeepCode Q2 decision gate prepared
 
-**Year 1 Exit** (Month 12):
-- $240K ARR (100 teams)
+**Year 1 Exit (Dec 2026)**:
+- **$86K-$144K ARR** (30-50 teams total)
 - Feature Adoption Rate: 70%+ (North Star achieved)
-- Developer NPS: 8.0/10
-- LTV:CAC: >4:1
+- NPS: 8.0/10 (Vietnam SME focus)
+- LTV:CAC: >3:1
+- Vietnam SME satisfaction: ≥8/10
 
 ---
 
@@ -538,5 +563,11 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 **Framework**: SDLC 5.1.1 Stage 00 (WHY)
 **Component**: Business Case - Problem & Opportunity Validation
 **Review**: Weekly with CPO (Tuesday 2 PM)
+**Last Updated**: December 23, 2025
+
+**Strategic Priority (Software 3.0)**:
+- EP-06 IR-Based Codegen: Sprint 45-50 (P0)
+- Founder Plan: $99/team/month (Vietnam SME)
+- Year 1 Target: 30-50 teams, $86K-$144K ARR
 
 *"Define the RIGHT problem to build the RIGHT solution"* 🎯

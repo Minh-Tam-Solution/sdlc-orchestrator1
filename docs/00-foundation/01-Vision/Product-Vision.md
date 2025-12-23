@@ -1,19 +1,27 @@
 # SDLC Orchestrator - Product Vision
-## AI-Native SDLC Governance & Safety Platform
+## Operating System for Software 3.0
 
-**Version**: 3.1.0
-**Date**: December 21, 2025
-**Status**: ✅ CTO APPROVED - AI SAFETY FIRST
+**Version**: 4.0.0
+**Date**: December 23, 2025
+**Status**: ✅ CTO APPROVED - Software 3.0 Pivot
 **Authority**: CEO + CPO + CTO Approved
 **Foundation**: SDLC 5.1.1 + SASE Level 2
-**Positioning**: AI Safety & Governance Layer + Codegen Engine
+**Positioning**: Control Plane for AI Coders + IR-Based Codegen Engine
+
+**Changelog v4.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: "AI Safety Layer" → "Operating System for Software 3.0"
+- **EP-06 IR-Based Codegen**: Sprint 45-50 (not Tri-Mode), IR-first architecture
+- **Founder Plan**: $99/team/month for Vietnam SME (GA launch)
+- **Year 1 Target**: 30-50 teams (realistic, founder-led sales)
+- **Dual Wedge Strategy**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **Multi-Provider**: Ollama → Claude → DeepCode (deferred Q2 2026)
+- **3-Layer Architecture**: Framework → Orchestrator → AI Coders
 
 **Changelog v3.1.0** (Dec 21, 2025):
 - **EP-04**: SDLC Structure Enforcement (Sprint 41-46, $16.5K)
 - **EP-05**: Enterprise SDLC Migration Engine (Sprint 47-50, $58K)
-- **EP-06**: Codegen Engine Tri-Mode with Hybrid Fallback (Sprint 51-55)
+- **EP-06**: Codegen Engine initial scope defined
 - **NQH AI Platform**: qwen2.5-coder:32b integrated (92.7% HumanEval!)
-- **Mode C**: Claude → Continue.dev auto-failover (zero downtime)
 - **Innovation**: `.sdlc-config.json` - 1KB replaces 700KB manual docs
 
 **Changelog v3.0.0** (Dec 20, 2025):
@@ -21,28 +29,49 @@
 - Added AI Safety Layer as core capability (EP-02)
 - Added Design Partner Program strategy (EP-03)
 - Updated tagline to focus on AI coding tools governance
-- Framework updated to SDLC 5.1.1 + SASE integration
-
-**Changelog v2.0.0** (Dec 3, 2025):
-- Added AI Governance Layer vision (encode CEO's brain into platform)
-- Added Context-Aware Requirements as core capability
-- Added 4-Level Planning Hierarchy as value proposition
-- Updated to SDLC 5.0.0 framework reference (4-Tier Classification)  
+- Framework updated to SDLC 5.1.1 + SASE integration  
 
 ---
 
 ## Tagline
 
-**"The control plane that keeps Claude Code/Cursor/Copilot compliant with your architecture & standards."**
+**"The Operating System for Software 3.0 - Where AI coders are governed, not feared."**
+
+Alternative: *"The control plane that keeps Claude Code/Cursor/Copilot compliant with your architecture & standards."*
 
 ## Vision Statement
 
-**By 2027, SDLC Orchestrator will be the STANDARD for AI-native software governance**, trusted by 10,000+ engineering teams to:
-- **Enforce AI Safety** - Every AI-generated code validated before merge
+**By 2027, SDLC Orchestrator will be the OPERATING SYSTEM for Software 3.0**, trusted by 10,000+ engineering teams to:
+- **Orchestrate AI Coders** - Claude, Cursor, Copilot all governed through one control plane
+- **Generate Compliant Code** - IR-based codegen with built-in quality gates
 - **Ensure Evidence Trail** - 100% audit trail for AI code decisions
 - **Operate with Excellence** - SDLC 5.x quality gates + SASE integration
 
-**Core Positioning**: We are the **AI SAFETY & GOVERNANCE LAYER** that certifies AI-generated code (Cursor, Copilot, Claude Code) before it reaches production.
+**Core Positioning**: We are the **CONTROL PLANE** that sits ABOVE AI coders (Cursor, Copilot, Claude Code), not alongside them. We orchestrate, validate, and govern - they generate.
+
+## 3-Layer Architecture (Software 3.0 Stack)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 3: AI CODERS (They Generate)                              │
+│ Claude Code • Cursor • Copilot • Aider • Roo Code • OSS Models  │
+│ → We orchestrate and govern all of them                         │
+├─────────────────────────────────────────────────────────────────┤
+│ LAYER 2: SDLC ORCHESTRATOR (We Validate & Govern) ← OUR PRODUCT│
+│ - Policy Guards: OPA-based enforcement                          │
+│ - Evidence Vault: 100% audit trail                              │
+│ - IR Codegen: Domain-specific code generation                   │
+│ - Quality Gates: Syntax, Security, Architecture, Tests          │
+├─────────────────────────────────────────────────────────────────┤
+│ LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology Foundation)     │
+│ - 10-Stage Lifecycle (00-09)                                    │
+│ - 4-Tier Classification (LITE/STANDARD/PRO/ENTERPRISE)          │
+│ - SASE Level 2 Integration                                      │
+│ → Open source methodology, tools-agnostic                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Insight**: Framework survives even if Orchestrator is replaced. Orchestrator automates Framework.
 
 We envision a world where:
 - ✅ **No project skips validation gates** (automated enforcement, not optional checklists)
@@ -189,20 +218,36 @@ We envision a world where:
 │    - CLI tool: sdlcctl validate                                │
 │    - AI Codex Protection: Blocks bad structure from AI tools   │
 ├─────────────────────────────────────────────────────────────────┤
-│ 10. ENTERPRISE SDLC MIGRATION ENGINE (EP-05 - Sprint 47-50)   │
-│    Automated SDLC Version Migration (Pro/Enterprise)           │
-│    - .sdlc-config.json: 1KB replaces 700KB manual docs!        │
-│    - 4 weeks manual → 30 minutes automated                     │
-│    - Version Scanner + Auto-Fixer + Backup Engine              │
-│    - Customer savings: Up to $71.7K per migration              │
-├─────────────────────────────────────────────────────────────────┤
-│ 11. CODEGEN ENGINE TRI-MODE (EP-06 - Sprint 51-55)            │
-│    AI-Native Codegen with SDLC Governance                      │
-│    - Mode A: BYO Codex (Claude/Cursor/Copilot) + Governance    │
-│    - Mode B: Native OSS (qwen2.5-coder:32b - 92.7% HumanEval)  │
-│    - Mode C: Hybrid Fallback (Claude → Continue.dev)           │
-│    - IR Decomposition: 128K → 5K tokens (96% reduction)        │
-│    - NQH AI Platform: RTX 5090 32GB, 10 models ready!          │
+│ 10. EP-06: IR-BASED CODEGEN ENGINE (Sprint 45-50) ⭐ PRIORITY  │
+│    Vietnam SME Founder Codegen (Founder Plan $99/team/month)   │
+│                                                                 │
+│    Sprint 45: Multi-Provider Architecture                       │
+│    - CodegenProvider interface (Ollama/Claude/DeepCode)        │
+│    - /api/v1/codegen/* endpoints (3 core)                      │
+│                                                                 │
+│    Sprint 46: IR Processor                                      │
+│    - IR → Backend scaffold (FastAPI + SQLAlchemy)              │
+│    - Jinja2 templates for code generation                      │
+│                                                                 │
+│    Sprint 47: Vietnamese Domain Templates                       │
+│    - 3 domains: F&B (Restaurant), Hotel, Retail                │
+│    - Vietnamese questionnaire → IR Builder                      │
+│                                                                 │
+│    Sprint 48: Quality Gates for Codegen                         │
+│    - 4 gates: Syntax, Security (Semgrep), Architecture, Tests  │
+│    - Ollama caching for cost optimization                      │
+│                                                                 │
+│    Sprint 49: Vietnam SME Pilot                                 │
+│    - 10 founders, TTFV <30min, 8/10 satisfaction               │
+│    - Pilot dashboard + metrics collection                      │
+│                                                                 │
+│    Sprint 50: Productization & GA                               │
+│    - Documentation (Vietnamese)                                 │
+│    - Observability dashboard (Grafana/Prometheus)              │
+│    - DeepCode Q2 decision gate                                  │
+│                                                                 │
+│    Multi-Provider Fallback: Ollama → Claude → DeepCode (Q2)    │
+│    NQH AI Platform: qwen2.5-coder:14b/32b ready                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -224,9 +269,50 @@ We envision a world where:
 
 ## Target Market
 
+### Dual Wedge Strategy (2026)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    TARGET MARKET SEGMENTS                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌────────────┐  │
+│  │ VIETNAM SME     │    │ GLOBAL EM       │    │ ENTERPRISE │  │
+│  │ (40%)           │    │ (40%)           │    │ (20%)      │  │
+│  │                 │    │                 │    │            │  │
+│  │ • Non-tech      │    │ • Tech-savvy    │    │ • CTO/VP   │  │
+│  │   founders      │    │ • 6-50 engineers│    │ • 50-500   │  │
+│  │ • F&B, Hotel,   │    │ • Global SaaS   │    │   engineers│  │
+│  │   Retail        │    │ • Compliance    │    │ • SSO/RBAC │  │
+│  │ • IR Codegen    │    │   focused       │    │ • Self-host│  │
+│  │                 │    │                 │    │            │  │
+│  │ $99/team/mo     │    │ $30/user/mo     │    │ Custom     │  │
+│  │ Founder Plan    │    │ Standard Plan   │    │ Enterprise │  │
+│  └─────────────────┘    └─────────────────┘    └────────────┘  │
+│                                                                  │
+│  Year 1 Target: 30-50 teams → $86K-$144K ARR                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ### Primary Personas (ICP - Ideal Customer Profile)
 
-#### 1. Engineering Manager (Primary Buyer)
+#### 1. Vietnam SME Founder (NEW - Founder Plan)
+**Profile**:
+- Background: Non-tech founder (F&B, Hotel, Retail)
+- Team size: 0-5 (often solo or with 1-2 staff)
+- Budget authority: $50-200/month
+- Decision timeline: Immediate (if demo works)
+
+**Use Case**: Generate working business app from questionnaire (IR-based codegen)
+
+**Success Metrics**:
+- TTFV (Time to First Value): <30 minutes
+- Satisfaction: 8/10 average
+- Generated app usability: Works for daily operations
+
+**Pricing**: $99/team/month (~2.5M VND) - Founder Plan
+
+#### 2. Engineering Manager (Global - Standard Plan)
 **Profile**:
 - Team size: 6-50 engineers
 - Pain: 60-70% feature waste, low adoption
@@ -240,7 +326,9 @@ We envision a world where:
 - Rework rate: 18% → <5% (4x reduction)
 - Time to value: 87 days → <45 days (2x faster)
 
-#### 2. CTO (Enterprise Buyer)
+**Pricing**: $30/user/month - Standard Plan
+
+#### 3. CTO (Enterprise Buyer)
 **Profile**:
 - Company size: 50-500 engineers
 - Pain: Lack of compliance evidence (failed SOC 2 audit)
@@ -254,7 +342,9 @@ We envision a world where:
 - Production incidents: 12 P1/quarter → <3 P1/quarter
 - Engineering velocity: No slowdown despite governance
 
-#### 3. Product Manager (Power User)
+**Pricing**: Custom - Enterprise Plan
+
+#### 4. Product Manager (Power User)
 **Profile**:
 - Team size: 3-20 engineers
 - Pain: Can't validate feature ideas before building
@@ -290,17 +380,28 @@ We envision a world where:
 **Potential Revenue** (at 10% penetration):
 - 84,000 teams × $2,400/year = **$201M ARR**
 
-### SOM (Serviceable Obtainable Market) - Year 1
+### SOM (Serviceable Obtainable Market) - Realistic Targets
 
-**Realistic Capture** (conservative):
-- Year 1: 100 teams (0.01% of SAM)
-- Year 2: 1,000 teams (0.12% of SAM)
-- Year 3: 10,000 teams (1.2% of SAM)
+**Year 1 (2026) - Founder-Led Sales** (realistic):
+- **30-50 teams** (conservative, founder-led)
+- Breakdown:
+  - Founder Plan (60%): 18-30 teams × $99/mo × 12 = $21K - $36K
+  - Standard Plan (30%): 9-15 teams × $30/user × 10 users × 12 = $32K - $54K
+  - Enterprise (10%): 3-5 teams × custom = $33K - $54K
+- **Total Year 1 ARR: $86K - $144K**
 
-**Revenue Projection**:
-- Year 1: 100 teams × $2,400/year = **$240K ARR**
-- Year 2: 1,000 teams × $2,400/year = **$2.4M ARR**
-- Year 3: 10,000 teams × $2,400/year = **$24M ARR**
+**Year 2 (2027) - Scale with Team**:
+- 150-300 teams (5x growth)
+- **ARR: $432K - $864K**
+
+**Year 3 (2028) - Category Leadership**:
+- 500-1,000 teams
+- **ARR: $1.4M - $2.9M**
+
+**Why Realistic Targets Matter**:
+- 8.5 FTE team cannot support 100+ teams in Year 1
+- Founder-led sales capacity: ~3-5 new teams/month
+- Quality > Quantity: 30 happy teams > 100 churning teams
 
 ---
 
@@ -400,52 +501,60 @@ We envision a world where:
 
 ## 3-Year Vision
 
-### Year 1 (2026): Prove the Model
-**Goal**: 100 paying teams, 90%+ retention
+### Year 1 (2026): Prove the Model - Realistic Targets
+**Goal**: 30-50 paying teams, 90%+ retention, Founder Plan validated
 
 **Milestones**:
 - ✅ MVP launch (Week 13, Jan 2026)
 - ✅ Bflow pilot: 90%+ daily active use
 - ⏳ EP-04: SDLC Structure Enforcement (Sprint 41-46, Q1-Q2)
-- ⏳ EP-05: Enterprise Migration Engine (Sprint 47-50, Q2)
-- ⏳ EP-06: Codegen Engine Tri-Mode (Sprint 51-55, Q2-Q3)
-- ✅ 100 teams by Dec 2026
-- ✅ $240K ARR + $34.5K upsells from EP-04/05/06
-- ✅ 8/10 NPS
+- ⏳ **EP-06: IR-Based Codegen (Sprint 45-50, Q1-Q2)** ← P0 PRIORITY
+- ⏳ Sprint 49: Vietnam SME Pilot (10 founders)
+- ⏳ Sprint 50: Founder Plan GA ($99/team/month)
+- 🎯 30-50 teams by Dec 2026 (realistic, founder-led sales)
+- 🎯 $86K-$144K ARR
+- 🎯 8/10 NPS, TTFV <30min
 
-**Revenue from New Epics (Year 1)**:
-- EP-04 upsells: +$3,564 ARR
-- EP-05 upsells: +$15,492 ARR
-- EP-06 upsells: +$11,928 ARR
-- Churn prevented: +$3,564 ARR
-- **Total**: +$34,548 additional ARR
+**Revenue Breakdown (Year 1)**:
+- Founder Plan (60%): $21K - $36K ARR
+- Standard Plan (30%): $32K - $54K ARR
+- Enterprise (10%): $33K - $54K ARR
+- **Total Year 1 ARR: $86K - $144K**
 
-**Evidence of Success**: Teams renew at 90%+ rate, referrals coming in
+**EP-06 Success Gate (End of Q1 2026)**:
+- 10 pilot founders complete onboarding
+- TTFV <30 minutes (median)
+- Satisfaction ≥8/10
+- Quality gate pass rate ≥95%
+
+**Evidence of Success**: Vietnam SME founders using generated apps for daily operations
 
 ### Year 2 (2027): Scale the Platform
-**Goal**: 1,000 paying teams, enterprise tier launched
+**Goal**: 150-300 paying teams, multi-VCS support, sales team hired
 
 **Milestones**:
-- ✅ GitLab/Bitbucket support (multi-VCS)
-- ✅ Enterprise features (SSO, RBAC, audit logs)
-- ✅ Backstage plugin
-- ✅ 1,000 teams
-- ✅ $2.4M ARR
-- ✅ First enterprise customers (100+ engineer teams)
+- ⏳ GitLab/Bitbucket support (multi-VCS)
+- ⏳ Enterprise features (SSO, RBAC, audit logs)
+- ⏳ DeepCode integration (if Q2 decision gate passes)
+- ⏳ 150-300 teams
+- ⏳ $432K-$864K ARR
+- ⏳ First enterprise customers (50+ engineer teams)
+- ⏳ Hire 2-3 sales/success team members
 
-**Evidence of Success**: Enterprise sales motion validated, 5+ logos
+**Evidence of Success**: Sales team contribution > founder-led sales
 
 ### Year 3 (2028): Become the Standard
-**Goal**: 10,000 paying teams, recognized category leader
+**Goal**: 500-1,000 paying teams, recognized category leader
 
 **Milestones**:
-- ✅ 10,000 teams globally
-- ✅ $24M ARR
-- ✅ Gartner recognition (Cool Vendor or Magic Quadrant)
-- ✅ Community: 50,000+ developers, 500+ policy pack contributors
-- ✅ Industry thought leadership (conferences, case studies)
+- ⏳ 500-1,000 teams globally
+- ⏳ $1.4M-$2.9M ARR
+- ⏳ Gartner recognition (Cool Vendor or Magic Quadrant)
+- ⏳ Community: 10,000+ developers, 100+ policy pack contributors
+- ⏳ Industry thought leadership (conferences, case studies)
+- ⏳ Vietnam SME market leadership (>50% of digitizing SMEs use SDLC Orchestrator)
 
-**Evidence of Success**: "SDLC Orchestrator" becomes verb (like "Jira-ing")
+**Evidence of Success**: "SDLC Orchestrator" becomes the default for AI governance in Vietnam/SEA
 
 ---
 
@@ -458,8 +567,9 @@ We envision a world where:
 
 ---
 
-**Last Updated**: 2025-12-21
+**Last Updated**: 2025-12-23
 **Owner**: CEO + CPO + CTO
-**Status**: ✅ CTO APPROVED - AI SAFETY FIRST (v3.1.0)
+**Status**: ✅ CTO APPROVED - Software 3.0 Pivot (v4.0.0)
 **CTO Approval**: [Q1Q2-2026-ROADMAP-CTO-APPROVED.md](../../09-govern/04-Strategic-Updates/2025-12-20-Q1Q2-2026-ROADMAP-CTO-APPROVED.md)
-**Session Log**: [SESSION-2025-12-21-CTO-Strategic-Planning.md](../../01-planning/99-Session-Logs/SESSION-2025-12-21-CTO-Strategic-Planning.md)
+**EP-06 Design**: [Sprint 45-50 Technical Specs](../../02-design/14-Technical-Specs/)
+**Session Log**: [SESSION-2025-12-23-Stage00-Foundation-Update.md](../../01-planning/99-Session-Logs/SESSION-2025-12-23-Stage00-Foundation-Update.md)

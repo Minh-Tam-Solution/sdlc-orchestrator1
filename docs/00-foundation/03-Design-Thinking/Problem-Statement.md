@@ -1,20 +1,26 @@
 # SDLC Orchestrator - Problem Statement
 ## Validated Problem Definition (Design Thinking: DEFINE)
 
-**Version**: 2.1.0
-**Date**: December 21, 2025
-**Status**: ACTIVE - VALIDATED (Gate G0.1 PASSED) + AI GOVERNANCE EXTENSION
+**Version**: 3.0.0
+**Date**: December 23, 2025
+**Status**: ACTIVE - VALIDATED (Gate G0.1 PASSED) + Software 3.0 Extension
 **Authority**: CEO + CPO + PM + CTO Approved
 **Foundation**: User Personas 1.0.0, User Research (10+ interviews)
 **Stage**: Stage 00 (WHY) - Design Thinking DEFINE Phase
 **Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v3.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Added Vietnam SME problem segment
+- Added Root Cause 7: SME Digitalization Gap
+- Added EP-06 IR-Based Codegen as solution
+- Added Founder Plan positioning ($99/team/month)
+- Added Dual Wedge Strategy (Vietnam SME + Global EM)
 
 **Changelog v2.1.0** (Dec 21, 2025):
 - Updated framework to SDLC 5.1.1
 - Added EP-04/05/06 as strategic solutions
 - Added .sdlc-config.json innovation
 - Added NQH AI Platform integration
-- Added Mode C Hybrid Fallback capability
 
 **Changelog v2.0.0** (Dec 3, 2025):
 - Added Root Cause 6: AI Productivity Gap
@@ -78,10 +84,20 @@ This results in:
 - **Pain level**: 7/10
 - **Quote**: *"Engineer asks 'Did you validate?' I can't prove it. They lose trust."*
 
-**Market Size**:
+**Market Size (Dual Wedge)**:
+
+**Segment 1: Vietnam SME (40% of Year 1)**
+- **TAM**: 800,000+ Vietnam SMEs
+- **SAM**: 100,000 SMEs (F&B, Hotel, Retail, actively seeking digitalization)
+- **SOM Year 1**: 18-30 teams (Founder Plan $99/team/month)
+
+**Segment 2: Global EM (40% of Year 1)**
 - **TAM**: 3.4 million engineering teams globally
 - **SAM**: 840,000 teams (English-speaking, cloud-native)
-- **SOM Year 1**: 100 teams (achievable, validated)
+- **SOM Year 1**: 9-15 teams (Standard Plan $30/user/month)
+
+**Segment 3: Enterprise (20% of Year 1)**
+- **SOM Year 1**: 3-5 teams (Custom pricing)
 
 ---
 
@@ -334,6 +350,40 @@ This results in:
 
 ---
 
+### Root Cause 7: SME Digitalization Gap (NEW v3.0.0)
+
+**The Problem**:
+- Vietnam has 800K+ SMEs, but only 8% have adequate digital systems
+- Non-tech founders (F&B, Hotel, Retail) cannot hire developers
+- Custom software costs $10K-$50K → prohibitive for SME budget
+- Off-the-shelf solutions don't fit local business processes
+
+**Evidence**:
+- Vietnam SME digitalization rate: 8% (government report 2024)
+- Average SME IT budget: $100-500/month
+- NQH network: 20+ SME founders asking for "simple business app"
+- BFlow ecosystem: Restaurant/Hotel/Retail owners want custom apps
+
+**Impact**:
+- 92% of Vietnam SMEs operate with manual processes (paper, Excel)
+- Lost productivity: 20-40 hours/month on manual record-keeping
+- No customer data tracking, inventory management, or analytics
+
+**Why This Happens**:
+- ❌ No affordable solution: Custom dev = $10K+, SaaS = often $500+/month
+- ❌ Language barrier: Most SaaS products in English only
+- ❌ Process mismatch: Global SaaS doesn't fit Vietnamese business practices
+- ❌ Technical complexity: Non-tech founders can't configure complex tools
+
+**Solution Vision (EP-06 IR-Based Codegen)**:
+- ✅ Questionnaire → IR → Generated app (no coding required)
+- ✅ Vietnamese language throughout
+- ✅ 3 domain templates: F&B, Hotel, Retail (local practices built-in)
+- ✅ $99/team/month (~2.5M VND) - affordable for SME budget
+- ✅ TTFV <30 minutes (from signup to working app)
+
+---
+
 ## 💰 Business Impact (Quantified)
 
 ### Financial Impact
@@ -469,11 +519,24 @@ This results in:
 **Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking DEFINE
 **Component**: Problem Validation (Gate G0.1) + AI Governance Extension (v2.1.0)
 **Review**: Quarterly (validate problem remains relevant)
-**Last Updated**: December 21, 2025
+**Last Updated**: December 23, 2025
 
-**Strategic Solutions** (EP-04/05/06):
-- EP-04: SDLC Structure Enforcement - Prevent AI codex structure violations
-- EP-05: Enterprise Migration Engine - .sdlc-config.json (1KB vs 700KB)
-- EP-06: Codegen Engine Tri-Mode - Mode C Hybrid Fallback
+**Strategic Solutions (Software 3.0)**:
+
+**EP-06 IR-Based Codegen (P0 Priority)**:
+- Sprint 45: Multi-Provider Architecture
+- Sprint 46: IR Processor
+- Sprint 47: Vietnamese Domain Templates (F&B, Hotel, Retail)
+- Sprint 48: Quality Gates for Codegen
+- Sprint 49: Vietnam SME Pilot (10 founders)
+- Sprint 50: Productization + GA
+
+**EP-04**: SDLC Structure Enforcement - Prevent AI codex structure violations
+**EP-05**: Enterprise Migration Engine - .sdlc-config.json (1KB vs 700KB) [Deprioritized]
+
+**Year 1 Target (Realistic)**:
+- 30-50 teams total
+- $86K-$144K ARR
+- Vietnam SME pilot validated with 8/10 satisfaction
 
 *"Define the RIGHT problem before building the RIGHT solution"* 🎯
