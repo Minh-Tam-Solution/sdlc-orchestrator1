@@ -6,9 +6,24 @@
 **Phase**: Q1 2026 - AI Safety Layer v1
 **Framework**: SDLC 5.1.1 + SASE Level 2
 **Previous Sprint**: Sprint 42 - AI Detection & Validation Pipeline ✅ **COMPLETE** (9.5/10)
-**Planning Status**: ✅ **COMPLETE** - Q1-Q2 2026 Roadmap CTO Approved
+**Planning Status**: ✅ **COMPLETE** - Q1-Q2 2026 Roadmap CEO Approved (Dec 23, 2025)
 **Design Status**: ✅ **COMPLETE** - 3,886 lines of design docs (Dec 22, 2025)
 **Implementation Status**: 🔄 **Day 5-7 APPROVED** - 15,388 lines total delivered (Dec 22, 2025)
+
+---
+
+## 🎯 Strategic Context (CEO Approved - Dec 23, 2025)
+
+**Positioning**: Operating System for Software 3.0 - Control plane for ALL AI coders
+
+**Dual Wedge Strategy**:
+- **Vietnam SME (40%)**: Founder Plan $99/team, EP-06 IR-based codegen
+- **Global EM (40%)**: Standard/Pro $30-49/user, control plane for Cursor/Copilot/Claude
+- **Enterprise (20%)**: Custom pricing, BYO AI tools + governance
+
+**Year 1 Target**: 30-50 teams, $86K-$144K ARR
+
+**Key Decision**: EP-06 Codegen Engine → **Must Have P0** (Sprint 45-50)
 
 **Strategic Update (Dec 22, 2025)**: ✅ **SPRINT 43 DAY 5-7 COMPLETE - EVIDENCE TIMELINE UI**
 - Day 5-7 Delivered: ✅ **APPROVED** - 4,526 lines (Backend 1,948 + Frontend 2,578) - **9.6/10**
@@ -54,15 +69,33 @@
 
 ---
 
-## 🚀 Q1 2026 Sprint Progress
+## 🚀 Q1-Q2 2026 Sprint Progress (CEO Approved)
 
-| Sprint | Duration | Focus | Status |
-|--------|----------|-------|--------|
-| **Sprint 41** | Jan 6-17, 2026 | AI Safety Foundation | ✅ **COMPLETE** |
-| **Sprint 42** | Dec 13-22, 2025 | AI Detection & Validation Pipeline | ✅ **COMPLETE** (9.5/10) |
-| **Sprint 43** | Feb 3-14, 2026 (Early: Dec 22) | Policy Guards & Evidence UI | 🔄 **IN PROGRESS** - Day 1-2 Complete - [Plan](./SPRINT-43-POLICY-GUARDS-EVIDENCE-UI.md) |
-| **Sprint 44** | Feb 17-28, 2026 | Stalled Project Flow & M1 Polish | ⏳ Planning |
-| **Sprint 45** | Mar 3-14, 2026 | M1 Milestone Delivery | ⏳ Planning |
+### EP-04: SDLC Structure Enforcement (Sprint 41-44)
+
+| Sprint | Duration | Focus | Status | Priority |
+|--------|----------|-------|--------|----------|
+| **Sprint 41** | Jan 6-17, 2026 | AI Safety Foundation | ✅ **COMPLETE** | P0 |
+| **Sprint 42** | Dec 13-22, 2025 | AI Detection & Validation | ✅ **COMPLETE** (9.5/10) | P0 |
+| **Sprint 43** | Feb 3-14, 2026 (Early: Dec 22) | Policy Guards & Evidence UI | 🔄 **IN PROGRESS** | P0 |
+| **Sprint 44** | Feb 17-28, 2026 | SDLC Structure Scanner | ⏳ Planning | P0 |
+
+### EP-06: IR-Based Codegen Engine (Sprint 45-50) **← Must Have P0**
+
+| Sprint | Duration | Focus | Status | Priority |
+|--------|----------|-------|--------|----------|
+| **Sprint 45** | Jan 6-17, 2026 | Multi-Provider Codegen Architecture | ⏳ [Plan](./SPRINT-45-AUTO-FIX-ENGINE.md) | **P0** |
+| **Sprint 46** | Jan 20-31, 2026 | IR Processors (Backend Scaffold) | ⏳ [Plan](./SPRINT-46-CICD-INTEGRATION.md) | **P0** |
+| **Sprint 47** | Feb 3-14, 2026 | Vietnamese Domain Templates | ⏳ [Plan](./SPRINT-47-SCANNER-CONFIG-GENERATOR.md) | **P0** |
+| **Sprint 48** | Feb 17-28, 2026 | Quality Gates + MVP Hardening | ⏳ [Plan](./SPRINT-48-FIXER-BACKUP-ENGINE.md) | **P0** |
+| **Sprint 49** | Mar 3-14, 2026 | EP-06 Pilot Execution | ⏳ [Plan](./SPRINT-49-REALTIME-COMPLIANCE.md) | **P0** |
+| **Sprint 50** | Mar 17-28, 2026 | EP-06 Productization | ⏳ [Plan](./SPRINT-50-DASHBOARD-ENTERPRISE.md) | **P0** |
+
+### EP-05: Enterprise Migration (Deferred to Q3 2026)
+
+| Sprint | Duration | Focus | Status | Priority |
+|--------|----------|-------|--------|----------|
+| Sprint 51-56 | Q3 2026 | Enterprise SDLC Migration | ⏳ Planned | P1 |
 
 ---
 

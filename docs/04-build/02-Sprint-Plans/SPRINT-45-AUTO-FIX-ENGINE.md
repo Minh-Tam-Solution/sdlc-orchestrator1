@@ -1,5 +1,5 @@
 # SPRINT-45: Multi-Provider Codegen Architecture
-## EP-06: IR-Based Vietnamese SME Codegen | Phase 1
+## EP-06: IR-Based Vietnamese SME Codegen | Phase 1 | Must Have P0
 
 ---
 
@@ -10,20 +10,50 @@
 | **Sprint ID** | SPRINT-45 |
 | **Epic** | EP-06: IR-Based Codegen Engine |
 | **Duration** | 2 weeks (Jan 6-17, 2026) |
-| **Status** | APPROVED ✅ |
+| **Status** | CEO APPROVED ✅ (Dec 23, 2025) |
+| **Priority** | **P0 Must Have** |
 | **Team** | 1 Backend Lead + 0.5 Architect |
 | **Story Points** | 13 SP |
 | **Budget** | $3,000 |
 | **Framework** | SDLC 5.1.1 + SASE Level 2 |
-| **Strategic Context** | [Strategic Pivot from DeepCode](../../09-govern/04-Strategic-Updates/2025-12-22-STRATEGIC-PIVOT-DEEPCODE-TO-IR-CODEGEN.md) |
+| **Strategic Context** | [Expert Feedback Integration](../../09-govern/05-Knowledge-Transfer/02-Expert-Response/FINAL-EXECUTIVE-SUMMARY.md) |
 
 ---
 
-## �� Strategic Context
+## 🎯 Strategic Context (CEO Approved - Dec 23, 2025)
 
-**CTO Direction:** Orchestrator remains the **control plane** for all AI coders. DeepCode is a **provider plugin** (optional, deferred), not the default engine.
+### Operating System for Software 3.0
 
-**Sprint 45 goal:** establish a provider-agnostic codegen substrate (interface + routing + API) that can orchestrate Ollama/Claude/DeepCode without hard coupling.
+**Positioning**: We are the **control plane** that orchestrates ALL AI coders under governance, evidence, and policy-as-code.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  LAYER 3: AI CODERS (They Generate)                                 │
+│  Claude Code | Cursor | Copilot | Aider | Ollama                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 2: SDLC ORCHESTRATOR (We Govern) ← This Sprint               │
+│  ★ Multi-Provider Architecture: Ollama → Claude → DeepCode         │
+│  ★ EP-06 Codegen: IR-based generation for Vietnam SME              │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology)                   │
+│  10 Stages | 4 Tiers | Quality Gates                                │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Dual Wedge Strategy
+
+| Wedge | Target | Pricing | EP-06 Role |
+|-------|--------|---------|------------|
+| **Vietnam SME (40%)** | Non-tech founders | $99/team/month (Founder Plan) | Primary - IR-based codegen |
+| **Global EM (40%)** | Engineering Managers | $30/user/month | BYO AI + governance |
+| **Enterprise (20%)** | Large organizations | Custom | BYO AI + governance |
+
+### Year 1 Target
+
+- **30-50 teams** (realistic for 8.5 FTE, founder-led sales)
+- **$86K-$144K ARR** (60% Founder, 30% Standard, 10% Enterprise)
+
+**Sprint 45 goal:** Establish provider-agnostic codegen substrate (interface + routing + API) that orchestrates Ollama/Claude/DeepCode without hard coupling.
 
 ---
 
@@ -83,7 +113,7 @@
 **In scope:** interface, routing, primary provider, minimal API surface.
 
 **Out of scope (explicit):**
-- Building a “DeepCode-first” engine
+- Building a "DeepCode-first" engine
 - Full AppBlueprint → full-stack generation (starts Sprint 46)
 - Any new UI beyond existing patterns
 
@@ -109,3 +139,14 @@ Given a minimal `AppBlueprint` JSON, the system:
 - Lists available providers
 - Generates code via Ollama
 - Runs provider validation
+
+---
+
+## Document Control
+
+| Field | Value |
+|-------|-------|
+| **Version** | 2.0.0 |
+| **Last Updated** | December 23, 2025 |
+| **Owner** | CTO + PM Team |
+| **Approved By** | CEO ✅ (Dec 23, 2025) |
