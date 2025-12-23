@@ -40,6 +40,7 @@ pip install -e .
 
 - Python 3.11+
 - typer[all] >= 0.9.0
+- click < 8.2 (required for Typer compatibility)
 - rich >= 13.0.0
 
 ---
@@ -99,9 +100,11 @@ sdlcctl validate [OPTIONS]
 | `--docs` | `-d` | Documentation folder name | `docs` |
 | `--tier` | `-t` | Project tier (lite/standard/professional/enterprise) | Auto-detect |
 | `--team-size` | | Team size for auto-tier detection | None |
-| `--format` | `-f` | Output format (text/json/summary) | `text` |
-| `--strict` | `-s` | Exit with error on warnings | `false` |
-| `--verbose` | `-v` | Show info-level issues | `false` |
+| `--format` | `-f` | Output format (text/json/github/summary) | `text` |
+| `--output` | `-o` | Write output to a file | stdout |
+| `--config` | `-c` | Path to `.sdlc-config.json` (default: auto-discover) | None |
+| `--strict` | `-s` | Exit with error if any warnings/errors found | `false` |
+| `--verbose` | `-v` | Show detailed output (includes context in text output) | `false` |
 
 **Examples:**
 
@@ -117,6 +120,15 @@ sdlcctl validate --strict
 
 # Auto-detect tier from team size
 sdlcctl validate --team-size 25
+
+# GitHub Actions annotations
+sdlcctl validate --format github --strict
+
+# Write JSON output to file
+sdlcctl validate --format json --output report.json
+
+# Enforce required stages for a tier
+sdlcctl validate --tier professional
 ```
 
 **Exit Codes:**
@@ -142,9 +154,20 @@ sdlcctl fix [OPTIONS]
 | `--tier` | `-t` | Project tier | Auto-detect |
 | `--dry-run` | | Preview changes without applying | `false` |
 | `--interactive` | `-i` | Prompt before each fix | `true` |
+| `--no-interactive` | | Do not prompt before each fix | `false` |
 | `--stages` | | Fix missing stage folders | `true` |
+| `--no-stages` | | Do not fix missing stage folders | `false` |
 | `--p0` | | Generate missing P0 artifacts | `true` |
+| `--no-p0` | | Do not generate missing P0 artifacts | `false` |
 | `--naming` | | Fix naming violations | `false` |
+| `--no-naming` | | Do not fix naming violations | `false` |
+
+**Notes:**
+- A conservative Sprint 44 scanner auto-fix runs first (when `docs/` exists):
+  - Create missing required stages (when `--tier` is provided)
+  - Rename stage folders for `STAGE-001` / `STAGE-003`
+  - Fix invalid numbering prefixes for `NUM-003`
+- The legacy fix flow then runs (missing stages, optional P0 generation, etc.)
 
 **Examples:**
 
@@ -178,8 +201,10 @@ sdlcctl init [OPTIONS]
 | `--tier` | `-t` | Project tier | Interactive prompt |
 | `--team-size` | | Team size for auto-tier | None |
 | `--scaffold` | | Create full folder structure | `true` |
+| `--no-scaffold` | | Do not create READMEs and templates | `false` |
 | `--force` | `-f` | Overwrite existing docs | `false` |
 | `--interactive` | `-i` | Interactive mode | `true` |
+| `--no-interactive` | | Do not prompt; use defaults where needed | `false` |
 
 **Examples:**
 

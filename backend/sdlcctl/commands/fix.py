@@ -14,9 +14,11 @@ from rich.prompt import Confirm
 from rich.table import Table
 
 from ..validation.engine import SDLCValidator, ValidationSeverity
+from ..validation.structure_scanner import SDLCStructureScanner
+from ..validation.violation import Severity as ScannerSeverity
 from ..validation.p0 import P0ArtifactChecker
 from ..validation.scanner import FolderScanner
-from ..validation.tier import STAGE_NAMES, Tier
+from ..validation.tier import STAGE_NAMES, Tier, TierDetector
 
 console = Console()
 
@@ -125,6 +127,21 @@ def fix_command(
     if no_naming:
         fix_naming = False
 
+    # Conservative auto-fix using Sprint 44 structure scanner:
+    # - Create missing required stages for the selected tier (if provided)
+    # - Rename stage folders for STAGE-001 / STAGE-003
+    # - Fix invalid numbering prefixes for NUM-003
+    # This runs before the legacy fix flow so we can normalize structure.
+    docs_path = path / docs_root
+    if docs_path.exists():
+        _apply_scanner_autofix(
+            project_root=path,
+            docs_path=docs_path,
+            tier=project_tier,
+            dry_run=dry_run,
+            interactive=interactive,
+        )
+
     # Run validation first
     validator = SDLCValidator(
         project_root=path,
@@ -156,7 +173,6 @@ def fix_command(
     fixes_skipped = 0
 
     # Fix 1: Create docs folder if missing
-    docs_path = path / docs_root
     if not docs_path.exists():
         if _should_apply("Create docs folder", docs_path, dry_run, interactive):
             if not dry_run:
@@ -205,6 +221,87 @@ def fix_command(
         if fixes_applied > 0:
             console.print()
             console.print("[dim]Run 'sdlcctl validate' to verify compliance[/dim]")
+
+
+def _apply_scanner_autofix(
+    project_root: Path,
+    docs_path: Path,
+    tier: Optional[Tier],
+    dry_run: bool,
+    interactive: bool,
+) -> None:
+    """Apply conservative auto-fixes based on Sprint 44 scanner violations."""
+    try:
+        scanner = SDLCStructureScanner(docs_root=docs_path, project_root=project_root)
+        scan_result = scanner.scan()
+        scan_result.violations = scanner.filter_violations(scan_result.violations)
+    except Exception as e:
+        console.print(f"[yellow]Warning:[/yellow] Structure scanner autofix skipped: {e}")
+        return
+
+    fixes_applied = 0
+    fixes_skipped = 0
+
+    # 1) If tier is provided, create missing required stage folders.
+    if tier is not None:
+        requirements = TierDetector.get_requirements(tier)
+        for stage_id in requirements.required_stages:
+            stage_name = STAGE_NAMES.get(stage_id)
+            if not stage_name:
+                continue
+            stage_path = docs_path / stage_name
+            if stage_path.exists():
+                continue
+
+            if _should_apply("Create required stage folder", stage_path, dry_run, interactive):
+                if not dry_run:
+                    stage_path.mkdir(parents=True, exist_ok=True)
+                    readme_path = stage_path / "README.md"
+                    if not readme_path.exists():
+                        readme_path.write_text(
+                            f"# Stage {stage_id}: {stage_name}\n\n",
+                            encoding="utf-8",
+                        )
+                    console.print(f"[green]✓ Created:[/green] {stage_path}")
+                else:
+                    console.print(f"[yellow]Would create:[/yellow] {stage_path}")
+                fixes_applied += 1
+            else:
+                fixes_skipped += 1
+
+    # 2) Apply rename-based fixes from violations.
+    for v in scan_result.violations:
+        if not v.auto_fixable:
+            continue
+        if v.rule_id not in {"STAGE-001", "STAGE-003", "NUM-003"}:
+            continue
+
+        suggested_name = v.context.get("suggested_name") or v.context.get("expected_name")
+        if not suggested_name:
+            continue
+
+        src = Path(v.file_path)
+        if not src.exists():
+            continue
+
+        dest = src.with_name(str(suggested_name))
+        if dest.exists():
+            continue
+
+        if _should_apply(f"Rename ({v.rule_id})", src, dry_run, interactive):
+            if not dry_run:
+                src.rename(dest)
+                console.print(f"[green]✓ Renamed:[/green] {src.name} → {dest.name}")
+            else:
+                console.print(f"[yellow]Would rename:[/yellow] {src.name} → {dest.name}")
+            fixes_applied += 1
+        else:
+            fixes_skipped += 1
+
+    if fixes_applied or fixes_skipped:
+        console.print(
+            f"[dim]Scanner auto-fix:[/dim] applied {fixes_applied}, skipped {fixes_skipped}"
+        )
 
 
 def _should_apply(

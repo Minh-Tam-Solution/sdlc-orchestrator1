@@ -14,8 +14,8 @@ from typing import Optional
 import typer
 from rich.console import Console
 
-from ..validation import ConfigLoader, ScanResult, SDLCStructureScanner, Severity
-from ..validation.tier import Tier
+from ..validation import ConfigLoader, ScanResult, SDLCStructureScanner, Severity, ViolationReport
+from ..validation.tier import STAGE_NAMES, Tier, TierDetector
 
 console = Console()
 
@@ -94,15 +94,22 @@ def validate_command(
         sdlcctl validate --format json --output report.json
         sdlcctl validate --format github --strict
     """
-    # Parse tier if provided (kept for CLI compatibility; not used by scanner)
+    # Determine tier (used to enforce required stages).
+    project_tier: Optional[Tier] = None
     if tier:
         try:
-            Tier(tier.lower())
+            project_tier = Tier.from_string(tier)
         except ValueError:
             console.print(
                 f"[red]Error:[/red] Invalid tier '{tier}'. "
                 f"Valid options: lite, standard, professional, enterprise"
             )
+            raise typer.Exit(code=1)
+    elif team_size is not None:
+        try:
+            project_tier = TierDetector.detect_from_team_size(team_size)
+        except ValueError as e:
+            console.print(f"[red]Error:[/red] {e}")
             raise typer.Exit(code=1)
 
     docs_path = (path / docs_root).resolve()
@@ -130,6 +137,12 @@ def validate_command(
     with console.status("[bold blue]Validating SDLC structure...[/bold blue]"):
         scan_result = scanner.scan()
         scan_result.violations = scanner.filter_violations(scan_result.violations)
+
+        # Enforce tier required stages (STAGE-005)
+        if project_tier is not None:
+            scan_result.violations.extend(
+                _required_stage_violations(docs_path, project_tier)
+            )
 
     rendered = _render_output(scanner, scan_result, output_format, verbose)
 
@@ -173,3 +186,31 @@ def _render_output(
 
     # default text
     return scanner.format_text(result, show_context=verbose)
+
+
+def _required_stage_violations(docs_path: Path, tier: Tier) -> list[ViolationReport]:
+    """Create STAGE-005 violations for missing required stage folders."""
+    missing: list[ViolationReport] = []
+    required_stage_ids = TierDetector.get_required_stages(tier)
+    for stage_id in required_stage_ids:
+        stage_name = STAGE_NAMES.get(stage_id)
+        if not stage_name:
+            continue
+
+        stage_path = (docs_path / stage_name).resolve()
+        if not stage_path.exists():
+            missing.append(
+                ViolationReport(
+                    rule_id="STAGE-005",
+                    severity=Severity.ERROR,
+                    file_path=docs_path,
+                    message=(
+                        f"Missing required stage folder for tier '{tier.value}': {stage_name}"
+                    ),
+                    fix_suggestion=f"Create folder '{stage_name}' under {docs_path}",
+                    auto_fixable=True,
+                    context={"tier": tier.value, "stage_id": stage_id, "stage_name": stage_name},
+                )
+            )
+
+    return missing
