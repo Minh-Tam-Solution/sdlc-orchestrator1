@@ -1,13 +1,21 @@
 # Market Sizing
 ## TAM, SAM, SOM Analysis and Market Opportunity
 
-**Version**: 2.0.0
-**Date**: December 21, 2025
-**Status**: ACTIVE - STAGE 00 FOUNDATION
-**Authority**: CPO Approval (Dec 21, 2025), CFO Review
-**Foundation**: Product Vision 3.1.0, Financial Model 1.1.0
+**Version**: 3.0.0
+**Date**: December 23, 2025
+**Status**: ACTIVE - STAGE 00 FOUNDATION (Software 3.0 Pivot)
+**Authority**: CPO Approval (Dec 23, 2025), CFO Review
+**Foundation**: Product Vision 4.0.0, Financial Model 1.1.0
 **Stage**: Stage 00 (WHY - Project Foundation)
 **Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v3.0.0** (Dec 23, 2025) - Software 3.0 Pivot:
+- **SOFTWARE 3.0 POSITIONING**: "Operating System for Software 3.0" market category
+- **DUAL WEDGE STRATEGY**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **FOUNDER PLAN**: $99/team/month for Vietnam SME (~2.5M VND)
+- **EP-06 IR-BASED CODEGEN**: Sprint 45-50 (not Tri-Mode), ~$50K investment
+- **REALISTIC YEAR 1**: 30-50 teams (founder-led sales), $86K-$144K ARR
+- **VIETNAM SME TAM**: 800K+ SMEs, ~50K tech-enabled (F&B, Hotel, Retail)
 
 **Changelog v2.0.0** (Dec 21, 2025) - CPO Strategic Review:
 - **NEW SEGMENT**: AI Safety & Governance Market ($2.8B by 2027)
@@ -45,18 +53,44 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 ### Market Size Overview
 
-| Metric | SDLC Governance | AI Safety | Combined |
-|--------|-----------------|-----------|----------|
-| **TAM** | $816M ARR | $560M ARR | **$1.38B ARR** |
-| **SAM** | $201M ARR | $140M ARR | **$341M ARR** |
-| **SOM Year 1** | $240K ARR | $34.5K ARR | **$274.5K ARR** |
+| Metric | SDLC Governance | AI Safety | Vietnam SME | Combined |
+|--------|-----------------|-----------|-------------|----------|
+| **TAM** | $816M ARR | $560M ARR | $60M ARR | **$1.44B ARR** |
+| **SAM** | $201M ARR | $140M ARR | $15M ARR | **$356M ARR** |
+| **SOM Year 1** | $32K-$54K ARR | N/A | $21K-$36K ARR | **$86K-$144K ARR** |
+
+### Dual Wedge Strategy (v3.0.0)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DUAL WEDGE MARKET STRATEGY                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  WEDGE 1: Vietnam SME (40%)              WEDGE 2: Global EM (40%)           │
+│  ┌─────────────────────────────┐         ┌─────────────────────────────┐    │
+│  │ Founder Plan $99/team/mo    │         │ Standard $30/user/month     │    │
+│  │ - F&B, Hotel, Retail        │         │ - EM 6-50 engineers         │    │
+│  │ - IR-Based Codegen (EP-06)  │         │ - AI Governance Layer       │    │
+│  │ - Vietnamese onboarding     │         │ - Evidence Vault            │    │
+│  │ Year 1: 18-30 teams         │         │ Year 1: 9-15 teams          │    │
+│  │ TAM: $60M (50K SMEs)        │         │ TAM: $816M (3.4M teams)     │    │
+│  └─────────────────────────────┘         └─────────────────────────────┘    │
+│                                                                              │
+│                      ENTERPRISE (20%)                                        │
+│                      ┌─────────────────────────────────────┐                 │
+│                      │ Custom pricing, SSO, self-hosted    │                 │
+│                      │ Year 1: 3-5 teams ($33K-$54K ARR)   │                 │
+│                      └─────────────────────────────────────┘                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Market Opportunity Assessment
 
 **Venture-Scale**: ✅ YES (Combined TAM >$1B ARR)
-**Category Creation**: ✅ YES (AI-Native SDLC Governance = new category)
+**Category Creation**: ✅ YES (Operating System for Software 3.0 = new category)
 **Timing**: ✅ OPTIMAL (AI coding tools 73% adoption, 67% no governance)
 **Competition**: ✅ BLUE OCEAN (No direct competitor in our quadrant)
+**Local Wedge**: ✅ VIETNAM SME (800K+ SMEs, ~50K tech-enabled, no competitor)
 
 ### The AI Safety Market Opportunity (NEW - 2025)
 
@@ -290,22 +324,48 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 ---
 
-## SOM: Serviceable Obtainable Market ($240K ARR Year 1)
+## SOM: Serviceable Obtainable Market ($86K-$144K ARR Year 1)
 
 ### Definition
 **SOM** = Market share we can REALISTICALLY CAPTURE in Year 1 (given constraints: team, budget, competition).
 
-### Year 1 Target: 100 Teams
+### Year 1 Target: 30-50 Teams (Realistic, Founder-Led Sales)
 
-**Methodology** (Bottoms-Up):
-1. **Beta Teams** (Week 11): 10 teams
-2. **Launch Week** (Week 12-13): +20 teams (ProductHunt, HN)
-3. **Month 2-3** (Weeks 14-17): +70 teams (word-of-mouth, content)
-4. **Total Year 1**: **100 teams**
+**Methodology** (Bottoms-Up by Segment):
 
-**Revenue**:
-- 100 teams × $20/team/month × 12 months = **$240K ARR**
-- **SOM as % of SAM**: $240K ÷ $201M = **0.12%** (conservative)
+#### Segment 1: Vietnam SME via Founder Plan (60% of Year 1)
+1. **Pilot Teams** (Sprint 49): 10 founders (F&B, Hotel, Retail)
+2. **Founder Plan GA** (Sprint 50+): +8-20 additional teams
+3. **Total Year 1 Vietnam SME**: **18-30 teams**
+
+**Revenue (Vietnam SME)**:
+- 18-30 teams × $99/team/month × 12 months = **$21K-$36K ARR**
+
+#### Segment 2: Global EM via Standard Plan (30% of Year 1)
+1. **Design Partners** (Q1-Q2 2026): 6-10 teams
+2. **Organic Growth** (Q3-Q4 2026): +3-5 teams
+3. **Total Year 1 Global EM**: **9-15 teams**
+
+**Revenue (Global EM)**:
+- 9-15 teams × $30/user × 10 users × 12 months = **$32K-$54K ARR**
+
+#### Segment 3: Enterprise (10% of Year 1)
+1. **Enterprise Pilots**: 3-5 teams (custom pricing)
+2. **Total Year 1 Enterprise**: **3-5 teams**
+
+**Revenue (Enterprise)**:
+- 3-5 teams × custom = **$33K-$54K ARR**
+
+### Total Year 1: 30-50 Teams, $86K-$144K ARR
+
+| Segment | Teams | Revenue | % of Total |
+|---------|-------|---------|------------|
+| **Vietnam SME (Founder Plan)** | 18-30 | $21K-$36K | 40% |
+| **Global EM (Standard)** | 9-15 | $32K-$54K | 40% |
+| **Enterprise** | 3-5 | $33K-$54K | 20% |
+| **Total** | **30-50** | **$86K-$144K** | 100% |
+
+- **SOM as % of SAM**: $86K-$144K ÷ $356M = **0.02-0.04%** (realistic)
 
 ---
 
@@ -346,19 +406,22 @@ This document answers **WHY the market opportunity is large enough**, not WHAT f
 
 | Year | Teams | ARR | % of SAM | Growth Rate |
 |------|-------|-----|----------|-------------|
-| **Year 1** | 100 | $184K | 0.01% | N/A |
-| **Year 2** | 454 | $838K | 0.05% | 354% YoY |
-| **Year 3** | 1,342 | $2.48M | 0.16% | 196% YoY |
+| **Year 1** | 30-50 | $86K-$144K | 0.02-0.04% | N/A |
+| **Year 2** | 150-300 | $432K-$864K | 0.12-0.24% | 400-500% YoY |
+| **Year 3** | 500-1,000 | $1.4M-$2.9M | 0.4-0.8% | 233-333% YoY |
 
 **Assumptions**:
-- 51% MoM growth (from Financial Model, validated with CEO)
-- Retention: 95% (5% churn/month)
-- Expansion: 20% of customers upgrade tier (Starter → Growth → Enterprise)
+- Year 1: Founder-led sales, EP-06 pilot validation
+- Year 2: Product-market fit confirmed, expand sales team
+- Year 3: Scale with proven playbook
+- Retention: 90% annual (10% churn/year)
+- Expansion: 15% of customers upgrade tier (Founder → Standard → Enterprise)
 
-**Why Aggressive Growth?**:
-- Product-led growth (free tier → paid conversion 10-15%)
-- Network effects (more teams → more policy packs → more valuable)
-- Category creation (no direct competition Year 1-2)
+**Why Realistic Growth?**:
+- **Year 1**: Founder-led sales, no dedicated sales team (30-50 teams achievable)
+- **Year 2**: 1-2 sales hires if Year 1 succeeds (150-300 teams)
+- **Year 3**: Proven playbook, expand team (500-1,000 teams)
+- **Conservative**: No viral growth assumed, organic referrals only
 
 ---
 
@@ -821,9 +884,60 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 
 ---
 
+## Vietnam SME Market Deep Dive (NEW v3.0.0)
+
+### Vietnam SME TAM: $60M ARR
+
+**Market Reality**:
+- **800K+ SMEs** in Vietnam (GSO 2024)
+- **~50K tech-enabled** SMEs (F&B, Hotel, Retail with POS/inventory systems)
+- **<5% have custom software** (most use off-the-shelf or Excel)
+- **Growing demand** for digitalization (Vietnam 2030 digital economy target)
+
+**Our Target Segment**:
+
+| Domain | SMEs | Tech-Enabled | Addressable | TAM |
+|--------|------|--------------|-------------|-----|
+| **F&B** (Restaurant/Café) | 200K | 30K | 15K | $18M |
+| **Hotel** (Homestay/Hotel) | 50K | 15K | 8K | $9.5M |
+| **Retail** (Shop/Store) | 300K | 40K | 20K | $24M |
+| **Other** | 250K | 15K | 7K | $8.5M |
+| **Total** | **800K** | **100K** | **50K** | **$60M** |
+
+**Calculation**:
+- Addressable: 50K SMEs willing to pay for custom software
+- Price: $99/team/month × 12 = $1,188/year
+- TAM: 50K × $1,188 = **$60M ARR**
+
+### Why Vietnam SME Wedge Works
+
+**1. No Competition**:
+- Lovable, v0.dev don't target Vietnamese SME
+- Local developers charge $5K-$20K (too expensive)
+- We offer $99/month subscription (affordable)
+
+**2. Domain Expertise**:
+- 3 domain templates (F&B, Hotel, Retail)
+- Vietnamese language support (questionnaire, docs)
+- Local payment methods (MoMo, VNPay)
+
+**3. Founder Plan Economics**:
+- $99/team/month (~2.5M VND) = coffee shop owner can afford
+- IR-based codegen = no ongoing development cost
+- Quality gates = production-ready code
+
+**EP-06 Success Criteria (Sprint 49-50)**:
+- 10 pilot founders complete onboarding
+- TTFV <30 minutes (median)
+- Satisfaction ≥8/10
+- Quality gate pass rate ≥95%
+
+---
+
 ## Document Control
 
 **Version History**:
+- v3.0.0 (December 23, 2025): Software 3.0 Pivot - Dual Wedge, Founder Plan, Vietnam SME
 - v2.0.0 (December 21, 2025): CPO Strategic Review - AI Safety market $560M TAM
 - v1.1.0 (December 21, 2025): SDLC 5.1.1 update, EP-04/05/06 market opportunity
 - v1.0.0 (November 13, 2025): Initial market sizing (Stage 00 WHY focus)
@@ -837,9 +951,10 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 - SOM miss >20%: Root cause analysis, update growth assumptions
 
 **Related Documents**:
-- [Product Vision](../01-Vision/Product-Vision.md) - Market opportunity overview
+- [Product Vision](../01-Vision/Product-Vision.md) (v4.0.0) - Market opportunity overview
 - [Financial Model](../02-Business-Case/Financial-Model.md) - Revenue projections
-- [Competitive Landscape](./Competitive-Landscape.md) - Market positioning
+- [Competitive Landscape](./Competitive-Landscape.md) (v3.0.0) - Market positioning
+- [Product Roadmap](../04-Roadmap/Product-Roadmap.md) (v5.0.0) - EP-06 Sprint 45-50
 
 ---
 
@@ -847,6 +962,6 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 **Framework**: SDLC 5.1.1 Stage 00 (WHY) - Market Analysis
 **Component**: TAM/SAM/SOM Market Opportunity
 **Review**: Quarterly with CEO + CFO
-**Last Updated**: December 21, 2025
+**Last Updated**: December 23, 2025
 
 *"Size the market to validate the opportunity."* 📊

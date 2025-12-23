@@ -1,13 +1,20 @@
 # OSS Landscape Research
 ## Open Source Software Integration Strategy and License Analysis
 
-**Version**: 2.0.0
-**Date**: December 21, 2025
-**Status**: ACTIVE - STAGE 00 FOUNDATION
-**Authority**: CPO Approval (Dec 21, 2025), CTO Review (8.5/10), Legal Review (PENDING)
-**Foundation**: Product Vision 3.1.0, Competitive Landscape 2.0.0
+**Version**: 3.0.0
+**Date**: December 23, 2025
+**Status**: ACTIVE - STAGE 00 FOUNDATION (Software 3.0 Pivot)
+**Authority**: CPO Approval (Dec 23, 2025), CTO Review (9.0/10), Legal Review (PENDING)
+**Foundation**: Product Vision 4.0.0, Competitive Landscape 3.0.0
 **Stage**: Stage 00 (WHY - Project Foundation)
 **Framework**: SDLC 5.1.1 Complete Lifecycle
+
+**Changelog v3.0.0** (Dec 23, 2025) - Software 3.0 Pivot:
+- **EP-06 IR-BASED CODEGEN**: Multi-provider architecture (Ollama → Claude → DeepCode)
+- **DEFERRED DEEPCODE**: Q2 2026 decision gate (not integrated until validated)
+- **SPRINT 45-50 DESIGN**: ADR-022 approved, 5 technical specs committed
+- **FOUNDER PLAN INFRASTRUCTURE**: Ollama-first for $99/team/month cost model
+- Updated provider fallback chain for codegen use case
 
 **Changelog v2.0.0** (Dec 21, 2025) - CPO Strategic Review:
 - **NEW**: NQH AI Platform integration (qwen2.5-coder:32b, RTX 5090)
@@ -46,24 +53,26 @@ This document answers **WHY we're using OSS components and WHY Option C (Hybrid)
 
 ### OSS + AI Infrastructure Strategy: Option C+ (Enhanced Hybrid)
 
-**Architecture** (Updated Dec 2025):
+**Architecture** (Updated Dec 2025 - Software 3.0 Pivot):
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 1: User-Facing (PROPRIETARY - Apache-2.0)        │
 │ - React Dashboard, VS Code Extension, YAML Policy Packs│
+│ - Vietnamese Onboarding Flow (F&B, Hotel, Retail)      │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 2: Business Logic (PROPRIETARY - Apache-2.0)     │
 │ - Gate Engine Wrapper, Evidence Vault API, AI Context  │
-│ - Codegen Engine Tri-Mode (EP-06)                      │
+│ - IR-Based Codegen Engine (EP-06, Sprint 45-50)        │
+│ - Quality Gates: Syntax, Security, Architecture, Tests │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
-│ Layer 3: AI Infrastructure (HYBRID)                    │
-│ - NQH AI Platform (qwen2.5-coder:32b) [PRIORITY]       │
-│ - Claude API (fallback) [PAID]                         │
-│ - Continue.dev (Mode C fallback) [OSS]                 │
+│ Layer 3: AI Infrastructure (MULTI-PROVIDER)            │
+│ - Ollama (api.nqh.vn, qwen2.5-coder) [PRIMARY, $0]     │
+│ - Claude API (fallback) [PAID, $1K/month budget]       │
+│ - DeepCode (DEFERRED Q2 2026) [Decision gate pending]  │
 └─────────────────────────────────────────────────────────┘
                         ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -105,8 +114,49 @@ This document answers **WHY we're using OSS components and WHY Option C (Hybrid)
 2. **Performance**: 92.7% HumanEval (qwen2.5-coder:32b) matches GPT-4
 3. **Latency**: <100ms local vs 500-2000ms cloud APIs
 4. **Privacy**: Code stays on-premise (no cloud data exposure)
-5. **Fallback**: Claude → Continue.dev ensures zero downtime
+5. **Fallback**: Ollama → Claude ensures zero downtime
 6. **Competitive Moat**: Proprietary AI infrastructure (hard to replicate)
+7. **Founder Plan Economics**: $99/team/month viable with Ollama-first approach
+
+### EP-06 Multi-Provider Architecture (Sprint 45-50)
+
+**Provider Fallback Chain** (ADR-022 Approved):
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    EP-06 CODEGEN PROVIDERS                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. OLLAMA (Primary) ──────────────────────────────────────────→│
+│     - api.nqh.vn (qwen2.5-coder:14b/32b)                        │
+│     - Cost: $0/month                                             │
+│     - Latency: <100ms                                            │
+│     - Use case: 95% of requests                                  │
+│                         │                                        │
+│                         ↓ (if unavailable/timeout)               │
+│  2. CLAUDE (Fallback) ─────────────────────────────────────────→│
+│     - Anthropic API (claude-3-sonnet)                           │
+│     - Cost: $1K/month budget                                     │
+│     - Latency: 300-500ms                                         │
+│     - Use case: 5% of requests                                   │
+│                         │                                        │
+│                         ↓ (Q2 2026 decision gate)                │
+│  3. DEEPCODE (Deferred) ───────────────────────────────────────→│
+│     - NOT integrated until pilot success validated               │
+│     - Decision criteria: 8/10 satisfaction, <3s latency, <$50/mo│
+│     - Earliest: Q2 2026                                          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Sprint 45-50 Design Specs** (Approved Dec 23, 2025):
+| Sprint | Focus | Design Spec |
+|--------|-------|-------------|
+| **45** | Multi-Provider Architecture | ADR-022 + Tech Spec |
+| **46** | IR Processor | IR-Processor-Specification.md |
+| **47** | Vietnamese Domain Templates | Vietnamese-Domain-Templates-Specification.md |
+| **48** | Quality Gates for Codegen | Quality-Gates-Codegen-Specification.md |
+| **49** | Vietnam SME Pilot | Pilot-Execution-Specification.md |
+| **50** | Productization + GA | Productization-Baseline-Specification.md |
 
 ---
 
@@ -786,6 +836,7 @@ export function MetricsDashboard() {
 ## Document Control
 
 **Version History**:
+- v3.0.0 (December 23, 2025): Software 3.0 Pivot - EP-06 Multi-Provider, DeepCode deferred
 - v2.0.0 (December 21, 2025): CPO Strategic Review - NQH AI Platform, Mode C Hybrid
 - v1.1.0 (December 21, 2025): SDLC 5.1.1 update, NQH AI Platform, Mixpanel
 - v1.0.0 (November 13, 2025): Initial OSS landscape (Stage 00 WHY focus)
@@ -794,16 +845,19 @@ export function MetricsDashboard() {
 - **Week 2**: Legal review (AGPL containment strategy)
 - **Monthly**: OSS dependency updates (security patches)
 - **Quarterly**: OSS license monitoring (detect changes)
+- **Q2 2026**: DeepCode decision gate (EP-06 pilot success validation)
 
 **Change Management**:
 - **OSS License Change**: Legal review required (Go/No-Go decision)
 - **Security CVE Critical**: Emergency patch (24-hour SLA)
 - **OSS Project Abandoned**: Evaluate alternatives (4-week timeline)
+- **DeepCode Integration**: Only after Q2 2026 decision gate approval
 
 **Related Documents**:
-- [Product Vision](../01-Vision/Product-Vision.md) - Option C (Hybrid) rationale
-- [Competitive Landscape](./Competitive-Landscape.md) - OSS competitors (OPA, Backstage)
+- [Product Vision](../01-Vision/Product-Vision.md) (v4.0.0) - Option C (Hybrid) rationale
+- [Competitive Landscape](./Competitive-Landscape.md) (v3.0.0) - OSS competitors (OPA, Backstage)
 - [Financial Model](../02-Business-Case/Financial-Model.md) - OSS cost savings ($120K/year)
+- [Product Roadmap](../04-Roadmap/Product-Roadmap.md) (v5.0.0) - EP-06 Sprint 45-50
 
 ---
 
@@ -811,6 +865,6 @@ export function MetricsDashboard() {
 **Framework**: SDLC 5.1.1 Stage 00 (WHY) - Market Analysis
 **Component**: Open Source Strategy and License Analysis
 **Review**: Monthly (security), Quarterly (license)
-**Last Updated**: December 21, 2025
+**Last Updated**: December 23, 2025
 
 *"Leverage OSS wisely, protect IP strategically."* 🔓

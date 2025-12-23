@@ -1,21 +1,30 @@
 # Competitive Landscape
 ## Market Positioning and Competitive Analysis
 
-**Version**: 2.1.0
-**Date**: December 21, 2025
-**Status**: ACTIVE - STAGE 00 FOUNDATION
-**Authority**: CPO Approval (Dec 21, 2025), CEO Review (9.5/10)
-**Foundation**: Product Vision 3.1.0, Market Sizing 2.0.0
+**Version**: 3.0.0
+**Date**: December 23, 2025
+**Status**: ACTIVE - STAGE 00 FOUNDATION (Software 3.0 Pivot)
+**Authority**: CPO Approval (Dec 23, 2025), CEO Review (9.5/10)
+**Foundation**: Product Vision 4.0.0, Market Sizing 2.0.0
 **Stage**: Stage 00 (WHY - Project Foundation)
 **Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+
+**Changelog v3.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: "Operating System for Software 3.0" positioning
+- **3-LAYER ARCHITECTURE**: Framework → Orchestrator → AI Coders (we orchestrate, not compete)
+- **DUAL WEDGE STRATEGY**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **EP-06 IR-Based Codegen**: Sprint 45-50 (not Tri-Mode), IR-first architecture
+- **WHERE WE DON'T COMPETE**: Clear differentiation from 1-click app builders (Lovable, v0.dev)
+- **Founder Plan**: $99/team/month for Vietnam SME (competitive local pricing)
+- **Year 1 Target**: 30-50 teams (realistic, founder-led sales)
 
 **Changelog v2.1.0** (Dec 21, 2025):
 - **FRAMEWORK UPDATE**: All references updated to SDLC 5.1.1 (from 4.8/4.9)
 - **10-STAGE MODEL**: WHY → WHAT → HOW → BUILD → TEST → DEPLOY → OPERATE → INTEGRATE → COLLABORATE → GOVERN
 
 **Changelog v2.0.0** (Dec 21, 2025) - CPO Strategic Review:
-- **NEW CATEGORY**: AI Safety &amp; Governance Market ($2.8B by 2027)
-- **POSITIONING PIVOT**: From "SDLC Governance" → "AI-Native SDLC Governance &amp; Safety"
+- **NEW CATEGORY**: AI Safety & Governance Market ($2.8B by 2027)
+- **POSITIONING PIVOT**: From "SDLC Governance" → "AI-Native SDLC Governance & Safety"
 - Added AI Coding Tools category (Cursor, Copilot, Claude Code)
 - Added NQH AI Platform as infrastructure moat (qwen2.5-coder:32b)
 - Added EP-04/05/06 as strategic differentiators
@@ -44,8 +53,30 @@ This document answers **WHY our competitive positioning matters**, not WHAT feat
 ## Executive Summary (CPO Strategic View)
 
 ### Market Position
-**Category**: AI-Native SDLC Governance &amp; Safety Platform
-**Tagline**: *"The control plane that keeps Claude Code/Cursor/Copilot compliant with your architecture &amp; standards."*
+**Category**: Operating System for Software 3.0
+**Tagline**: *"The Operating System for Software 3.0 - Where AI coders are governed, not feared."*
+
+### 3-Layer Architecture (Control Plane Positioning)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ LAYER 3: AI CODERS (They Generate) - We orchestrate all of them│
+│ Claude Code • Cursor • Copilot • Aider • Roo Code • OSS Models  │
+├─────────────────────────────────────────────────────────────────┤
+│ LAYER 2: SDLC ORCHESTRATOR (We Validate & Govern) ← OUR PRODUCT│
+│ - Policy Guards: OPA-based enforcement                          │
+│ - Evidence Vault: 100% audit trail                              │
+│ - IR Codegen: Domain-specific code generation                   │
+│ - Quality Gates: Syntax, Security, Architecture, Tests          │
+├─────────────────────────────────────────────────────────────────┤
+│ LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology Foundation)     │
+│ - 10-Stage Lifecycle (00-09)                                    │
+│ - 4-Tier Classification (LITE/STANDARD/PRO/ENTERPRISE)          │
+│ - Open source methodology, tools-agnostic                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Insight**: We sit ABOVE AI coders, not alongside them. We orchestrate and govern, they generate.
 
 ### The Emerging AI Safety Market (NEW - 2025)
 
@@ -78,17 +109,31 @@ This document answers **WHY our competitive positioning matters**, not WHAT feat
 
 **Overall Threat**: 🟡 MEDIUM - No direct competitor, but Big Tech could respond in 12-18 months.
 
-### Our Unique Moat (EP-04/05/06 Differentiation)
+### Our Unique Moat (EP-04/06 Differentiation)
 
 | Epic | Capability | Competitive Moat | Time to Replicate |
 |------|------------|------------------|-------------------|
 | **EP-04** | SDLC Structure Enforcement | `.sdlc-config.json` replaces 700KB docs | 6-9 months |
-| **EP-05** | Enterprise Migration Engine | Auto-migrate 1M+ LOC repos | 12-18 months |
-| **EP-06** | Codegen Engine Tri-Mode | Claude → NQH AI → Continue.dev fallback | 9-12 months |
+| **EP-06** | IR-Based Codegen Engine | Questionnaire → IR → Backend scaffold | 9-12 months |
 | **AI Safety** | AI Code Validation Layer | Policy-as-Code for AI PRs | 6-12 months |
 | **Evidence Vault** | 100% audit trail for AI decisions | SHA256 + MinIO + S3 | 6-9 months |
+| **Vietnam SME** | Domain Templates (F&B, Hotel, Retail) | Vietnamese-first, local practices | 12-18 months |
 
 **Total Moat**: 24-36 months (cumulative differentiation)
+
+### Where We DON'T Compete (NEW v3.0.0)
+
+| Category | Leaders | Our Position |
+|----------|---------|--------------|
+| **IDE-level autocomplete** | Copilot, Cursor, Codeium | We orchestrate them, not compete |
+| **Pure PM tools** | Jira, Linear, Asana | We complement, not replace |
+| **1-click app builders** | Lovable, v0.dev, Bolt.new | Different complexity tier (they're templates, we're full-stack) |
+| **ML model governance** | LangSmith, W&B | Different domain (code governance vs model governance) |
+
+**Why This Matters**:
+- Clear positioning avoids market confusion
+- Partnerships > competition for AI coding tools
+- Vietnam SME wedge is unique (no competitor targets this segment)
 
 ---
 
@@ -633,10 +678,13 @@ Stage 09: GOVERN (Strategic Oversight) - G9
 - Migration dashboard with progress tracking
 - **Time to Replicate**: 12-18 months
 
-**EP-06: Codegen Engine Tri-Mode** (~$50K, 99 SP)
-- Mode A: Claude API (cloud)
-- Mode B: NQH AI Platform (qwen2.5-coder:32b on RTX 5090)
-- Mode C: Hybrid Fallback (Claude → NQH → Continue.dev)
+**EP-06: IR-Based Codegen Engine** (~$50K, Sprint 45-50)
+- Sprint 45: Multi-Provider Architecture (Ollama → Claude → DeepCode)
+- Sprint 46: IR Processor (IR → Backend scaffold)
+- Sprint 47: Vietnamese Domain Templates (F&B, Hotel, Retail)
+- Sprint 48: Quality Gates for Codegen (Syntax, Security, Architecture, Tests)
+- Sprint 49: Vietnam SME Pilot (10 founders)
+- Sprint 50: Productization + Founder Plan GA ($99/team/month)
 - **Time to Replicate**: 9-12 months
 
 **Total Moat**: 24-36 months (cumulative differentiation)
@@ -899,6 +947,7 @@ Stage 09: GOVERN (Strategic Oversight) - G9
 ## Document Control
 
 **Version History**:
+- v3.0.0 (December 23, 2025): Software 3.0 Pivot - 3-Layer Architecture, Dual Wedge Strategy
 - v2.1.0 (December 21, 2025): All references updated to SDLC 5.1.1
 - v2.0.0 (December 21, 2025): CPO Strategic Review - AI Safety market, EP-04/05/06
 - v1.0.0 (November 13, 2025): Initial competitive landscape (Stage 00 WHY focus)
@@ -912,12 +961,13 @@ Stage 09: GOVERN (Strategic Oversight) - G9
 - Competitor launches competing feature: Update threat level (🟢 → 🟡 → 🔴)
 
 **Related Documents**:
-- [Product Vision](../01-Vision/Product-Vision.md) (v3.1.0)
-- [Market Sizing](./Market-Sizing.md) (v2.0.0)
-- [OSS Landscape Research](./OSS-Landscape-Research.md) (v2.0.0)
+- [Product Vision](../01-Vision/Product-Vision.md) (v4.0.0)
+- [Market Sizing](./Market-Sizing.md) (v3.0.0)
+- [OSS Landscape Research](./OSS-Landscape-Research.md) (v3.0.0)
+- [Product Roadmap](../04-Roadmap/Product-Roadmap.md) (v5.0.0)
 - [EP-04 SDLC Structure Enforcement](../../01-planning/02-Epics/EP-04-SDLC-Structure-Enforcement.md)
 - [EP-05 Enterprise Migration](../../01-planning/02-Epics/EP-05-ENTERPRISE-SDLC-MIGRATION.md)
-- [EP-06 Codegen Engine](../../01-planning/02-Epics/EP-06-Codegen-Engine-Dual-Mode.md)
+- [EP-06 IR-Based Codegen Engine](../../02-design/14-Technical-Specs/EP-06-Codegen-Engine/)
 
 ---
 
@@ -925,6 +975,6 @@ Stage 09: GOVERN (Strategic Oversight) - G9
 **Framework**: SDLC 5.1.1 Stage 00 (WHY) - Market Analysis
 **Component**: Competitive Positioning and Moat Analysis
 **Review**: Monthly with PM + CEO
-**Last Updated**: December 21, 2025
+**Last Updated**: December 23, 2025
 
 *"Know your competition, but build your unique value."* 🎯
