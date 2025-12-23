@@ -3,11 +3,22 @@
 
 **Stage**: 00 - FOUNDATION
 **Question**: Why are we building this?
-**Version**: 3.1.0
-**Date**: December 21, 2025
+**Version**: 4.0.0
+**Date**: December 23, 2025
 **Status**: ✅ COMPLETED - Gate G0.1 + G0.2 PASSED
 **Authority**: PM + CEO + CTO + CPO Approved (9.5/10 Confidence)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.1 + SASE Level 2
+**Positioning**: Operating System for Software 3.0
+
+**Changelog v4.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Control Plane for AI Coders positioning
+- **EP-06 IR-Based Codegen**: Sprint 45-50 (not Tri-Mode), P0 priority
+- **Founder Plan**: $99/team/month for Vietnam SME (~2.5M VND)
+- **Dual Wedge Strategy**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **Year 1 Target**: 30-50 teams (realistic, founder-led sales), $86K-$144K ARR
+- **Multi-Provider**: Ollama → Claude → DeepCode (DeepCode deferred Q2 2026)
+- **Sprint 45-50 Design Complete**: All 5 technical specs CTO-approved
+- Vision updated to v4.0.0, Roadmap updated to v5.0.0
 
 **Changelog v3.1.0** (Dec 21, 2025):
 - Vision updated to v3.1.0 with EP-04/05/06 strategic extensions
@@ -156,7 +167,7 @@ Once Stage 00 is complete → **[Stage 01: Planning (WHAT)](../01-planning/READM
 
 ---
 
-**Last Updated**: December 21, 2025
+**Last Updated**: December 23, 2025
 **Owner**: PM + Design Lead + CEO
 **Status**: ✅ COMPLETED
 
@@ -170,34 +181,68 @@ Once Stage 00 is complete → **[Stage 01: Planning (WHAT)](../01-planning/READM
 | Total Lines | 30,000+ lines |
 | Quality Gates | G0.1 ✅ PASSED, G0.2 ✅ PASSED |
 | Next Stage | Stage 01 (WHAT) - ✅ PASSED |
-| Current Stage | Stage 04 (BUILD) - IN PROGRESS |
-| Vision Version | v3.1.0 (Dec 21, 2025) |
-| Roadmap Version | v4.1.0 (Dec 21, 2025) |
+| Current Stage | Stage 04 (BUILD) - Sprint 44-50 EP-06 |
+| Vision Version | v4.0.0 (Dec 23, 2025) |
+| Roadmap Version | v5.0.0 (Dec 23, 2025) |
+| Positioning | Operating System for Software 3.0 |
+| Year 1 Target | 30-50 teams, $86K-$144K ARR |
 
 ---
 
-## Strategic Updates (Dec 21, 2025)
+## Strategic Updates (Dec 23, 2025)
 
-### New Epics Approved
+### Software 3.0 Positioning
 
-| Epic | Focus | Investment | Timeline |
-|------|-------|------------|----------|
-| **EP-04** | SDLC Structure Enforcement | $16,500 (117 SP) | Sprint 41-46 |
-| **EP-05** | Enterprise SDLC Migration | $58,000 (89 SP) | Sprint 47-50 |
-| **EP-06** | Codegen Engine Tri-Mode | ~$50,000 (99 SP) | Sprint 51-55 |
+> **"Operating System for Software 3.0 - Where AI coders are governed, not feared."**
+
+**3-Layer Architecture**:
+```
+Layer 3: AI Coders (Claude/Cursor/Copilot/OSS) ← We orchestrate
+Layer 2: SDLC Orchestrator (Governance + Codegen) ← Our product
+Layer 1: SDLC-Enterprise-Framework (Methodology) ← Our foundation
+```
+
+### Approved Epics (Q1-Q2 2026)
+
+| Epic | Focus | Investment | Timeline | Priority |
+|------|-------|------------|----------|----------|
+| **EP-04** | SDLC Structure Enforcement | $16,500 (117 SP) | Sprint 44-46 | P1 |
+| **EP-05** | Enterprise SDLC Migration | Deprioritized | Pending EP-06 | P2 |
+| **EP-06** | IR-Based Codegen Engine | ~$50,000 | Sprint 45-50 | **P0** ⭐ |
+
+### EP-06 Sprint 45-50 Design Specs (CTO Approved)
+
+| Sprint | Focus | Spec Document |
+|--------|-------|---------------|
+| 45 | Multi-Provider Architecture | ADR-022, Tech Spec |
+| 46 | IR Processor Backend | IR-Processor-Specification.md |
+| 47 | Vietnamese Domain Templates | Vietnamese-Domain-Templates-Specification.md |
+| 48 | Quality Gates for Codegen | Quality-Gates-Codegen-Specification.md |
+| 49 | Vietnam SME Pilot | Pilot-Execution-Specification.md |
+| 50 | Productization + GA | Productization-Baseline-Specification.md |
 
 ### Key Innovations
 
 1. **`.sdlc-config.json`** - 1KB replaces 700KB manual compliance docs (700x smaller!)
-2. **Mode C Hybrid Fallback** - Claude → Continue.dev auto-failover when credits exhausted
-3. **qwen2.5-coder:32b** - 92.7% HumanEval (IT Admin's NQH AI Platform ready)
+2. **Multi-Provider Fallback** - Ollama → Claude → DeepCode (DeepCode Q2 2026 decision gate)
+3. **qwen2.5-coder:32b** - 92.7% HumanEval (NQH AI Platform: api.nhatquangholding.com)
 4. **IR Decomposition** - 128K → 5K tokens (96% context reduction)
+5. **Vietnamese Domain Templates** - F&B, Hotel, Retail with Vietnamese questionnaire flow
+
+### Pricing Strategy (Founder Plan)
+
+| Tier | Price | Target | Features |
+|------|-------|--------|----------|
+| **Founder Plan** | $99/team/mo | Vietnam SME | IR Codegen, 1 product, unlimited users |
+| **Standard** | $30/user/mo | Global EM 6-50 eng | Full governance, 10 projects |
+| **Enterprise** | Custom | CTO 50-500 eng | SSO, RBAC, self-hosted, unlimited |
 
 ### Business Value
 
-- Customer savings: Up to $71.7K per SDLC migration (Enterprise tier)
-- Revenue projection: +$34.5K ARR Year 1 from EP-04/05/06 upsells
-- Churn prevention: $3.5K+ ARR retained
+- **Year 1 Target**: 30-50 teams, $86K-$144K ARR (realistic, founder-led sales)
+- **Founder Plan (60%)**: 18-30 teams × $99 × 12 = $21K-$36K
+- **Standard (30%)**: 9-15 teams × $30 × 10 users × 12 = $32K-$54K
+- **Enterprise (10%)**: 3-5 teams × custom = $33K-$54K
 
 ---
 

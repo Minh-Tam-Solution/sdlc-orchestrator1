@@ -3,11 +3,22 @@
 
 **Stage**: 01 - PLANNING
 **Question**: What are we building?
-**Version**: 3.1.0
-**Date**: December 21, 2025
+**Version**: 4.0.0
+**Date**: December 23, 2025
 **Status**: ✅ COMPLETED - Gate G1 PASSED
 **Authority**: PM + CTO + CPO Approved
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.1 + SASE Level 2
+**Positioning**: Operating System for Software 3.0
+
+**Changelog v4.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Control Plane for AI Coders positioning
+- **EP-06 IR-Based Codegen**: Sprint 45-50 (P0 priority), ~$50K investment
+- **Founder Plan**: $99/team/month for Vietnam SME (~2.5M VND)
+- **Dual Wedge Strategy**: Vietnam SME (40%) + Global EM (40%) + Enterprise (20%)
+- **Year 1 Target**: 30-50 teams, $86K-$144K ARR (realistic, founder-led sales)
+- **Sprint 45-50 Design Complete**: All 5 technical specs CTO-approved
+- **Multi-Provider**: Ollama → Claude → DeepCode (DeepCode deferred Q2 2026)
+- **Vietnamese Domain Templates**: F&B, Hotel, Retail with Vietnamese questionnaire
 
 **Changelog v3.1.0** (Dec 21, 2025):
 - **EP-04**: SDLC Structure Enforcement - Universal AI Codex Validation
@@ -46,8 +57,8 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 │   └── FR-21-USER-AI-API-KEY-MANAGEMENT.md # Additional FRs
 ├── 02-Epics/
 │   ├── EP-04-SDLC-Structure-Enforcement.md   # Universal AI Codex Validation ($16.5K, 117 SP)
-│   ├── EP-05-ENTERPRISE-SDLC-MIGRATION.md    # Automated Migration Pro/Ent ($58K, 89 SP)
-│   └── EP-06-Codegen-Engine-Dual-Mode.md     # Tri-Mode Codegen Engine (~$50K, 99 SP)
+│   ├── EP-05-ENTERPRISE-SDLC-MIGRATION.md    # Automated Migration (Deprioritized)
+│   └── EP-06-IR-Based-Codegen-Engine.md      # IR-Based Codegen (~$50K, Sprint 45-50) ⭐ P0
 ├── 03-User-Stories/
 │   ├── User-Stories-Epics.md               # Epic breakdown
 │   ├── Acceptance-Criteria.md              # Definition of Done
@@ -113,19 +124,29 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 - ✅ Non-Functional-Requirements.md (NFR1-NFR15)
 - ✅ Requirements-Traceability-Matrix.md
 
-### 02-Epics (NEW - Dec 2025) ✅ COMPLETE
-- ✅ EP-04-SDLC-Structure-Enforcement.md (Universal AI Codex Validation, Sprint 41-46, $16.5K)
-- ✅ EP-05-ENTERPRISE-SDLC-MIGRATION.md (Automated Migration, Sprint 47-50, $58K, 67KB)
-- ✅ EP-06-Codegen-Engine-Dual-Mode.md (Tri-Mode Codegen, Sprint 51-55, 29KB)
+### 02-Epics (Updated Dec 2025) ✅ COMPLETE
+- ✅ EP-04-SDLC-Structure-Enforcement.md (Universal AI Codex Validation, Sprint 44-46, $16.5K)
+- ⏸️ EP-05-ENTERPRISE-SDLC-MIGRATION.md (Deprioritized - pending EP-06 success)
+- ✅ EP-06-IR-Based-Codegen-Engine.md (IR-Based Codegen, Sprint 45-50, ~$50K) ⭐ **P0 PRIORITY**
 
-**Strategic Epics Summary (Dec 21, 2025)**:
+**Strategic Epics Summary (Dec 23, 2025 - Software 3.0 Pivot)**:
 
-| Epic | Investment | Story Points | Key Innovation |
-|------|------------|--------------|----------------|
-| EP-04 | $16,500 | 117 SP | AI Codex Structure Protection |
-| EP-05 | $58,000 | 89 SP | `.sdlc-config.json` (700x smaller) |
-| EP-06 | ~$50,000 | 99 SP | Mode C Hybrid Fallback, 92.7% HumanEval |
-| **Total** | **$124,500** | **305 SP** | **$34.5K+ ARR Year 1** |
+| Epic | Investment | Timeline | Priority | Key Innovation |
+|------|------------|----------|----------|----------------|
+| EP-04 | $16,500 | Sprint 44-46 | P1 | AI Codex Structure Protection |
+| EP-05 | Deprioritized | Pending EP-06 | P2 | `.sdlc-config.json` (700x smaller) |
+| EP-06 | ~$50,000 | Sprint 45-50 | **P0** ⭐ | IR-Based Codegen for Vietnam SME |
+
+**EP-06 Sprint 45-50 Design Specs (CTO Approved)**:
+
+| Sprint | Focus | Spec Document |
+|--------|-------|---------------|
+| 45 | Multi-Provider Architecture | ADR-022, Tech Spec |
+| 46 | IR Processor Backend | IR-Processor-Specification.md |
+| 47 | Vietnamese Domain Templates | Vietnamese-Domain-Templates-Specification.md |
+| 48 | Quality Gates for Codegen | Quality-Gates-Codegen-Specification.md |
+| 49 | Vietnam SME Pilot | Pilot-Execution-Specification.md |
+| 50 | Productization + GA | Productization-Baseline-Specification.md |
 
 ### 03-User-Stories (100% complete)
 - ✅ User-Stories-Epics.md
@@ -350,7 +371,7 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 
 ---
 
-**Last Updated**: December 11, 2025
+**Last Updated**: December 23, 2025
 **Owner**: PM + Backend Lead + Legal Counsel + CTO
 **Status**: ✅ COMPLETED
 
@@ -362,14 +383,16 @@ This stage transforms validated problems (Stage 00) into detailed requirements:
 **Total Lines**: 250,000+ lines across all documents
 **Quality Gates**: G1 (Planning & Analysis) - ✅ PASSED
 **Next Stage**: Stage 02 (Design & Architecture) - ✅ PASSED
-**Current Stage**: Stage 04 (BUILD) - IN PROGRESS
+**Current Stage**: Stage 04 (BUILD) - Sprint 44-50 EP-06
+**Positioning**: Operating System for Software 3.0
 
-**Strategic Epics (Dec 21, 2025)**:
-- EP-04 to EP-06: $124.5K investment, 305+ SP committed
-- Sprint 41-55 fully documented (15 sprints planned)
-- Revenue projection: +$34.5K ARR Year 1
-- NQH AI Platform: qwen2.5-coder:32b (92.7% HumanEval) ready
-- Mode C Hybrid Fallback: Claude → Continue.dev auto-failover
+**Strategic Updates (Dec 23, 2025 - Software 3.0 Pivot)**:
+- **EP-06 IR-Based Codegen**: P0 priority, Sprint 45-50, ~$50K investment
+- **Founder Plan**: $99/team/month for Vietnam SME (~2.5M VND)
+- **Year 1 Target**: 30-50 teams, $86K-$144K ARR (realistic)
+- **Sprint 45-50 Design Complete**: All 5 technical specs CTO-approved
+- **Multi-Provider**: Ollama → Claude → DeepCode (DeepCode Q2 2026 decision gate)
+- **Vietnamese Domain Templates**: F&B, Hotel, Retail with Vietnamese questionnaire
 
 ---
 

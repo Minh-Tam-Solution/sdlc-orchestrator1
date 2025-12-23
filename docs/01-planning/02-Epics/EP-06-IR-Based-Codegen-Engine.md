@@ -1,32 +1,70 @@
-# EP-06 – Codegen Engine with Dual Mode (BYO + Native OSS)
+# EP-06 – IR-Based Codegen Engine for Vietnam SME
 
 | Field | Value |
 |-------|-------|
 | **Epic ID** | EP-06 |
-| **Title** | Codegen Engine with Dual Mode |
-| **Status** | Draft |
+| **Title** | IR-Based Codegen Engine |
+| **Status** | ✅ CTO APPROVED - Sprint 45-50 Design Complete |
+| **Priority** | **P0** ⭐ |
 | **Owner** | CTO / Platform Team |
 | **Created** | 2025-12-21 |
-| **SDLC Version** | 5.1.0 |
+| **Updated** | 2025-12-23 (Software 3.0 Pivot) |
+| **SDLC Version** | 5.1.1 + SASE Level 2 |
 | **Stage** | 01-planning |
-| **Timeline** | Sprint 50–55 (May–July 2026) |
+| **Timeline** | Sprint 45–50 (Feb–May 2026) |
+| **Investment** | ~$50,000 |
+
+---
+
+## Changelog
+
+**v2.0.0** (Dec 23, 2025):
+- **SOFTWARE 3.0 PIVOT**: Renamed from "Dual Mode" to "IR-Based Codegen Engine"
+- **TIMELINE SHIFT**: Sprint 50-55 → Sprint 45-50 (P0 priority)
+- **DESIGN COMPLETE**: All 5 Sprint specs CTO-approved
+- **MULTI-PROVIDER**: Ollama → Claude → DeepCode (DeepCode Q2 2026 decision gate)
+- **FOUNDER PLAN**: $99/team/month for Vietnam SME (~2.5M VND)
+- **VIETNAMESE TEMPLATES**: F&B, Hotel, Retail with Vietnamese questionnaire flow
+
+---
 
 ## Related Documents
 
-- [Product-Roadmap-2026-Software3.0.md](../01-Roadmap/Product-Roadmap-2026-Software3.0.md)
-- [EP-02-AI-Safety-Layer.md](EP-02-AI-Safety-Layer.md)
+- [Product-Roadmap.md](../../00-foundation/04-Roadmap/Product-Roadmap.md) - v5.0.0
 - [EP-04-SDLC-Structure-Enforcement.md](EP-04-SDLC-Structure-Enforcement.md)
-- [EP-05-SDLC-Version-Migration-Engine.md](EP-05-SDLC-Version-Migration-Engine.md)
+- [Sprint 45-50 Design Specs](../../04-build/03-Sprint-Specs/Sprint-45-50-EP06-Codegen/)
+
+### Sprint 45-50 Design Specifications (CTO Approved)
+
+| Sprint | Focus | Spec Document |
+|--------|-------|---------------|
+| 45 | Multi-Provider Architecture | ADR-022, Tech Spec |
+| 46 | IR Processor Backend | IR-Processor-Specification.md |
+| 47 | Vietnamese Domain Templates | Vietnamese-Domain-Templates-Specification.md |
+| 48 | Quality Gates for Codegen | Quality-Gates-Codegen-Specification.md |
+| 49 | Vietnam SME Pilot | Pilot-Execution-Specification.md |
+| 50 | Productization + GA | Productization-Baseline-Specification.md |
 
 ---
 
 ## 1. Executive Summary
 
+### Software 3.0 Positioning
+
+> **"Operating System for Software 3.0 - Where AI coders are governed, not feared."**
+
+**3-Layer Architecture**:
+```
+Layer 3: AI Coders (Claude/Cursor/Copilot/OSS) ← We orchestrate
+Layer 2: SDLC Orchestrator (Governance + Codegen) ← Our product
+Layer 1: SDLC-Enterprise-Framework (Methodology) ← Our foundation
+```
+
 ### CEO Vision
 
-> **Không cạnh tranh trực diện với các AI codex mạnh như Claude Code / Cursor, mà dùng SDLC 5.0 + governance + IR decomposition để biến model open-source tầm trung (7–14B) thành một "codex đủ xài nhưng an toàn và được kiểm soát".**
+> **Không cạnh tranh trực diện với các AI codex mạnh như Claude Code / Cursor, mà dùng SDLC 5.0 + governance + IR decomposition để biến model open-source tầm trung thành một "codex đủ xài nhưng an toàn và được kiểm soát".**
 
-### Tri-Mode Strategy (Updated Dec 2025)
+### IR-Based Codegen Strategy (Dec 2025 - Software 3.0 Pivot)
 
 | Mode | Target Users | AI Backend | Orchestrator Role |
 |------|--------------|------------|-------------------|
@@ -478,16 +516,26 @@ CODEGEN_TIMEOUT = 120  # Longer timeout for code generation
 
 ---
 
-## 7. Timeline & Sprint Mapping
+## 7. Timeline & Sprint Mapping (Sprint 45-50 - CTO Approved)
 
-| Sprint | Dates | Focus | Deliverables |
-|--------|-------|-------|--------------|
-| 50 | May 5-16, 2026 | Vision + IR Design | Vision v3.1, IR schema drafts |
-| 51 | May 19-30, 2026 | IR Implementation | Final IR schemas, Pydantic models |
-| 52 | Jun 2-13, 2026 | API v0 | Codegen endpoints, OpenAPI spec |
-| 53 | Jun 16-27, 2026 | Model Integration | OSS model wiring, prompt templates |
-| 54 | Jun 30-Jul 11, 2026 | Non-tech Journey | Storyboard, UX flow, prototype |
-| 55 | Jul 14-25, 2026 | Integration & Demo | End-to-end demo, Design Partner pilot |
+| Sprint | Dates | Focus | Deliverables | Spec Document |
+|--------|-------|-------|--------------|---------------|
+| **45** | Feb 17-28, 2026 | Multi-Provider Architecture | ADR-022, Fallback chain Ollama→Claude→DeepCode | ADR-022, Tech Spec |
+| **46** | Mar 3-14, 2026 | IR Processor Backend | IR schemas, Pydantic models, Processing engine | IR-Processor-Specification.md |
+| **47** | Mar 17-28, 2026 | Vietnamese Domain Templates | F&B, Hotel, Retail templates + Vietnamese questionnaire | Vietnamese-Domain-Templates-Specification.md |
+| **48** | Mar 31 - Apr 11, 2026 | Quality Gates for Codegen | 4-gate pipeline (Syntax, Security, Arch, Tests) | Quality-Gates-Codegen-Specification.md |
+| **49** | Apr 14-25, 2026 | Vietnam SME Pilot | 10 founders, TTFV <30min, satisfaction ≥8/10 | Pilot-Execution-Specification.md |
+| **50** | Apr 28 - May 9, 2026 | Productization + GA | Founder Plan GA, Onboarding flow, Billing | Productization-Baseline-Specification.md |
+
+### Success Gate (End of Sprint 50)
+
+| Metric | Target |
+|--------|--------|
+| Pilot founders complete | 10 |
+| TTFV (median) | <30 minutes |
+| Satisfaction score | ≥8/10 |
+| Quality gate pass rate | ≥95% |
+| DeepCode Q2 decision gate | Prepared |
 
 ---
 
@@ -537,19 +585,22 @@ All generated code must:
 
 | Dependency | Status | Required By |
 |------------|--------|-------------|
-| AI Safety Layer v1 (EP-02) | ✅ Existing | Sprint 50 |
-| OllamaService | ✅ Existing | Sprint 53 |
-| Company GPU Server | ✅ **CEO Approved** | Sprint 53 |
-| Git integration (GitHub/GitLab) | ✅ Existing | Sprint 55 |
-| Analytics (usage tracking) | ⏳ Planned | Sprint 55 |
+| AI Safety Layer v1 (EP-02) | ✅ Existing | Sprint 45 |
+| OllamaService | ✅ Existing | Sprint 45 |
+| Company GPU Server | ✅ **CEO Approved** | Sprint 45 |
+| Git integration (GitHub/GitLab) | ✅ Existing | Sprint 49 |
+| Analytics (usage tracking) | ⏳ Planned | Sprint 50 |
+| EP-04 Structure Scanner | ✅ In Progress | Sprint 45 |
 
-### 10.1. Infrastructure (CEO Approved)
+### 10.1. Infrastructure (CTO Approved)
 
 | Resource | Endpoint | Purpose |
 |----------|----------|---------|
-| Company GPU Server | `api.nhatquangholding.com:11434` | Mode B OSS inference |
-| Models Available | CodeLlama 7B/13B, Llama2, DeepSeek | Code generation |
-| Cost | $0 (company infrastructure) | No additional cost |
+| NQH AI Platform | `api.nhatquangholding.com` (NAT) | Multi-Provider Inference |
+| Primary Model | qwen2.5-coder:32b-instruct (92.7% HumanEval) | Production code generation |
+| Fallback 1 | Claude API | Complex multi-file refactor |
+| Fallback 2 | DeepCode (Q2 2026) | Decision gate pending |
+| Cost | $0 for OSS, Claude as overflow | Minimized cost |
 
 ---
 
@@ -586,15 +637,26 @@ All generated code must:
 
 ---
 
-## Appendix A: Tier-Based Features
+## Appendix A: Pricing Tiers (Software 3.0 Pivot)
 
-| Feature | Free | Pro | Enterprise |
-|---------|------|-----|------------|
-| Mode A (BYO Codex) | ✅ Basic | ✅ Full | ✅ Full + Custom |
-| Mode B (Native OSS) | ✅ 3 modules/mo | ✅ Unlimited | ✅ Unlimited + Priority |
-| IR Templates | 5 templates | 20 templates | Custom templates |
-| Non-tech Journey | ✅ Basic | ✅ Full | ✅ + Onboarding support |
-| Multilingual | English only | + Vietnamese | + All locales |
+| Feature | Founder Plan | Standard | Enterprise |
+|---------|--------------|----------|------------|
+| **Price** | $99/team/mo | $30/user/mo | Custom |
+| **Target** | Vietnam SME | Global EM 6-50 eng | CTO 50-500 eng |
+| IR-Based Codegen | ✅ Included | ✅ Full | ✅ Full + Custom |
+| Products | 1 product | 10 projects | Unlimited |
+| Users | Unlimited | Per seat | Unlimited |
+| Vietnamese Templates | ✅ F&B, Hotel, Retail | ✅ All | ✅ Custom |
+| Support | Email + Community | Email | Dedicated |
+
+### Year 1 Revenue Target (Realistic)
+
+| Tier | % Mix | Teams | Revenue |
+|------|-------|-------|---------|
+| Founder Plan (60%) | 60% | 18-30 | $21K-$36K |
+| Standard (30%) | 30% | 9-15 | $32K-$54K |
+| Enterprise (10%) | 10% | 3-5 | $33K-$54K |
+| **Total** | 100% | **30-50** | **$86K-$144K ARR** |
 
 ---
 
@@ -629,5 +691,7 @@ Lovable's success factors for non-tech users:
 ---
 
 *Document created: 2025-12-21*
-*Last updated: 2025-12-21*
+*Last updated: 2025-12-23*
+*Version: 2.0.0 (Software 3.0 Pivot)*
 *Author: CTO / Platform Team*
+*Status: ✅ CTO APPROVED - Sprint 45-50 Design Complete*
