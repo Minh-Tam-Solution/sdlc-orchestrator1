@@ -255,32 +255,18 @@ EMPATHIZE → DEFINE → IDEATE → PROTOTYPE → TEST
 
 ## 7. Proven Results
 
-### BFlow Platform Case Study (52 days)
+### BFlow Platform Outcomes (selected, verifiable)
 
 | Metric | Result |
 |--------|--------|
-| **Investment** | $90,200 |
-| **Value Delivered** | $43.03M |
-| **ROI** | 827:1 (82,700% return) |
-| **Uptime** | 99.9%+ |
-| **API Response** | <50ms (p95) |
-| **P0 Incidents** | Zero |
-| **Customer Satisfaction** | 8.5+/10 |
+| Time-to-value (case study window) | 52 days |
+| Uptime | 99.9%+ |
+| API response | <50ms (p95) |
+| P0 incidents | Zero (post-process adoption window) |
+| Audit preparation | 60+ hours → <5 hours |
+| Feature adoption | 32% → 70%+ |
 
-### ROI by Stage
-
-| Stage | Value Contribution |
-|-------|-------------------|
-| 00 Foundation | $4.7M (disaster prevention) |
-| 01 Planning | $3.8M (feature parity) |
-| 02 Design | Stable architecture |
-| 03 Integrate | 265K req/s OAuth2 |
-| 04 Build | $6.23M (6 microservices) |
-| 05 Test | $17.42M (639 tests, 95%+ coverage) |
-| 06 Deploy | 99.5% → 100% confidence |
-| 07 Operate | $4.65M (99.9%+ uptime) |
-| 08 Collaborate | A+ team ratings |
-| 09 Govern | 100% compliance |
+**Note**: We do not use or publish single-number ROI claims (e.g., "827:1") in external materials; outcomes are framed as verifiable operational metrics.
 
 ---
 
@@ -331,7 +317,7 @@ SDLC 5.1.1 (Dec 2025) → Legacy/Archive + Stage Consistency (Current)
 ### For Enterprises (PROFESSIONAL/ENTERPRISE Tier)
 - 50x productivity potential
 - 99.9%+ production uptime
-- 827:1 ROI proven
+- Reduced audit prep and incident rates
 
 ---
 
@@ -374,7 +360,7 @@ Manual SDLC Framework:     20% of value (methodology alone)
 = Complete Solution:       100% of value (methodology + automation)
 ```
 
-**Key Insight**: The Framework provides the "what", the Orchestrator provides the "how". Together, they deliver the 827:1 ROI proven in the BFlow case study.
+**Key Insight**: The Framework provides the "what", the Orchestrator provides the "how". Together, they deliver measurable improvements in reliability, auditability, and delivery.
 
 ### Why We Separated Them
 
@@ -393,7 +379,7 @@ Manual SDLC Framework:     20% of value (methodology alone)
 2. **Tier Classification**: Is the 4-tier system (team size-based) the right segmentation?
 3. **SASE Complexity**: Is the AI+Human collaboration model (6 artifacts) too complex for adoption?
 4. **Industry Alignment**: Are there standards we should align with that we've missed?
-5. **Proven Results**: Is the 827:1 ROI claim credible based on the BFlow case study?
+5. **Proven Results**: Are the stated outcomes credible and appropriately evidenced?
 
 ---
 
@@ -405,7 +391,7 @@ Manual SDLC Framework:     20% of value (methodology alone)
 
 | Field | Value |
 |-------|-------|
-| Author | NQH Holdings Framework Team |
+| Author | Nhat Quang Holding (NQH) Framework Team |
 | Status | ACTIVE - Production Ready |
 | Classification | Open Framework (methodology) |
 

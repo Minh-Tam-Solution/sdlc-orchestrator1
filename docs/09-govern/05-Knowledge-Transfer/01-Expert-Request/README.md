@@ -1,39 +1,52 @@
 # Expert Review Pack - SDLC Orchestrator
 ## External Expert Evaluation Request
 
-**Version**: 1.0.0
+**Version**: 1.1.0 (Updated per Expert Feedback)
 **Date**: December 23, 2025
-**Prepared By**: NQH Holdings - Product & Engineering Team
+**Prepared By**: Nhat Quang Holding (NQH) - Product & Engineering Team
 **Classification**: Confidential - For Expert Review Only
 **Response Deadline**: [TBD by sender]
+**New Positioning**: Operating System for Software 3.0
 
 ---
 
 ## 1. Purpose of This Review
 
-NQH Holdings is seeking **external expert feedback** on our SDLC Orchestrator platform before scaling to 100+ customers in 2026. We request your critical evaluation of:
+Nhat Quang Holding (NQH) is seeking **external expert feedback** on our SDLC Orchestrator platform before scaling to **30-50 teams** in 2026. We request your critical evaluation of:
 
 1. **Problem & Market Validity** - Is the problem real and large enough?
 2. **Product Specification** - Are requirements complete and feasible?
 3. **Architecture & Design** - Is the technical approach sound?
-4. **Strategic Positioning** - Are we differentiated enough to win?
+4. **Strategic Positioning** - Is "Operating System for Software 3.0" differentiated?
 
 ---
 
-## Understanding the Two Components
+## Understanding the Three Layers (NEW)
 
-**IMPORTANT**: This package covers TWO related but distinct components:
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  LAYER 3: AI CODERS (They Generate)                                 │
+│  Claude Code, Cursor, Copilot, Aider, Continue.dev, Bolt.diy       │
+│  → We ORCHESTRATE them, not compete                                 │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 2: SDLC ORCHESTRATOR (We Govern)                             │
+│  ★ Control Plane: Governance + Evidence + Policy Guards            │
+│  ★ EP-06 Codegen: IR-based generation for Vietnam SME              │
+│  ★ BYO Support: Bring any Layer 3 tool, we validate                │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology)                   │
+│  10 Stages (00-09) + 4 Tiers + Quality Gates                        │
+│  Open source, tool-agnostic foundation                              │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-| Component | Type | Description |
-|-----------|------|-------------|
-| **SDLC-Enterprise-Framework** | **Methodology** (Open) | The 10-stage software development framework. Like Agile/Scrum - a set of principles, stages, and best practices that teams can follow with ANY tools. |
-| **SDLC Orchestrator** | **Tool** (Proprietary) | The software platform that **automates and enforces** the SDLC-Enterprise-Framework. Like Jira for Scrum - makes the methodology easier to adopt. |
+| Layer | Component | Type | Description |
+|-------|-----------|------|-------------|
+| **Layer 3** | AI Coders | External | Cursor, Copilot, Claude Code - they generate code |
+| **Layer 2** | SDLC Orchestrator | **Proprietary** | Control plane that governs Layer 3 |
+| **Layer 1** | SDLC-Enterprise-Framework | Open | 10-stage methodology foundation |
 
-**Relationship**:
-- **Framework** = The "rules of the game" (what to do, when, why)
-- **Orchestrator** = The "game assistant" (automates enforcement, collects evidence, provides AI help)
-
-**Key Insight**: Teams can use SDLC-Enterprise-Framework manually (with any tools), but SDLC Orchestrator makes adoption 10x faster and ensures compliance automatically.
+**Key Insight**: We sit ABOVE AI coders, not alongside them. They generate, we govern.
 
 ---
 
@@ -72,7 +85,7 @@ This package contains **10 self-contained documents** for your review:
 
 ## 3. Company Background
 
-### NQH Holdings
+### Nhat Quang Holding (NQH)
 
 | Attribute | Value |
 |-----------|-------|
@@ -103,37 +116,32 @@ We realized the problem wasn't unique to us—it's industry-wide. We decided to 
 
 ---
 
-## 4. What We're Asking
+## 4. What We're Asking (Updated per Expert Feedback)
 
-### Primary Questions
+### Key Changes Made
 
-We seek your expert opinion on these **10 critical questions**:
+Based on feedback from 4 external experts, we've updated:
 
-#### Problem & Market (Questions 1-4)
+| Change | Before | After |
+|--------|--------|-------|
+| **Positioning** | "AI Safety + Governance" | "Operating System for Software 3.0" |
+| **Revenue Target** | 100 teams Year 1 | 30-50 teams Year 1 |
+| **Pricing** | Per-seat only | Added Founder Plan ($99/team) |
+| **ICP** | Global EMs only | Dual wedge: Vietnam SME + Global EM |
+| **Roadmap** | "Won't Have: Codegen" | EP-06 Codegen now Must Have |
+| **Metrics** | LOC/sprint | DORA metrics |
 
-1. **Problem Validity**: Is the 60-70% feature waste problem compelling enough to build a business around?
+### Remaining Questions
 
-2. **Market Sizing**: Is our $816M TAM realistic, or are we overestimating the addressable market?
+1. **Control Plane Positioning**: Is "Operating System for Software 3.0" clear and differentiated?
 
-3. **ICP Definition**: Should we prioritize Engineering Managers (6-50 engineers) or CTOs (50-500 engineers) as primary buyer?
+2. **Dual Wedge Strategy**: Is Vietnam SME + Global EM the right Year 1 focus?
 
-4. **Competitive Position**: Are there emerging competitors we've missed? How defensible is our 3-5 year moat?
+3. **Founder Plan Pricing**: Is $99/team/month competitive for Vietnam SME?
 
-#### Product & Technology (Questions 5-7)
+4. **EP-06 Codegen**: Should IR-based codegen be Q2 2026 or pushed to Q3?
 
-5. **Feature Scope**: Are we building too much for MVP, or missing critical features?
-
-6. **Architecture**: Is the 4-layer architecture with AGPL containment over-engineered or appropriate?
-
-7. **AI Strategy**: Is Ollama as primary AI provider (with cloud fallback) a viable long-term strategy?
-
-#### Business Model (Questions 8-10)
-
-8. **Pricing**: Is $30/user/month appropriate? Should we consider usage-based pricing?
-
-9. **Go-to-Market**: PLG vs sales-led for Year 1? What's the optimal mix?
-
-10. **Timing**: Is "AI Safety governance" the right positioning now, or should we lead with traditional governance?
+5. **Revenue Projections**: Is 30-50 teams achievable with 8.5 FTE?
 
 ---
 
@@ -199,4 +207,4 @@ We genuinely value critical feedback that helps us build a better product. Your 
 
 ---
 
-*NQH Holdings - Building the RIGHT things with COMPLETE lifecycle excellence.*
+*Nhat Quang Holding (NQH) - Building the RIGHT things with COMPLETE lifecycle excellence.*

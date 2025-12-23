@@ -9,7 +9,31 @@
 
 ## 1. Market Category
 
-**SDLC Orchestrator** operates at the intersection of:
+**SDLC Orchestrator** is the **Operating System for Software 3.0** — the control plane that orchestrates all AI coders under governance, evidence, and policy-as-code.
+
+### 3-Layer Positioning (NEW)
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  LAYER 3: AI CODERS (They Generate)                                 │
+│  ─────────────────────────────────                                  │
+│  Claude Code, Cursor, Copilot, Aider, Continue.dev, Bolt.diy       │
+│  → We ORCHESTRATE them, not compete                                 │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 2: SDLC ORCHESTRATOR (We Govern)                             │
+│  ─────────────────────────────────────                              │
+│  ★ Control Plane: Governance + Evidence + Policy Guards            │
+│  ★ EP-06 Codegen: IR-based generation for Vietnam SME              │
+│  ★ BYO Support: Bring any Layer 3 tool, we validate                │
+├─────────────────────────────────────────────────────────────────────┤
+│  LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology)                   │
+│  ───────────────────────────────────────────────                    │
+│  10 Stages (00-09) + 4 Tiers + Quality Gates                        │
+│  Open source, tool-agnostic foundation                              │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### 2D Positioning Matrix
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -19,22 +43,22 @@
 │                        High Governance                              │
 │                              ↑                                      │
 │                              │                                      │
-│      Azure DevOps ●          │          ● SDLC Orchestrator        │
-│      GitLab ●                │            (Target Position)        │
+│      Azure DevOps ●          │          ★ SDLC Orchestrator        │
+│      GitLab ●                │            (Control Plane)          │
 │                              │                                      │
 │   ───────────────────────────┼───────────────────────────────────→  │
 │   Low AI                     │                          High AI    │
 │                              │                                      │
-│      Jira ●                  │          ● Linear                   │
-│      Backstage ●             │          ● Cursor/Copilot           │
-│                              │            (Code-only)              │
+│      Jira ●                  │          ● Cursor/Copilot           │
+│      Backstage ●             │            (We orchestrate these)   │
+│                              │                                      │
 │                              ↓                                      │
 │                        Low Governance                               │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Our Position**: **High Governance + High AI** — a category no major player owns.
+**Our Position**: **Control Plane for AI Coders** — we sit above, not alongside.
 
 ---
 
@@ -85,26 +109,39 @@
 
 ## 3. Indirect Competitors
 
-### 3.1 AI Coding Tools
+### 3.1 AI Coding Tools (Layer 3 - We Orchestrate These)
 
-| Tool | Users | Strength | Gap |
-|------|-------|----------|-----|
-| **GitHub Copilot** | 1.8M+ | Code completion | No governance |
-| **Cursor** | 500K+ | AI-first IDE | No validation |
-| **Claude Code** | 100K+ | Reasoning | No evidence trail |
-| **Cody** | 50K+ | Context-aware | No compliance |
+| Tool | Users | Strength | Our Relationship |
+|------|-------|----------|------------------|
+| **GitHub Copilot** | 1.8M+ | Code completion | We govern its output |
+| **Cursor** | 500K+ | AI-first IDE | We validate before merge |
+| **Claude Code** | 100K+ | Reasoning | We collect evidence |
+| **Aider** | 50K+ | Git-integrated | We enforce policies |
+| **Continue.dev** | 30K+ | Open source | We provide control plane |
+| **Bolt.diy** | 20K+ | Full-stack prototype | We ensure compliance |
 
-**Our Relationship**: We COMPLEMENT these tools, not compete. We validate what they produce.
+**Our Relationship**: We are the **control plane** for ALL AI coders. They generate, we govern.
 
-### 3.2 Emerging Players
+### 3.2 Where We Don't Compete (NEW)
 
-| Player | Focus | Threat Level |
-|--------|-------|--------------|
-| **Airplane** | Internal tools | Low (different focus) |
-| **Retool** | Internal apps | Low (different focus) |
-| **Pulumi** | IaC | Low (infrastructure-only) |
-| **Kosli** | DevSecOps evidence | Medium (evidence focus) |
-| **Harness** | CI/CD + governance | Medium (governance angle) |
+| Category | Leaders | Our Position |
+|----------|---------|--------------|
+| **IDE-level autocomplete** | Copilot, Cursor, Cody | We orchestrate them, not replace |
+| **Pure PM tools** | Jira, Linear, Asana | We complement with governance, not replace task tracking |
+| **1-click app builders** | Lovable, v0.dev, Replit Agent | Different complexity tier (they build MVPs, we govern production) |
+| **Code hosting** | GitHub, GitLab, Bitbucket | We integrate, not compete |
+| **CI/CD pipelines** | GitHub Actions, CircleCI | We add governance gates, not replace pipelines |
+
+**Key Insight**: We sit ABOVE Layer 3 AI coders, not alongside them. This is a fundamental positioning difference.
+
+### 3.3 Emerging Players
+
+| Player | Focus | Threat Level | Our Response |
+|--------|-------|--------------|--------------|
+| **Kosli** | DevSecOps evidence | Medium | We're broader (full SDLC, not just DevSec) |
+| **Harness** | CI/CD + governance | Medium | We focus on pre-build governance |
+| **LinearB** | Engineering metrics | Low | Different value prop (metrics vs gates) |
+| **Sleuth** | DORA metrics | Low | Complementary, could integrate |
 
 ---
 
@@ -204,7 +241,7 @@
 |----------|--------|
 | Only platform with High Governance + High AI | Category definition |
 | 10-stage lifecycle (vs 4-stage CI/CD) | Comprehensive coverage |
-| Proven ROI (827:1 on BFlow) | Credible value prop |
+| Demonstrated operational outcomes (adoption, incidents, audit prep) | Credible value prop |
 | Built on battle-tested framework (SDLC 5.1.1) | Lower risk |
 | AI Safety positioning is timely | Market tailwind |
 
@@ -232,18 +269,20 @@
 |--------|------------|
 | Jira adds governance features | Move faster, specialize |
 | GitLab adds AI safety | Deep SDLC integration |
-| Recession reduces software spend | Position as cost-saver (111x ROI) |
+| Recession reduces software spend | Position as cost-saver (audit + incident reduction) |
 | AI tools become self-governing | Partner strategy |
 
 ---
 
-## 9. Questions for Expert Review
+## 9. Expert Feedback Applied
 
-1. **Positioning**: Is "High Governance + High AI" the right category to own?
-2. **Moat**: Is our 3-5 year moat assessment realistic?
-3. **Pricing**: Is $30/user/month appropriate vs competitors at $8-16?
-4. **Threats**: Are there emerging competitors we've missed?
-5. **Partnerships**: Should we partner with Jira/Linear ecosystem instead of competing?
+| Original Question | Expert Feedback | Resolution |
+|-------------------|-----------------|------------|
+| Is "High Governance + High AI" right? | Too vague, need "control plane" narrative | Added 3-layer positioning |
+| Is moat realistic? | Yes, but articulate it better | Added EP-06 as wedge differentiator |
+| Pricing vs competitors? | Add SME tier | Founder Plan at $99/team |
+| Emerging competitors? | Add Bolt.diy, Aider, Continue.dev | Added to Layer 3 tools we orchestrate |
+| Partner or compete? | Partner with AI coders, compete on governance | "We orchestrate, not compete" positioning |
 
 ---
 
@@ -251,9 +290,11 @@
 
 | Field | Value |
 |-------|-------|
-| Author | PM Team, NQH Holdings |
-| Status | Ready for External Review |
+| Author | PM Team, Nhat Quang Holding |
+| Approved By | CTO + CEO |
+| Status | Updated per Expert Feedback (Dec 23, 2025) |
+| Version | 1.1.0 |
 
 ---
 
-*"Own the category before someone else does."*
+*"We sit above AI coders, not alongside them. They generate, we govern."*

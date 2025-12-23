@@ -6,7 +6,7 @@
 **Purpose**: External Expert Review - Product Specification & Feature Scope
 **Confidentiality**: For Review Only - Not for Distribution
 **Framework**: SDLC 5.1.1 Complete Lifecycle
-**Company**: NQH Holdings (Vietnam-based software company)
+**Company**: Nhat Quang Holding (NQH) (Vietnam-based software company)
 
 ---
 
@@ -785,7 +785,7 @@ Request → Ollama (try) → Claude (try) → GPT-4 (try) → Rule-based (guaran
 
 | Field | Value |
 |-------|-------|
-| Author | PM/PJM Team, NQH Holdings |
+| Author | PM/PJM Team, Nhat Quang Holding (NQH) |
 | Reviewed By | CTO, Tech Lead |
 | Status | Ready for External Review |
 | Classification | Confidential - For Review Only |

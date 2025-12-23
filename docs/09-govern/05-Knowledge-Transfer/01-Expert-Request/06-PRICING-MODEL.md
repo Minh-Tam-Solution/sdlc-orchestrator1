@@ -12,30 +12,47 @@
 | Tier | Price | Target Segment | Team Size | Included |
 |------|-------|----------------|-----------|----------|
 | **Free** | $0 | Solo/Learners | 1-2 users | 1 project, basic gates, community support |
+| **Founder** | $99/team/month | Vietnam SME | Unlimited | 1 product, IR-based codegen, email support |
 | **Standard** | $30/user/month | Small Teams | 3-10 users | Unlimited projects, Evidence Vault, email support |
 | **Professional** | $60/user/month | Growth Teams | 10-50 users | SSO, advanced policies, priority support |
 | **Enterprise** | Custom | Large Orgs | 50+ users | Dedicated support, custom integrations, SLA |
+
+### Founder Plan Details (NEW - Vietnam SME Wedge)
+
+| Attribute | Value |
+|-----------|-------|
+| **Price** | $99/team/month (~2.5M VND) |
+| **Target** | Vietnam SME, Non-tech founders, Startups <10 people |
+| **Seats** | Unlimited (flat team pricing) |
+| **Projects** | 1 product (multiple repos for same product) |
+| **Included Features** | EP-06 IR-based codegen, Evidence Vault (10GB), Policy Guards |
+| **AI Codegen** | Native OSS (qwen2.5-coder) + BYO option |
+| **Support** | Email + Community Discord |
+| **SLA** | 99.5% uptime |
+
+**Why Founder Plan?**: Expert feedback indicated per-seat pricing doesn't work for SME/non-tech founders. Flat team pricing removes adoption friction for Vietnam wedge strategy.
 
 ---
 
 ## 2. Feature Matrix by Tier
 
-| Feature | Free | Standard | Professional | Enterprise |
-|---------|------|----------|--------------|------------|
-| **Projects** | 1 | Unlimited | Unlimited | Unlimited |
-| **Users** | 2 | 10 | 50 | Unlimited |
-| **Gates (G0.1-G4)** | ✅ | ✅ | ✅ | ✅ |
-| **Evidence Vault** | 1GB | 10GB | 100GB | Unlimited |
-| **Policy Packs** | 3 built-in | 10 built-in | All + custom | All + custom |
-| **AI Assistance** | 100 req/month | 1,000 req/month | 10,000 req/month | Unlimited |
-| **AI Detection** | ❌ | ✅ | ✅ | ✅ |
-| **SAST Integration** | ❌ | ✅ | ✅ | ✅ |
-| **GitHub Integration** | ✅ | ✅ | ✅ | ✅ |
-| **GitLab/Bitbucket** | ❌ | ❌ | ✅ | ✅ |
-| **SSO (SAML/OIDC)** | ❌ | ❌ | ✅ | ✅ |
-| **Audit Logs** | 30 days | 1 year | 7 years | 7 years |
-| **Support** | Community | Email | Priority | Dedicated |
-| **SLA** | None | 99.5% | 99.9% | 99.99% |
+| Feature | Free | Founder | Standard | Professional | Enterprise |
+|---------|------|---------|----------|--------------|------------|
+| **Projects** | 1 | 1 product | Unlimited | Unlimited | Unlimited |
+| **Users** | 2 | Unlimited | 10 | 50 | Unlimited |
+| **Gates (G0.1-G4)** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Evidence Vault** | 1GB | 10GB | 10GB | 100GB | Unlimited |
+| **Policy Packs** | 3 built-in | 5 built-in | 10 built-in | All + custom | All + custom |
+| **AI Assistance** | 100 req/month | 500 req/month | 1,000 req/month | 10,000 req/month | Unlimited |
+| **EP-06 Codegen** | ❌ | ✅ Native | ✅ BYO | ✅ BYO + Native | ✅ Custom |
+| **AI Detection** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **SAST Integration** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **GitHub Integration** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **GitLab/Bitbucket** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **SSO (SAML/OIDC)** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Audit Logs** | 30 days | 1 year | 1 year | 7 years | 7 years |
+| **Support** | Community | Email + Discord | Email | Priority | Dedicated |
+| **SLA** | None | 99.5% | 99.5% | 99.9% | 99.99% |
 
 ---
 
@@ -63,34 +80,52 @@
 
 ---
 
-## 4. Revenue Projections
+## 4. Revenue Projections (Revised per Expert Feedback)
 
-### Year 1 (2026)
-
-| Metric | Q1 | Q2 | Q3 | Q4 | Annual |
-|--------|----|----|----|----|--------|
-| **Teams** | 10 | 25 | 50 | 100 | 100 |
-| **Avg Users/Team** | 8 | 8 | 8 | 8 | 8 |
-| **MRR** | $2.4K | $6K | $12K | $24K | - |
-| **ARR** | - | - | - | - | **$288K** |
-
-### Year 2 (2027)
+### Year 1 (2026) - Realistic
 
 | Metric | Q1 | Q2 | Q3 | Q4 | Annual |
 |--------|----|----|----|----|--------|
-| **Teams** | 200 | 400 | 700 | 1,000 | 1,000 |
-| **Avg Users/Team** | 10 | 10 | 10 | 10 | 10 |
-| **MRR** | $60K | $120K | $210K | $300K | - |
-| **ARR** | - | - | - | - | **$3.6M** |
+| **Total Teams** | 5 | 15 | 30 | 40 | 40 |
+| **Founder Plan** | 3 | 10 | 18 | 25 | 25 |
+| **Standard Plan** | 2 | 5 | 10 | 12 | 12 |
+| **Pro/Enterprise** | 0 | 0 | 2 | 3 | 3 |
+| **MRR** | $0.9K | $2.7K | $5.4K | $7.2K | - |
+| **ARR** | - | - | - | - | **$86K-$144K** |
 
-### Year 3 (2028)
+**Breakdown**:
+- Founder: 25 teams × $99/mo = $2,475/mo
+- Standard: 12 teams × 8 users × $30 = $2,880/mo
+- Pro/Enterprise: 3 teams × $1,500/mo avg = $4,500/mo
+- **Total MRR**: ~$10K | **ARR**: ~$120K (midpoint)
+
+### Year 2 (2027) - Growth
 
 | Metric | Q1 | Q2 | Q3 | Q4 | Annual |
 |--------|----|----|----|----|--------|
-| **Teams** | 2,500 | 5,000 | 7,500 | 10,000 | 10,000 |
-| **Avg Users/Team** | 12 | 12 | 12 | 12 | 12 |
-| **MRR** | $900K | $1.8M | $2.7M | $3.6M | - |
-| **ARR** | - | - | - | - | **$43.2M** |
+| **Total Teams** | 80 | 150 | 220 | 300 | 300 |
+| **Founder Plan** | 50 | 90 | 120 | 150 | 150 |
+| **Standard Plan** | 25 | 45 | 70 | 100 | 100 |
+| **Pro/Enterprise** | 5 | 15 | 30 | 50 | 50 |
+| **MRR** | $18K | $36K | $54K | $72K | - |
+| **ARR** | - | - | - | - | **$432K-$864K** |
+
+### Year 3 (2028) - Scale
+
+| Metric | Q1 | Q2 | Q3 | Q4 | Annual |
+|--------|----|----|----|----|--------|
+| **Total Teams** | 500 | 700 | 850 | 1,000 | 1,000 |
+| **Founder Plan** | 250 | 350 | 400 | 450 | 450 |
+| **Standard Plan** | 175 | 240 | 300 | 350 | 350 |
+| **Pro/Enterprise** | 75 | 110 | 150 | 200 | 200 |
+| **MRR** | $120K | $170K | $210K | $250K | - |
+| **ARR** | - | - | - | - | **$1.4M-$2.9M** |
+
+**Why These Numbers?**:
+- Expert feedback: "100→1000→10000 unrealistic for 8.5 FTE"
+- Year 1: Focus on Vietnam SME wedge (Founder Plan) + 10-15 Global teams
+- Year 2: 3x growth with product-market fit validated
+- Year 3: 3x growth with sales team added
 
 ---
 
@@ -207,18 +242,31 @@ Gross margin = ($240 - $31.50) / $240 = 87%
 | Tools & Services | $20,000 |
 | **Total Operating** | **$696,000** |
 
-### Break-even Analysis
+### Break-even Analysis (Updated)
 
 ```
-Break-even = Operating Costs / (ARPU × Gross Margin)
-           = $696,000 / ($2,880 × 0.80)
-           = 302 teams
+Break-even = Operating Costs / (Blended ARPU × Gross Margin)
 
-With 100 teams target in Year 1:
-- Revenue: $288,000
+Blended ARPU Calculation:
+- Founder Plan: $99/mo × 12 = $1,188/year
+- Standard Plan: $240/mo × 12 = $2,880/year
+- Pro/Enterprise: $1,500/mo × 12 = $18,000/year
+
+Year 1 Blended ARPU (40 teams, 62.5% Founder, 30% Standard, 7.5% Pro):
+= (0.625 × $1,188) + (0.30 × $2,880) + (0.075 × $18,000)
+= $743 + $864 + $1,350 = $2,957/team/year
+
+Break-even = $696,000 / ($2,957 × 0.80) = 294 teams
+
+With 40 teams target in Year 1:
+- Revenue: ~$120,000
 - Costs: $696,000
-- Gap: -$408,000 (requires funding)
+- Gap: -$576,000 (requires funding)
+
+Path to Profitability: Year 3 (300-400 teams)
 ```
+
+**Note**: Year 1 is intentionally investment-heavy to establish Vietnam wedge. Founder Plan has lower ARPU but higher conversion, creating flywheel for Year 2-3.
 
 ---
 
@@ -245,13 +293,15 @@ With 100 teams target in Year 1:
 
 ---
 
-## 10. Questions for Expert Review
+## 10. Expert Feedback Applied
 
-1. **Price Point**: Is $30/user/month appropriate, or should we test higher/lower?
-2. **Tier Structure**: Should we simplify to 3 tiers (Free, Standard, Enterprise)?
-3. **Usage-Based**: Should AI usage be metered separately?
-4. **Annual Discount**: Is 20% enough to incentivize annual commits?
-5. **Enterprise Pricing**: What's the right approach for custom enterprise deals?
+| Original Question | Expert Feedback | Resolution |
+|-------------------|-----------------|------------|
+| Is $30/user/month appropriate? | Works for Global, not for Vietnam SME | Added Founder Plan at $99/team flat |
+| Should we simplify tiers? | No, add SME tier instead | Added Founder Plan (5 tiers total) |
+| Revenue projections realistic? | No, 100→1000→10000 too aggressive | Revised to 40→300→1000 teams |
+| Per-seat pricing for SME? | Doesn't work, need flat team pricing | Founder Plan is unlimited seats |
+| Year 1 target achievable? | 100 teams unrealistic | Reduced to 30-50 teams |
 
 ---
 
@@ -259,9 +309,11 @@ With 100 teams target in Year 1:
 
 | Field | Value |
 |-------|-------|
-| Author | PM + Finance Team, NQH Holdings |
-| Status | Ready for External Review |
+| Author | PM + Finance Team, Nhat Quang Holding |
+| Approved By | CTO + CEO |
+| Status | Updated per Expert Feedback (Dec 23, 2025) |
+| Version | 1.1.0 |
 
 ---
 
-*"Price for value delivered, not market convention."*
+*"Founder Plan for Vietnam wedge, Standard/Pro for Global scale."*

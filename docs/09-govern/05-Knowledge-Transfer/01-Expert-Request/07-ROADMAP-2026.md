@@ -10,16 +10,16 @@
 
 ## 1. Vision for 2026
 
-**End State**: 100 paying teams using SDLC Orchestrator for AI-native governance.
+**End State**: 30-50 paying teams using SDLC Orchestrator as the **Operating System for Software 3.0** - the control plane that orchestrates all AI coders under governance, evidence, and policy-as-code.
 
 ### Key Milestones
 
 | Milestone | Target Date | Success Criteria |
 |-----------|-------------|------------------|
 | **M1: AI Safety v1** | March 2026 | 6 design partners, ≥70% internal adoption |
-| **M2: Evidence Vault GA** | June 2026 | 30 paying teams, audit-ready |
+| **M2: EP-06 Codegen GA** | June 2026 | IR-based codegen for Vietnam SME, 15-25 paying teams |
 | **M3: Multi-VCS** | September 2026 | GitLab + Bitbucket support |
-| **M4: 100 Teams** | December 2026 | 100 teams, $240K ARR |
+| **M4: 30-50 Teams** | December 2026 | 30-50 teams, $86K-$144K ARR |
 
 ---
 
@@ -56,14 +56,14 @@
 
 ## 3. Q2 2026: Evidence Vault GA
 
-### Sprint 47-50: Enterprise Migration Engine (Apr-May 2026)
+### Sprint 47-50: EP-06 Codegen Engine (Apr-May 2026)
 
 | Deliverable | Description |
 |-------------|-------------|
-| .sdlc-config.json | 1KB config replaces 700KB manual docs |
-| Version Scanner | Detect SDLC version of any project |
-| Auto-Fixer | Automatically fix structure violations |
-| Backup Engine | Safe migration with rollback |
+| **IR-Based Codegen** | Intermediate Representation for Vietnamese SME templates |
+| **Dual Mode Support** | Mode A: BYO (Cursor/Copilot) + Mode B: Native OSS (qwen2.5-coder) |
+| **Vietnam SME Templates** | Pre-built templates for common Vietnamese business apps |
+| **BYOK LLM Integration** | Bring Your Own Key for API cost optimization |
 
 ### Sprint 51-52: Evidence Vault v2 (May-Jun 2026)
 
@@ -78,22 +78,23 @@
 
 | Criterion | Target |
 |-----------|--------|
-| Paying Teams | 30 |
-| Audit-Ready | Pass mock SOC 2 audit |
-| Evidence Integrity | 100% SHA256 verified |
-| Search Performance | <200ms p95 |
+| Paying Teams | 15-25 |
+| EP-06 Codegen | GA for Vietnam SME |
+| Evidence Vault v2 | Audit-ready with compliance reports |
+| Vietnam SME Adoption | 5-10 teams using IR-based codegen |
 
 ---
 
 ## 4. Q3 2026: Multi-VCS & Scale
 
-### Sprint 53-56: Codegen Engine Tri-Mode (Jul-Aug 2026)
+### Sprint 53-56: Codegen Engine v2 (Jul-Aug 2026)
 
-| Mode | Description |
-|------|-------------|
-| **Mode A: BYO Codex** | Claude/Cursor/Copilot + Governance |
-| **Mode B: Native OSS** | qwen2.5-coder:32b (92.7% HumanEval) |
-| **Mode C: Hybrid** | Claude → Continue.dev auto-failover |
+| Deliverable | Description |
+|-------------|-------------|
+| **Tri-Mode Enhancement** | Advanced fallback: Cursor → Native OSS → Rule-based |
+| **Cross-Reference Validator** | Multi-file code consistency validation |
+| **Control Plane Dashboard** | Unified view of all AI coders in organization |
+| **Enterprise BYO Features** | Custom LLM endpoint configuration |
 
 ### Sprint 57-60: Multi-VCS Support (Aug-Sep 2026)
 
@@ -109,13 +110,13 @@
 | Criterion | Target |
 |-----------|--------|
 | VCS Support | GitHub + GitLab + Bitbucket |
-| Paying Teams | 60 |
-| Multi-VCS Projects | ≥10 |
+| Paying Teams | 25-40 |
+| Control Plane | Orchestrating 3+ AI coders per team |
 | API Latency | <100ms p95 |
 
 ---
 
-## 5. Q4 2026: Scale to 100 Teams
+## 5. Q4 2026: Scale to 30-50 Teams
 
 ### Sprint 61-64: Enterprise Features (Oct-Nov 2026)
 
@@ -139,10 +140,12 @@
 
 | Criterion | Target |
 |-----------|--------|
-| Paying Teams | 100 |
-| ARR | $240K |
+| Paying Teams | 30-50 |
+| ARR | $86K-$144K |
 | NPS | ≥8.0/10 |
 | Uptime | 99.9% |
+| Vietnam SME | 10-15 teams on Founder Plan |
+| Control Plane | Orchestrating 5+ AI coders per enterprise team |
 
 ---
 
@@ -155,17 +158,18 @@
 | Policy Guards (OPA) | 41-43 | P0 ✅ |
 | SAST Integration | 43 | P0 ✅ |
 | Evidence Timeline | 43 | P0 ✅ |
-| Stalled Project Detection | 44-45 | P0 |
+| Stalled Project Detection | 44-46 | P0 |
+| **EP-06 Codegen Engine** | **47-50** | **P0** |
 | Evidence Vault v2 | 51-52 | P0 |
 
-### Should Have (Q2-Q3 2026)
+### Should Have (Q3 2026)
 
 | Feature | Sprint | Priority |
 |---------|--------|----------|
-| Enterprise Migration | 47-50 | P1 |
-| Codegen Engine | 53-56 | P1 |
+| Codegen Engine v2 | 53-56 | P1 |
 | GitLab Integration | 57-58 | P1 |
 | Bitbucket Integration | 59-60 | P1 |
+| Control Plane Dashboard | 55-56 | P1 |
 
 ### Could Have (Q4 2026)
 
@@ -180,10 +184,11 @@
 
 | Feature | Reason |
 |---------|--------|
-| Jira Native Integration | Focus on GitHub-first |
-| Mobile App | Web-first strategy |
-| Self-hosted | Cloud-only in Year 1 |
-| AI Code Generation | We validate, not generate |
+| Jira Native Integration | Focus on GitHub-first, complement not compete |
+| Mobile App | Web-first strategy, responsive dashboard sufficient |
+| Self-hosted On-Premise | Cloud-only in Year 1, enterprise on-prem in Year 2 |
+
+**Note**: EP-06 Codegen Engine is now a **Must Have** for Q2 2026, providing IR-based codegen for Vietnam SME while also serving as the governance control plane for BYO AI coders (Cursor, Copilot, Claude Code).
 
 ---
 
@@ -240,20 +245,24 @@
 
 | Metric | Target |
 |--------|--------|
-| Paying Teams | On track to 100 |
-| ARR | On track to $240K |
+| Paying Teams | On track to 30-50 |
+| ARR | On track to $86K-$144K |
 | Churn Rate | <5% annual |
 | NPS | ≥8.0/10 |
+| Vietnam SME Adoption | 10-15 teams on Founder Plan |
+| Control Plane Usage | 3+ AI coders orchestrated per team |
 
 ---
 
-## 10. Questions for Expert Review
+## 10. Expert Feedback Applied
 
-1. **Pacing**: Is the roadmap too aggressive for 8.5 FTE?
-2. **Prioritization**: Should Multi-VCS come before Codegen Engine?
-3. **Enterprise Features**: When should we add SSO? Earlier?
-4. **Revenue Target**: Is 100 teams / $240K ARR realistic for Year 1?
-5. **Technical Debt**: When should we pause features for cleanup?
+| Original Question | Expert Feedback | Resolution |
+|-------------------|-----------------|------------|
+| Is roadmap too aggressive? | Yes, 100 teams unrealistic for 8.5 FTE | Reduced to 30-50 teams |
+| Should Multi-VCS come before Codegen? | No, Codegen is wedge for Vietnam SME | EP-06 moved to Q2 Must Have |
+| When should we add SSO? | Q4 is appropriate | Kept as-is |
+| Is 100 teams / $240K ARR realistic? | No, too aggressive | Revised to 30-50 teams / $86K-$144K |
+| Codegen contradiction | "Won't Have" conflicted with CEO approval | Removed contradiction, added EP-06 |
 
 ---
 
@@ -261,10 +270,11 @@
 
 | Field | Value |
 |-------|-------|
-| Author | PM Team, NQH Holdings |
-| Approved By | CTO |
-| Status | Ready for External Review |
+| Author | PM Team, Nhat Quang Holding |
+| Approved By | CTO + CEO |
+| Status | Updated per Expert Feedback (Dec 23, 2025) |
+| Version | 1.1.0 |
 
 ---
 
-*"Ship the RIGHT things at the RIGHT time."*
+*"Operating System for Software 3.0 - We orchestrate, not compete."*

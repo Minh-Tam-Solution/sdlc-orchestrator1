@@ -6,7 +6,7 @@
 **Purpose**: External Expert Review - Architecture & Technical Design
 **Confidentiality**: For Review Only - Not for Distribution
 **Framework**: SDLC 5.1.1 Complete Lifecycle
-**Company**: NQH Holdings (Vietnam-based software company)
+**Company**: Nhat Quang Holding (NQH) (Vietnam-based software company)
 
 ---
 
@@ -755,7 +755,7 @@ We implement **OWASP Application Security Verification Standard (ASVS) Level 2**
 
 | Field | Value |
 |-------|-------|
-| Author | Tech Lead, NQH Holdings |
+| Author | Tech Lead, Nhat Quang Holding (NQH) |
 | Reviewed By | CTO, Security Lead |
 | Status | Ready for External Review |
 | Classification | Confidential - For Review Only |

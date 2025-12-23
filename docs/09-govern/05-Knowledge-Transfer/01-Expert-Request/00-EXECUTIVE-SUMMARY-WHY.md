@@ -1,12 +1,13 @@
 # SDLC Orchestrator - Executive Summary: WHY
 ## Stage 00: Foundation - Problem, Market & Strategic Validation
 
-**Version**: 1.0.0
+**Version**: 1.1.0 (Updated per Expert Feedback)
 **Date**: December 23, 2025
 **Purpose**: External Expert Review - Product & Market Validation
 **Confidentiality**: For Review Only - Not for Distribution
 **Framework**: SDLC 5.1.1 Complete Lifecycle
-**Company**: NQH Holdings (Vietnam-based software company)
+**Company**: Nhat Quang Holding (Vietnam-based software company)
+**New Positioning**: Operating System for Software 3.0
 
 ---
 
@@ -14,29 +15,48 @@
 
 This is a **self-contained executive summary** designed for external experts to review and critique SDLC Orchestrator's problem definition, market opportunity, and strategic positioning.
 
-### Understanding the Two Components
+### Software 3.0 Vision (NEW)
 
-| Component | Description |
-|-----------|-------------|
-| **SDLC-Enterprise-Framework** | The **methodology** - a 10-stage software development framework that addresses feature waste. Open source, tool-agnostic. Like Scrum or ITIL. |
-| **SDLC Orchestrator** | The **tool** - a software platform that automates and enforces the Framework. Proprietary, integrates with GitHub. Like Jira for Scrum. |
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  SOFTWARE 3.0: Human Intent > Code Syntax                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  Software 1.0: Human writes all code                                │
+│  Software 2.0: Human writes ML models                               │
+│  Software 3.0: Human specifies intent, AI generates code           │
+│                                                                     │
+│  SDLC Orchestrator = Operating System for Software 3.0              │
+│  → Control plane that governs ALL AI coders                         │
+│  → They generate, we validate                                       │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-**This document focuses on**: Why we're building SDLC Orchestrator (the tool) to implement SDLC-Enterprise-Framework (the methodology).
+### Understanding the Three Layers
+
+| Layer | Component | Description |
+|-------|-----------|-------------|
+| **Layer 3** | AI Coders (Cursor, Copilot, Claude) | Code generation tools. They produce code. |
+| **Layer 2** | SDLC Orchestrator | **Control plane** that governs Layer 3. Proprietary. |
+| **Layer 1** | SDLC-Enterprise-Framework | Methodology foundation. 10 stages. Open source. |
+
+**This document focuses on**: Why we're building SDLC Orchestrator as the control plane for Software 3.0.
 
 **Review Focus Areas**:
 - Problem validation methodology
-- Market sizing and ICP definition
-- Competitive positioning
-- Business model viability
+- Market sizing and ICP definition (including Vietnam SME wedge)
+- Competitive positioning (control plane, not competitor)
+- Business model viability (Founder Plan + Global tiers)
 - Strategic risks
 
 ---
 
 ## 2. Company Context
 
-### 2.1 NQH Holdings Overview
+### 2.1 Nhat Quang Holding Overview
 
-**NQH Holdings** is a Vietnam-based technology company with a portfolio of 5 software projects:
+**Nhat Quang Holding** is a Vietnam-based technology company with a portfolio of 5 software projects:
 
 | Project | Description | Status |
 |---------|-------------|--------|
@@ -212,18 +232,43 @@ This problem manifests as:
 
 ## 4. Market Opportunity
 
-### 4.1 Market Sizing
+### 4.1 Market Sizing (Revised per Expert Feedback)
 
 | Market | Size | Methodology |
 |--------|------|-------------|
-| **TAM** (Total Addressable Market) | **$816M ARR** | 27M developers worldwide ÷ 8 (avg team) = 3.4M teams × $2,400/year × 10% penetration |
+| **TAM** (Total Addressable Market) | **$816M ARR** | 27M developers worldwide ÷ 8 (avg team) = 3.4M teams × $2,400/year × 10% |
 | **SAM** (Serviceable Addressable Market) | **$201M ARR** | 840K teams (English-speaking, cloud-native, using GitHub/GitLab) × 10% |
-| **SOM Year 1** | **$240K ARR** | 100 teams (conservative, achievable) |
-| **SOM Year 3** | **$24M ARR** | 10,000 teams (1.2% of SAM) |
+| **SOM Year 1** | **$86K-$144K ARR** | 30-50 teams (realistic for 8.5 FTE) |
+| **SOM Year 3** | **$1.4M-$2.9M ARR** | 500-1000 teams (conservative) |
 
-### 4.2 Target Customer Profile (ICP)
+**Bottom-Up Validation (NEW)**:
+- Vietnam SME: 100K+ SMEs, 0.025% conversion = 25 teams × $99/mo = $30K ARR
+- Global EM: 840K teams, 0.002% conversion = 15 teams × $240/mo = $43K ARR
+- Year 1 Total: ~$73K-$144K ARR (realistic)
 
-#### Primary: Engineering Manager (60% of market)
+### 4.2 Target Customer Profile (ICP) - Dual Wedge Strategy (NEW)
+
+#### Wedge 1: Vietnam SME / Non-Tech Founders (NEW - 40% focus Year 1)
+
+| Attribute | Value |
+|-----------|-------|
+| Team size | 1-10 people (often non-technical founders) |
+| Pain level | 10/10 |
+| Budget authority | $100-$300/month |
+| Decision timeline | <7 days |
+| Primary use case | Build product without engineering team |
+| Success metrics | Working MVP in <30 days, 0 code written manually |
+| **Pricing** | **Founder Plan: $99/team/month** |
+
+**Persona Quote**: *"I have a business idea but can't code. Hiring developers is too expensive."*
+
+**Why Vietnam First?**:
+- Local market knowledge (Nhat Quang Holding is Vietnam-based)
+- Cost-sensitive market needs flat team pricing
+- EP-06 IR-based codegen provides Vietnamese business templates
+- 100K+ potential SME customers in Vietnam alone
+
+#### Wedge 2: Global Engineering Manager (40% focus Year 1)
 
 | Attribute | Value |
 |-----------|-------|
@@ -231,12 +276,13 @@ This problem manifests as:
 | Pain level | 9/10 |
 | Budget authority | $10K-$100K/year |
 | Decision timeline | 30-60 days |
-| Primary use case | Reduce feature waste, improve morale |
-| Success metrics | Feature adoption 32%→70%, rework rate 18%→<5% |
+| Primary use case | Control plane for AI coders (Cursor, Copilot, Claude) |
+| Success metrics | Feature adoption 32%→70%, AI code validated before merge |
+| **Pricing** | **Standard/Professional: $30-60/user/month** |
 
-**Persona Quote**: *"We built a commenting system. 3 sprints. 2% of users used it. Team demoralized."*
+**Persona Quote**: *"My team uses 5 different AI tools. I have no visibility into what they're generating."*
 
-#### Secondary: CTO (30% of market)
+#### Tertiary: CTO / Enterprise (20% focus Year 1)
 
 | Attribute | Value |
 |-----------|-------|
@@ -244,22 +290,11 @@ This problem manifests as:
 | Pain level | 8/10 |
 | Budget authority | $100K-$500K/year |
 | Decision timeline | 90-180 days |
-| Primary use case | Compliance automation, audit trail |
-| Success metrics | Audit prep 60hrs→<2hrs, P1 incidents 12/quarter→<3/quarter |
+| Primary use case | Compliance automation, AI governance at scale |
+| Success metrics | Audit prep 60hrs→<2hrs, all AI code validated |
+| **Pricing** | **Enterprise: Custom** |
 
-**Persona Quote**: *"SOC 2 audit = $150K/year. 200 hours scrambling for evidence. Every year."*
-
-#### Tertiary: Product Manager (10% of market)
-
-| Attribute | Value |
-|-----------|-------|
-| Team size | 3-20 engineers |
-| Pain level | 7/10 |
-| Budget | Influenced (not owner) |
-| Primary use case | Design Thinking workflow, user validation proof |
-| Success metrics | Feature waste 60%→<20%, PM-Engineering trust improved |
-
-**Persona Quote**: *"Engineer asks 'Did you validate?' I say yes. They ask for notes. I can't find them."*
+**Persona Quote**: *"How do I ensure SOC 2 compliance when half my code is AI-generated?"*
 
 ### 4.3 Competitive Landscape
 
@@ -383,22 +418,31 @@ This problem manifests as:
 
 ## 6. Business Model
 
-### 6.1 Pricing Strategy
+### 6.1 Pricing Strategy (Updated per Expert Feedback)
 
 | Tier | Price | Target | Included |
 |------|-------|--------|----------|
 | **Free** | $0 | Solo developers | 1 project, basic gates, community support |
+| **Founder** | $99/team/month | Vietnam SME | 1 product, unlimited seats, EP-06 codegen |
 | **Standard** | $30/user/month | 3-10 person teams | Unlimited projects, Evidence Vault, email support |
 | **Professional** | $60/user/month | 10-50 person teams | SSO, advanced policies, priority support |
 | **Enterprise** | Custom | 50+ engineers | Dedicated support, custom integrations, SLA |
 
-### 6.2 Revenue Projections
+**Founder Plan**: New tier for Vietnam SME wedge. Flat team pricing removes adoption friction.
+
+### 6.2 Revenue Projections (Revised per Expert Feedback)
 
 | Year | Teams | ARR | Growth Driver |
 |------|-------|-----|---------------|
-| 2026 | 100 | $240K | Product-market fit validation |
-| 2027 | 1,000 | $2.4M | Enterprise tier launch, 10x expansion |
-| 2028 | 10,000 | $24M | Category leadership, global expansion |
+| 2026 | 30-50 | $86K-$144K | Vietnam SME wedge + Global EMs |
+| 2027 | 150-300 | $432K-$864K | Product-market fit, team expansion |
+| 2028 | 500-1000 | $1.4M-$2.9M | Sales team, multi-VCS, category growth |
+
+**Mix by Segment (Year 1)**:
+- Founder Plan (Vietnam SME): 25 teams × $1,188/year = $30K
+- Standard/Pro (Global EM): 15 teams × $2,880/year = $43K
+- Enterprise: 3 teams × $18,000/year = $54K
+- **Total**: ~$127K (midpoint)
 
 ### 6.3 Unit Economics (Target)
 
@@ -448,40 +492,36 @@ This problem manifests as:
 
 ---
 
-## 9. Questions for Expert Review
+## 9. Expert Feedback Applied
 
-### Product & Market
-
-1. **Problem Validity**: Is the 60-70% feature waste problem compelling enough? Are there gaps in our evidence?
-2. **Market Sizing**: Is $816M TAM realistic? Are there segments we're missing or overestimating?
-3. **ICP Definition**: Should we prioritize Engineering Managers or CTOs as primary buyer?
-4. **Competitive Position**: Are there emerging competitors we've missed? How defensible is our moat?
-
-### Business Model
-
-5. **Pricing**: Is $30/user/month appropriate for the value delivered? Should we consider usage-based pricing?
-6. **Go-to-Market**: PLG vs sales-led for Year 1? What's the optimal mix?
-7. **Partnership**: Should we partner with Jira/Linear ecosystem or compete directly?
-
-### Strategic
-
-8. **Timing**: Is AI Safety the right positioning now, or should we lead with traditional governance?
-9. **Geographic Focus**: Start in US/UK or leverage Vietnam development cost advantage?
-10. **Platform Risk**: How do we reduce GitHub dependency while maintaining integration depth?
+| Original Question | Expert Feedback | Resolution |
+|-------------------|-----------------|------------|
+| Is 60-70% waste compelling? | Yes, validated | Kept as-is |
+| Is $816M TAM realistic? | Top-down only, add bottom-up | Added Vietnam SME + Global EM validation |
+| EM or CTO as primary? | Both + Vietnam SME | Dual wedge: Vietnam SME + Global EM |
+| Emerging competitors? | Add Bolt.diy, Aider, Continue.dev | Added as Layer 3 tools we orchestrate |
+| $30/user appropriate? | Not for SME, add flat pricing | Added Founder Plan at $99/team |
+| PLG vs sales-led? | PLG + founder-led sales | Kept PLG focus |
+| AI Safety positioning? | Good, but add "control plane" narrative | Added Software 3.0 positioning |
+| Geographic focus? | Vietnam wedge first | Added Vietnam SME as Wedge 1 |
+| Revenue projections? | Too aggressive | Revised from 100 to 30-50 teams Year 1 |
 
 ---
 
 ## 10. Summary
 
-**SDLC Orchestrator** addresses a **validated, quantified problem** (60-70% feature waste, $82-105K per engineer) with a **differentiated solution** (AI Safety + Governance Layer) in a **large market** ($816M TAM).
+**SDLC Orchestrator** is the **Operating System for Software 3.0** — the control plane that orchestrates ALL AI coders under governance, evidence, and policy-as-code.
 
 **Key Differentiators**:
-1. Only platform combining Design Thinking + Quality Gates + AI Safety + Evidence Vault
-2. Built on proven SDLC 5.1.1 framework (827:1 ROI demonstrated)
-3. First-mover in AI Safety governance for Cursor/Copilot/Claude Code
-4. 3-5 year moat from encoded CEO AI patterns and battle-tested policies
+1. **Control Plane Positioning**: We sit above AI coders (Cursor, Copilot, Claude), not alongside them
+2. **Dual Wedge Strategy**: Vietnam SME (EP-06 codegen) + Global EM (AI governance)
+3. **Founder Plan**: $99/team flat pricing for Vietnam SME (unlimited seats)
+4. **3-5 year moat** from SDLC 5.1.1 + 100+ policy packs + EP-06 IR-based codegen
 
-**Investment Ask**: Expert feedback on problem framing, market opportunity, and strategic positioning before scaling to 100 teams in 2026.
+**Investment Ask**: Expert feedback on:
+- Software 3.0 positioning (control plane narrative)
+- Dual wedge strategy (Vietnam SME + Global EM)
+- Realistic projections (30-50 teams Year 1)
 
 ---
 
@@ -489,11 +529,12 @@ This problem manifests as:
 
 | Field | Value |
 |-------|-------|
-| Author | PM/PJM Team, NQH Holdings |
+| Author | PM/PJM Team, Nhat Quang Holding |
 | Reviewed By | CTO, CPO, CEO |
-| Status | Ready for External Review |
+| Status | Updated per Expert Feedback (Dec 23, 2025) |
+| Version | 1.1.0 |
 | Classification | Confidential - For Review Only |
 
 ---
 
-*"Validate the RIGHT problem before building the RIGHT solution."*
+*"Operating System for Software 3.0 - We orchestrate, not compete."*

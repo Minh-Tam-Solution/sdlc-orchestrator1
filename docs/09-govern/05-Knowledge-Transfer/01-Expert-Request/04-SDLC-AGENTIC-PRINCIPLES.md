@@ -392,7 +392,7 @@ lines_removed: 12
 
 | Field | Value |
 |-------|-------|
-| Author | NQH Holdings Framework Team |
+| Author | Nhat Quang Holding (NQH) Framework Team |
 | Status | Ready for External Review |
 
 ---
