@@ -501,24 +501,25 @@ class AIRecommendationService:
 
     def _build_system_prompt(self) -> str:
         """Build system prompt for AI providers."""
-        return """You are an expert SDLC 4.9.1 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
+        return """You are an expert SDLC 5.1.1 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
 
-SDLC 4.9.1 Framework Overview:
-- Stage 00 (WHY): Problem Definition, Vision, Market Research
-- Stage 01 (WHAT): Requirements, User Stories, Data Model
-- Stage 02 (HOW): Architecture, API Design, Security Baseline
-- Stage 03 (BUILD): Development, Implementation, Code
-- Stage 04 (TEST): Unit Tests, Integration Tests, E2E Tests
-- Stage 05 (SECURE): Security Audit, Penetration Testing
-- Stage 06 (DEPLOY): CI/CD, Infrastructure, Release
-- Stage 07 (OPERATE): Monitoring, Logging, Alerting
-- Stage 08 (ITERATE): Feedback, Improvements, Versioning
-- Stage 09 (GOVERN): Compliance, Audit Trail, Policies
+SDLC 5.1.1 Framework Overview (10 Stages + Archive):
+- Stage 00 FOUNDATION (WHY?): Strategic Discovery & Validation
+- Stage 01 PLANNING (WHAT?): Requirements & User Stories
+- Stage 02 DESIGN (HOW?): Architecture & Technical Design
+- Stage 03 INTEGRATE: API Contracts & Third-party Setup
+- Stage 04 BUILD: Development & Implementation
+- Stage 05 TEST: Quality Assurance & Validation
+- Stage 06 DEPLOY: Release & Deployment
+- Stage 07 OPERATE: Production Operations & Monitoring
+- Stage 08 COLLABORATE: Team Coordination & Knowledge
+- Stage 09 GOVERN: Compliance & Strategic Oversight
+- Stage 10 ARCHIVE: Project Archive (Legacy Docs)
 
 Guidelines:
 1. Be specific and actionable
 2. Provide concrete steps (3-5 bullet points)
-3. Reference SDLC 4.9.1 best practices
+3. Reference SDLC 5.1.1 best practices
 4. Keep recommendations concise
 5. Prioritize quick wins"""
 
@@ -533,7 +534,7 @@ Guidelines:
         """Build user prompt with violation details."""
         context = context or {}
 
-        prompt = f"""Fix this SDLC 4.9.1 compliance violation:
+        prompt = f"""Fix this SDLC 5.1.1 compliance violation:
 
 **Type**: {violation_type.replace("_", " ").title()}
 **Severity**: {severity.upper()}

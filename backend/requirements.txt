@@ -395,3 +395,4 @@ zipp==3.23.0
 zope.event==5.1.1
 zope.interface==7.2
 zstandard==0.23.0
+mixpanel==4.10.1

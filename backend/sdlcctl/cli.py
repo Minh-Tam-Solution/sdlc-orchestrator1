@@ -13,6 +13,7 @@ from .commands.fix import fix_command
 from .commands.init import init_command
 from .commands.report import report_command
 from .commands.migrate import migrate_command
+from .commands.generate import generate_command
 
 console = Console()
 
@@ -74,6 +75,9 @@ app.command(name="report", help="Generate SDLC compliance report")(
 app.command(name="migrate", help="Migrate from SDLC 4.9.x to 5.0.0")(
     migrate_command
 )
+app.command(name="generate", help="Generate backend scaffold from AppBlueprint")(
+    generate_command
+)
 
 
 @app.command(name="tiers")
@@ -125,19 +129,20 @@ def show_stages() -> None:
     table.add_column("Purpose", width=50)
     table.add_column("Type", width=12)
 
-    # Contract-First Order: INTEGRATE at Stage 03 (before BUILD)
+    # SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
+    # Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
     questions = {
-        "00": ("WHY - Problem Definition", "LINEAR"),
-        "01": ("WHAT - Requirements Analysis", "LINEAR"),
-        "02": ("HOW - Architecture Design", "LINEAR"),
-        "03": ("INTEGRATE - API Design (Contract-First)", "LINEAR"),
+        "00": ("FOUNDATION - Strategic Discovery & Validation (WHY?)", "LINEAR"),
+        "01": ("PLANNING - Requirements & User Stories (WHAT?)", "LINEAR"),
+        "02": ("DESIGN - Architecture & Technical Design (HOW?)", "LINEAR"),
+        "03": ("INTEGRATE - API Contracts & Third-party Setup", "LINEAR"),
         "04": ("BUILD - Development & Implementation", "LINEAR"),
-        "05": ("TEST - Quality Assurance", "LINEAR"),
+        "05": ("TEST - Quality Assurance & Validation", "LINEAR"),
         "06": ("DEPLOY - Release & Deployment", "LINEAR"),
-        "07": ("OPERATE - Production & Operations", "LINEAR"),
-        "08": ("COLLABORATE - Team Coordination", "CONTINUOUS"),
-        "09": ("GOVERN - Governance & Compliance", "CONTINUOUS"),
-        "10": ("ARCHIVE - Historical Archive", "CONTINUOUS"),
+        "07": ("OPERATE - Production Operations & Monitoring", "LINEAR"),
+        "08": ("COLLABORATE - Team Coordination & Knowledge", "CONTINUOUS"),
+        "09": ("GOVERN - Compliance & Strategic Oversight", "CONTINUOUS"),
+        "10": ("ARCHIVE - Project Archive (Legacy Docs)", "OPTIONAL"),
     }
 
     for stage_id, stage_name in sorted(STAGE_NAMES.items()):

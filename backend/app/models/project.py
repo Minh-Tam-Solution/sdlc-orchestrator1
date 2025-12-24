@@ -132,6 +132,9 @@ class Project(Base):
     validation_overrides = relationship(
         "ValidationOverride", back_populates="project", cascade="all, delete-orphan"
     )
+    policy_pack = relationship(
+        "PolicyPack", back_populates="project", uselist=False, cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Project(id={self.id}, name={self.name}, slug={self.slug})>"

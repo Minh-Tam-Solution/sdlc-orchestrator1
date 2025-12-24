@@ -54,7 +54,7 @@ from app.models.project import Project
 from app.models.user import User
 from app.schemas.council import CouncilMode
 from app.services.ai_council_service import AICouncilService
-from app.services.ai_service import AIProviderResponse
+from app.schemas.council import AIProviderResponse
 
 
 # =========================================================================

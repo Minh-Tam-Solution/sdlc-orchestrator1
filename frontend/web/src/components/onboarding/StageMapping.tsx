@@ -1,14 +1,16 @@
 /**
  * File: frontend/web/src/components/onboarding/StageMapping.tsx
- * Version: 1.0.0
- * Status: ACTIVE - Sprint 15 Day 5
- * Date: December 2, 2025
+ * Version: 2.0.0
+ * Status: ACTIVE - Sprint 45
+ * Date: December 24, 2025
  * Authority: Frontend Lead + CPO Approved
  * Foundation: User-Onboarding-Flow-Architecture.md
  *
  * Description:
  * Step 5: Stage Mapping - 3 minutes
- * Map repository folders to SDLC 4.9 stages.
+ * Map repository folders to SDLC 5.1.1 stages.
+ *
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
  */
 
 import { useState, useEffect } from 'react'
@@ -25,17 +27,23 @@ import { Card, CardContent } from '@/components/ui/card'
 import OnboardingLayout from './OnboardingLayout'
 import OnboardingProgress from './OnboardingProgress'
 
+/**
+ * SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
+ * Reference: SDLC-Enterprise-Framework/README.md
+ * Note: 10-archive is a project-level archive folder, not a formal stage
+ */
 const SDLC_STAGES = [
-  { code: '00', name: 'WHY', description: 'Problem Definition' },
-  { code: '01', name: 'WHAT', description: 'Solution Planning' },
-  { code: '02', name: 'HOW', description: 'Architecture & Design' },
-  { code: '03', name: 'BUILD', description: 'Development' },
-  { code: '04', name: 'VERIFY', description: 'Testing & QA' },
-  { code: '05', name: 'SHIP', description: 'Release' },
-  { code: '06', name: 'OPERATE', description: 'Production' },
-  { code: '07', name: 'OBSERVE', description: 'Monitoring' },
-  { code: '08', name: 'LEARN', description: 'Retrospective' },
-  { code: '09', name: 'EVOLVE', description: 'Iteration' },
+  { code: '00', name: 'FOUNDATION', description: 'Strategic Discovery & Validation', question: 'WHY?' },
+  { code: '01', name: 'PLANNING', description: 'Requirements & User Stories', question: 'WHAT?' },
+  { code: '02', name: 'DESIGN', description: 'Architecture & Technical Design', question: 'HOW?' },
+  { code: '03', name: 'INTEGRATE', description: 'API Contracts & Third-party Setup', question: 'How connect?' },
+  { code: '04', name: 'BUILD', description: 'Development & Implementation', question: 'Building right?' },
+  { code: '05', name: 'TEST', description: 'Quality Assurance & Validation', question: 'Works correctly?' },
+  { code: '06', name: 'DEPLOY', description: 'Release & Deployment', question: 'Ship safely?' },
+  { code: '07', name: 'OPERATE', description: 'Production Operations & Monitoring', question: 'Running reliably?' },
+  { code: '08', name: 'COLLABORATE', description: 'Team Coordination & Knowledge', question: 'Team effective?' },
+  { code: '09', name: 'GOVERN', description: 'Compliance & Strategic Oversight', question: 'Compliant?' },
+  { code: '10', name: 'ARCHIVE', description: 'Project Archive (Legacy Docs)', question: 'Archived?' },
 ]
 
 interface FolderMapping {
@@ -57,14 +65,15 @@ export default function StageMapping() {
 
   // Auto-detect mappings from analysis (simplified - would come from backend)
   useEffect(() => {
-    // Default mappings based on common folder structures
+    // Default mappings based on SDLC 5.1.1 folder structure
     const defaultMappings: FolderMapping[] = [
-      { path: 'docs/00-Project-Foundation', stage: '00' },
-      { path: 'docs/01-Planning-Analysis', stage: '01' },
-      { path: 'docs/02-Design-Architecture', stage: '02' },
-      { path: 'src', stage: '03' },
-      { path: 'tests', stage: '04' },
-      { path: 'deploy', stage: '05' },
+      { path: 'docs/00-foundation', stage: '00' },
+      { path: 'docs/01-planning', stage: '01' },
+      { path: 'docs/02-design', stage: '02' },
+      { path: 'docs/03-integrate', stage: '03' },
+      { path: 'src', stage: '04' },  // BUILD stage
+      { path: 'tests', stage: '05' }, // TEST stage
+      { path: 'deploy', stage: '06' }, // DEPLOY stage
     ]
     setMappings(defaultMappings)
   }, [])
@@ -92,7 +101,7 @@ export default function StageMapping() {
     >
       <div className="space-y-4">
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-4 text-sm text-blue-900 dark:text-blue-100">
-          We mapped your folders to SDLC stages. You can adjust anytime.
+          We mapped your folders to SDLC 5.1.1 stages. You can adjust anytime.
         </div>
 
         <div className="space-y-2">

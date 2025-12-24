@@ -159,14 +159,15 @@ class Settings(BaseSettings):
     # EP-06 Codegen Engine - OSS Model Configuration
     # Mode B: Native OSS codegen using NQH AI Platform (IT Admin infrastructure)
     # RTX 5090 32GB with 10 production models - December 2025
-    # Docs: /home/nqh/shared/models/docs/NQH-SOPs/07_Training/05_IT_Training/03_AI_Platform_Training/07_Continue_Dev_Integration
+    # Updated: Dec 24, 2025 - qwen3-coder:30b replaces qwen2.5-coder:32b (1.8x faster, 256K context)
+    # Docs: /home/nqh/shared/models/core/docs/admin/MODEL_LINEUP_STRATEGY.md
     #
     # NOTE: Set via CODEGEN_OLLAMA_URL env var based on deployment environment
     CODEGEN_OLLAMA_URL: str = ""  # Must be set via environment variable
-    CODEGEN_MODEL_PRIMARY: str = "qwen2.5-coder:32b-instruct-q4_K_M"  # 92.7% HumanEval - PRIMARY
-    CODEGEN_MODEL_FAST: str = "qwen2.5:14b-instruct"  # ~4s response for autocomplete
+    CODEGEN_MODEL_PRIMARY: str = "qwen3-coder:30b"  # NEW: 1.8x faster (14.5s vs 26.7s), 256K context, 18GB
+    CODEGEN_MODEL_FAST: str = "qwen3:8b"  # Fast draft (<3s)
     CODEGEN_MODEL_VIETNAMESE: str = "qwen3:14b"  # Excellent Vietnamese support
-    CODEGEN_MODEL_CHAT: str = "qwen2.5:32b"  # General chat + Vietnamese (~8s)
+    CODEGEN_MODEL_CHAT: str = "mistral-small3.2:24b-instruct-2506-q4_K_M"  # Enterprise assistant, JSON output
     CODEGEN_MODEL_ULTRAFAST: str = "qwen3:8b"  # Quick drafts (<3s)
     CODEGEN_TIMEOUT: int = 120  # Longer timeout for code generation
 
@@ -178,11 +179,12 @@ class Settings(BaseSettings):
     ANALYTICS_CIRCUIT_BREAKER_TIMEOUT: int = 300  # Circuit breaker timeout in seconds (5 min)
     
     # EP-06 Model Roles (aligned with Continue.dev config - IT Admin Dec 2025)
-    # Role mapping for different task types
-    # default/edit: qwen2.5-coder:32b-instruct - Production code
-    # chat: qwen2.5:32b - General + Vietnamese
-    # autocomplete: qwen2.5:14b-instruct - Fast tab completion
-    # See: 03_Advanced_Usage.md Section 6.1 Model Roles
+    # Role mapping for different task types (Updated Dec 24, 2025)
+    # default/edit: qwen3-coder:30b - PRIMARY code (1.8x faster, 256K context)
+    # chat: mistral-small3.2:24b - Enterprise assistant, JSON output
+    # autocomplete: qwen3:8b - Fast tab completion (<3s)
+    # vietnamese: qwen3:14b - Vietnamese RAG with citations
+    # See: MODEL_LINEUP_STRATEGY.md for full details
 
     # Cloud AI Fallback (when Ollama unavailable)
     ANTHROPIC_API_KEY: Optional[str] = None
@@ -228,6 +230,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"
 
 
 settings = Settings()

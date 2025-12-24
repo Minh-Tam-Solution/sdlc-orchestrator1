@@ -10,9 +10,14 @@ Optimized for Vietnam SME market with Vietnamese-language prompts.
 Design Decisions:
 - Ollama-first for cost efficiency (~$50/month vs $1000/month cloud)
 - Vietnamese-optimized prompts for SME market wedge (40%)
-- qwen2.5-coder:32b as primary model (92.7% HumanEval)
+- qwen3-coder:30b as primary model (1.8x faster, 256K context)
 - Retry with exponential backoff for resilience
 - Structured output parsing (### FILE: format)
+
+Model Updates (Dec 24, 2025):
+- qwen2.5-coder:32b → qwen3-coder:30b (1.8x faster, 256K context, 18GB)
+- qwen2.5:14b-instruct → qwen3:8b (fast draft)
+- qwen2.5:32b → mistral-small3.2:24b (enterprise assistant)
 
 Author: Backend Lead
 Date: December 23, 2025
@@ -62,8 +67,8 @@ class OllamaCodegenProvider(CodegenProvider):
 
     Features:
     - Vietnamese-optimized prompts
-    - qwen2.5-coder:32b for production code (92.7% HumanEval)
-    - qwen2.5:14b for fast autocomplete (~4s)
+    - qwen3-coder:30b for production code (1.8x faster, 256K context)
+    - qwen3:8b for fast autocomplete (<3s)
     - Retry with exponential backoff
     - Structured file output parsing
 

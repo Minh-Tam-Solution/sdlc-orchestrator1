@@ -54,37 +54,55 @@ export default function TimelineFilterPanel({
   )
 
   const handleSearchChange = (search: string) => {
-    onFiltersChange({ ...filters, search: search || undefined })
+    const newFilters = { ...filters }
+    if (search) {
+      newFilters.search = search
+    } else {
+      delete newFilters.search
+    }
+    onFiltersChange(newFilters)
   }
 
   const handleAIToolChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      ai_tool: value === 'all' ? undefined : (value as AIToolType),
-    })
+    const newFilters = { ...filters }
+    if (value === 'all') {
+      delete newFilters.ai_tool
+    } else {
+      newFilters.ai_tool = value as AIToolType
+    }
+    onFiltersChange(newFilters)
   }
 
   const handleStatusChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      validation_status: value === 'all' ? undefined : (value as ValidationStatus),
-    })
+    const newFilters = { ...filters }
+    if (value === 'all') {
+      delete newFilters.validation_status
+    } else {
+      newFilters.validation_status = value as ValidationStatus
+    }
+    onFiltersChange(newFilters)
   }
 
   const handleDateStartChange = (date: Date | undefined) => {
     setDateStart(date)
-    onFiltersChange({
-      ...filters,
-      date_start: date ? date.toISOString() : undefined,
-    })
+    const newFilters = { ...filters }
+    if (date) {
+      newFilters.date_start = date.toISOString()
+    } else {
+      delete newFilters.date_start
+    }
+    onFiltersChange(newFilters)
   }
 
   const handleDateEndChange = (date: Date | undefined) => {
     setDateEnd(date)
-    onFiltersChange({
-      ...filters,
-      date_end: date ? date.toISOString() : undefined,
-    })
+    const newFilters = { ...filters }
+    if (date) {
+      newFilters.date_end = date.toISOString()
+    } else {
+      delete newFilters.date_end
+    }
+    onFiltersChange(newFilters)
   }
 
   const hasActiveFilters =

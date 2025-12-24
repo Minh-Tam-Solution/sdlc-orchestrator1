@@ -24,6 +24,7 @@ import re
 from app.db.session import get_db
 from app.models.project import Project, ProjectMember
 from app.models.gate import Gate
+from app.models.policy_pack import PolicyPack
 from app.api.dependencies import get_current_user
 from app.models.user import User
 from app.services.cache_service import (
@@ -40,6 +41,12 @@ class ProjectCreate(BaseModel):
     """Schema for creating a new project"""
     name: str = Field(..., min_length=1, max_length=255, description="Project name")
     description: Optional[str] = Field(None, max_length=2000, description="Project description")
+    policy_pack: Optional[str] = Field(
+        "standard",
+        description="Governance tier: lite, standard, professional, enterprise"
+    )
+    github_repo_id: Optional[int] = Field(None, description="GitHub repository ID if importing from GitHub")
+    github_repo_full_name: Optional[str] = Field(None, description="GitHub repository full name (owner/repo)")
 
 
 class ProjectUpdate(BaseModel):
@@ -63,6 +70,47 @@ def slugify(text: str) -> str:
     return slug
 
 
+# Tier to display name mapping
+TIER_NAMES = {
+    "lite": "Lite",
+    "standard": "Standard",
+    "professional": "Professional",
+    "enterprise": "Enterprise",
+}
+
+# Default validators per tier
+TIER_VALIDATORS = {
+    "lite": [
+        {"name": "lint", "enabled": True, "blocking": False, "config": {}},
+    ],
+    "standard": [
+        {"name": "lint", "enabled": True, "blocking": True, "config": {}},
+        {"name": "security", "enabled": True, "blocking": True, "config": {}},
+    ],
+    "professional": [
+        {"name": "lint", "enabled": True, "blocking": True, "config": {}},
+        {"name": "security", "enabled": True, "blocking": True, "config": {}},
+        {"name": "context", "enabled": True, "blocking": True, "config": {}},
+        {"name": "test", "enabled": True, "blocking": True, "config": {}},
+    ],
+    "enterprise": [
+        {"name": "lint", "enabled": True, "blocking": True, "config": {}},
+        {"name": "security", "enabled": True, "blocking": True, "config": {}},
+        {"name": "context", "enabled": True, "blocking": True, "config": {}},
+        {"name": "test", "enabled": True, "blocking": True, "config": {}},
+        {"name": "architecture", "enabled": True, "blocking": True, "config": {}},
+    ],
+}
+
+# Coverage thresholds per tier
+TIER_COVERAGE = {
+    "lite": 0,
+    "standard": 60,
+    "professional": 80,
+    "enterprise": 95,
+}
+
+
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_project(
     data: ProjectCreate,
@@ -70,10 +118,24 @@ async def create_project(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Create a new project.
+    Create a new project with optional policy pack configuration.
 
     The current user becomes the project owner.
+
+    Args:
+        data: ProjectCreate schema with name, description, policy_pack, and optional GitHub fields
+
+    Returns:
+        Created project with ID, slug, and policy pack tier
     """
+    # Validate tier
+    tier = (data.policy_pack or "standard").lower()
+    if tier not in TIER_NAMES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid policy_pack: {tier}. Must be one of: lite, standard, professional, enterprise",
+        )
+
     # Generate unique slug
     base_slug = slugify(data.name)
     slug = base_slug
@@ -90,16 +152,35 @@ async def create_project(
         slug = f"{base_slug}-{counter}"
         counter += 1
 
-    # Create project
+    # Create project with optional GitHub fields
     project = Project(
         name=data.name,
         slug=slug,
         description=data.description,
         owner_id=current_user.id,
         is_active=True,
+        github_repo_id=data.github_repo_id,
+        github_repo_full_name=data.github_repo_full_name,
+        github_sync_status="synced" if data.github_repo_id else None,
+        github_synced_at=datetime.utcnow() if data.github_repo_id else None,
     )
     db.add(project)
     await db.flush()  # Get the project ID
+
+    # Create PolicyPack for the project
+    policy_pack = PolicyPack(
+        project_id=project.id,
+        name=f"{TIER_NAMES[tier]} Policy Pack",
+        description=f"Auto-configured {TIER_NAMES[tier]} tier policy pack for {data.name}",
+        tier=tier,
+        validators=TIER_VALIDATORS.get(tier, []),
+        coverage_threshold=TIER_COVERAGE.get(tier, 60),
+        coverage_blocking=(tier in ["professional", "enterprise"]),
+        forbidden_imports=["minio", "grafana_sdk"] if tier != "lite" else [],
+        required_patterns=[],
+        created_by=current_user.id,
+    )
+    db.add(policy_pack)
 
     # Add owner as project member with 'owner' role
     member = ProjectMember(
@@ -122,6 +203,9 @@ async def create_project(
         "description": project.description,
         "owner_id": str(project.owner_id),
         "is_active": project.is_active,
+        "policy_pack": tier,
+        "github_repo_id": project.github_repo_id,
+        "github_repo_full_name": project.github_repo_full_name,
         "created_at": project.created_at.isoformat() if project.created_at else None,
         "updated_at": project.updated_at.isoformat() if project.updated_at else None,
     }

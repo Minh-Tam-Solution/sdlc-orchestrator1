@@ -32,7 +32,7 @@ import pytest
 
 from app.services.ai_detection import AIToolType
 from app.services.ai_detection.service import GitHubAIDetectionService
-from tests.fixtures.ai_detection_test_dataset import (
+from backend.tests.fixtures.ai_detection_test_dataset import (
     ADVERSARIAL_PRS,
     ALL_TEST_PRS,
     CHATGPT_PRS,

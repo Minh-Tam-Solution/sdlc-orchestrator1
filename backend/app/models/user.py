@@ -163,6 +163,12 @@ class User(Base):
         foreign_keys="[ValidationOverride.requested_by_id]"
     )
 
+    # Pilot Tracking Relationships (Sprint 49)
+    pilot_participant = relationship(
+        "PilotParticipant", back_populates="user",
+        uselist=False, cascade="all, delete-orphan"
+    )
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, roles={[r.name for r in self.roles]})>"
 

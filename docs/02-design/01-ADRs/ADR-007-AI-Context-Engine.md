@@ -207,17 +207,18 @@ from enum import Enum
 from typing import List, Dict, Any
 
 class SDLCStage(Enum):
-    """SDLC 4.9 stages"""
-    STAGE_00 = "WHY - Problem Definition"
-    STAGE_01 = "WHAT - Requirements & Analysis"
-    STAGE_02 = "HOW - Design & Architecture"
-    STAGE_03 = "BUILD - Implementation"
-    STAGE_04 = "TEST - Quality Assurance"
-    STAGE_05 = "SHIP - Deployment"
-    STAGE_06 = "RUN - Operations"
-    STAGE_07 = "REPORT - Analytics"
-    STAGE_08 = "LEARN - Continuous Improvement"
-    STAGE_09 = "GOVERN - Compliance & Audit"
+    """SDLC 5.1.1 stages (10 stages: 00-09 + Archive folder)"""
+    STAGE_00 = "FOUNDATION - Strategic Discovery & Validation (WHY?)"
+    STAGE_01 = "PLANNING - Requirements & User Stories (WHAT?)"
+    STAGE_02 = "DESIGN - Architecture & Technical Design (HOW?)"
+    STAGE_03 = "INTEGRATE - API Contracts & Third-party Setup"
+    STAGE_04 = "BUILD - Development & Implementation"
+    STAGE_05 = "TEST - Quality Assurance & Validation"
+    STAGE_06 = "DEPLOY - Release & Deployment"
+    STAGE_07 = "OPERATE - Production Operations & Monitoring"
+    STAGE_08 = "COLLABORATE - Team Coordination & Knowledge"
+    STAGE_09 = "GOVERN - Compliance & Strategic Oversight"
+    STAGE_10 = "ARCHIVE - Project Archive (Legacy Docs)"
 
 class ContextEngine:
     """Manages AI context per SDLC stage"""

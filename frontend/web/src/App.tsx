@@ -45,6 +45,7 @@ const GitHubCallbackPage = lazy(() => import('@/pages/GitHubCallbackPage'))
 const SOPGeneratorPage = lazy(() => import('@/pages/SOPGeneratorPage'))  // Phase 2-Pilot Week 3
 const SOPHistoryPage = lazy(() => import('@/pages/SOPHistoryPage'))  // Phase 2-Pilot Week 4
 const SOPDetailPage = lazy(() => import('@/pages/SOPDetailPage'))  // Phase 2-Pilot Week 4
+const CodegenOnboardingPage = lazy(() => import('@/pages/CodegenOnboardingPage'))  // Sprint 47 P1
 const SupportPage = lazy(() => import('@/pages/SupportPage'))  // User Support & Documentation
 const DocumentationViewerPage = lazy(() => import('@/pages/DocumentationViewerPage'))  // Documentation Viewer
 const GettingStartedPage = lazy(() => import('@/pages/support/GettingStartedPage'))  // Getting Started Guide
@@ -180,6 +181,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/codegen-onboarding"
+            element={
+              <ProtectedRoute>
+                <CodegenOnboardingPage />
               </ProtectedRoute>
             }
           />

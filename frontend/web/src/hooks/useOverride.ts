@@ -125,7 +125,7 @@ export function useCreateOverrideRequest() {
       )
       return response.data
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: overrideKeys.all })
       queryClient.invalidateQueries({ queryKey: evidenceTimelineKeys.all })

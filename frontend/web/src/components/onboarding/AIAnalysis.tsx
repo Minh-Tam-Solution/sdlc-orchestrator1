@@ -21,6 +21,58 @@ import OnboardingProgress from './OnboardingProgress'
 import apiClient from '@/api/client'
 import { GitHubAnalysisResult } from '@/types/api'
 
+type PolicyPack = 'lite' | 'standard' | 'professional' | 'enterprise'
+
+interface PolicyPackInfo {
+  name: PolicyPack
+  title: string
+  description: string
+  features: string[]
+}
+
+const POLICY_PACKS: PolicyPackInfo[] = [
+  {
+    name: 'lite',
+    title: 'Lite',
+    description: 'Minimal governance - trust the team, move fast',
+    features: [
+      'Basic gates (G0.1, G1, G3, G5)',
+      'README + basic docs only',
+      'Best for: Solo devs, MVPs, hackathons',
+    ],
+  },
+  {
+    name: 'standard',
+    title: 'Standard',
+    description: 'Balanced governance - quality with agility',
+    features: [
+      'Core gates (G0.1-G6)',
+      'CI/CD + security scanning',
+      'Best for: Small teams (3-10), growing startups',
+    ],
+  },
+  {
+    name: 'professional',
+    title: 'Professional',
+    description: 'Strong governance - enterprise-grade quality',
+    features: [
+      'Full gates + 80% test coverage',
+      'SBOM, SAST, OWASP L1',
+      'Best for: Medium teams, regulated industries',
+    ],
+  },
+  {
+    name: 'enterprise',
+    title: 'Enterprise',
+    description: 'Maximum governance - audit-ready compliance',
+    features: [
+      'All gates + quarterly audits',
+      'OWASP L2+, 95% coverage',
+      'Best for: Large orgs, finance, healthcare',
+    ],
+  },
+]
+
 interface RepositoryAnalysis extends GitHubAnalysisResult {
   repository: {
     name: string
@@ -47,6 +99,8 @@ interface RepositoryAnalysis extends GitHubAnalysisResult {
 export default function AIAnalysis() {
   const navigate = useNavigate()
   const [repo, setRepo] = useState<any>(null)
+  const [selectedTier, setSelectedTier] = useState<PolicyPack>('standard')
+  const [recommendedTier, setRecommendedTier] = useState<PolicyPack | null>(null)
 
   // Get selected repo from sessionStorage
   useEffect(() => {
@@ -73,12 +127,25 @@ export default function AIAnalysis() {
     enabled: !!repo,
   })
 
-  const handleContinue = () => {
-    // Store analysis results for next step
+  // Set recommended tier when analysis is ready
+  useEffect(() => {
     if (analysis) {
-      sessionStorage.setItem('onboarding_analysis', JSON.stringify(analysis))
+      const rec = (analysis.recommended_policy_pack || analysis.recommendations?.policy_pack || 'standard') as PolicyPack
+      setRecommendedTier(rec)
+      setSelectedTier(rec)
     }
-    navigate('/onboarding/policy-pack')
+  }, [analysis])
+
+  const handleContinue = () => {
+    // Store analysis results and selected tier for next step
+    if (analysis) {
+      sessionStorage.setItem('onboarding_analysis', JSON.stringify({
+        ...analysis,
+        selected_tier: selectedTier
+      }))
+    }
+    sessionStorage.setItem('onboarding_policy_pack', selectedTier)
+    navigate('/onboarding/stage-mapping')
   }
 
   if (!repo) {
@@ -101,9 +168,10 @@ export default function AIAnalysis() {
           </div>
         ) : analysis ? (
           <div className="space-y-4">
+            {/* Project Analysis Summary */}
             <Card>
               <CardContent className="p-4">
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Project Type</div>
                     <div className="text-lg font-semibold capitalize">
@@ -120,45 +188,91 @@ export default function AIAnalysis() {
                       </div>
                     </div>
                   )}
-                  {analysis.languages && Object.keys(analysis.languages).length > 0 && (
-                    <div>
-                      <div className="text-sm font-medium text-muted-foreground">Languages</div>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {Object.entries(analysis.languages)
-                          .slice(0, 5)
-                          .map(([lang]) => (
-                            <span
-                              key={lang}
-                              className="px-2 py-1 rounded bg-muted text-sm"
-                            >
-                              {lang}
-                            </span>
-                          ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
+                {analysis.languages && Object.keys(analysis.languages).length > 0 && (
+                  <div className="mt-3">
+                    <div className="text-sm font-medium text-muted-foreground">Languages</div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {Object.entries(analysis.languages)
+                        .slice(0, 5)
+                        .map(([lang]) => (
+                          <span
+                            key={lang}
+                            className="px-2 py-1 rounded bg-muted text-sm"
+                          >
+                            {lang}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Recommended Policy Pack
-                  </div>
-                  <div className="text-2xl font-bold capitalize">
-                    {analysis.recommended_policy_pack || analysis.recommendations?.policy_pack || 'Standard'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Based on your project type and team size
-                  </div>
+            {/* Tier Selection */}
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Choose Your Governance Level</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Select based on your team's governance appetite and compliance needs.
+                Higher tiers = more control but more effort.
+              </p>
+              {recommendedTier && (
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-3 text-sm text-blue-900 dark:text-blue-100 mb-3">
+                  💡 Based on codebase analysis, we suggest <strong className="capitalize">{recommendedTier}</strong>.
+                  But you know your team best - choose what fits your governance style.
                 </div>
-              </CardContent>
-            </Card>
+              )}
+              <div className="grid gap-3">
+                {POLICY_PACKS.map((pack) => (
+                  <Card
+                    key={pack.name}
+                    className={`cursor-pointer transition-all ${
+                      selectedTier === pack.name
+                        ? 'border-primary border-2 bg-primary/5'
+                        : 'hover:bg-muted/50'
+                    } ${recommendedTier === pack.name && selectedTier !== pack.name ? 'ring-1 ring-blue-400' : ''}`}
+                    onClick={() => setSelectedTier(pack.name)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-semibold">{pack.title}</div>
+                            {recommendedTier === pack.name && (
+                              <span className="text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                                Recommended
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-muted-foreground">{pack.description}</div>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {pack.features.slice(0, 3).map((feature, idx) => (
+                              <span key={idx} className="text-xs text-muted-foreground">
+                                {idx > 0 && '•'} {feature}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedTier === pack.name
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-muted-foreground/30'
+                        }`}>
+                          {selectedTier === pack.name && (
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
 
             <Button size="lg" className="w-full" onClick={handleContinue}>
-              Continue with Recommendations
+              Continue with {POLICY_PACKS.find((p) => p.name === selectedTier)?.title} Tier
             </Button>
           </div>
         ) : (

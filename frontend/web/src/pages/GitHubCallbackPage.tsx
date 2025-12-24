@@ -11,7 +11,7 @@
  * Handles GitHub OAuth redirect, exchanges code for tokens, and redirects to onboarding.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
@@ -31,6 +31,7 @@ export default function GitHubCallbackPage() {
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
+  const hasCalledRef = useRef(false)
 
   // Exchange OAuth code for tokens
   const callbackMutation = useMutation({
@@ -70,9 +71,19 @@ export default function GitHubCallbackPage() {
   })
 
   useEffect(() => {
-    // Trigger OAuth callback on mount
-    callbackMutation.mutate()
-  }, [])
+    // Trigger OAuth callback on mount (only once)
+    if (hasCalledRef.current) return
+    hasCalledRef.current = true
+
+    const code = searchParams.get('code')
+    const state = searchParams.get('state')
+
+    if (code && state) {
+      callbackMutation.mutate()
+    } else {
+      setError('Missing code or state parameter')
+    }
+  }, [searchParams])
 
   if (error) {
     return (

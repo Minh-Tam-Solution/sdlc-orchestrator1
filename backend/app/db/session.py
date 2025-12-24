@@ -54,9 +54,19 @@ from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
+
+def _ensure_asyncpg_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql+psycopg2://"):
+        return url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    return url
+
 # Create async database engine with connection pooling
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    _ensure_asyncpg_url(settings.DATABASE_URL),
     echo=settings.DEBUG,  # Log SQL queries in debug mode
     pool_size=20,  # Minimum connections kept alive (10-20 concurrent users)
     max_overflow=10,  # Max 30 total connections (burst capacity)

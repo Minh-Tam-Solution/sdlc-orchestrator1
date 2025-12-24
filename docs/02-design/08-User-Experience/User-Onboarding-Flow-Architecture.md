@@ -1,11 +1,23 @@
 # User Onboarding Flow Architecture
 
-**Version**: v1.0
-**Date**: November 13, 2025
+**Version**: v2.3
+**Date**: December 23, 2025
 **Owner**: CPO, PM, UX Lead
 **Stage**: Stage 02 (HOW - Design & Architecture)
-**Framework**: SDLC 4.9
+**Framework**: SDLC 5.1.1 (4-Tier Classification)
 **Status**: ✅ APPROVED
+
+---
+
+## Changelog
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| v2.3 | Dec 23, 2025 | CPO | - Added VSCode Extension as primary platform for local operations<br>- Updated CLI/Extension onboarding flow documentation<br>- Added `sdlcctl init` integration details |
+| v2.2 | Dec 23, 2025 | CPO | - Refined 3 Project Creation Scenarios: New (from scratch), Import Local, Import GitHub<br>- Added folder structure creation capability<br>- Added auto-detect for existing SDLC projects |
+| v2.1 | Dec 23, 2025 | CPO | - Added Project Creation Scenarios for existing users<br>- Unified "Import from GitHub" flow with onboarding flow<br>- Added manual project creation option |
+| v2.0 | Dec 23, 2025 | CPO | - Updated to SDLC 5.1.1 4-Tier Classification (LITE/STANDARD/PROFESSIONAL/ENTERPRISE)<br>- Merged AI Analysis + Policy Pack Selection into single step (5 steps total)<br>- Added Governance Appetite concept (user choice over AI recommendation)<br>- Added Codebase Metrics to recommendation algorithm (LOC, files, languages) |
+| v1.0 | Nov 13, 2025 | CPO | Initial version with 6-step onboarding flow |
 
 ---
 
@@ -53,31 +65,376 @@ Secondary Metrics:
 
 ---
 
-## 3. User Journey: First 30 Minutes
+## 3. Project Creation Scenarios (v2.2)
 
-### 3.1 The Magic Flow
+> **v2.2 Update**: Refined 3 core scenarios for project creation with focus on local folder management and auto-detection of existing SDLC projects.
+
+### 3.0 Scenario Overview
+
+```yaml
+Scenario Matrix:
+  Scenario A - New Project (From Scratch):
+    Trigger: User clicks "New Project" → "Create New"
+    Flow: Name + Description + Tier Selection → Orchestrator creates folder structure
+    Entry Point: /projects/new/create
+    Output: New folder with SDLC 5.1.1 structure created
+    Use Case: Starting a brand new project
+
+  Scenario B - Import from Local (Git repo or folder):
+    Trigger: User clicks "New Project" → "Import Local"
+    Flow: Select folder → Auto-detect (.sdlc folder) → If exists: Open | If not: Analyze → Tier Selection → Initialize SDLC
+    Entry Point: /projects/new/local
+    Output: Existing folder linked to Orchestrator with SDLC config
+    Use Case: Existing project without SDLC governance
+
+  Scenario C - Import from GitHub (Clone + Setup):
+    Trigger: User clicks "New Project" → "Import from GitHub"
+    Prerequisite: GitHub account connected
+    Flow: Repository Selection → Select local path → Clone repo → AI Analysis → Tier Selection → Initialize SDLC
+    Entry Point: /projects/new/github
+    Output: Cloned repository with SDLC config
+    Use Case: Importing GitHub project for governance
+
+  Scenario D - New User Onboarding (First-time):
+    Trigger: First-time user signs up via GitHub OAuth
+    Flow: OAuth → Repository Selection → Clone → AI Analysis → Tier Selection → Stage Mapping → First Gate
+    Entry Point: /onboarding/login
+    Output: User account + First project with full SDLC setup
+    Use Case: Optimized first-time experience (TTFGE <30 min)
+```
+
+### 3.0.1 Scenario A - New Project (From Scratch)
+
+```mermaid
+graph TD
+    NEW[New Project Button] --> CHOICE{Choose Method}
+    CHOICE --> |Create New| FORM[Project Form]
+    FORM --> |Name, Description| TIER[Tier Selection]
+    TIER --> PATH[Select Workspace Path]
+    PATH --> CREATE[Create SDLC Folder Structure]
+    CREATE --> INIT[Initialize .sdlc config]
+    INIT --> DETAIL[Project Detail Page]
+
+    style CHOICE fill:#e3f2fd
+    style FORM fill:#e8f5e9
+    style TIER fill:#fff3e0
+    style CREATE fill:#c8e6c9
+```
+
+**Key Points:**
+- User provides project name, description, and selects governance tier
+- Orchestrator creates new folder with SDLC 5.1.1 structure:
+  ```
+  project-name/
+  ├── .sdlc/                    # SDLC config (managed by Orchestrator)
+  │   ├── config.yaml           # Project configuration
+  │   ├── gates/                # Gate definitions
+  │   └── evidence/             # Local evidence cache
+  ├── docs/                     # SDLC documentation structure
+  │   ├── 00-discover/
+  │   ├── 01-planning/
+  │   ├── 02-design/
+  │   └── ...
+  ├── README.md                 # Auto-generated README
+  └── CLAUDE.md                 # AI assistant context (if tier >= STANDARD)
+  ```
+- Git repo initialized automatically
+- Can connect to GitHub later
+
+### 3.0.2 Scenario B - Import from Local (Git repo or folder)
+
+```mermaid
+graph TD
+    NEW[New Project Button] --> CHOICE{Choose Method}
+    CHOICE --> |Import Local| SELECT[File/Folder Picker]
+    SELECT --> CHECK{.sdlc folder exists?}
+    CHECK --> |Yes| OPEN[Open Existing Project]
+    CHECK --> |No| ANALYZE[Analyze Codebase]
+    ANALYZE --> TIER[AI Tier Recommendation + Selection]
+    TIER --> INIT[Initialize .sdlc config]
+    INIT --> DETAIL[Project Detail Page]
+
+    style CHOICE fill:#e3f2fd
+    style SELECT fill:#e8f5e9
+    style CHECK fill:#fff9c4
+    style OPEN fill:#c8e6c9
+    style ANALYZE fill:#fff3e0
+    style INIT fill:#c8e6c9
+```
+
+**Key Points:**
+- User selects existing folder on local machine
+- Auto-detection logic:
+  - If `.sdlc/config.yaml` exists → Project already managed → Open it
+  - If `.git` exists but no `.sdlc` → Git project without governance → Analyze and setup
+  - If no `.git` → Plain folder → Initialize git + SDLC
+- AI analysis (if not already managed):
+  - Scan codebase for languages, file count, structure
+  - Estimate team size from git history (if available)
+  - Recommend appropriate tier
+- User confirms/overrides tier selection
+- Create `.sdlc` folder with config
+
+### 3.0.3 Scenario C - Import from GitHub (Clone + Setup)
+
+```mermaid
+graph TD
+    NEW[New Project Button] --> CHOICE{Choose Method}
+    CHOICE --> |Import GitHub| CHECK{GitHub Connected?}
+    CHECK --> |No| CONNECT[Connect GitHub OAuth]
+    CHECK --> |Yes| REPO[Repository Selection]
+    CONNECT --> REPO
+    REPO --> PATH[Select Clone Location]
+    PATH --> CLONE[Clone Repository]
+    CLONE --> ANALYZE[AI Analysis]
+    ANALYZE --> TIER[Tier Selection]
+    TIER --> INIT[Initialize .sdlc config]
+    INIT --> DETAIL[Project Detail Page]
+
+    style CHOICE fill:#e3f2fd
+    style REPO fill:#e8f5e9
+    style CLONE fill:#bbdefb
+    style ANALYZE fill:#fff3e0
+    style INIT fill:#c8e6c9
+```
+
+**Key Points:**
+- Requires GitHub account connection
+- User selects repository from their GitHub account
+- User specifies local clone location
+- Repository is cloned via `git clone`
+- AI analysis performed on cloned code
+- SDLC config initialized in cloned repo
+- Link established between local folder and GitHub repo
+
+### 3.0.4 Auto-Detection Logic
+
+```yaml
+Detection Algorithm:
+  Step 1 - Check .sdlc folder:
+    If .sdlc/config.yaml exists:
+      Action: OPEN existing project
+      UI Message: "This project is already managed by SDLC Orchestrator"
+
+  Step 2 - Check .git folder:
+    If .git exists:
+      Action: Analyze as git project
+      Extract: Team size from git log, languages from files
+      UI Message: "Git repository detected. Analyzing codebase..."
+
+  Step 3 - Check for common project markers:
+    Files to detect:
+      - package.json → Node.js project
+      - requirements.txt / pyproject.toml → Python project
+      - go.mod → Go project
+      - Cargo.toml → Rust project
+      - pom.xml / build.gradle → Java project
+    Action: Initialize git + SDLC
+
+  Step 4 - Plain folder:
+    Action: Ask user to confirm initialization
+    UI Message: "This folder is not a git repository. Initialize git?"
+
+.sdlc/config.yaml Structure:
+  version: "5.1.1"
+  project:
+    id: "uuid"
+    name: "Project Name"
+    slug: "project-name"
+    tier: "standard"  # lite|standard|professional|enterprise
+  github:
+    repo_id: 123456789  # Optional
+    full_name: "owner/repo"  # Optional
+  gates:
+    enabled: ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6"]
+  created_at: "2025-12-23T00:00:00Z"
+  updated_at: "2025-12-23T00:00:00Z"
+```
+
+### 3.0.5 UI Components Mapping (v2.2)
+
+```yaml
+Shared Components:
+  - TierSelectionCard.tsx: Tier selection UI with 4 tiers
+  - AIAnalysisResults.tsx: Show analysis results (languages, team size, etc.)
+  - RepositoryConnect.tsx: GitHub repository selection (for Scenario C)
+
+New Components (v2.2):
+  - CreateProjectDialog.tsx: UPDATED - 3 creation methods
+  - FolderPicker.tsx: NEW - Local folder selection (Electron/Desktop only)
+  - CloneLocationPicker.tsx: NEW - Select where to clone GitHub repo
+  - ProjectDetectionBanner.tsx: NEW - Show detection status
+
+Local Filesystem Access:
+  Platforms that support local folder operations:
+    VSCode Extension (Current):
+      - SDLC Orchestrator has a VSCode Extension
+      - VSCode API provides native file system access
+      - Supports: Scenarios A, B, C (all local operations)
+      - Priority: Implement local operations in VSCode Extension first
+
+    Desktop App (Future - Later Sprints):
+      - Electron-based standalone application
+      - For users who prefer IDE-independent workflow
+      - Supports: All scenarios (A, B, C, D)
+      - Timeline: Post-MVP, later sprints
+
+  Web App (Browser):
+    - Can only handle: Scenario C (GitHub import) + project metadata management
+    - File operations delegated to VSCode Extension or Desktop app
+    - API integration with Orchestrator backend
+
+Route Structure:
+  /projects/new: Project creation choice dialog
+  /projects/new/create: New project from scratch (Scenario A)
+  /projects/new/local: Import from local (Scenario B) - Desktop only
+  /projects/new/github: Import from GitHub (Scenario C)
+  /onboarding/*: New user onboarding (Scenario D)
+```
+
+### 3.0.6 Backend API Requirements (v2.2)
+
+```yaml
+New API Endpoints:
+  POST /api/projects/create-folder:
+    Description: Create new project folder with SDLC structure
+    Input:
+      name: string
+      path: string (workspace location)
+      tier: string
+      description?: string
+    Output:
+      project_id: uuid
+      folder_path: string
+      config_path: string
+
+  POST /api/projects/import-local:
+    Description: Import existing local folder
+    Input:
+      path: string
+      tier: string
+    Output:
+      project_id: uuid
+      detected_info: object (languages, team_size, etc.)
+      already_managed: boolean
+
+  POST /api/projects/clone-github:
+    Description: Clone GitHub repo and initialize SDLC
+    Input:
+      github_repo_id: number
+      github_repo_full_name: string
+      clone_path: string
+      tier: string
+    Output:
+      project_id: uuid
+      folder_path: string
+      clone_status: string
+
+  GET /api/projects/detect:
+    Description: Auto-detect project status from folder
+    Input:
+      path: string
+    Output:
+      is_sdlc_project: boolean
+      config?: object
+      is_git_repo: boolean
+      detected_languages?: object
+```
+
+### 3.0.7 CLI/VSCode Extension Onboarding (v2.3)
+
+> **v2.3 Update**: The `sdlcctl init` command and VSCode Extension implement the same onboarding scenarios as the web app.
+
+```yaml
+sdlcctl init Command:
+  Purpose: Initialize SDLC 5.1.1 project structure from command line
+  Location: backend/sdlcctl/commands/init.py
+
+  Usage Examples:
+    # Interactive mode (prompts for tier)
+    sdlcctl init
+
+    # Specify tier directly
+    sdlcctl init --tier professional
+
+    # Auto-detect tier from team size
+    sdlcctl init --team-size 25
+
+    # Non-interactive with defaults
+    sdlcctl init --no-interactive --tier standard
+
+  Parameters:
+    --path, -p: Project root path (default: current directory)
+    --docs, -d: Documentation folder name (default: "docs")
+    --tier, -t: Governance tier (lite, standard, professional, enterprise)
+    --team-size: Team size for auto-detection
+    --scaffold/--no-scaffold: Create full folder structure with READMEs
+    --force, -f: Overwrite existing docs folder
+    --interactive/-i, --no-interactive: Toggle prompts
+
+VSCode Extension Commands:
+  SDLC: Init Project:
+    - Opens command palette (Cmd/Ctrl + Shift + P)
+    - Invokes sdlcctl init for current workspace
+    - Shows tier selection UI in VSCode
+
+  SDLC: Import Project:
+    - Select existing folder
+    - Auto-detect if .sdlc/config.yaml exists
+    - If not managed: analyze and initialize
+
+  SDLC: Connect to Orchestrator:
+    - Authenticate with SDLC Orchestrator backend
+    - Register local project with cloud backend
+    - Sync project metadata and tier configuration
+
+Extension + Backend Integration:
+  1. Local Operations (Extension):
+     - Create folder structure
+     - Initialize .sdlc/config.yaml
+     - Run sdlcctl commands locally
+
+  2. Cloud Sync (Backend API):
+     - POST /projects - Register project in backend
+     - POST /projects/{id}/sync - Sync local config to cloud
+     - GET /projects/{id}/config - Fetch latest config
+
+CLI/Extension Onboarding Flow:
+  Step 1: User opens project folder in VSCode
+  Step 2: User runs "SDLC: Init Project" command
+  Step 3: Extension prompts for tier selection (or auto-detects)
+  Step 4: Extension creates SDLC folder structure locally
+  Step 5: Extension prompts to connect to Orchestrator (optional)
+  Step 6: If connected, project registered in cloud backend
+```
+
+---
+
+## 4. User Journey: First 30 Minutes (New User Onboarding)
+
+### 4.1 The Magic Flow (v2.0 - 5 Steps)
 
 ```mermaid
 graph LR
     START[Landing Page] --> AUTH[1. OAuth Login<br/>30 seconds]
-    AUTH --> CONNECT[2. Connect GitHub<br/>1 minute]
-    CONNECT --> AI[3. AI Analysis<br/>2 minutes]
-    AI --> RECOMMEND[4. Policy Pack<br/>30 seconds]
-    RECOMMEND --> MAP[5. Map Stages<br/>3 minutes]
-    MAP --> EVAL[6. First Gate<br/>1 minute]
+    AUTH --> CONNECT[2. Repository Selection<br/>1 minute]
+    CONNECT --> TIER[3. AI Analysis +<br/>Tier Selection<br/>2.5 minutes]
+    TIER --> MAP[4. Stage Mapping<br/>3 minutes]
+    MAP --> EVAL[5. First Gate<br/>1 minute]
     EVAL --> SUCCESS[🎉 Success!<br/>Dashboard]
 
     style START fill:#f9f9f9
     style AUTH fill:#e3f2fd
     style CONNECT fill:#e8f5e9
-    style AI fill:#fff3e0
-    style RECOMMEND fill:#f3e5f5
+    style TIER fill:#fff3e0
     style MAP fill:#fce4ec
     style EVAL fill:#e0f2f1
     style SUCCESS fill:#c8e6c9
 ```
 
 **Total Time**: 8 minutes active + 2 minutes AI processing = **10 minutes** ✅
+
+**Key Change (v2.0)**: Merged AI Analysis + Policy Pack Selection into single step. User sees AI recommendation but CHOOSES their governance tier based on their "governance appetite" (khẩu vị quản trị).
 
 ---
 
@@ -298,293 +655,256 @@ export const RepositoryConnect: React.FC = () => {
 
 ---
 
-#### Step 3: AI Analysis (2 minutes - automated)
+#### Step 3: AI Analysis + Tier Selection (2.5 minutes)
+
+> **v2.0 Change**: This step now combines AI Analysis and Tier Selection. User sees AI recommendation based on codebase metrics but **chooses** their governance tier based on their "governance appetite".
 
 ```yaml
-UI Component: Analysis Progress Screen
-Duration: 2 minutes (background processing)
+UI Component: AI Analysis + Tier Selection Screen
+Duration: 2.5 minutes (2 min analysis + 30 sec selection)
 Drop-off Risk: 10%
 
-Actions (Automated):
-  1. Analyze repository structure
-  2. Detect team size from contributors
-  3. Identify project type (web app, API, library)
-  4. Check for compliance markers (security.md, LICENSE)
-  5. Generate recommendations
+Actions:
+  1. Analyze repository structure (automated)
+  2. Show codebase metrics (LOC, files, languages)
+  3. AI recommends tier based on metrics
+  4. User SELECTS tier (can override recommendation)
+  5. Store selection for next step
+
+Key Concept - Governance Appetite:
+  Tier selection depends on owner/PM's governance style, NOT just technical metrics.
+  A 2-person team building enterprise software may choose PROFESSIONAL tier.
+  A 50-person team in rapid prototyping may choose LITE tier.
+  The AI recommends, but the human decides.
+
+4-Tier Classification (SDLC 5.1.1):
+  LITE: Solo devs, MVPs, hackathons (1-2 people mindset)
+    - Gates: G0.1, G1, G3, G5
+    - Requirements: README + basic docs
+    - Philosophy: "Trust the team, move fast"
+
+  STANDARD: Small teams, growing startups (3-10 people mindset)
+    - Gates: G0.1-G6
+    - Requirements: CI/CD, security scanning, CLAUDE.md
+    - Philosophy: "Quality with agility"
+
+  PROFESSIONAL: Growing orgs, regulated industries (10-50 people mindset)
+    - Gates: G0.1-G8
+    - Requirements: 80%+ coverage, SBOM, SAST, OWASP L1
+    - Philosophy: "Enterprise-grade quality"
+
+  ENTERPRISE: Large orgs, finance, healthcare (50+ people mindset)
+    - Gates: All gates (G0.1-G10)
+    - Requirements: 95%+ coverage, OWASP L2+, quarterly audits
+    - Philosophy: "Audit-ready compliance"
+
+Tier Recommendation Algorithm (v2.0):
+  Weighted scoring (not just team size):
+    - Codebase size (estimated LOC): 40%
+    - Team size (contributors): 30%
+    - File count: 20%
+    - Language diversity: 10%
+
+  Score Thresholds:
+    - Score < 30: LITE
+    - Score 30-55: STANDARD
+    - Score 55-75: PROFESSIONAL
+    - Score > 75: ENTERPRISE
 
 Success Factors:
-  - Show real-time progress
-  - Educational content while waiting
-  - Allow skip (use defaults)
-  - Entertaining loading animation
-
-AI Analysis Logic:
+  - Show codebase metrics transparently
+  - Explain why AI recommends specific tier
+  - Allow easy override (no friction)
+  - Use governance-focused language (not just technical)
 ```
 
 ```python
-# services/ai_onboarding_analyzer.py
-class OnboardingAnalyzer:
-    """AI-powered project analysis for onboarding"""
+# services/project_sync_service.py - Tier Recommendation Algorithm v2.0
+POLICY_PACKS = {
+    "lite": {
+        "name": "Lite",
+        "gates": ["G0.1", "G1", "G3", "G5"],
+        "description": "Minimal governance - trust the team, move fast",
+        "team_size_range": (1, 2),
+        "features": ["Basic gates (G0.1, G1, G3, G5)", "README + basic docs only"],
+        "best_for": "Solo devs, MVPs, hackathons",
+    },
+    "standard": {
+        "name": "Standard",
+        "gates": ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6"],
+        "description": "Balanced governance - quality with agility",
+        "team_size_range": (3, 10),
+        "features": ["Core gates (G0.1-G6)", "CI/CD + security scanning"],
+        "best_for": "Small teams (3-10), growing startups",
+    },
+    "professional": {
+        "name": "Professional",
+        "gates": ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8"],
+        "description": "Strong governance - enterprise-grade quality",
+        "team_size_range": (10, 50),
+        "features": ["Full gates + 80% test coverage", "SBOM, SAST, OWASP L1"],
+        "best_for": "Medium teams, regulated industries",
+    },
+    "enterprise": {
+        "name": "Enterprise",
+        "gates": ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"],
+        "description": "Maximum governance - audit-ready compliance",
+        "team_size_range": (50, 10000),
+        "features": ["All gates + quarterly audits", "OWASP L2+, 95% coverage"],
+        "best_for": "Large orgs, finance, healthcare",
+    },
+}
 
-    def __init__(self):
-        self.github_client = GitHubClient()
-        self.ai_gateway = AIGateway()
+def _recommend_policy_pack(
+    self,
+    team_size: int,
+    compliance_requirements: List[str],
+    languages: Dict[str, int] = None,
+    file_count: int = 0
+) -> str:
+    """
+    Recommend policy pack using weighted scoring algorithm.
 
-    async def analyze_repository(self, repo_id: str) -> Dict[str, Any]:
-        """Comprehensive repository analysis"""
+    Weights:
+    - Codebase size (estimated LOC): 40%
+    - Team size: 30%
+    - File count: 20%
+    - Language diversity: 10%
 
-        # Fetch repository data
-        repo_data = await self.github_client.get_repository(repo_id)
+    Returns: 'lite', 'standard', 'professional', or 'enterprise'
+    """
+    # Calculate codebase size score (0-100)
+    estimated_loc = sum(languages.values()) if languages else 0
+    if estimated_loc < 5000:
+        codebase_score = 10
+    elif estimated_loc < 20000:
+        codebase_score = 30
+    elif estimated_loc < 100000:
+        codebase_score = 60
+    else:
+        codebase_score = 90
 
-        # 1. Detect team size
-        contributors = await self.github_client.get_contributors(repo_id)
-        team_size = len([c for c in contributors if c.commits > 5])
+    # Calculate team size score (0-100)
+    if team_size <= 2:
+        team_score = 10
+    elif team_size <= 10:
+        team_score = 40
+    elif team_size <= 50:
+        team_score = 70
+    else:
+        team_score = 100
 
-        # 2. Identify project type
-        files = await self.github_client.get_file_tree(repo_id)
-        project_type = self._detect_project_type(files)
+    # Calculate file count score (0-100)
+    if file_count < 50:
+        file_score = 10
+    elif file_count < 200:
+        file_score = 30
+    elif file_count < 500:
+        file_score = 60
+    else:
+        file_score = 90
 
-        # 3. Check compliance markers
-        compliance = self._detect_compliance_requirements(files)
+    # Calculate language diversity score (0-100)
+    lang_count = len(languages) if languages else 1
+    lang_score = min(lang_count * 20, 100)
 
-        # 4. AI recommendation
-        prompt = f"""
-        Analyze this project and recommend SDLC 4.9 policy pack:
+    # Weighted total
+    total_score = (
+        codebase_score * 0.4 +
+        team_score * 0.3 +
+        file_score * 0.2 +
+        lang_score * 0.1
+    )
 
-        Team Size: {team_size} active contributors
-        Project Type: {project_type}
-        Languages: {', '.join(repo_data['languages'])}
-        Has CI/CD: {'Yes' if '.github/workflows' in files else 'No'}
-        Has Tests: {'Yes' if any('test' in f for f in files) else 'No'}
-        Compliance Files: {', '.join(compliance)}
-
-        Recommend:
-        1. Policy Pack Tier (Lite/Standard/Enterprise)
-        2. Which gates to enforce (G0.1-G9)
-        3. Initial stage mapping
-        4. Rationale for recommendations
-        """
-
-        ai_response = await self.ai_gateway.complete(
-            prompt=prompt,
-            context={"stage": "onboarding", "use_cache": False}
-        )
-
-        recommendations = self._parse_ai_recommendations(ai_response)
-
-        return {
-            "team_size": team_size,
-            "project_type": project_type,
-            "languages": repo_data['languages'],
-            "compliance_requirements": compliance,
-            "recommendations": recommendations,
-            "confidence_score": 0.85  # Track recommendation confidence
-        }
-
-    def _detect_project_type(self, files: List[str]) -> str:
-        """Detect project type from file structure"""
-
-        if 'package.json' in files:
-            if 'next.config.js' in files:
-                return "nextjs_app"
-            elif 'react' in open('package.json').read():
-                return "react_app"
-            else:
-                return "node_app"
-        elif 'requirements.txt' in files or 'pyproject.toml' in files:
-            if 'django' in files or 'flask' in files:
-                return "python_web"
-            else:
-                return "python_library"
-        elif 'go.mod' in files:
-            return "go_service"
-        elif 'Cargo.toml' in files:
-            return "rust_app"
-        else:
-            return "generic"
-
-    def _detect_compliance_requirements(self, files: List[str]) -> List[str]:
-        """Detect compliance needs from repository"""
-
-        compliance = []
-
-        if 'SECURITY.md' in files:
-            compliance.append('security_critical')
-        if 'HIPAA' in ' '.join(files) or 'health' in ' '.join(files).lower():
-            compliance.append('hipaa')
-        if 'LICENSE' in files:
-            license_content = open('LICENSE').read()
-            if 'AGPL' in license_content:
-                compliance.append('agpl_present')
-        if '.github/workflows' in files:
-            compliance.append('ci_cd_enabled')
-
-        return compliance
-```
-
----
-
-#### Step 4: AI-Powered Policy Pack Recommendation (30 seconds)
-
-```yaml
-UI Component: Policy Pack Selector with AI Recommendation
-Duration: 30 seconds
-Drop-off Risk: 30% (HIGHEST - complexity kills)
-
-Actions:
-  1. Show AI recommendation prominently
-  2. Explain why this pack was recommended
-  3. Allow manual override with warning
-  4. Preview what gates will be enforced
-
-Success Factors:
-  - Default to AI recommendation (80% accept)
-  - Simple comparison table
-  - "Recommended for teams like yours" badge
-  - Progressive disclosure (details on demand)
-
-Solution to Drop-off:
-  - AI pre-selection reduces decision paralysis
-  - Trust signals ("Used by 500+ teams")
-  - Quick preview of benefits
+    # Map score to tier
+    if total_score < 30:
+        return "lite"
+    elif total_score < 55:
+        return "standard"
+    elif total_score < 75:
+        return "professional"
+    else:
+        return "enterprise"
 ```
 
 ```typescript
-// components/onboarding/PolicyPackSelector.tsx
-export const PolicyPackSelector: React.FC = () => {
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [selected, setSelected] = useState<PolicyPack>('standard');
-  const [showDetails, setShowDetails] = useState(false);
+// components/onboarding/AIAnalysis.tsx - Tier Selection UI v2.0
+type PolicyPack = 'lite' | 'standard' | 'professional' | 'enterprise'
 
-  useEffect(() => {
-    // Get AI analysis results
-    const stored = sessionStorage.getItem('onboarding_analysis');
-    if (stored) {
-      const data = JSON.parse(stored);
-      setAnalysis(data);
-      setSelected(data.recommendations.policy_pack);
-    }
-  }, []);
+interface PolicyPackInfo {
+  name: PolicyPack
+  title: string
+  description: string
+  features: string[]
+}
 
-  const policyPacks = {
-    lite: {
-      name: 'Lite',
-      gates: ['G0.1', 'G1', 'G3', 'G5'],
-      price: '$99/month',
-      description: 'Essential gates for small teams',
-      ideal_for: 'Teams under 10 engineers'
-    },
-    standard: {
-      name: 'Standard',
-      gates: ['G0.1', 'G0.2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6'],
-      price: '$499/month',
-      description: 'Comprehensive governance for growing teams',
-      ideal_for: 'Teams of 10-50 engineers'
-    },
-    enterprise: {
-      name: 'Enterprise',
-      gates: ['G0.1', 'G0.2', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9'],
-      price: '$2499/month',
-      description: 'Full SDLC 4.9 compliance for large organizations',
-      ideal_for: 'Teams over 50 engineers'
-    }
-  };
+const POLICY_PACKS: PolicyPackInfo[] = [
+  {
+    name: 'lite',
+    title: 'Lite',
+    description: 'Minimal governance - trust the team, move fast',
+    features: [
+      'Basic gates (G0.1, G1, G3, G5)',
+      'README + basic docs only',
+      'Best for: Solo devs, MVPs, hackathons',
+    ],
+  },
+  {
+    name: 'standard',
+    title: 'Standard',
+    description: 'Balanced governance - quality with agility',
+    features: [
+      'Core gates (G0.1-G6)',
+      'CI/CD + security scanning',
+      'Best for: Small teams (3-10), growing startups',
+    ],
+  },
+  {
+    name: 'professional',
+    title: 'Professional',
+    description: 'Strong governance - enterprise-grade quality',
+    features: [
+      'Full gates + 80% test coverage',
+      'SBOM, SAST, OWASP L1',
+      'Best for: Medium teams, regulated industries',
+    ],
+  },
+  {
+    name: 'enterprise',
+    title: 'Enterprise',
+    description: 'Maximum governance - audit-ready compliance',
+    features: [
+      'All gates + quarterly audits',
+      'OWASP L2+, 95% coverage',
+      'Best for: Large orgs, finance, healthcare',
+    ],
+  },
+]
 
-  const recommended = analysis?.recommendations.policy_pack || 'standard';
+// UI shows:
+// 1. Codebase metrics (LOC, files, languages)
+// 2. AI recommendation with explanation
+// 3. 4 tier options - user SELECTS (not just accepts)
+// 4. Governance-focused descriptions
 
-  return (
-    <OnboardingLayout
-      step={4}
-      title="Choose Your Policy Pack"
-      subtitle="Based on your project analysis, we recommend the right governance level"
-    >
-      {analysis && (
-        <Alert
-          type="success"
-          icon={<RobotOutlined />}
-          message={
-            <div>
-              <strong>AI Recommendation: {policyPacks[recommended].name}</strong>
-              <p className="mt-2 text-gray-600">
-                Based on your team of {analysis.team_size} engineers and {analysis.project_type} project type,
-                we recommend the {policyPacks[recommended].name} pack for optimal governance without friction.
-              </p>
-            </div>
-          }
-          className="mb-6"
-        />
-      )}
-
-      <Radio.Group
-        value={selected}
-        onChange={e => setSelected(e.target.value)}
-        className="w-full"
-      >
-        <div className="grid grid-cols-1 gap-4">
-          {Object.entries(policyPacks).map(([key, pack]) => (
-            <Radio.Button
-              key={key}
-              value={key}
-              className="policy-pack-card"
-            >
-              <div className="flex justify-between items-start p-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">{pack.name}</h3>
-                    {key === recommended && (
-                      <Badge color="green">AI Recommended</Badge>
-                    )}
-                  </div>
-                  <p className="text-gray-600 mt-1">{pack.description}</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {pack.gates.length} gates • {pack.ideal_for}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-bold">{pack.price}</div>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setShowDetails(true);
-                    }}
-                  >
-                    View Gates
-                  </Button>
-                </div>
-              </div>
-            </Radio.Button>
-          ))}
-        </div>
-      </Radio.Group>
-
-      {selected !== recommended && (
-        <Alert
-          type="warning"
-          message="You're overriding the AI recommendation. Make sure this pack fits your needs."
-          className="mt-4"
-        />
-      )}
-
-      <Button
-        type="primary"
-        size="large"
-        onClick={handleContinue}
-        className="w-full mt-6"
-      >
-        Continue with {policyPacks[selected].name} Pack
-      </Button>
-
-      <OnboardingProgress current={4} total={6} />
-    </OnboardingLayout>
-  );
-};
+<h3>Choose Your Governance Level</h3>
+<p>
+  Select based on your team's governance appetite and compliance needs.
+  Higher tiers = more control but more effort.
+</p>
+{recommendedTier && (
+  <div className="recommendation-banner">
+    💡 Based on codebase analysis, we suggest <strong>{recommendedTier}</strong>.
+    But you know your team best - choose what fits your governance style.
+  </div>
+)}
 ```
 
 ---
 
-#### Step 5: Automatic Stage Mapping (3 minutes)
+#### Step 4: Automatic Stage Mapping (3 minutes)
+
+> **v2.0 Change**: This was previously Step 5. Now Step 4 after merging AI Analysis + Tier Selection.
 
 ```yaml
 UI Component: Stage Mapping Wizard
@@ -603,16 +923,23 @@ Success Factors:
   - Quick edit capability
   - Skip option (use defaults)
 
-Mapping Logic:
-  /docs → Stage 00 (WHY)
-  /requirements → Stage 01 (WHAT)
+Mapping Logic (SDLC 5.1.1):
+  /docs/00-foundation → Stage 00 (FOUNDATION - WHY?)
+  /docs/01-planning → Stage 01 (PLANNING - WHAT?)
+  /docs/02-design → Stage 02 (DESIGN - HOW?)
+  /docs/03-integrate → Stage 03 (INTEGRATE)
   /src → Stage 04 (BUILD)
   /tests → Stage 05 (TEST)
-  /.github/workflows → Stage 05 (SHIP)
+  /.github/workflows, /deploy → Stage 06 (DEPLOY)
+  /docs/07-operate → Stage 07 (OPERATE)
+  /docs/08-collaborate → Stage 08 (COLLABORATE)
+  /docs/09-govern → Stage 09 (GOVERN)
+  /docs/10-archive → Stage 10 (ARCHIVE - optional)
 ```
 
 ```typescript
 // components/onboarding/StageMapping.tsx
+// Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 export const StageMapping: React.FC = () => {
   const [mappings, setMappings] = useState<StageMapping[]>([]);
   const [autoDetected, setAutoDetected] = useState(true);
@@ -629,14 +956,19 @@ export const StageMapping: React.FC = () => {
     setMappings(response.data.mappings);
   };
 
+  // SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
   const stages = [
-    { id: 'stage_00', name: 'WHY', description: 'Problem Definition' },
-    { id: 'stage_01', name: 'WHAT', description: 'Requirements' },
-    { id: 'stage_02', name: 'HOW', description: 'Architecture' },
-    { id: 'stage_03', name: 'BUILD', description: 'Implementation' },
-    { id: 'stage_04', name: 'TEST', description: 'Quality Assurance' },
-    { id: 'stage_05', name: 'SHIP', description: 'Deployment' },
-    // ... other stages
+    { id: 'stage_00', name: 'FOUNDATION', description: 'Strategic Discovery & Validation', question: 'WHY?' },
+    { id: 'stage_01', name: 'PLANNING', description: 'Requirements & User Stories', question: 'WHAT?' },
+    { id: 'stage_02', name: 'DESIGN', description: 'Architecture & Technical Design', question: 'HOW?' },
+    { id: 'stage_03', name: 'INTEGRATE', description: 'API Contracts & Third-party Setup', question: 'How connect?' },
+    { id: 'stage_04', name: 'BUILD', description: 'Development & Implementation', question: 'Building right?' },
+    { id: 'stage_05', name: 'TEST', description: 'Quality Assurance & Validation', question: 'Works correctly?' },
+    { id: 'stage_06', name: 'DEPLOY', description: 'Release & Deployment', question: 'Ship safely?' },
+    { id: 'stage_07', name: 'OPERATE', description: 'Production Operations & Monitoring', question: 'Running reliably?' },
+    { id: 'stage_08', name: 'COLLABORATE', description: 'Team Coordination & Knowledge', question: 'Team effective?' },
+    { id: 'stage_09', name: 'GOVERN', description: 'Compliance & Strategic Oversight', question: 'Compliant?' },
+    { id: 'stage_10', name: 'ARCHIVE', description: 'Project Archive (Legacy Docs)', question: 'Archived?' },
   ];
 
   return (
@@ -682,7 +1014,7 @@ export const StageMapping: React.FC = () => {
         </Button>
       </div>
 
-      <OnboardingProgress current={5} total={6} />
+      <OnboardingProgress current={4} total={5} />
     </OnboardingLayout>
   );
 };
@@ -690,7 +1022,9 @@ export const StageMapping: React.FC = () => {
 
 ---
 
-#### Step 6: First Gate Evaluation (1 minute)
+#### Step 5: First Gate Evaluation (1 minute)
+
+> **v2.0 Change**: This was previously Step 6. Now Step 5 (final step).
 
 ```yaml
 UI Component: Gate Evaluation Trigger
@@ -801,7 +1135,7 @@ export const FirstGateEvaluation: React.FC = () => {
         />
       )}
 
-      <OnboardingProgress current={6} total={6} />
+      <OnboardingProgress current={5} total={5} />
     </OnboardingLayout>
   );
 };
@@ -809,9 +1143,9 @@ export const FirstGateEvaluation: React.FC = () => {
 
 ---
 
-## 4. Progressive Disclosure Strategy
+## 5. Progressive Disclosure Strategy
 
-### 4.1 Information Architecture
+### 5.1 Information Architecture
 
 ```yaml
 Principle: Show only what's needed, when it's needed
@@ -848,30 +1182,74 @@ Level 3 (Power User - Month 1+):
 
 ---
 
-### 4.2 Smart Defaults
+### 5.2 Smart Defaults (v2.0 - SDLC 5.1.1)
 
 ```yaml
-Repository Detection:
-  - Language → Suggested gates
-  - Team size → Policy pack tier
+Repository Analysis (Codebase Metrics):
+  - Estimated LOC (from language bytes) → Codebase complexity
+  - File count → Project scale
+  - Language diversity → Technical complexity
+  - Team size (contributors) → Collaboration level
   - CI/CD presence → Ship gates enabled
   - Test coverage → Test gates strictness
 
-Policy Defaults:
-  Small Team (<10):
-    - Lite pack
-    - 4 essential gates
-    - Relaxed timing
+Tier Recommendation Algorithm (Weighted Scoring):
+  Codebase size (40%):
+    - <5K LOC: 10 points (LITE)
+    - 5K-20K LOC: 30 points (STANDARD)
+    - 20K-100K LOC: 60 points (PROFESSIONAL)
+    - >100K LOC: 90 points (ENTERPRISE)
 
-  Medium Team (10-50):
-    - Standard pack
-    - 8 comprehensive gates
-    - Balanced strictness
+  Team size (30%):
+    - 1-2 people: 10 points (LITE mindset)
+    - 3-10 people: 40 points (STANDARD mindset)
+    - 10-50 people: 70 points (PROFESSIONAL mindset)
+    - 50+ people: 100 points (ENTERPRISE mindset)
 
-  Large Team (50+):
-    - Enterprise pack
-    - All 11 gates
-    - Strict compliance
+  File count (20%):
+    - <50 files: 10 points
+    - 50-200 files: 30 points
+    - 200-500 files: 60 points
+    - >500 files: 90 points
+
+  Language diversity (10%):
+    - Each language: +20 points (max 100)
+
+  Final Score → Tier:
+    - <30: LITE
+    - 30-55: STANDARD
+    - 55-75: PROFESSIONAL
+    - >75: ENTERPRISE
+
+4-Tier Policy Defaults (SDLC 5.1.1):
+  LITE (Governance Appetite: Low):
+    - Gates: G0.1, G1, G3, G5 (4 essential gates)
+    - Timing: Relaxed (async validation)
+    - Evidence: README + basic docs
+    - Best for: Solo devs, MVPs, hackathons
+
+  STANDARD (Governance Appetite: Medium):
+    - Gates: G0.1-G6 (8 comprehensive gates)
+    - Timing: Balanced (CI/CD integrated)
+    - Evidence: Full docs structure, security scanning
+    - Best for: Small teams (3-10), growing startups
+
+  PROFESSIONAL (Governance Appetite: High):
+    - Gates: G0.1-G8 (10 gates)
+    - Timing: Strict (blocking gates)
+    - Evidence: 80%+ coverage, SBOM, SAST, OWASP L1
+    - Best for: Medium teams, regulated industries
+
+  ENTERPRISE (Governance Appetite: Maximum):
+    - Gates: All gates (G0.1-G10)
+    - Timing: Strict + audits
+    - Evidence: 95%+ coverage, OWASP L2+, quarterly audits
+    - Best for: Large orgs, finance, healthcare
+
+Key Insight (v2.0):
+  Tier selection is NOT just about technical metrics.
+  It depends on the owner/PM's "governance appetite" (khẩu vị quản trị).
+  AI recommends based on metrics, but USER CHOOSES based on governance style.
 
 Evidence Defaults:
   - Auto-link README to G0.1
@@ -881,9 +1259,9 @@ Evidence Defaults:
 
 ---
 
-## 5. Error Recovery & Help
+## 6. Error Recovery & Help
 
-### 5.1 Common Failure Points
+### 6.1 Common Failure Points
 
 ```yaml
 Repository Access Denied:
@@ -918,7 +1296,7 @@ Gate Evaluation Fails:
 
 ---
 
-### 5.2 Contextual Help System
+### 6.2 Contextual Help System
 
 ```typescript
 // components/onboarding/ContextualHelp.tsx
@@ -969,9 +1347,9 @@ export const ContextualHelp: React.FC<{step: number}> = ({step}) => {
 
 ---
 
-## 6. A/B Testing Strategy
+## 7. A/B Testing Strategy
 
-### 6.1 Experiments to Run
+### 7.1 Experiments to Run
 
 ```yaml
 Experiment 1: AI Recommendation Prominence
@@ -998,9 +1376,9 @@ Experiment 3: First Gate Timing
 
 ---
 
-## 7. Technical Implementation
+## 8. Technical Implementation
 
-### 7.1 Frontend State Management
+### 8.1 Frontend State Management
 
 ```typescript
 // stores/onboardingStore.ts
@@ -1057,7 +1435,7 @@ const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
 ---
 
-### 7.2 Backend Orchestration
+### 8.2 Backend Orchestration
 
 ```python
 # services/onboarding_service.py
@@ -1142,9 +1520,9 @@ class OnboardingService:
 
 ---
 
-## 8. Success Metrics & Monitoring
+## 9. Success Metrics & Monitoring
 
-### 8.1 Funnel Analysis
+### 9.1 Funnel Analysis
 
 ```sql
 -- Onboarding funnel query
@@ -1186,7 +1564,7 @@ FROM funnel;
 
 ---
 
-### 8.2 Dashboard Metrics
+### 9.2 Dashboard Metrics
 
 ```yaml
 Real-Time Metrics:
@@ -1210,7 +1588,7 @@ Weekly Metrics:
 
 ---
 
-## 9. References
+## 10. References
 
 - MTEP Platform onboarding success (<30 min pattern)
 - [Growth Design Case Studies](https://growth.design/case-studies)
@@ -1219,7 +1597,7 @@ Weekly Metrics:
 
 ---
 
-## 10. Approval
+## 11. Approval
 
 | Role | Name | Approval | Date |
 |------|------|----------|------|
@@ -1229,11 +1607,14 @@ Weekly Metrics:
 
 ---
 
-**Last Updated**: November 13, 2025
+**Last Updated**: December 23, 2025
 **Status**: ✅ ACCEPTED - Critical for user activation
 **Priority**: **IMPORTANT** - 70% of SaaS failure is poor onboarding
 **Success Metric**: TTFGE <30 minutes, Activation rate >70%
+**Framework**: SDLC 5.1.1 (4-Tier Classification)
 
 ---
 
 *"First 30 minutes determine product success. Make them magical."* ✨
+
+*"The AI recommends, but YOU choose your governance level."* - v2.0 Philosophy

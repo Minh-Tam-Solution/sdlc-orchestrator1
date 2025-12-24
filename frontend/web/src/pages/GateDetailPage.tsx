@@ -31,18 +31,23 @@ import apiClient from '@/api/client'
 import { useAuth } from '@/contexts/AuthContext'
 import type { GateResponse, GateStatusEnum } from '@/types/api'
 
-// SDLC 4.9 Stages
+/**
+ * SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
+ * Note: 10-archive is a project-level archive folder, not a formal stage
+ */
 const SDLC_STAGES = [
-  { code: '00', name: 'WHY', description: 'Problem Definition' },
-  { code: '01', name: 'WHAT', description: 'Solution Planning' },
-  { code: '02', name: 'HOW', description: 'Architecture & Design' },
-  { code: '03', name: 'BUILD', description: 'Development' },
-  { code: '04', name: 'VERIFY', description: 'Testing & QA' },
-  { code: '05', name: 'SHIP', description: 'Release' },
-  { code: '06', name: 'OPERATE', description: 'Production' },
-  { code: '07', name: 'OBSERVE', description: 'Monitoring' },
-  { code: '08', name: 'LEARN', description: 'Retrospective' },
-  { code: '09', name: 'EVOLVE', description: 'Iteration' },
+  { code: '00', name: 'FOUNDATION', description: 'Strategic Discovery & Validation', question: 'WHY?' },
+  { code: '01', name: 'PLANNING', description: 'Requirements & User Stories', question: 'WHAT?' },
+  { code: '02', name: 'DESIGN', description: 'Architecture & Technical Design', question: 'HOW?' },
+  { code: '03', name: 'INTEGRATE', description: 'API Contracts & Third-party Setup', question: 'How connect?' },
+  { code: '04', name: 'BUILD', description: 'Development & Implementation', question: 'Building right?' },
+  { code: '05', name: 'TEST', description: 'Quality Assurance & Validation', question: 'Works correctly?' },
+  { code: '06', name: 'DEPLOY', description: 'Release & Deployment', question: 'Ship safely?' },
+  { code: '07', name: 'OPERATE', description: 'Production Operations & Monitoring', question: 'Running reliably?' },
+  { code: '08', name: 'COLLABORATE', description: 'Team Coordination & Knowledge', question: 'Team effective?' },
+  { code: '09', name: 'GOVERN', description: 'Compliance & Strategic Oversight', question: 'Compliant?' },
+  { code: '10', name: 'ARCHIVE', description: 'Project Archive (Legacy Docs)', question: 'Archived?' },
 ]
 
 /**

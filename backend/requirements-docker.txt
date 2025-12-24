@@ -49,3 +49,5 @@ APScheduler>=3.10.0
 pytest>=7.4.0
 pytest-asyncio>=0.23.0
 httpx>=0.26.0
+mixpanel==4.10.1
+tenacity>=8.2.0

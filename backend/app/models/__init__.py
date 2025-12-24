@@ -60,6 +60,25 @@ from app.models.analytics import AnalyticsEvent, AICodeEvent
 # Override / VCR Flow (Sprint 43) - 2 models
 from app.models.override import ValidationOverride, OverrideAuditLog
 
+# Codegen Usage Tracking (Sprint 48) - 4 models
+from app.models.codegen_usage import (
+    CodegenUsageLog,
+    CodegenDailySummary,
+    CodegenMonthlyCost,
+    CodegenProviderHealth,
+)
+
+# Pilot Tracking (Sprint 49) - 4 models
+from app.models.pilot_tracking import (
+    PilotParticipant,
+    PilotSession,
+    PilotSatisfactionSurvey,
+    PilotDailyMetrics,
+)
+
+# Stage Mapping (Sprint 49 - SDLC 5.1.2) - 1 model
+from app.models.stage_mapping import ProjectStageMapping
+
 __all__ = [
     # Base
     "Base",
@@ -114,4 +133,16 @@ __all__ = [
     # Override / VCR Flow (2)
     "ValidationOverride",
     "OverrideAuditLog",
+    # Codegen Usage Tracking (4)
+    "CodegenUsageLog",
+    "CodegenDailySummary",
+    "CodegenMonthlyCost",
+    "CodegenProviderHealth",
+    # Pilot Tracking (4)
+    "PilotParticipant",
+    "PilotSession",
+    "PilotSatisfactionSurvey",
+    "PilotDailyMetrics",
+    # Stage Mapping (1)
+    "ProjectStageMapping",
 ]

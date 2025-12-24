@@ -1,0 +1,46 @@
+{
+  "name": "Restaurant Management",
+  "version": "1.0.0",
+  "business_domain": "restaurant",
+  "description": "API quản lý nhà hàng cho SME Việt Nam",
+  "modules": [
+    {
+      "name": "products",
+      "description": "Quản lý sản phẩm/món ăn",
+      "operations": ["create", "read", "list", "update", "delete"],
+      "entities": [
+        {
+          "name": "Product",
+          "fields": [
+            {"name": "name", "type": "string", "required": true, "max_length": 100},
+            {"name": "price", "type": "float", "required": true},
+            {"name": "description", "type": "text"},
+            {"name": "category", "type": "string", "max_length": 50},
+            {"name": "active", "type": "boolean"}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "description": "Quản lý đơn hàng",
+      "operations": ["create", "read", "list", "update"],
+      "entities": [
+        {
+          "name": "Order",
+          "fields": [
+            {"name": "table_number", "type": "integer", "required": true},
+            {"name": "status", "type": "string", "required": true},
+            {"name": "total", "type": "float"},
+            {"name": "notes", "type": "text"},
+            {"name": "ordered_at", "type": "datetime"}
+          ]
+        }
+      ]
+    }
+  ],
+  "database": {
+    "type": "postgresql",
+    "name": "restaurant_db"
+  }
+}

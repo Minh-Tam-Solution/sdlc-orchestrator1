@@ -1,11 +1,13 @@
 """
-SDLC 5.0.0 Tier Detection and Classification.
+SDLC 5.1.1 Tier Detection and Classification.
 
 4-Tier Classification:
-- LITE: 1-2 people, 4 required stages
-- STANDARD: 3-10 people, 6 required stages
-- PROFESSIONAL: 10-50 people, 10 required stages + P0 artifacts
-- ENTERPRISE: 50+ people, 11 required stages + compliance
+- LITE: 1-2 people, 4 required stages (00, 01, 02, 04)
+- STANDARD: 3-10 people, 6 required stages (00-02, 04-06)
+- PROFESSIONAL: 10-50 people, 10 required stages (00-09)
+- ENTERPRISE: 50+ people, 10 required stages + compliance (00-09)
+
+Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 """
 
 from dataclasses import dataclass
@@ -52,35 +54,36 @@ class TierRequirements:
             raise ValueError("max_team_size must be >= min_team_size")
 
 
-# SDLC 5.0.0 Stage definitions (Contract-First Order)
-# INTEGRATE moved from Stage 07 → Stage 03 (API Design BEFORE coding)
+# SDLC 5.1.1 Stage definitions (10 Stages: 00-09 + Archive folder)
+# Reference: SDLC-Enterprise-Framework/README.md
+# Note: 10-archive is a project-level archive folder, not a formal stage
 STAGE_NAMES = {
-    "00": "00-foundation",       # WHY - Problem Definition
-    "01": "01-planning",         # WHAT - Requirements Analysis
-    "02": "02-design",           # HOW - Architecture Design
-    "03": "03-integration",      # API Design & System Integration (Contract-First)
-    "04": "04-build",            # Development & Implementation
-    "05": "05-test",             # Quality Assurance
-    "06": "06-deploy",           # Release & Deployment
-    "07": "07-operate",          # Production & Operations
-    "08": "08-collaborate",      # Team Coordination & Communication
-    "09": "09-govern",           # Governance & Compliance
-    "10": "10-archive",          # Historical Archive
+    "00": "00-foundation",    # FOUNDATION - Strategic Discovery & Validation
+    "01": "01-planning",      # PLANNING - Requirements & User Stories
+    "02": "02-design",        # DESIGN - Architecture & Technical Design
+    "03": "03-integrate",     # INTEGRATE - API Contracts & Third-party Setup
+    "04": "04-build",         # BUILD - Development & Implementation
+    "05": "05-test",          # TEST - Quality Assurance & Validation
+    "06": "06-deploy",        # DEPLOY - Release & Deployment
+    "07": "07-operate",       # OPERATE - Production Operations & Monitoring
+    "08": "08-collaborate",   # COLLABORATE - Team Coordination & Knowledge
+    "09": "09-govern",        # GOVERN - Compliance & Strategic Oversight
+    "10": "10-archive",       # ARCHIVE - Project-level archive (optional, for legacy docs)
 }
 
-# Stage purpose descriptions (Contract-First Order)
+# Stage display names and questions (SDLC 5.1.1)
 STAGE_QUESTIONS = {
-    "00": "WHY",        # Problem Definition
-    "01": "WHAT",       # Requirements Analysis
-    "02": "HOW",        # Architecture Design
-    "03": "INTEGRATE",  # API Design (Contract-First - BEFORE BUILD)
-    "04": "BUILD",      # Development & Implementation
-    "05": "TEST",       # Quality Assurance
-    "06": "DEPLOY",     # Release & Deployment
-    "07": "OPERATE",    # Production & Operations
-    "08": "COLLABORATE",  # Team Coordination
-    "09": "GOVERN",     # Governance & Compliance
-    "10": "ARCHIVE",    # Historical Archive
+    "00": "FOUNDATION",   # WHY? - Strategic Discovery & Validation
+    "01": "PLANNING",     # WHAT? - Requirements & User Stories
+    "02": "DESIGN",       # HOW? - Architecture & Technical Design
+    "03": "INTEGRATE",    # How connect? - API Contracts & Third-party Setup
+    "04": "BUILD",        # Building right? - Development & Implementation
+    "05": "TEST",         # Works correctly? - Quality Assurance & Validation
+    "06": "DEPLOY",       # Ship safely? - Release & Deployment
+    "07": "OPERATE",      # Running reliably? - Production Operations & Monitoring
+    "08": "COLLABORATE",  # Team effective? - Team Coordination & Knowledge
+    "09": "GOVERN",       # Compliant? - Compliance & Strategic Oversight
+    "10": "ARCHIVE",      # Archive - Project-level archive (optional)
 }
 
 # Old stage names for migration support (SDLC 4.9.x)

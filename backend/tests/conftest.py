@@ -42,12 +42,22 @@ from app.models.user import Role, User
 from app.core.security import get_password_hash
 
 
+def _ensure_asyncpg_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql://"):
+        return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    if url.startswith("postgresql+psycopg2://"):
+        return url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    return url
+
+
 # ============================================================================
 # Database Test Fixtures
 # ============================================================================
 
 # Test database URL (separate from development database)
-TEST_DATABASE_URL = settings.DATABASE_URL.replace(
+TEST_DATABASE_URL = _ensure_asyncpg_url(settings.DATABASE_URL).replace(
     "sdlc_orchestrator", "sdlc_orchestrator_test"
 )
 

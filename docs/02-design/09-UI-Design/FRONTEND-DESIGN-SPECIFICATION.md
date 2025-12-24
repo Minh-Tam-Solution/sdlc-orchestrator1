@@ -712,33 +712,35 @@ GateDetailPage
 └─────────────────────────────────────────────────────┘
 ```
 
-**Gate Type Options**:
+**Gate Type Options** (SDLC 5.1.1):
 | Value | Display Label |
 |-------|---------------|
 | FOUNDATION_READY | Foundation Ready (G0) |
 | PLANNING_COMPLETE | Planning Complete (G1) |
 | DESIGN_READY | Design Ready (G2) |
-| BUILD_COMPLETE | Build Complete (G3) |
-| VERIFY_PASSED | Verification Passed (G4) |
-| SHIP_READY | Ship Ready (G5) |
-| OPERATE_READY | Operate Ready (G6) |
-| OBSERVE_SETUP | Observe Setup (G7) |
-| LEARN_COMPLETE | Learn Complete (G8) |
-| EVOLVE_PLANNED | Evolve Planned (G9) |
+| INTEGRATE_READY | Integration Ready (G3) |
+| BUILD_COMPLETE | Build Complete (G4) |
+| TEST_PASSED | Test Passed (G5) |
+| DEPLOY_READY | Deploy Ready (G6) |
+| OPERATE_READY | Operate Ready (G7) |
+| COLLABORATE_SETUP | Collaborate Setup (G8) |
+| GOVERN_COMPLETE | Govern Complete (G9) |
+| ARCHIVE_COMPLETE | Archive Complete (G10) |
 
-**SDLC Stage Options** (SDLC 4.9):
-| Code | Name | Description |
-|------|------|-------------|
-| 00 | WHY | Problem Definition |
-| 01 | WHAT | Solution Planning |
-| 02 | HOW | Architecture & Design |
-| 03 | BUILD | Development |
-| 04 | VERIFY | Testing & QA |
-| 05 | SHIP | Release |
-| 06 | OPERATE | Production |
-| 07 | OBSERVE | Monitoring |
-| 08 | LEARN | Retrospective |
-| 09 | EVOLVE | Iteration |
+**SDLC Stage Options** (SDLC 5.1.1):
+| Code | Name | Description | Question |
+|------|------|-------------|----------|
+| 00 | FOUNDATION | Strategic Discovery & Validation | WHY? |
+| 01 | PLANNING | Requirements & User Stories | WHAT? |
+| 02 | DESIGN | Architecture & Technical Design | HOW? |
+| 03 | INTEGRATE | API Contracts & Third-party Setup | How connect? |
+| 04 | BUILD | Development & Implementation | Building right? |
+| 05 | TEST | Quality Assurance & Validation | Works correctly? |
+| 06 | DEPLOY | Release & Deployment | Ship safely? |
+| 07 | OPERATE | Production Operations & Monitoring | Running reliably? |
+| 08 | COLLABORATE | Team Coordination & Knowledge | Team effective? |
+| 09 | GOVERN | Compliance & Strategic Oversight | Compliant? |
+| 10 | ARCHIVE | Project Archive (Legacy Docs) | Archived? |
 
 **Form Fields**:
 | Field | Type | Required | Validation |

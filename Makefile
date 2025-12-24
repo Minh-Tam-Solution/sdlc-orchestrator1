@@ -25,6 +25,7 @@ help:
 	@echo "🧪 Testing & Quality:"
 	@echo "  make test            Run all tests (backend + frontend)"
 	@echo "  make test-backend    Run backend tests only"
+	@echo "  make test-backend-strict Run backend tests with coverage gate"
 	@echo "  make test-frontend   Run frontend tests only"
 	@echo "  make lint            Run linters (backend + frontend)"
 	@echo "  make format          Format code (black + prettier)"
@@ -137,6 +138,10 @@ test: test-backend test-frontend
 test-backend:
 	@echo "🧪 Running backend tests..."
 	cd backend && pytest tests/ -v --cov=app --cov-report=term --cov-report=html
+
+test-backend-strict:
+	@echo "🧪 Running backend tests (strict coverage gate)..."
+	cd backend && pytest tests/ -v --cov=app --cov-report=term --cov-report=html --cov-fail-under=90
 
 test-frontend:
 	@echo "🧪 Running frontend tests..."

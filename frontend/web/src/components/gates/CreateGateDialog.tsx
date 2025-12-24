@@ -1,13 +1,15 @@
 /**
  * File: frontend/web/src/components/gates/CreateGateDialog.tsx
- * Version: 1.0.0
- * Status: ACTIVE - STAGE 03 (BUILD)
- * Date: 2025-11-27
+ * Version: 2.0.0
+ * Status: ACTIVE - STAGE 04 (BUILD)
+ * Date: 2025-12-24
  * Authority: Frontend Lead + CTO Approved
- * Foundation: SDLC 4.9 Complete Lifecycle, Zero Mock Policy
+ * Foundation: SDLC 5.1.1 Complete Lifecycle, Zero Mock Policy
  *
  * Description:
  * Dialog for creating new quality gates for a project.
+ *
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
  */
 
 import { useState } from 'react'
@@ -55,32 +57,40 @@ interface GateResponse {
   status: string
 }
 
-// SDLC 4.9 Stages
+/**
+ * SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
+ * Note: 10-archive is a project-level archive folder, not a formal stage
+ */
 const SDLC_STAGES = [
-  { code: '00', name: 'WHY', description: 'Problem Definition' },
-  { code: '01', name: 'WHAT', description: 'Solution Planning' },
-  { code: '02', name: 'HOW', description: 'Architecture & Design' },
-  { code: '03', name: 'BUILD', description: 'Development' },
-  { code: '04', name: 'VERIFY', description: 'Testing & QA' },
-  { code: '05', name: 'SHIP', description: 'Release' },
-  { code: '06', name: 'OPERATE', description: 'Production' },
-  { code: '07', name: 'OBSERVE', description: 'Monitoring' },
-  { code: '08', name: 'LEARN', description: 'Retrospective' },
-  { code: '09', name: 'EVOLVE', description: 'Iteration' },
+  { code: '00', name: 'FOUNDATION', description: 'Strategic Discovery & Validation', question: 'WHY?' },
+  { code: '01', name: 'PLANNING', description: 'Requirements & User Stories', question: 'WHAT?' },
+  { code: '02', name: 'DESIGN', description: 'Architecture & Technical Design', question: 'HOW?' },
+  { code: '03', name: 'INTEGRATE', description: 'API Contracts & Third-party Setup', question: 'How connect?' },
+  { code: '04', name: 'BUILD', description: 'Development & Implementation', question: 'Building right?' },
+  { code: '05', name: 'TEST', description: 'Quality Assurance & Validation', question: 'Works correctly?' },
+  { code: '06', name: 'DEPLOY', description: 'Release & Deployment', question: 'Ship safely?' },
+  { code: '07', name: 'OPERATE', description: 'Production Operations & Monitoring', question: 'Running reliably?' },
+  { code: '08', name: 'COLLABORATE', description: 'Team Coordination & Knowledge', question: 'Team effective?' },
+  { code: '09', name: 'GOVERN', description: 'Compliance & Strategic Oversight', question: 'Compliant?' },
+  { code: '10', name: 'ARCHIVE', description: 'Project Archive (Legacy Docs)', question: 'Archived?' },
 ]
 
-// Gate types based on SDLC 4.9
+/**
+ * Quality Gate types aligned with SDLC 5.1.1 stages
+ */
 const GATE_TYPES = [
   { value: 'FOUNDATION_READY', label: 'Foundation Ready (G0)' },
   { value: 'PLANNING_COMPLETE', label: 'Planning Complete (G1)' },
   { value: 'DESIGN_READY', label: 'Design Ready (G2)' },
-  { value: 'BUILD_COMPLETE', label: 'Build Complete (G3)' },
-  { value: 'VERIFY_PASSED', label: 'Verification Passed (G4)' },
-  { value: 'SHIP_READY', label: 'Ship Ready (G5)' },
-  { value: 'OPERATE_READY', label: 'Operate Ready (G6)' },
-  { value: 'OBSERVE_SETUP', label: 'Observe Setup (G7)' },
-  { value: 'LEARN_COMPLETE', label: 'Learn Complete (G8)' },
-  { value: 'EVOLVE_PLANNED', label: 'Evolve Planned (G9)' },
+  { value: 'INTEGRATE_READY', label: 'Integration Ready (G3)' },
+  { value: 'BUILD_COMPLETE', label: 'Build Complete (G4)' },
+  { value: 'TEST_PASSED', label: 'Test Passed (G5)' },
+  { value: 'DEPLOY_READY', label: 'Deploy Ready (G6)' },
+  { value: 'OPERATE_READY', label: 'Operate Ready (G7)' },
+  { value: 'COLLABORATE_SETUP', label: 'Collaborate Setup (G8)' },
+  { value: 'GOVERN_COMPLETE', label: 'Govern Complete (G9)' },
+  { value: 'ARCHIVE_COMPLETE', label: 'Archive Complete (G10)' },
 ]
 
 /**

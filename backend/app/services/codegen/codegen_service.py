@@ -2,6 +2,7 @@
 Codegen Service Orchestrator.
 
 Sprint 45: Multi-Provider Codegen Architecture (EP-06)
+Sprint 48: Quality Gates + Ollama Optimization + MVP Hardening
 ADR-022: Provider-Agnostic Codegen Architecture
 
 This module implements the main orchestrator service for code generation.
@@ -12,6 +13,7 @@ Design Decisions:
 - Auto-registration of all providers
 - Configurable fallback chain (Ollama → Claude → DeepCode)
 - Comprehensive error handling with custom exceptions
+- Quality gate validation for generated code (Sprint 48)
 
 Author: Backend Lead
 Date: December 23, 2025
@@ -19,6 +21,7 @@ Status: ACTIVE
 """
 
 import logging
+from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 
 from .provider_registry import registry, ProviderRegistry
@@ -34,6 +37,25 @@ from .claude_provider import ClaudeCodegenProvider
 from .deepcode_provider import DeepCodeProvider
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class QualityGatedResult:
+    """
+    Result from code generation with quality gate validation.
+
+    Sprint 48: Quality Gates for generated code.
+
+    Attributes:
+        result: The CodegenResult from provider
+        quality_passed: Whether all quality gates passed
+        quality_details: Detailed quality gate results
+        blocked: Whether generation was blocked by quality gates
+    """
+    result: CodegenResult
+    quality_passed: bool
+    quality_details: Dict[str, Any]
+    blocked: bool = False
 
 
 class NoProviderAvailableError(Exception):
@@ -205,16 +227,19 @@ class CodegenService:
     async def generate(
         self,
         spec: CodegenSpec,
-        preferred_provider: Optional[str] = None
+        preferred_provider: Optional[str] = None,
+        use_cache: bool = True,
     ) -> CodegenResult:
         """
         Generate code using available provider.
 
         Tries preferred provider first, then falls back through chain.
+        Uses caching to reduce latency for repeated requests (Sprint 48).
 
         Args:
             spec: CodegenSpec with app_blueprint
             preferred_provider: Optional preferred provider name
+            use_cache: Whether to use cache (default: True)
 
         Returns:
             CodegenResult with generated code
@@ -229,6 +254,21 @@ class CodegenService:
             ...     preferred_provider="ollama"
             ... )
         """
+        # Sprint 48: Check cache first
+        if use_cache:
+            try:
+                from .codegen_cache import get_codegen_cache
+                cache = get_codegen_cache()
+                cached_result = await cache.get(spec)
+                if cached_result:
+                    logger.info(
+                        f"Cache hit: {len(cached_result.files)} files, "
+                        f"{cached_result.generation_time_ms}ms retrieval"
+                    )
+                    return cached_result
+            except Exception as e:
+                logger.warning(f"Cache lookup failed: {e}")
+
         provider = self._registry.select_provider(preferred_provider)
 
         if not provider:
@@ -246,6 +286,16 @@ class CodegenService:
                 f"Generation complete: {len(result.files)} files, "
                 f"{result.tokens_used} tokens, {result.generation_time_ms}ms"
             )
+
+            # Sprint 48: Cache result for future requests
+            if use_cache:
+                try:
+                    from .codegen_cache import get_codegen_cache
+                    cache = get_codegen_cache()
+                    await cache.set(spec, result)
+                except Exception as e:
+                    logger.warning(f"Cache set failed: {e}")
+
             return result
 
         except NotImplementedError as e:
@@ -466,6 +516,85 @@ class CodegenService:
             "total_count": len(providers_status),
             "fallback_chain": self._registry.get_fallback_chain()
         }
+
+    async def generate_with_quality_gates(
+        self,
+        spec: CodegenSpec,
+        preferred_provider: Optional[str] = None,
+        enable_security_scan: bool = True,
+        enable_architecture_check: bool = True,
+        block_on_failure: bool = True,
+    ) -> QualityGatedResult:
+        """
+        Generate code with quality gate validation (Sprint 48).
+
+        Runs code generation followed by quality gate validation:
+        1. Syntax validation - code must parse
+        2. Architecture validation - layer separation
+        3. Security scan - OWASP patterns
+        4. Complexity check - function/class limits
+
+        Args:
+            spec: CodegenSpec with app_blueprint
+            preferred_provider: Optional preferred provider name
+            enable_security_scan: Enable security pattern detection
+            enable_architecture_check: Enable architecture validation
+            block_on_failure: Whether to mark result as blocked on failure
+
+        Returns:
+            QualityGatedResult with generation result and quality status
+
+        Example:
+            >>> result = await service.generate_with_quality_gates(spec)
+            >>> if result.quality_passed:
+            ...     print("Code passed all quality gates")
+            >>> else:
+            ...     print(f"Quality issues: {result.quality_details}")
+        """
+        # Import here to avoid circular imports
+        from app.services.validators.codegen_quality_validator import (
+            CodegenQualityValidator
+        )
+
+        # Generate code
+        codegen_result = await self.generate(spec, preferred_provider)
+
+        # Run quality gates
+        validator = CodegenQualityValidator(
+            enable_security_scan=enable_security_scan,
+            enable_architecture_check=enable_architecture_check,
+        )
+
+        quality_result = await validator.validate_generated_code(
+            files=codegen_result.files,
+            language=spec.language,
+            framework=spec.framework,
+        )
+
+        # Build quality details
+        quality_details = {
+            "validator": quality_result.validator_name,
+            "status": quality_result.status.value,
+            "message": quality_result.message,
+            "duration_ms": quality_result.duration_ms,
+            **quality_result.details,
+        }
+
+        quality_passed = quality_result.status.value in ("passed", "skipped")
+        blocked = block_on_failure and not quality_passed
+
+        logger.info(
+            f"Quality gates {'PASSED' if quality_passed else 'FAILED'}: "
+            f"{quality_details.get('error_count', 0)} errors, "
+            f"{quality_details.get('warning_count', 0)} warnings"
+        )
+
+        return QualityGatedResult(
+            result=codegen_result,
+            quality_passed=quality_passed,
+            quality_details=quality_details,
+            blocked=blocked,
+        )
 
 
 # Global service instance

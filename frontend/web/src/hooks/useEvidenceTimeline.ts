@@ -174,7 +174,7 @@ export function useRequestOverride() {
       )
       return response.data
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       // Invalidate related queries
       queryClient.invalidateQueries({ queryKey: evidenceTimelineKeys.all })
     },

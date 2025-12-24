@@ -11,7 +11,7 @@
  * Maps to backend Pydantic schemas in override.py.
  */
 
-import type { AIToolType, OverrideType, OverrideStatus } from './evidence-timeline'
+import { AIToolType, OverrideType } from './evidence-timeline'
 
 // Re-export for convenience
 export { OverrideType, OverrideStatus } from './evidence-timeline'

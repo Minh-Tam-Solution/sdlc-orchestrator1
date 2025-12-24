@@ -20,7 +20,6 @@
  */
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useInView } from 'react-intersection-observer'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import TimelineStatsBar from './TimelineStatsBar'
@@ -55,8 +54,19 @@ export default function EvidenceTimeline({ projectId }: EvidenceTimelineProps) {
   const [overrideEventId, setOverrideEventId] = useState<string | null>(null)
   const [overridePrNumber, setOverridePrNumber] = useState<string>('')
 
-  // Infinite scroll ref
-  const { ref: loadMoreRef, inView } = useInView()
+  // Infinite scroll ref - simple IntersectionObserver implementation
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry?.isIntersecting || false),
+      { threshold: 0.1 }
+    )
+    const current = loadMoreRef.current
+    if (current) observer.observe(current)
+    return () => { if (current) observer.unobserve(current) }
+  }, [])
 
   // Queries
   const {

@@ -432,25 +432,26 @@ class OllamaService:
             )
 
     def _build_recommendation_system_prompt(self) -> str:
-        """Build system prompt for SDLC 4.9.1 compliance recommendations."""
-        return """You are an expert SDLC 4.9.1 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
+        """Build system prompt for SDLC 5.1.1 compliance recommendations."""
+        return """You are an expert SDLC 5.1.1 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
 
-SDLC 4.9.1 Framework Overview:
-- Stage 00 (WHY): Problem Definition, Vision, Market Research
-- Stage 01 (WHAT): Requirements, User Stories, Data Model
-- Stage 02 (HOW): Architecture, API Design, Security Baseline
-- Stage 03 (BUILD): Development, Implementation, Code
-- Stage 04 (TEST): Unit Tests, Integration Tests, E2E Tests
-- Stage 05 (SECURE): Security Audit, Penetration Testing
-- Stage 06 (DEPLOY): CI/CD, Infrastructure, Release
-- Stage 07 (OPERATE): Monitoring, Logging, Alerting
-- Stage 08 (ITERATE): Feedback, Improvements, Versioning
-- Stage 09 (GOVERN): Compliance, Audit Trail, Policies
+SDLC 5.1.1 Framework Overview (10 Stages + Archive):
+- Stage 00 FOUNDATION (WHY?): Strategic Discovery & Validation
+- Stage 01 PLANNING (WHAT?): Requirements & User Stories
+- Stage 02 DESIGN (HOW?): Architecture & Technical Design
+- Stage 03 INTEGRATE: API Contracts & Third-party Setup
+- Stage 04 BUILD: Development & Implementation
+- Stage 05 TEST: Quality Assurance & Validation
+- Stage 06 DEPLOY: Release & Deployment
+- Stage 07 OPERATE: Production Operations & Monitoring
+- Stage 08 COLLABORATE: Team Coordination & Knowledge
+- Stage 09 GOVERN: Compliance & Strategic Oversight
+- Stage 10 ARCHIVE: Project Archive (Legacy Docs)
 
 Guidelines for recommendations:
 1. Be specific and actionable
 2. Provide concrete steps to fix the violation
-3. Reference SDLC 4.9.1 best practices
+3. Reference SDLC 5.1.1 best practices
 4. Suggest documentation templates if needed
 5. Keep recommendations concise (3-5 bullet points)
 6. Prioritize quick wins over major refactoring"""
@@ -466,7 +467,7 @@ Guidelines for recommendations:
         """Build user prompt with violation details."""
         context = context or {}
 
-        prompt = f"""Please provide a recommendation to fix this SDLC 4.9.1 compliance violation:
+        prompt = f"""Please provide a recommendation to fix this SDLC 5.1.1 compliance violation:
 
 **Violation Type**: {violation_type.replace("_", " ").title()}
 **Severity**: {severity.upper()}
@@ -545,12 +546,12 @@ Format your response as actionable steps, not a general explanation."""
         fallback_recommendations = {
             "missing_documentation": f"""**Recommendation for Missing Documentation**
 
-1. **Root Cause**: Required SDLC 4.9.1 documentation folder/file is missing at `{location}`.
+1. **Root Cause**: Required SDLC 5.1.1 documentation folder/file is missing at `{location}`.
 
 2. **Fix Steps**:
    - Create the missing folder structure at `{location}`
    - Add required documentation files (README.md, relevant stage docs)
-   - Follow SDLC 4.9.1 templates in docs/templates/
+   - Follow SDLC 5.1.1 templates in docs/templates/
    - Link to parent stage documentation
    - Submit for review via PR
 
@@ -626,7 +627,7 @@ Format your response as actionable steps, not a general explanation."""
 
 2. **Fix Steps**:
    - Review the violation description: {description}
-   - Consult SDLC 4.9.1 documentation for requirements
+   - Consult SDLC 5.1.1 documentation for requirements
    - Address the specific issue identified
    - Validate fix with local compliance scan
    - Submit changes for review

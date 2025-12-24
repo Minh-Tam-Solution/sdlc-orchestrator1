@@ -1,27 +1,28 @@
 """
 =========================================================================
-Project Sync Service - GitHub Repository Synchronization (Sprint 15)
+Project Sync Service - GitHub Repository Synchronization
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Version: 1.0.0
-Date: November 28, 2025
-Status: ACTIVE - Sprint 15 Day 4
-Authority: Backend Lead + CPO Approved
-Foundation: Sprint 15 Plan, User-Onboarding-Flow-Architecture.md
-Framework: SDLC 4.9 Complete Lifecycle
+Version: 2.0.0
+Date: December 24, 2025
+Status: ACTIVE - Sprint 49
+Authority: CTO Approved
+Foundation: SDLC-Project-Structure-Standard.md (SDLC 5.1.2)
+Framework: SDLC 5.1.2 Complete Lifecycle
 
 Purpose:
 - Sync GitHub repository metadata to SDLC Orchestrator project
 - Auto-detect project type and recommend policy pack
-- Auto-map repository structure to SDLC 4.9 stages
-- Create initial gates (G0.1, G0.2) for new projects
-- Background sync job (webhook + polling)
+- Auto-map /docs folders to SDLC stages (00-09) - NOT code folders
+- Validate project root structure (backend, frontend, required files)
+- Create initial gates (G0, G1) for new projects
 
-Features:
-- Repository analysis (languages, structure, contributors)
-- AI-powered stage mapping recommendations
-- Policy pack recommendation (Lite/Standard/Enterprise)
-- Initial gate creation with exit criteria
+Changes in v2.0.0:
+- Separated stage mapping (docs only) from structure validation (code folders)
+- Code folders (backend, frontend, tests) are NOT stage-mapped
+- Added PROJECT_STRUCTURE_SPEC for tier-based validation
+- structure_validation field added to API response
+- Backward compatible: stage_mappings field preserved
 
 Zero Mock Policy: Real GitHub API + database operations
 =========================================================================
@@ -51,121 +52,191 @@ logger = logging.getLogger(__name__)
 # Constants
 # ============================================================================
 
-# SDLC 4.9 Stage Definitions
+# SDLC 5.1.2 Stage Definitions (10 Stages: 00-09 + Archive folder)
+# Reference: SDLC-Enterprise-Framework/02-Core-Methodology/Documentation-Standards/SDLC-Project-Structure-Standard.md
 SDLC_STAGES = {
-    "STAGE_00": {"name": "WHY", "description": "Problem Definition & Design Thinking"},
-    "STAGE_01": {"name": "WHAT", "description": "Planning & Analysis"},
-    "STAGE_02": {"name": "HOW", "description": "Design & Architecture"},
-    "STAGE_03": {"name": "BUILD", "description": "Development & Implementation"},
-    "STAGE_04": {"name": "TEST", "description": "Testing & Quality Assurance"},
-    "STAGE_05": {"name": "SHIP", "description": "Deployment & Release"},
-    "STAGE_06": {"name": "OPERATE", "description": "Operations & Monitoring"},
-    "STAGE_07": {"name": "LEARN", "description": "Feedback & Iteration"},
-    "STAGE_08": {"name": "SCALE", "description": "Growth & Optimization"},
-    "STAGE_09": {"name": "SUNSET", "description": "Deprecation & End-of-Life"},
+    "STAGE_00": {"name": "FOUNDATION", "description": "Strategic Discovery & Validation", "question": "WHY?"},
+    "STAGE_01": {"name": "PLANNING", "description": "Requirements & User Stories", "question": "WHAT?"},
+    "STAGE_02": {"name": "DESIGN", "description": "Architecture & Technical Design", "question": "HOW?"},
+    "STAGE_03": {"name": "INTEGRATE", "description": "API Contracts & Third-party Setup", "question": "How connect?"},
+    "STAGE_04": {"name": "BUILD", "description": "Development & Implementation", "question": "Building right?"},
+    "STAGE_05": {"name": "TEST", "description": "Quality Assurance & Validation", "question": "Works correctly?"},
+    "STAGE_06": {"name": "DEPLOY", "description": "Release & Deployment", "question": "Ship safely?"},
+    "STAGE_07": {"name": "OPERATE", "description": "Production Operations & Monitoring", "question": "Running reliably?"},
+    "STAGE_08": {"name": "COLLABORATE", "description": "Team Coordination & Knowledge", "question": "Team effective?"},
+    "STAGE_09": {"name": "GOVERN", "description": "Compliance & Strategic Oversight", "question": "Compliant?"},
+    "STAGE_10": {"name": "ARCHIVE", "description": "Project Archive (Legacy Docs)", "question": "Archived?"},
 }
 
-# Folder → Stage Mapping Rules
+# Folder → Stage Mapping Rules (SDLC 5.1.2)
+# Reference: SDLC-Enterprise-Framework/02-Core-Methodology/Documentation-Standards/SDLC-Project-Structure-Standard.md
+# IMPORTANT: Only /docs folders are stage-mapped. Code folders are NOT stage-mapped.
 FOLDER_STAGE_MAPPING = {
-    # Stage 00: WHY
+    # Stage 00: FOUNDATION - Strategic Discovery & Validation
+    "docs/00-foundation": "STAGE_00",
+    "docs/00-Project-Foundation": "STAGE_00",  # Legacy 4.9.x support
     "docs/why": "STAGE_00",
     "docs/problem": "STAGE_00",
     "docs/research": "STAGE_00",
     "docs/interviews": "STAGE_00",
-    # Stage 01: WHAT
+    # Stage 01: PLANNING - Requirements & User Stories
+    "docs/01-planning": "STAGE_01",
+    "docs/01-Planning-Analysis": "STAGE_01",  # Legacy 4.9.x support
     "docs/requirements": "STAGE_01",
-    "docs/planning": "STAGE_01",
     "docs/specs": "STAGE_01",
     "docs/user-stories": "STAGE_01",
-    # Stage 02: HOW
+    # Stage 02: DESIGN - Architecture & Technical Design
+    "docs/02-design": "STAGE_02",
+    "docs/02-Design-Architecture": "STAGE_02",  # Legacy 4.9.x support
     "docs/architecture": "STAGE_02",
-    "docs/design": "STAGE_02",
     "docs/adr": "STAGE_02",
-    "docs/api": "STAGE_02",
-    # Stage 03: BUILD
-    "src": "STAGE_03",
-    "app": "STAGE_03",
-    "lib": "STAGE_03",
-    "backend": "STAGE_03",
-    "frontend": "STAGE_03",
-    # Stage 04: TEST
-    "tests": "STAGE_04",
-    "test": "STAGE_04",
-    "spec": "STAGE_04",
-    "__tests__": "STAGE_04",
-    "e2e": "STAGE_04",
-    # Stage 05: SHIP
-    ".github/workflows": "STAGE_05",
-    ".gitlab-ci.yml": "STAGE_05",
-    "Dockerfile": "STAGE_05",
-    "docker-compose": "STAGE_05",
-    "k8s": "STAGE_05",
-    "kubernetes": "STAGE_05",
-    "deploy": "STAGE_05",
-    # Stage 06: OPERATE
-    "monitoring": "STAGE_06",
-    "observability": "STAGE_06",
-    "grafana": "STAGE_06",
-    "prometheus": "STAGE_06",
-    # Stage 07: LEARN
-    "docs/retrospective": "STAGE_07",
-    "docs/lessons": "STAGE_07",
-    "CHANGELOG": "STAGE_07",
+    # Stage 03: INTEGRATE - API Contracts & Third-party Setup
+    "docs/03-integrate": "STAGE_03",
+    "docs/integrations": "STAGE_03",
+    "docs/api-contracts": "STAGE_03",
+    "docs/api": "STAGE_03",
+    # Stage 04: BUILD - Development & Implementation
+    "docs/04-build": "STAGE_04",
+    "docs/development": "STAGE_04",
+    "docs/sprints": "STAGE_04",
+    # Stage 05: TEST - Quality Assurance & Validation
+    "docs/05-test": "STAGE_05",
+    "docs/testing": "STAGE_05",
+    "docs/qa": "STAGE_05",
+    # Stage 06: DEPLOY - Release & Deployment
+    "docs/06-deploy": "STAGE_06",
+    "docs/deployment": "STAGE_06",
+    "docs/release": "STAGE_06",
+    # Stage 07: OPERATE - Production Operations & Monitoring
+    "docs/07-operate": "STAGE_07",
+    "docs/operations": "STAGE_07",
+    "docs/runbooks": "STAGE_07",
+    # Stage 08: COLLABORATE - Team Coordination & Knowledge
+    "docs/08-collaborate": "STAGE_08",
+    "docs/team": "STAGE_08",
+    "docs/retrospective": "STAGE_08",
+    "docs/lessons": "STAGE_08",
+    # Stage 09: GOVERN - Compliance & Strategic Oversight
+    "docs/09-govern": "STAGE_09",
+    "docs/compliance": "STAGE_09",
+    "docs/governance": "STAGE_09",
+    "docs/audit": "STAGE_09",
+    # Stage 10: ARCHIVE - Project Archive (NOT a stage, just archive folder)
+    "docs/10-archive": "STAGE_10",
+    "docs/archive": "STAGE_10",
 }
 
-# Policy Pack Definitions
+# Project Structure Validation Spec (SDLC 5.1.2)
+# Reference: SDLC-Enterprise-Framework/02-Core-Methodology/Documentation-Standards/SDLC-Project-Structure-Standard.md
+# NOTE: Code folders are validated for PRESENCE only, NOT mapped to stages
+PROJECT_STRUCTURE_SPEC = {
+    # Code folders (NOT stage-mapped, validated for presence)
+    "code_folders": {
+        "backend": {"required_for": "all", "description": "Backend code"},
+        "frontend": {"required_for": "all", "description": "Frontend code"},
+        "tools": {"required_for": "professional+", "description": "Utility scripts"},
+        "tests": {"required_for": "standard+", "description": "Test suites"},
+        "mobile": {"required_for": "optional", "description": "Mobile app code"},
+        "infra": {"required_for": "professional+", "description": "Infrastructure as Code"},
+    },
+    # Required files by tier
+    "required_files": {
+        "README.md": {"required_for": "all", "description": "Project overview"},
+        "CLAUDE.md": {"required_for": "standard+", "description": "AI Assistant context"},
+        ".env.example": {"required_for": "standard+", "description": "Environment template"},
+        "docker-compose.yml": {"required_for": "professional+", "description": "Local dev environment"},
+        "Makefile": {"required_for": "professional+", "description": "Build automation"},
+        ".gitignore": {"required_for": "all", "description": "Git ignore rules"},
+    },
+    # Legacy folders (99-legacy/) requirements
+    "legacy_folders": {
+        "required_for": "professional+",
+        "locations": ["backend/99-legacy", "frontend/99-legacy", "tools/99-legacy"],
+    },
+}
+
+# Tier hierarchy for requirement matching
+TIER_HIERARCHY = {
+    "lite": 1,
+    "standard": 2,
+    "professional": 3,
+    "enterprise": 4,
+}
+
+def _tier_matches(required_for: str, current_tier: str) -> bool:
+    """Check if current tier meets requirement level."""
+    if required_for == "all":
+        return True
+    if required_for == "optional":
+        return False  # Optional items don't count as required
+
+    # Parse "standard+", "professional+", etc.
+    if required_for.endswith("+"):
+        min_tier = required_for[:-1]
+        return TIER_HIERARCHY.get(current_tier, 0) >= TIER_HIERARCHY.get(min_tier, 0)
+
+    # Exact tier match
+    return current_tier == required_for
+
+# Policy Pack Definitions (SDLC 5.1.1 4-Tier Classification)
+# Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 POLICY_PACKS = {
     "lite": {
         "name": "Lite",
-        "gates": ["G0.1", "G1", "G3", "G5"],
-        "description": "Essential gates for small teams",
-        "team_size_range": (1, 10),
+        "gates": ["G0", "G1", "G2", "G4"],  # FOUNDATION, PLANNING, DESIGN, BUILD
+        "description": "Essential gates for solo developers & startups (1-2 people)",
+        "team_size_range": (1, 2),
+        "requirements": ["Basic Quality Gates", "README.md + .env.example"],
+        "required_stages": ["00", "01", "02", "04"],
     },
     "standard": {
         "name": "Standard",
-        "gates": ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6"],
-        "description": "Comprehensive governance for growing teams",
+        "gates": ["G0", "G1", "G2", "G4", "G5", "G6"],  # FOUNDATION to DEPLOY
+        "description": "Comprehensive governance for small teams (3-10 people)",
+        "team_size_range": (3, 10),
+        "requirements": ["Quality Gates (CI/CD)", "Security Gates", "CLAUDE.md"],
+        "required_stages": ["00", "01", "02", "04", "05", "06"],
+    },
+    "professional": {
+        "name": "Professional",
+        "gates": ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"],  # All 10 stages
+        "description": "Full governance for growing organizations (10-50 people)",
         "team_size_range": (10, 50),
+        "requirements": ["Full Quality Gates (80%+ coverage)", "SBOM, SAST, OWASP L1", "Full /docs structure"],
+        "required_stages": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09"],
     },
     "enterprise": {
         "name": "Enterprise",
-        "gates": ["G0.1", "G0.2", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9"],
-        "description": "Full SDLC 4.9 compliance for large organizations",
+        "gates": ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"],  # All stages + Archive
+        "description": "Full SDLC 5.1.1 compliance for large organizations (50+ people)",
         "team_size_range": (50, 10000),
+        "requirements": ["Everything in Professional", "OWASP ASVS L2+", "95%+ coverage", "Quarterly audits"],
+        "required_stages": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
     },
 }
 
-# Gate Definitions with Exit Criteria
+# Gate Definitions with Exit Criteria (SDLC 5.1.1)
+# Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 GATE_DEFINITIONS = {
-    "G0.1": {
-        "name": "Problem Definition",
+    "G0": {
+        "name": "Foundation Ready",
         "stage": "STAGE_00",
-        "type": "DESIGN_THINKING",
-        "description": "Validate problem statement and user need",
+        "type": "FOUNDATION_READY",
+        "description": "Strategic discovery and validation complete",
         "exit_criteria": [
             "Problem statement documented",
             "5+ user interviews conducted",
             "Pain points identified and prioritized",
             "Success metrics defined",
-        ],
-    },
-    "G0.2": {
-        "name": "Solution Diversity",
-        "stage": "STAGE_00",
-        "type": "DESIGN_THINKING",
-        "description": "Explore multiple solution approaches",
-        "exit_criteria": [
             "3+ solution alternatives documented",
             "Build vs Buy analysis completed",
-            "Solution hypothesis validated",
-            "Stakeholder alignment achieved",
         ],
     },
     "G1": {
         "name": "Planning Complete",
         "stage": "STAGE_01",
-        "type": "PLANNING",
-        "description": "Requirements and planning phase complete",
+        "type": "PLANNING_COMPLETE",
+        "description": "Requirements and user stories defined",
         "exit_criteria": [
             "Functional requirements documented",
             "User stories created and prioritized",
@@ -176,8 +247,8 @@ GATE_DEFINITIONS = {
     "G2": {
         "name": "Design Ready",
         "stage": "STAGE_02",
-        "type": "DESIGN",
-        "description": "Architecture and design phase complete",
+        "type": "DESIGN_READY",
+        "description": "Architecture and technical design complete",
         "exit_criteria": [
             "System architecture documented",
             "ADRs for key decisions",
@@ -186,10 +257,22 @@ GATE_DEFINITIONS = {
         ],
     },
     "G3": {
-        "name": "Build Complete",
+        "name": "Integration Ready",
         "stage": "STAGE_03",
-        "type": "DEVELOPMENT",
-        "description": "Development phase complete",
+        "type": "INTEGRATE_READY",
+        "description": "API contracts and third-party setup complete",
+        "exit_criteria": [
+            "API contracts finalized",
+            "Third-party integrations configured",
+            "Authentication/authorization setup",
+            "Data flow documented",
+        ],
+    },
+    "G4": {
+        "name": "Build Complete",
+        "stage": "STAGE_04",
+        "type": "BUILD_COMPLETE",
+        "description": "Development and implementation complete",
         "exit_criteria": [
             "All features implemented",
             "Code review completed",
@@ -197,11 +280,11 @@ GATE_DEFINITIONS = {
             "No critical bugs",
         ],
     },
-    "G4": {
-        "name": "Test Complete",
-        "stage": "STAGE_04",
-        "type": "TESTING",
-        "description": "Testing phase complete",
+    "G5": {
+        "name": "Test Passed",
+        "stage": "STAGE_05",
+        "type": "TEST_PASSED",
+        "description": "Quality assurance and validation complete",
         "exit_criteria": [
             "Integration tests passing",
             "E2E tests passing",
@@ -209,10 +292,10 @@ GATE_DEFINITIONS = {
             "Security scan passed",
         ],
     },
-    "G5": {
-        "name": "Ship Ready",
-        "stage": "STAGE_05",
-        "type": "RELEASE",
+    "G6": {
+        "name": "Deploy Ready",
+        "stage": "STAGE_06",
+        "type": "DEPLOY_READY",
         "description": "Ready for production deployment",
         "exit_criteria": [
             "CI/CD pipeline configured",
@@ -221,16 +304,52 @@ GATE_DEFINITIONS = {
             "Monitoring configured",
         ],
     },
-    "G6": {
-        "name": "Operate Stable",
-        "stage": "STAGE_06",
-        "type": "OPERATIONS",
+    "G7": {
+        "name": "Operate Ready",
+        "stage": "STAGE_07",
+        "type": "OPERATE_READY",
         "description": "Production operations stable",
         "exit_criteria": [
             "SLO targets met",
             "Incident response tested",
             "On-call rotation established",
             "Documentation complete",
+        ],
+    },
+    "G8": {
+        "name": "Collaborate Setup",
+        "stage": "STAGE_08",
+        "type": "COLLABORATE_SETUP",
+        "description": "Team coordination and knowledge sharing",
+        "exit_criteria": [
+            "Knowledge base updated",
+            "Team retrospective completed",
+            "Lessons learned documented",
+            "Training materials available",
+        ],
+    },
+    "G9": {
+        "name": "Govern Complete",
+        "stage": "STAGE_09",
+        "type": "GOVERN_COMPLETE",
+        "description": "Compliance and strategic oversight complete",
+        "exit_criteria": [
+            "Compliance audit passed",
+            "Security review completed",
+            "Executive report delivered",
+            "Strategic alignment verified",
+        ],
+    },
+    "G10": {
+        "name": "Archive Complete",
+        "stage": "STAGE_10",
+        "type": "ARCHIVE_COMPLETE",
+        "description": "Project archived with full documentation",
+        "exit_criteria": [
+            "All artifacts archived",
+            "Knowledge transfer completed",
+            "Deprecation plan executed",
+            "Final report delivered",
         ],
     },
 }
@@ -419,14 +538,30 @@ class ProjectSyncService:
         # 6. Detect compliance requirements
         compliance = self._detect_compliance_requirements(contents)
 
-        # 7. Map folders to stages
+        # 7. Recommend policy pack first (needed for structure validation)
+        file_count = len(contents) if contents else 0
+        recommended_pack = self._recommend_policy_pack(
+            team_size=team_size,
+            compliance=compliance,
+            languages=languages,
+            file_count=file_count
+        )
+
+        # 8. Map /docs folders to stages (SDLC 5.1.2: only docs, not code folders)
         stage_mappings = self._map_folders_to_stages(contents)
 
-        # 8. Recommend policy pack
-        recommended_pack = self._recommend_policy_pack(team_size, compliance)
+        # 9. Validate project structure (SDLC 5.1.2: code folders + required files)
+        structure_validation = self._validate_project_structure(
+            contents=contents,
+            recommended_tier=recommended_pack,
+        )
 
-        # 9. Build analysis result
+        # 10. Build analysis result
         primary_language = max(languages, key=languages.get) if languages else None
+
+        # Calculate codebase metrics for transparency
+        codebase_bytes = sum(languages.values()) if languages else 0
+        estimated_loc = int(codebase_bytes / 40) if codebase_bytes > 0 else 0
 
         return {
             "repository": {
@@ -443,13 +578,28 @@ class ProjectSyncService:
             "primary_language": primary_language,
             "project_type": project_type,
             "team_size_estimate": team_size,
+            "team_size_source": "github_contributors",  # or "unknown" if not detected
             "compliance_requirements": compliance,
+            # SDLC 5.1.2: stage_mappings contains only /docs folders (backward compatible)
             "stage_mappings": stage_mappings,
+            # SDLC 5.1.2: NEW - structure_validation for code folders + required files
+            "structure_validation": structure_validation,
+            "codebase_metrics": {
+                "total_bytes": codebase_bytes,
+                "estimated_loc": estimated_loc,
+                "file_count": file_count,
+                "language_count": len(languages) if languages else 0,
+            },
             "recommendations": {
                 "policy_pack": recommended_pack,
                 "policy_pack_info": POLICY_PACKS[recommended_pack],
-                "initial_gates": POLICY_PACKS[recommended_pack]["gates"][:2],  # G0.1, G0.2
+                "initial_gates": POLICY_PACKS[recommended_pack]["gates"][:2],  # G0, G1
                 "confidence_score": 0.85,
+                "factors": {
+                    "codebase_size": "large" if estimated_loc >= 100_000 else "medium" if estimated_loc >= 10_000 else "small",
+                    "team_size": "detected" if team_size > 0 else "unknown",
+                    "compliance": "required" if compliance else "none",
+                },
             },
         }
 
@@ -473,7 +623,7 @@ class ProjectSyncService:
             List of created gate info
         """
         gates_created = []
-        initial_gates = ["G0.1", "G0.2"]  # Always start with Design Thinking gates
+        initial_gates = ["G0", "G1"]  # Start with Foundation Ready and Planning Complete gates
 
         for gate_code in initial_gates:
             gate_def = GATE_DEFINITIONS.get(gate_code)
@@ -611,8 +761,20 @@ class ProjectSyncService:
     def _map_folders_to_stages(
         self,
         contents: list[dict],
-    ) -> list[dict[str, str]]:
-        """Map repository folders to SDLC stages."""
+    ) -> list[dict[str, Any]]:
+        """
+        Map /docs folders to SDLC stages (SDLC 5.1.2).
+
+        IMPORTANT: Only /docs subfolders are stage-mapped.
+        Code folders (backend, frontend, tests) are NOT stage-mapped.
+        They are validated separately via _validate_project_structure().
+
+        Args:
+            contents: List of repository contents from GitHub API
+
+        Returns:
+            List of stage mappings for /docs folders only
+        """
         mappings = []
 
         for item in contents:
@@ -621,56 +783,191 @@ class ProjectSyncService:
 
             path = item["path"].lower()
 
-            # Check against mapping rules
+            # Only process /docs folders for stage mapping
+            if not path.startswith("docs"):
+                continue
+
+            # Check against mapping rules (docs only)
             for folder_pattern, stage in FOLDER_STAGE_MAPPING.items():
                 if path.startswith(folder_pattern) or path == folder_pattern:
                     mappings.append({
                         "path": item["path"],
                         "stage": stage,
                         "stage_name": SDLC_STAGES[stage]["name"],
-                        "confidence": 0.9,
+                        "stage_code": stage.replace("STAGE_", ""),  # "00", "01", etc.
+                        "confidence": 0.95 if path == folder_pattern else 0.85,
+                        "status": "found",
                     })
                     break
             else:
-                # Default mapping for common folders
-                if path in ["src", "app", "lib"]:
-                    mappings.append({
-                        "path": item["path"],
-                        "stage": "STAGE_03",
-                        "stage_name": "BUILD",
-                        "confidence": 0.8,
-                    })
-                elif path in ["tests", "test", "__tests__"]:
-                    mappings.append({
-                        "path": item["path"],
-                        "stage": "STAGE_04",
-                        "stage_name": "TEST",
-                        "confidence": 0.8,
-                    })
-                elif path == "docs":
-                    mappings.append({
-                        "path": item["path"],
-                        "stage": "STAGE_01",
-                        "stage_name": "WHAT",
-                        "confidence": 0.6,
-                    })
+                # Unrecognized docs subfolder - needs manual mapping
+                if "/" in path and path.startswith("docs/"):
+                    subfolder = path.split("/")[1] if len(path.split("/")) > 1 else ""
+                    if subfolder and not subfolder.startswith("99-"):  # Ignore legacy folders
+                        mappings.append({
+                            "path": item["path"],
+                            "stage": None,
+                            "stage_name": None,
+                            "stage_code": None,
+                            "confidence": 0.0,
+                            "status": "unmapped",
+                        })
 
         return mappings
+
+    def _validate_project_structure(
+        self,
+        contents: list[dict],
+        recommended_tier: str = "standard",
+    ) -> dict[str, Any]:
+        """
+        Validate project root structure (SDLC 5.1.2).
+
+        This validates code folders (backend, frontend, etc.) and required files.
+        These items are NOT stage-mapped - they exist independently of SDLC stages.
+
+        Args:
+            contents: List of repository contents from GitHub API
+            recommended_tier: Tier to validate against (lite, standard, professional, enterprise)
+
+        Returns:
+            Structure validation result with found/missing items and breakdown
+        """
+        # Build lookup sets for quick matching
+        folder_names = {item["name"].lower() for item in contents if item["type"] == "dir"}
+        file_names = {item["name"].lower() for item in contents if item["type"] == "file"}
+        all_items = folder_names | file_names
+
+        # Validate code folders
+        code_folders_result = {}
+        for folder, spec in PROJECT_STRUCTURE_SPEC["code_folders"].items():
+            is_required = _tier_matches(spec["required_for"], recommended_tier)
+            found = folder.lower() in folder_names
+            code_folders_result[folder] = {
+                "found": found,
+                "required_for": spec["required_for"],
+                "required": is_required,
+                "status": "found" if found else ("missing" if is_required else "optional"),
+            }
+
+        # Validate required files
+        required_files_result = {}
+        for filename, spec in PROJECT_STRUCTURE_SPEC["required_files"].items():
+            is_required = _tier_matches(spec["required_for"], recommended_tier)
+            found = filename.lower() in all_items
+            required_files_result[filename] = {
+                "found": found,
+                "required_for": spec["required_for"],
+                "required": is_required,
+                "status": "found" if found else ("missing" if is_required else "optional"),
+            }
+
+        # Calculate breakdown
+        all_items_to_check = list(code_folders_result.values()) + list(required_files_result.values())
+        found_count = sum(1 for item in all_items_to_check if item["found"])
+        required_count = sum(1 for item in all_items_to_check if item["required"])
+        missing_required = sum(1 for item in all_items_to_check if item["required"] and not item["found"])
+
+        return {
+            "code_folders": code_folders_result,
+            "required_files": required_files_result,
+            "compliance_score": None,  # Per CTO: null, no scoring yet
+            "breakdown": {
+                "found": found_count,
+                "missing": missing_required,
+                "total": len(all_items_to_check),
+                "required_total": required_count,
+            },
+            "tier_validated": recommended_tier,
+        }
 
     def _recommend_policy_pack(
         self,
         team_size: int,
         compliance: list[str],
+        languages: dict[str, int] | None = None,
+        file_count: int = 0,
     ) -> str:
-        """Recommend policy pack based on team size and compliance needs."""
-        # Enterprise if compliance requirements
-        if any(c in compliance for c in ["hipaa", "gdpr", "soc2", "security_critical"]):
+        """
+        Recommend policy pack based on multiple factors.
+
+        Factors considered:
+        - Team size: Number of contributors
+        - Compliance requirements: HIPAA, GDPR, SOC2, etc.
+        - Codebase size: Total bytes of code across all languages
+        - File count: Number of files in repository
+
+        AI-assisted development (like SDLC Orchestrator) enables small teams
+        to build enterprise-scale applications, so codebase complexity
+        is weighted heavily in the recommendation.
+        """
+        # Calculate codebase size (total bytes across all languages)
+        codebase_bytes = sum(languages.values()) if languages else 0
+        codebase_mb = codebase_bytes / (1024 * 1024)  # Convert to MB
+
+        # Estimate Lines of Code (rough approximation: 40 bytes per line avg)
+        estimated_loc = codebase_bytes / 40 if codebase_bytes > 0 else 0
+
+        # Score-based recommendation (0-100)
+        score = 0
+
+        # 1. Compliance requirements (highest weight - auto-enterprise)
+        if any(c in compliance for c in ["hipaa", "gdpr", "soc2", "security_critical", "pci_dss"]):
             return "enterprise"
 
-        # Based on team size
+        # 2. Codebase size scoring (40% weight)
+        # - >1M LOC or >40MB code = Enterprise-scale
+        # - >100K LOC or >4MB code = Professional-scale
+        # - >10K LOC or >400KB code = Standard-scale
+        # - <10K LOC = Lite-scale
+        if estimated_loc >= 1_000_000 or codebase_mb >= 40:
+            score += 40  # Enterprise codebase
+        elif estimated_loc >= 100_000 or codebase_mb >= 4:
+            score += 30  # Professional codebase
+        elif estimated_loc >= 10_000 or codebase_mb >= 0.4:
+            score += 20  # Standard codebase
+        else:
+            score += 10  # Lite codebase
+
+        # 3. Team size scoring (30% weight)
         if team_size >= 50:
-            return "enterprise"
+            score += 30
+        elif team_size >= 20:
+            score += 25
         elif team_size >= 10:
+            score += 20
+        elif team_size >= 5:
+            score += 15
+        else:
+            score += 10
+
+        # 4. File count scoring (20% weight)
+        # More files = more complexity = higher governance needs
+        if file_count >= 1000:
+            score += 20
+        elif file_count >= 500:
+            score += 15
+        elif file_count >= 100:
+            score += 10
+        else:
+            score += 5
+
+        # 5. Language diversity scoring (10% weight)
+        # More languages = more complex project
+        num_languages = len(languages) if languages else 0
+        if num_languages >= 5:
+            score += 10
+        elif num_languages >= 3:
+            score += 7
+        else:
+            score += 5
+
+        # Determine tier based on total score
+        if score >= 75:
+            return "enterprise"
+        elif score >= 55:
+            return "professional"
+        elif score >= 35:
             return "standard"
         else:
             return "lite"

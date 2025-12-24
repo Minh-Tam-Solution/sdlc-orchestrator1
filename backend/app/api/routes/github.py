@@ -49,7 +49,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_active_user
 from app.core.config import settings
-from app.core.security import create_access_token, create_refresh_token
+from app.core.security import create_access_token, create_refresh_token, hash_api_key
 from app.db.session import get_db
 from app.models.project import Project
 from app.models.user import OAuthAccount, User, RefreshToken
@@ -271,7 +271,7 @@ async def handle_oauth_callback(
         # Store refresh token in database
         db_refresh_token = RefreshToken(
             user_id=user.id,
-            token=refresh_token,
+            token_hash=hash_api_key(refresh_token),
             expires_at=datetime.utcnow()
             + settings.REFRESH_TOKEN_EXPIRE_TIMEDELTA,
         )

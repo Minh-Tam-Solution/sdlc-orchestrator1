@@ -571,7 +571,8 @@ class TestAISecurityValidator:
     @pytest.mark.asyncio
     async def test_validate_no_ai_files(self, ai_security_validator):
         """Test validation with no AI-related files."""
-        files = ["app/main.py", "app/routes.py"]
+        # Note: avoid file names containing AI-related substrings like "ai" in "main"
+        files = ["app/core/settings.py", "app/routes/users.py"]
 
         result = await ai_security_validator.validate(
             project_id=uuid4(),

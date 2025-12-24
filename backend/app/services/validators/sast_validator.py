@@ -379,11 +379,7 @@ class AISecurityValidator(BaseValidator):
         started_at = time.time()
 
         try:
-            # Get Semgrep service with AI security rules
-            ai_rules_path = self._get_ai_rules_path()
-            semgrep = get_semgrep_service(custom_rules_path=ai_rules_path)
-
-            # Filter AI-related files
+            # Filter AI-related files first (avoid initializing Semgrep if no files)
             ai_files = [f for f in files if self._is_ai_related(f)]
 
             if not ai_files:
@@ -396,6 +392,10 @@ class AISecurityValidator(BaseValidator):
                     duration_ms=duration_ms,
                     blocking=False,
                 )
+
+            # Get Semgrep service with AI security rules (only if we have files to scan)
+            ai_rules_path = self._get_ai_rules_path()
+            semgrep = get_semgrep_service(custom_rules_path=ai_rules_path)
 
             # Scan files
             scan_result = await semgrep.scan_files(files=ai_files)

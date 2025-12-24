@@ -1,16 +1,18 @@
 /**
  * File: frontend/web/src/components/gates/EditGateDialog.tsx
- * Version: 1.0.0
- * Status: ACTIVE - STAGE 03 (BUILD)
- * Date: November 28, 2025
+ * Version: 2.0.0
+ * Status: ACTIVE - STAGE 04 (BUILD)
+ * Date: December 24, 2025
  * Authority: Frontend Lead + CTO Approved
- * Framework: SDLC 4.9 Complete Lifecycle
+ * Framework: SDLC 5.1.1 Complete Lifecycle
  *
  * Description:
  * Dialog for editing existing quality gates.
  * Uses PUT /gates/{id} API endpoint.
  *
- * SDLC 4.9 Compliance:
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
+ *
+ * SDLC 5.1.1 Compliance:
  * - Pillar 1: Zero Mock Policy (Real API calls)
  * - Pillar 3: Quality Governance (Type hints, validation)
  */
@@ -46,18 +48,22 @@ interface EditGateDialogProps {
   onSuccess?: (gate: GateResponse) => void
 }
 
-// Gate types based on SDLC 4.9
+/**
+ * Quality Gate types aligned with SDLC 5.1.1 stages
+ * Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
+ */
 const GATE_TYPES = [
   { value: 'FOUNDATION_READY', label: 'Foundation Ready (G0)' },
   { value: 'PLANNING_COMPLETE', label: 'Planning Complete (G1)' },
   { value: 'DESIGN_READY', label: 'Design Ready (G2)' },
-  { value: 'BUILD_COMPLETE', label: 'Build Complete (G3)' },
-  { value: 'VERIFY_PASSED', label: 'Verification Passed (G4)' },
-  { value: 'SHIP_READY', label: 'Ship Ready (G5)' },
-  { value: 'OPERATE_READY', label: 'Operate Ready (G6)' },
-  { value: 'OBSERVE_SETUP', label: 'Observe Setup (G7)' },
-  { value: 'LEARN_COMPLETE', label: 'Learn Complete (G8)' },
-  { value: 'EVOLVE_PLANNED', label: 'Evolve Planned (G9)' },
+  { value: 'INTEGRATE_READY', label: 'Integration Ready (G3)' },
+  { value: 'BUILD_COMPLETE', label: 'Build Complete (G4)' },
+  { value: 'TEST_PASSED', label: 'Test Passed (G5)' },
+  { value: 'DEPLOY_READY', label: 'Deploy Ready (G6)' },
+  { value: 'OPERATE_READY', label: 'Operate Ready (G7)' },
+  { value: 'COLLABORATE_SETUP', label: 'Collaborate Setup (G8)' },
+  { value: 'GOVERN_COMPLETE', label: 'Govern Complete (G9)' },
+  { value: 'ARCHIVE_COMPLETE', label: 'Archive Complete (G10)' },
 ]
 
 /**
