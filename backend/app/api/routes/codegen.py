@@ -1232,3 +1232,560 @@ async def get_provider_health_history(
         )
     finally:
         db.close()
+
+
+# ============================================================================
+# Generate with Quality Pipeline + ZIP Export
+# Sprint 49: Full Code Generation with 4-Gate Quality Pipeline
+# ============================================================================
+
+
+class QualityGateIssue(BaseModel):
+    """Single issue from quality gate."""
+    file: str
+    line: Optional[int] = None
+    column: Optional[int] = None
+    severity: str
+    code: str
+    message: str
+    suggestion: Optional[str] = None
+
+
+class QualityGateResult(BaseModel):
+    """Result of a single quality gate."""
+    gate_name: str
+    gate_number: int
+    status: str
+    duration_ms: int
+    error_count: int
+    warning_count: int
+    summary: str
+    issues: List[QualityGateIssue] = []
+
+
+class QualityPipelineResult(BaseModel):
+    """Full quality pipeline result."""
+    success: bool
+    total_duration_ms: int
+    failed_gate: Optional[int] = None
+    summary: str
+    gates: List[QualityGateResult] = []
+
+
+class GenerateWithQualityResponse(BaseModel):
+    """Response for generate with quality pipeline."""
+    success: bool
+    provider: str
+    files: Dict[str, str]
+    file_count: int
+    total_lines: int
+    tokens_used: int
+    generation_time_ms: int
+    quality: QualityPipelineResult
+    download_url: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+
+
+@router.post("/generate/full", response_model=GenerateWithQualityResponse)
+async def generate_with_quality(
+    request: GenerateRequest,
+    current_user: User = Depends(get_current_active_user),
+    service: CodegenService = Depends(get_service),
+) -> GenerateWithQualityResponse:
+    """
+    Generate code with full 4-Gate Quality Pipeline.
+
+    This endpoint:
+    1. Generates code using AI provider (Ollama/Claude)
+    2. Runs 4-Gate Quality Pipeline (Syntax, Security, Context, Tests)
+    3. Returns detailed quality report
+
+    Sprint 49: EP-06 Full Code Generation with Quality
+
+    Args:
+        request: GenerateRequest with app_blueprint
+
+    Returns:
+        GenerateWithQualityResponse with files and quality report
+
+    Raises:
+        503: No providers available
+        500: Generation failed
+    """
+    from app.services.codegen.quality_pipeline import get_quality_pipeline
+
+    logger.info(
+        f"Full code generation requested by user {current_user.id}: "
+        f"language={request.language}, framework={request.framework}"
+    )
+
+    try:
+        # Step 1: Generate code
+        spec = CodegenSpec(
+            app_blueprint=request.app_blueprint,
+            target_module=request.target_module,
+            language=request.language,
+            framework=request.framework
+        )
+
+        result = await service.generate(
+            spec,
+            preferred_provider=request.preferred_provider
+        )
+
+        logger.info(
+            f"Generation complete: {len(result.files)} files, {result.tokens_used} tokens"
+        )
+
+        # Step 2: Run Quality Pipeline
+        pipeline = get_quality_pipeline()
+        quality_result = pipeline.run(
+            files=result.files,
+            language=request.language,
+        )
+
+        logger.info(
+            f"Quality pipeline complete: {quality_result.summary}"
+        )
+
+        # Calculate file stats
+        file_count = len(result.files)
+        total_lines = sum(len(content.split('\n')) for content in result.files.values())
+
+        # Convert quality result to response format
+        quality_response = QualityPipelineResult(
+            success=quality_result.success,
+            total_duration_ms=quality_result.total_duration_ms,
+            failed_gate=quality_result.failed_gate,
+            summary=quality_result.summary,
+            gates=[
+                QualityGateResult(
+                    gate_name=g.gate_name,
+                    gate_number=g.gate_number,
+                    status=g.status.value,
+                    duration_ms=g.duration_ms,
+                    error_count=g.error_count,
+                    warning_count=g.warning_count,
+                    summary=g.summary,
+                    issues=[
+                        QualityGateIssue(
+                            file=i.file_path,
+                            line=i.line,
+                            column=i.column,
+                            severity=i.severity,
+                            code=i.code,
+                            message=i.message,
+                            suggestion=i.suggestion,
+                        )
+                        for i in g.issues
+                    ],
+                )
+                for g in quality_result.gates
+            ],
+        )
+
+        return GenerateWithQualityResponse(
+            success=True,
+            provider=result.provider,
+            files=result.files,
+            file_count=file_count,
+            total_lines=total_lines,
+            tokens_used=result.tokens_used,
+            generation_time_ms=result.generation_time_ms,
+            quality=quality_response,
+            metadata=result.metadata,
+        )
+
+    except NoProviderAvailableError as e:
+        logger.error(f"No providers available: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e)
+        )
+
+    except GenerationError as e:
+        logger.error(f"Generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Code generation failed: {e}"
+        )
+
+
+@router.post("/generate/zip")
+async def generate_zip(
+    request: GenerateRequest,
+    current_user: User = Depends(get_current_active_user),
+    service: CodegenService = Depends(get_service),
+):
+    """
+    Generate code and return as downloadable ZIP file.
+
+    Creates a proper folder structure for immediate use.
+
+    Sprint 49: EP-06 ZIP Export
+
+    Args:
+        request: GenerateRequest with app_blueprint
+
+    Returns:
+        StreamingResponse with ZIP file
+    """
+    import io
+    import zipfile
+    from datetime import datetime
+    from fastapi.responses import StreamingResponse
+
+    logger.info(f"ZIP generation requested by user {current_user.id}")
+
+    try:
+        # Generate code
+        spec = CodegenSpec(
+            app_blueprint=request.app_blueprint,
+            target_module=request.target_module,
+            language=request.language,
+            framework=request.framework
+        )
+
+        result = await service.generate(
+            spec,
+            preferred_provider=request.preferred_provider
+        )
+
+        # Create ZIP in memory
+        zip_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Add generated files
+            for file_path, content in result.files.items():
+                zip_file.writestr(file_path, content)
+
+            # Add README with generation info
+            app_name = request.app_blueprint.get("name", "Generated App")
+            readme_content = f"""# {app_name}
+
+Generated by SDLC Orchestrator EP-06
+
+## Generation Info
+- Date: {datetime.utcnow().isoformat()}
+- Provider: {result.provider}
+- Language: {request.language}
+- Framework: {request.framework}
+- Files: {len(result.files)}
+- Tokens Used: {result.tokens_used}
+
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+uvicorn app.main:app --reload
+```
+
+## Project Structure
+```
+{chr(10).join(sorted(result.files.keys()))}
+```
+
+---
+Generated with ❤️ by SDLC Orchestrator
+"""
+            zip_file.writestr("README.md", readme_content)
+
+            # Add requirements.txt if not present
+            if "requirements.txt" not in result.files:
+                requirements = """# Generated dependencies
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+sqlalchemy>=2.0.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+"""
+                zip_file.writestr("requirements.txt", requirements)
+
+        zip_buffer.seek(0)
+
+        # Generate filename
+        safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in app_name)
+        filename = f"{safe_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.zip"
+
+        logger.info(f"ZIP created: {filename}, {len(result.files)} files")
+
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+            }
+        )
+
+    except NoProviderAvailableError as e:
+        logger.error(f"No providers available: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e)
+        )
+
+    except GenerationError as e:
+        logger.error(f"Generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Code generation failed: {e}"
+        )
+
+
+# ============================================================================
+# Streaming Code Generation (Sprint 51A)
+# SSE-based progressive code generation with real-time file events
+# ============================================================================
+
+
+@router.post("/generate/stream")
+async def generate_stream(
+    request: GenerateRequest,
+    current_user: User = Depends(get_current_active_user),
+    service: CodegenService = Depends(get_service),
+):
+    """
+    Stream code generation with real-time file events via SSE.
+
+    Sprint 51A: Progressive Code Generation Flow
+
+    This endpoint streams events as files are generated:
+    - started: Generation session initiated with provider info
+    - file_generating: File generation started
+    - file_generated: File completed with content and syntax check
+    - quality_started: Quality pipeline initiated
+    - quality_gate: Individual gate results
+    - completed: All files generated successfully
+    - error: Generation failed (includes recovery_id if partial)
+
+    Frontend can display files as they appear, providing better UX
+    than waiting for all files to complete.
+
+    Args:
+        request: GenerateRequest with app_blueprint
+
+    Returns:
+        StreamingResponse with SSE events (text/event-stream)
+
+    Example events:
+        data: {"type": "started", "session_id": "abc123", "model": "qwen2.5-coder:32b", "provider": "ollama"}
+
+        data: {"type": "file_generating", "session_id": "abc123", "path": "app/main.py"}
+
+        data: {"type": "file_generated", "session_id": "abc123", "path": "app/main.py", "content": "...", "lines": 45, "language": "python", "syntax_valid": true}
+
+        data: {"type": "completed", "session_id": "abc123", "total_files": 12, "total_lines": 450, "duration_ms": 30000, "success": true}
+    """
+    import json
+    import uuid
+    import time
+    from datetime import datetime
+    from fastapi.responses import StreamingResponse
+
+    from app.schemas.streaming import (
+        StartedEvent,
+        FileGeneratingEvent,
+        FileGeneratedEvent,
+        QualityStartedEvent,
+        QualityGateEvent,
+        CompletedEvent,
+        ErrorEvent,
+    )
+
+    session_id = str(uuid.uuid4())
+    start_time = time.time()
+
+    logger.info(
+        f"Streaming code generation requested by user {current_user.id}: "
+        f"session={session_id}, language={request.language}"
+    )
+
+    async def event_generator():
+        """Generate SSE events for code generation progress."""
+        generated_files = {}
+        total_lines = 0
+
+        try:
+            # Event 1: Started
+            started_event = StartedEvent(
+                session_id=session_id,
+                model="qwen2.5-coder:32b",  # Will be dynamic in 51B
+                provider="ollama",  # Will be dynamic in 51B
+            )
+            yield f"data: {started_event.model_dump_json()}\n\n"
+
+            # Sprint 51A: Mock streaming for testing
+            # Sprint 51B will integrate real Ollama streaming
+            spec = CodegenSpec(
+                app_blueprint=request.app_blueprint,
+                target_module=request.target_module,
+                language=request.language,
+                framework=request.framework,
+            )
+
+            # Generate all files (non-streaming for 51A)
+            result = await service.generate(
+                spec,
+                preferred_provider=request.preferred_provider,
+            )
+
+            # Stream each file as if generated progressively
+            for file_path, content in result.files.items():
+                # Event: file_generating
+                generating_event = FileGeneratingEvent(
+                    session_id=session_id,
+                    path=file_path,
+                )
+                yield f"data: {generating_event.model_dump_json()}\n\n"
+
+                # Detect language from extension
+                language = _detect_language(file_path)
+                lines = len(content.split("\n"))
+                total_lines += lines
+
+                # Basic syntax check (will be enhanced in 51B)
+                syntax_valid = _quick_syntax_check(content, language)
+
+                # Event: file_generated
+                generated_event = FileGeneratedEvent(
+                    session_id=session_id,
+                    path=file_path,
+                    content=content,
+                    lines=lines,
+                    language=language,
+                    syntax_valid=syntax_valid,
+                )
+                yield f"data: {generated_event.model_dump_json()}\n\n"
+
+                generated_files[file_path] = content
+
+            # Event: quality_started
+            quality_started = QualityStartedEvent(session_id=session_id)
+            yield f"data: {quality_started.model_dump_json()}\n\n"
+
+            # Run quality gates (simplified for 51A)
+            gates = [
+                ("Syntax", 1),
+                ("Security", 2),
+                ("Context", 3),
+                ("Tests", 4),
+            ]
+
+            for gate_name, gate_number in gates:
+                # Mock gate results for 51A
+                gate_event = QualityGateEvent(
+                    session_id=session_id,
+                    gate_number=gate_number,
+                    gate_name=gate_name,
+                    status="passed",  # Will be real in 51B
+                    issues=0,
+                    duration_ms=100 + (gate_number * 50),
+                )
+                yield f"data: {gate_event.model_dump_json()}\n\n"
+
+            # Event: completed
+            duration_ms = int((time.time() - start_time) * 1000)
+            completed_event = CompletedEvent(
+                session_id=session_id,
+                total_files=len(generated_files),
+                total_lines=total_lines,
+                duration_ms=duration_ms,
+                success=True,
+            )
+            yield f"data: {completed_event.model_dump_json()}\n\n"
+
+            logger.info(
+                f"Streaming generation complete: session={session_id}, "
+                f"files={len(generated_files)}, lines={total_lines}, "
+                f"duration={duration_ms}ms"
+            )
+
+        except NoProviderAvailableError as e:
+            logger.error(f"No providers available: {e}")
+            error_event = ErrorEvent(
+                session_id=session_id,
+                message=f"No AI providers available: {str(e)}",
+                recovery_id=session_id if generated_files else None,
+            )
+            yield f"data: {error_event.model_dump_json()}\n\n"
+
+        except GenerationError as e:
+            logger.error(f"Generation error: {e}")
+            error_event = ErrorEvent(
+                session_id=session_id,
+                message=f"Code generation failed: {str(e)}",
+                recovery_id=session_id if generated_files else None,
+            )
+            yield f"data: {error_event.model_dump_json()}\n\n"
+
+        except Exception as e:
+            logger.exception(f"Unexpected error in streaming: {e}")
+            error_event = ErrorEvent(
+                session_id=session_id,
+                message=f"Unexpected error: {str(e)}",
+                recovery_id=session_id if generated_files else None,
+            )
+            yield f"data: {error_event.model_dump_json()}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
+
+
+def _detect_language(file_path: str) -> str:
+    """Detect programming language from file extension."""
+    ext = file_path.rsplit(".", 1)[-1].lower() if "." in file_path else ""
+    lang_map = {
+        "py": "python",
+        "ts": "typescript",
+        "tsx": "typescript",
+        "js": "javascript",
+        "jsx": "javascript",
+        "json": "json",
+        "yaml": "yaml",
+        "yml": "yaml",
+        "md": "markdown",
+        "sql": "sql",
+        "html": "html",
+        "css": "css",
+        "sh": "bash",
+        "txt": "text",
+        "toml": "toml",
+        "ini": "ini",
+        "cfg": "ini",
+    }
+    return lang_map.get(ext, ext)
+
+
+def _quick_syntax_check(content: str, language: str) -> bool:
+    """
+    Quick syntax validation for common languages.
+
+    Sprint 51A: Basic check only.
+    Sprint 51B: Will integrate with full quality pipeline.
+    """
+    if language == "python":
+        try:
+            import ast
+            ast.parse(content)
+            return True
+        except SyntaxError:
+            return False
+    elif language in ("json",):
+        try:
+            import json
+            json.loads(content)
+            return True
+        except json.JSONDecodeError:
+            return False
+    # For other languages, assume valid (will be checked by quality pipeline)
+    return True

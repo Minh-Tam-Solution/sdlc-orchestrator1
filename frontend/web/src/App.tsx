@@ -45,7 +45,8 @@ const GitHubCallbackPage = lazy(() => import('@/pages/GitHubCallbackPage'))
 const SOPGeneratorPage = lazy(() => import('@/pages/SOPGeneratorPage'))  // Phase 2-Pilot Week 3
 const SOPHistoryPage = lazy(() => import('@/pages/SOPHistoryPage'))  // Phase 2-Pilot Week 4
 const SOPDetailPage = lazy(() => import('@/pages/SOPDetailPage'))  // Phase 2-Pilot Week 4
-const CodegenOnboardingPage = lazy(() => import('@/pages/CodegenOnboardingPage'))  // Sprint 47 P1
+const AppBuilderPage = lazy(() => import('@/pages/CodegenOnboardingPage'))  // Sprint 51A: Renamed from "IR Onboarding" to "App Builder"
+const CodeGenerationPage = lazy(() => import('@/pages/CodeGenerationPage'))  // Sprint 49 EP-06
 const SupportPage = lazy(() => import('@/pages/SupportPage'))  // User Support & Documentation
 const DocumentationViewerPage = lazy(() => import('@/pages/DocumentationViewerPage'))  // Documentation Viewer
 const GettingStartedPage = lazy(() => import('@/pages/support/GettingStartedPage'))  // Getting Started Guide
@@ -184,11 +185,25 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* App Builder - Sprint 51A: Primary route */}
           <Route
-            path="/codegen-onboarding"
+            path="/app-builder"
             element={
               <ProtectedRoute>
-                <CodegenOnboardingPage />
+                <AppBuilderPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Legacy route alias for backward compatibility */}
+          <Route
+            path="/codegen-onboarding"
+            element={<Navigate to="/app-builder" replace />}
+          />
+          <Route
+            path="/code-generation"
+            element={
+              <ProtectedRoute>
+                <CodeGenerationPage />
               </ProtectedRoute>
             }
           />
