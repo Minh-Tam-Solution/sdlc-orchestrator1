@@ -179,7 +179,7 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys  # Sprint 42-53: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments  # Sprint 42-58: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -286,6 +286,7 @@ app.include_router(pilot.router, prefix="/api/v1", tags=["Pilot"])  # Sprint 49 
 app.include_router(preview.router, prefix="/api/v1", tags=["Preview"])  # Sprint 51B - QR Mobile Preview
 app.include_router(contract_lock.router, prefix="/api/v1", tags=["Contract Lock"])  # Sprint 53 - Spec Immutability
 app.include_router(api_keys.router, prefix="/api/v1", tags=["API Keys"])  # Sprint 52B - VS Code Extension Auth
+app.include_router(payments.router, prefix="/api/v1", tags=["Payments"])  # Sprint 58 - VNPay + Subscriptions
 
 # ============================================================================
 # Health Check Endpoints

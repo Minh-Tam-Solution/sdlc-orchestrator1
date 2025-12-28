@@ -37,6 +37,71 @@ from pydantic import BaseModel, EmailStr, Field
 # =========================================================================
 
 
+class RegisterRequest(BaseModel):
+    """
+    User registration request with email and password.
+
+    Request Body:
+        {
+            "email": "user@example.com",
+            "password": "SecurePassword123!",
+            "full_name": "Nguyễn Văn A"
+        }
+
+    Validation:
+        - Email: Must be valid email format
+        - Password: Minimum 8 characters (OWASP recommendation)
+        - Full name: Optional, 1-100 characters
+
+    Security:
+        - Password hashed with bcrypt (cost=12)
+        - Email stored lowercase
+    """
+
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(
+        ...,
+        min_length=8,
+        max_length=128,
+        description="User password (min 8 chars, recommended: 12+ with mixed case, numbers, symbols)"
+    )
+    full_name: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=100,
+        description="User full name (optional)"
+    )
+
+
+class RegisterResponse(BaseModel):
+    """
+    User registration response after successful signup.
+
+    Response Body:
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "email": "user@example.com",
+            "name": "Nguyễn Văn A",
+            "is_active": true,
+            "created_at": "2025-12-27T10:30:00Z",
+            "message": "Registration successful. You can now login."
+        }
+    """
+
+    id: UUID = Field(..., description="User UUID")
+    email: EmailStr = Field(..., description="User email address")
+    name: Optional[str] = Field(None, description="User full name")
+    is_active: bool = Field(..., description="User active status")
+    created_at: datetime = Field(..., description="Account creation timestamp")
+    message: str = Field(
+        default="Registration successful. You can now login.",
+        description="Success message"
+    )
+
+    class Config:
+        from_attributes = True
+
+
 class LoginRequest(BaseModel):
     """
     Login request with email and password.
@@ -111,6 +176,21 @@ class LogoutRequest(BaseModel):
 # =========================================================================
 
 
+class OAuthAuthorizeResponse(BaseModel):
+    """
+    OAuth authorization URL response.
+
+    Response Body:
+        {
+            "authorization_url": "https://github.com/login/oauth/authorize?...",
+            "state": "random-state-string"
+        }
+    """
+
+    authorization_url: str = Field(..., description="OAuth provider authorization URL")
+    state: str = Field(..., description="CSRF protection state parameter")
+
+
 class OAuthCallbackRequest(BaseModel):
     """
     OAuth callback request from provider (GitHub, Google, Microsoft).
@@ -132,7 +212,8 @@ class OAuthCallbackRequest(BaseModel):
     """
 
     code: str = Field(..., description="OAuth authorization code from provider")
-    state: Optional[str] = Field(None, description="CSRF protection state parameter")
+    state: str = Field(..., description="CSRF protection state parameter")
+    code_verifier: Optional[str] = Field(None, description="PKCE code verifier (Google only)")
 
 
 class OAuthProvider(BaseModel):

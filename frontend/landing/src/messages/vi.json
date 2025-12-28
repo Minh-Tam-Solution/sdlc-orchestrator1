@@ -379,6 +379,217 @@
       }
     }
   },
+  "docs": {
+    "index": {
+      "badge": "Tài liệu",
+      "title": "Trung tâm Tài liệu",
+      "subtitle": "Tìm hiểu cách sử dụng SDLC Orchestrator để quản lý và nâng cao chất lượng phát triển phần mềm.",
+      "gettingStarted": {
+        "title": "Bắt đầu",
+        "description": "Hướng dẫn thiết lập và sử dụng SDLC Orchestrator từ đầu.",
+        "badge": "Bắt đầu từ đây"
+      },
+      "apiReference": {
+        "title": "API Reference",
+        "description": "Tài liệu đầy đủ về các endpoint API."
+      },
+      "cliGuide": {
+        "title": "Hướng dẫn CLI",
+        "description": "Sử dụng sdlcctl từ terminal."
+      },
+      "vscodeExtension": {
+        "title": "VS Code Extension",
+        "description": "Tích hợp trực tiếp vào VS Code."
+      },
+      "framework": {
+        "title": "SDLC 5.1.2 Framework",
+        "description": "10 giai đoạn của vòng đời phát triển phần mềm."
+      },
+      "quickLinks": {
+        "title": "Liên kết nhanh",
+        "register": "Đăng ký tài khoản",
+        "pricing": "Xem bảng giá",
+        "demo": "Xem demo",
+        "support": "Liên hệ hỗ trợ"
+      }
+    },
+    "gettingStarted": {
+      "badge": "Hướng dẫn bắt đầu",
+      "title": "Bắt đầu với SDLC Orchestrator",
+      "subtitle": "Làm theo các bước đơn giản để thiết lập và chạy dự án đầu tiên của bạn trong vài phút.",
+      "step1": {
+        "title": "Tạo tài khoản",
+        "description": "Đăng ký tài khoản miễn phí để truy cập dashboard và tất cả các tính năng cơ bản.",
+        "cta": "Đăng ký ngay"
+      },
+      "step2": {
+        "title": "Kết nối Repository",
+        "description": "Kết nối GitHub repository của bạn để bắt đầu theo dõi và quản lý code.",
+        "feature1": "Tích hợp GitHub OAuth 2.0",
+        "feature2": "Đồng bộ PR và Issues tự động",
+        "feature3": "Webhook real-time cho events"
+      },
+      "step3": {
+        "title": "Cấu hình Quality Gates",
+        "description": "Thiết lập các cổng chất lượng để đảm bảo code tuân thủ tiêu chuẩn trước khi merge.",
+        "gate0": "Foundation",
+        "gate1": "Planning",
+        "gate2": "Design",
+        "gate3": "Build"
+      },
+      "step4": {
+        "title": "Cài đặt Tools",
+        "description": "Cài đặt VS Code Extension và CLI tool để làm việc hiệu quả hơn."
+      },
+      "step5": {
+        "title": "Nâng cấp lên Founder",
+        "description": "Mở khóa AI Code Generation, Evidence Vault và tất cả tính năng premium.",
+        "cta": "Nâng cấp ngay"
+      },
+      "framework": {
+        "title": "Tổng quan SDLC Framework"
+      },
+      "features": {
+        "title": "Tính năng chính",
+        "gates": {
+          "title": "Quality Gates",
+          "description": "Quy trình 4 cổng chất lượng với OPA policies. Chặn code không tuân thủ trước khi đưa lên production."
+        },
+        "vault": {
+          "title": "Evidence Vault",
+          "description": "Lưu trữ artifact với SHA256. Vòng đời 8 trạng thái. Theo dõi đầy đủ cho compliance."
+        },
+        "ai": {
+          "title": "AI Context Engine",
+          "description": "Prompt thông minh theo từng giai đoạn. Tích hợp Cursor, Claude Code, Copilot."
+        },
+        "reports": {
+          "title": "Báo cáo & Analytics",
+          "description": "Dashboard trực quan với DORA metrics. Theo dõi tiến độ và chất lượng dự án."
+        }
+      },
+      "help": {
+        "title": "Cần hỗ trợ?",
+        "description": "Đội ngũ của chúng tôi luôn sẵn sàng hỗ trợ bạn. Liên hệ qua Discord, email hoặc đặt lịch gọi.",
+        "discord": "Tham gia Discord",
+        "call": "Đặt lịch gọi",
+        "email": "Email hỗ trợ"
+      }
+    },
+    "apiReference": {
+      "badge": "API Reference",
+      "title": "Tài liệu API",
+      "subtitle": "Tham khảo đầy đủ các endpoint API của SDLC Orchestrator.",
+      "baseUrl": {
+        "title": "Base URL",
+        "description": "Tất cả các API endpoint đều sử dụng base URL này."
+      },
+      "auth": {
+        "title": "Xác thực",
+        "description": "Sử dụng Bearer token trong header Authorization cho tất cả các request."
+      },
+      "rateLimits": {
+        "title": "Giới hạn Request",
+        "description": "Số lượng request tối đa theo từng gói dịch vụ."
+      },
+      "cta": {
+        "title": "Bắt đầu sử dụng API",
+        "description": "Tạo tài khoản để nhận API key và bắt đầu tích hợp.",
+        "getApiKey": "Lấy API Key",
+        "openApiDocs": "Xem OpenAPI Docs"
+      }
+    },
+    "cliGuide": {
+      "badge": "CLI Guide",
+      "title": "Hướng dẫn CLI",
+      "subtitle": "Sử dụng sdlcctl để quản lý dự án từ terminal.",
+      "installation": {
+        "title": "Cài đặt",
+        "description": "Cài đặt sdlcctl thông qua pip hoặc pipx."
+      },
+      "quickStart": {
+        "title": "Bắt đầu nhanh"
+      },
+      "commands": {
+        "title": "Các lệnh chính"
+      },
+      "config": {
+        "title": "Cấu hình",
+        "description": "Tùy chỉnh cấu hình CLI theo nhu cầu của bạn."
+      },
+      "precommit": {
+        "title": "Pre-commit Hook",
+        "description": "Tích hợp với pre-commit để tự động validate."
+      },
+      "help": {
+        "title": "Cần hỗ trợ?",
+        "description": "Xem thêm tài liệu và ví dụ trên GitHub."
+      }
+    },
+    "vscodeExtension": {
+      "badge": "VS Code Extension",
+      "title": "Extension cho VS Code",
+      "subtitle": "Tích hợp SDLC Orchestrator trực tiếp vào VS Code.",
+      "installation": {
+        "title": "Cài đặt",
+        "description": "Cài đặt extension từ Marketplace hoặc file VSIX."
+      },
+      "setup": {
+        "title": "Thiết lập nhanh"
+      },
+      "features": {
+        "title": "Tính năng"
+      },
+      "shortcuts": {
+        "title": "Phím tắt",
+        "description": "Các phím tắt giúp làm việc nhanh hơn."
+      },
+      "settings": {
+        "title": "Cấu hình",
+        "description": "Tùy chỉnh extension trong settings.json."
+      },
+      "preview": {
+        "title": "Xem trước"
+      },
+      "help": {
+        "title": "Cần hỗ trợ?",
+        "description": "Xem thêm tài liệu trên GitHub hoặc Marketplace."
+      }
+    }
+  },
+  "demo": {
+    "badge": "Demo tương tác",
+    "title": "Trải nghiệm SDLC Orchestrator",
+    "subtitle": "Khám phá các tính năng chính thông qua demo tương tác. Không cần đăng nhập.",
+    "sections": {
+      "gateEngine": {
+        "title": "Gate Engine Demo",
+        "description": "Xem cách Quality Gates hoạt động trong thực tế.",
+        "cta": "Thử Gate Engine"
+      },
+      "evidenceVault": {
+        "title": "Evidence Vault Demo",
+        "description": "Khám phá cách lưu trữ và quản lý artifacts.",
+        "cta": "Xem Evidence Vault"
+      },
+      "aiCodegen": {
+        "title": "AI Code Generation",
+        "description": "Trải nghiệm IR-based code generation.",
+        "cta": "Thử AI Codegen"
+      },
+      "dashboard": {
+        "title": "Dashboard Preview",
+        "description": "Xem giao diện quản lý dự án và metrics.",
+        "cta": "Xem Dashboard"
+      }
+    },
+    "cta": {
+      "title": "Sẵn sàng bắt đầu?",
+      "description": "Tạo tài khoản miễn phí và bắt đầu sử dụng ngay hôm nay.",
+      "primary": "Tạo tài khoản miễn phí",
+      "secondary": "Xem bảng giá"
+    }
+  },
   "common": {
     "learnMore": "Tìm hiểu thêm",
     "getStarted": "Bắt đầu",

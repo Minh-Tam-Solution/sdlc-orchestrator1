@@ -204,13 +204,15 @@ export class SSEClient implements vscode.Disposable {
         let buffer = '';
 
         try {
-            while (true) {
+            let streamActive = true;
+            while (streamActive) {
                 const { done, value } = await reader.read();
 
                 if (done) {
                     Logger.info('SSE stream ended');
                     this.setState('disconnected');
-                    break;
+                    streamActive = false;
+                    continue;
                 }
 
                 buffer += decoder.decode(value, { stream: true });
@@ -279,7 +281,7 @@ export class SSEClient implements vscode.Disposable {
                 try {
                     handler(event);
                 } catch (error) {
-                    Logger.error(`SSE event handler error: ${error}`);
+                    Logger.error(`SSE event handler error: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
         }
@@ -291,7 +293,7 @@ export class SSEClient implements vscode.Disposable {
                 try {
                     handler(event);
                 } catch (error) {
-                    Logger.error(`SSE wildcard handler error: ${error}`);
+                    Logger.error(`SSE wildcard handler error: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
         }
@@ -316,7 +318,7 @@ export class SSEClient implements vscode.Disposable {
                 try {
                     handler(error);
                 } catch (handlerError) {
-                    Logger.error(`SSE error handler error: ${handlerError}`);
+                    Logger.error(`SSE error handler error: ${handlerError instanceof Error ? handlerError.message : String(handlerError)}`);
                 }
             }
         }
@@ -332,7 +334,7 @@ export class SSEClient implements vscode.Disposable {
                 try {
                     handler(newState);
                 } catch (error) {
-                    Logger.error(`SSE state change handler error: ${error}`);
+                    Logger.error(`SSE state change handler error: ${error instanceof Error ? error.message : String(error)}`);
                 }
             }
         }

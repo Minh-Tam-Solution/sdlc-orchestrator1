@@ -169,6 +169,16 @@ class User(Base):
         uselist=False, cascade="all, delete-orphan"
     )
 
+    # Subscription & Payment Relationships (Sprint 58)
+    subscription = relationship(
+        "Subscription", back_populates="user",
+        uselist=False, cascade="all, delete-orphan"
+    )
+    payments = relationship(
+        "PaymentHistory", back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, roles={[r.name for r in self.roles]})>"
 
@@ -347,7 +357,7 @@ class APIKey(Base):
     # API Key Identity
     name = Column(String(100), nullable=False)  # User-friendly name
     key_hash = Column(String(64), unique=True, index=True, nullable=False)  # SHA-256 hash
-    prefix = Column(String(20), nullable=False)  # First 8 chars (for UI display)
+    prefix = Column(String(30), nullable=False)  # First 20 chars (for UI display, e.g., sdlc_live_xxxx...)
 
     # Usage Tracking
     last_used_at = Column(DateTime, nullable=True)

@@ -184,21 +184,24 @@ services:
       - sdlc-network
 
   # ============================================================================
-  # React Frontend - SDLC Orchestrator Web UI
+  # Next.js Frontend - SDLC Orchestrator Landing + Dashboard
+  # Sprint 59: Replaced React with Next.js for OAuth integration
   # ============================================================================
   frontend:
     build:
-      context: ./frontend/web
+      context: ./frontend/landing
       dockerfile: Dockerfile
     container_name: sdlc-frontend
     restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     ports:
-      - "8310:80"
+      - "8310:3000"
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 30s
       timeout: 5s
       retries: 3

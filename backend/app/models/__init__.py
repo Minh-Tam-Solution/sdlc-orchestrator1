@@ -79,6 +79,15 @@ from app.models.pilot_tracking import (
 # Stage Mapping (Sprint 49 - SDLC 5.1.2) - 1 model
 from app.models.stage_mapping import ProjectStageMapping
 
+# Subscription & Payment (Sprint 58) - 2 models
+from app.models.subscription import (
+    Subscription,
+    PaymentHistory,
+    SubscriptionPlan,
+    SubscriptionStatus,
+    PaymentStatus,
+)
+
 __all__ = [
     # Base
     "Base",
@@ -145,4 +154,10 @@ __all__ = [
     "PilotDailyMetrics",
     # Stage Mapping (1)
     "ProjectStageMapping",
+    # Subscription & Payment (2)
+    "Subscription",
+    "PaymentHistory",
+    "SubscriptionPlan",
+    "SubscriptionStatus",
+    "PaymentStatus",
 ]

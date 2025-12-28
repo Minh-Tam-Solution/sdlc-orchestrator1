@@ -68,7 +68,12 @@ export class AuthService {
             return false;
         }
 
-        // Check if token is expired
+        // API keys (sdlc_live_*) don't expire and don't need refresh
+        if (token.startsWith('sdlc_live_')) {
+            return true;
+        }
+
+        // Check if token is expired (only for JWT tokens)
         const expiryStr = await this.secrets.get(TOKEN_EXPIRY_KEY);
         if (expiryStr) {
             const expiry = parseInt(expiryStr, 10);
@@ -118,8 +123,16 @@ export class AuthService {
 
     /**
      * Refreshes the access token using refresh token
+     * Note: API keys (sdlc_live_*) cannot be refreshed - they just work until revoked
      */
     async refreshToken(): Promise<void> {
+        // Check if current token is an API key - they don't need refresh
+        const currentToken = await this.getToken();
+        if (currentToken?.startsWith('sdlc_live_')) {
+            Logger.debug('API key does not need refresh');
+            return; // API keys don't expire, just return without error
+        }
+
         const refreshToken = await this.secrets.get(REFRESH_TOKEN_KEY);
         if (!refreshToken) {
             throw new Error('No refresh token available');

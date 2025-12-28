@@ -212,19 +212,36 @@ export class GateStatusProvider implements vscode.TreeDataProvider<GateTreeItem>
             this.errorMessage = this.lastError.getUserMessage();
             Logger.error(`Failed to refresh gates: ${this.errorMessage}`);
 
-            // Try to get cached data on error (offline mode)
-            const projectId = this.apiClient.getCurrentProjectId();
-            if (projectId && this.cacheService) {
-                const cached = this.cacheService.get<Gate[]>(CacheKeys.GATES(projectId));
-                if (cached) {
-                    this.gates = cached.data;
-                    this.isUsingCachedData = true;
-                    this.hasError = false;
-                    Logger.info('Using cached gates due to network error');
+            // Handle 401 Unauthorized - prompt re-login
+            if (this.lastError.code === ErrorCode.UNAUTHORIZED) {
+                this.gates = [];
+                void vscode.window.showErrorMessage(
+                    'Authentication expired. Please log in again.',
+                    'Login'
+                ).then(selection => {
+                    if (selection === 'Login') {
+                        void vscode.commands.executeCommand('sdlc.login');
+                    }
+                });
+            } else {
+                // Try to get cached data on error (offline mode)
+                const projectId = this.apiClient.getCurrentProjectId();
+                if (projectId && this.cacheService) {
+                    const cached = this.cacheService.get<Gate[]>(CacheKeys.GATES(projectId));
+                    if (cached) {
+                        this.gates = cached.data;
+                        this.isUsingCachedData = true;
+                        this.hasError = false;
+                    } else {
+                        this.gates = [];
+                    }
                 } else {
                     this.gates = [];
                 }
-            } else {
+            }
+
+            // Defensive: ensure gates is always an array
+            if (!Array.isArray(this.gates)) {
                 this.gates = [];
             }
         } finally {
@@ -335,23 +352,8 @@ export class GateStatusProvider implements vscode.TreeDataProvider<GateTreeItem>
             return [item];
         }
 
-        // Offline mode indicator
-        if (this.isUsingCachedData) {
-            const offlineItem = new GateTreeItem(
-                'Offline mode (cached data)',
-                vscode.TreeItemCollapsibleState.None
-            );
-            offlineItem.iconPath = new vscode.ThemeIcon(
-                'cloud-offline',
-                new vscode.ThemeColor('editorWarning.foreground')
-            );
-            offlineItem.tooltip = 'Data may be outdated. Click refresh when online.';
-            offlineItem.command = {
-                command: 'sdlc.refreshGates',
-                title: 'Refresh',
-            };
-            items.push(offlineItem);
-        }
+        // Local-First: No offline indicator needed
+        // Data syncs automatically when connected
 
         // No gates found
         if (this.gates.length === 0) {

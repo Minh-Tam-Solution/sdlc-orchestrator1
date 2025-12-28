@@ -257,6 +257,14 @@ function handleConfigurationChange() {
  * Refreshes all view providers
  */
 async function refreshAllViews() {
+    // Don't attempt to refresh if not authenticated
+    if (state.authService) {
+        const isAuthenticated = await state.authService.isAuthenticated();
+        if (!isAuthenticated) {
+            logger_1.Logger.debug('Skipping refresh - not authenticated');
+            return;
+        }
+    }
     try {
         const promises = [];
         if (state.gateStatusProvider) {

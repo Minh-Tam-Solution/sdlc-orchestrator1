@@ -342,6 +342,15 @@ function handleConfigurationChange(): void {
  * Refreshes all view providers
  */
 async function refreshAllViews(): Promise<void> {
+    // Don't attempt to refresh if not authenticated
+    if (state.authService) {
+        const isAuthenticated = await state.authService.isAuthenticated();
+        if (!isAuthenticated) {
+            Logger.debug('Skipping refresh - not authenticated');
+            return;
+        }
+    }
+
     try {
         const promises: Promise<void>[] = [];
 

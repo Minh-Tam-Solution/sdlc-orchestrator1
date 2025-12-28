@@ -112,8 +112,9 @@ class FileService {
         const total = files.length;
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            if (!file)
+            if (!file) {
                 continue;
+            }
             if (onProgress) {
                 onProgress(i, total, file.path);
             }

@@ -188,21 +188,38 @@ export class ViolationsProvider implements vscode.TreeDataProvider<ViolationTree
             this.errorMessage = this.lastError.getUserMessage();
             Logger.error(`Failed to refresh violations: ${this.errorMessage}`);
 
-            // Try to get cached data on error (offline mode)
-            const projectId = this.apiClient.getCurrentProjectId();
-            if (projectId && this.cacheService) {
-                const cached = this.cacheService.get<Violation[]>(
-                    CacheKeys.VIOLATIONS(projectId)
-                );
-                if (cached) {
-                    this.violations = cached.data;
-                    this.isUsingCachedData = true;
-                    this.hasError = false;
-                    Logger.info('Using cached violations due to network error');
+            // Handle 401 Unauthorized - prompt re-login
+            if (this.lastError.code === ErrorCode.UNAUTHORIZED) {
+                this.violations = [];
+                void vscode.window.showErrorMessage(
+                    'Authentication expired. Please log in again.',
+                    'Login'
+                ).then(selection => {
+                    if (selection === 'Login') {
+                        void vscode.commands.executeCommand('sdlc.login');
+                    }
+                });
+            } else {
+                // Try to get cached data on error (offline mode)
+                const projectId = this.apiClient.getCurrentProjectId();
+                if (projectId && this.cacheService) {
+                    const cached = this.cacheService.get<Violation[]>(
+                        CacheKeys.VIOLATIONS(projectId)
+                    );
+                    if (cached) {
+                        this.violations = cached.data;
+                        this.isUsingCachedData = true;
+                        this.hasError = false;
+                    } else {
+                        this.violations = [];
+                    }
                 } else {
                     this.violations = [];
                 }
-            } else {
+            }
+
+            // Defensive: ensure violations is always an array
+            if (!Array.isArray(this.violations)) {
                 this.violations = [];
             }
         } finally {
@@ -326,23 +343,8 @@ export class ViolationsProvider implements vscode.TreeDataProvider<ViolationTree
             return [item];
         }
 
-        // Offline mode indicator
-        if (this.isUsingCachedData) {
-            const offlineItem = new ViolationTreeItem(
-                'Offline mode (cached data)',
-                vscode.TreeItemCollapsibleState.None
-            );
-            offlineItem.iconPath = new vscode.ThemeIcon(
-                'cloud-offline',
-                new vscode.ThemeColor('editorWarning.foreground')
-            );
-            offlineItem.tooltip = 'Data may be outdated. Click refresh when online.';
-            offlineItem.command = {
-                command: 'sdlc.refreshGates',
-                title: 'Refresh',
-            };
-            items.push(offlineItem);
-        }
+        // Local-First: No offline indicator needed
+        // Data syncs automatically when connected
 
         // No violations
         if (this.violations.length === 0) {

@@ -8,11 +8,37 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ApiClient, Project } from '../services/apiClient';
 import { CacheService, CacheKeys, CacheTTL } from '../services/cacheService';
 import { Logger } from '../utils/logger';
 import { ConfigManager } from '../utils/config';
 import { classifyError, ErrorCode, SDLCError } from '../utils/errors';
+
+/**
+ * Local SDLC config file schema (from sdlcctl CLI)
+ */
+interface LocalSDLCConfig {
+    version?: string;
+    project?: {
+        id?: string;
+        name?: string;
+        description?: string;
+        slug?: string;
+        repository?: string;
+    };
+    tier?: string;
+    sdlc?: {
+        frameworkVersion?: string;
+        tier?: string;
+        stages?: Record<string, string>;
+    };
+    server?: {
+        url?: string;
+        connected?: boolean;
+    };
+}
 
 /**
  * Tree item representing a project
@@ -92,7 +118,6 @@ export class ProjectsProvider implements vscode.TreeDataProvider<ProjectTreeItem
     private hasError = false;
     private errorMessage = '';
     private lastError: SDLCError | undefined;
-    private isUsingCachedData = false;
 
     constructor(
         private apiClient: ApiClient,
@@ -110,6 +135,59 @@ export class ProjectsProvider implements vscode.TreeDataProvider<ProjectTreeItem
     }
 
     /**
+     * Load local project from .sdlc-config.json in workspace
+     */
+    private loadLocalProject(): Project | null {
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            return null;
+        }
+
+        const workspaceRoot = folders[0]?.uri.fsPath;
+        if (!workspaceRoot) {
+            return null;
+        }
+
+        const configPath = path.join(workspaceRoot, '.sdlc-config.json');
+        if (!fs.existsSync(configPath)) {
+            return null;
+        }
+
+        try {
+            const content = fs.readFileSync(configPath, 'utf-8');
+            const config: LocalSDLCConfig = JSON.parse(content);
+
+            // Extract project info from either schema format
+            const projectName = config.project?.name || path.basename(workspaceRoot);
+            const projectId = config.project?.id || `local-${projectName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+            const tier = config.tier || config.sdlc?.tier || 'STANDARD';
+
+            const repoUrl = config.project?.repository;
+            const localProject: Project = {
+                id: projectId,
+                name: projectName,
+                description: config.project?.description || `Local project: ${projectName}`,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                owner_id: 'local',
+                current_gate: 'G0.1',
+            };
+            // Add optional properties only if they have values
+            if (repoUrl) {
+                localProject.github_repo = repoUrl;
+            }
+
+            Logger.info(`Loaded local project: ${projectName} (tier: ${tier})`);
+            return localProject;
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            Logger.warn(`Failed to load local .sdlc-config.json: ${msg}`);
+            return null;
+        }
+    }
+
+    /**
      * Refreshes the projects data
      */
     async refresh(): Promise<void> {
@@ -121,57 +199,117 @@ export class ProjectsProvider implements vscode.TreeDataProvider<ProjectTreeItem
         this.hasError = false;
         this.errorMessage = '';
         this.lastError = undefined;
-        this.isUsingCachedData = false;
 
         try {
-            // Use cache service if available for offline support
-            if (this.cacheService) {
-                const cacheKey = CacheKeys.PROJECTS;
-                const result = await this.cacheService.getOrFetch<Project[]>(
-                    cacheKey,
-                    () => this.apiClient.getProjects(),
-                    CacheTTL.PROJECTS
-                );
+            // Local-First approach: Load local project from .sdlc-config.json
+            const localProject = this.loadLocalProject();
 
-                this.projects = result.data;
-                this.isUsingCachedData = result.isCached;
-
-                if (result.isStale) {
-                    Logger.info('Using stale cached projects');
+            // Try to fetch from server (for sync purposes, not required)
+            let serverProjects: Project[] = [];
+            try {
+                if (this.cacheService) {
+                    const cacheKey = CacheKeys.PROJECTS;
+                    const result = await this.cacheService.getOrFetch<Project[]>(
+                        cacheKey,
+                        () => this.apiClient.getProjects(),
+                        CacheTTL.PROJECTS
+                    );
+                    serverProjects = result.data;
+                } else {
+                    serverProjects = await this.apiClient.getProjects();
                 }
-            } else {
-                this.projects = await this.apiClient.getProjects();
+            } catch (apiError) {
+                // API failed - local project still works (Local-First approach)
+                const classified = classifyError(apiError);
+                if (classified.code === ErrorCode.UNAUTHORIZED) {
+                    Logger.info('Not authenticated, using local project');
+                } else {
+                    Logger.warn(`API error: ${classified.getUserMessage()}`);
+                }
             }
+
+            // Merge local project with server projects
+            this.projects = [];
+
+            // Add local project first if exists
+            if (localProject) {
+                // Check if local project already exists in server projects
+                const existsOnServer = serverProjects.some(
+                    p => p.name === localProject.name || p.id === localProject.id
+                );
+                if (!existsOnServer) {
+                    // Mark as local project
+                    localProject.description = `📁 ${localProject.description}`;
+                    this.projects.push(localProject);
+                }
+            }
+
+            // Add server projects
+            this.projects.push(...serverProjects);
 
             // Sort by name
             this.projects.sort((a, b) => a.name.localeCompare(b.name));
 
             Logger.info(
                 `Loaded ${this.projects.length} projects` +
-                    (this.isUsingCachedData ? ' (from cache)' : '')
+                    (localProject ? ' (includes local)' : '')
             );
 
             // Update selected project ID from config
             const config = ConfigManager.getInstance();
             this.selectedProjectId = config.defaultProjectId || undefined;
+
+            // Auto-select local project if no project selected
+            if (!this.selectedProjectId && localProject) {
+                this.selectedProjectId = localProject.id;
+                await vscode.workspace
+                    .getConfiguration('sdlc')
+                    .update('defaultProjectId', localProject.id, vscode.ConfigurationTarget.Workspace);
+                Logger.info(`Auto-selected local project: ${localProject.name}`);
+            }
+
         } catch (error) {
             this.lastError = classifyError(error);
             this.hasError = true;
             this.errorMessage = this.lastError.getUserMessage();
             Logger.error(`Failed to refresh projects: ${this.errorMessage}`);
 
-            // Try to get cached data on error (offline mode)
-            if (this.cacheService) {
-                const cached = this.cacheService.get<Project[]>(CacheKeys.PROJECTS);
-                if (cached) {
-                    this.projects = cached.data;
-                    this.isUsingCachedData = true;
+            // Handle 401 Unauthorized - prompt re-login
+            if (this.lastError.code === ErrorCode.UNAUTHORIZED) {
+                // Still try to load local project
+                const localProject = this.loadLocalProject();
+                if (localProject) {
+                    this.projects = [localProject];
                     this.hasError = false;
-                    Logger.info('Using cached projects due to network error');
+                    this.errorMessage = '';
+                } else {
+                    this.projects = [];
+                    void vscode.window.showErrorMessage(
+                        'Authentication expired. Please log in again.',
+                        'Login'
+                    ).then(selection => {
+                        if (selection === 'Login') {
+                            void vscode.commands.executeCommand('sdlc.login');
+                        }
+                    });
+                }
+            } else {
+                // Try to get cached data on error
+                if (this.cacheService) {
+                    const cached = this.cacheService.get<Project[]>(CacheKeys.PROJECTS);
+                    if (cached) {
+                        this.projects = cached.data;
+                        this.hasError = false;
+                    } else {
+                        this.projects = [];
+                    }
                 } else {
                     this.projects = [];
                 }
-            } else {
+            }
+
+            // Defensive: ensure projects is always an array
+            if (!Array.isArray(this.projects)) {
                 this.projects = [];
             }
         } finally {
@@ -259,23 +397,9 @@ export class ProjectsProvider implements vscode.TreeDataProvider<ProjectTreeItem
             return [item as ProjectTreeItem];
         }
 
-        // Offline mode indicator
-        if (this.isUsingCachedData) {
-            const offlineItem = new vscode.TreeItem(
-                'Offline mode (cached data)',
-                vscode.TreeItemCollapsibleState.None
-            );
-            offlineItem.iconPath = new vscode.ThemeIcon(
-                'cloud-offline',
-                new vscode.ThemeColor('editorWarning.foreground')
-            );
-            offlineItem.tooltip = 'Data may be outdated. Click refresh when online.';
-            offlineItem.command = {
-                command: 'sdlc.refreshGates',
-                title: 'Refresh',
-            };
-            items.push(offlineItem);
-        }
+        // Local-First Mode: No status indicators needed
+        // Extension works with local .sdlc-config.json, server sync is automatic
+        // No "offline" or "cached" messages - just show projects
 
         // No projects found
         if (this.projects.length === 0) {

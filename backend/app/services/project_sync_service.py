@@ -528,17 +528,34 @@ class ProjectSyncService:
         except GitHubAPIError:
             contents = []
 
-        # 4. Detect project type
+        # 4. Fetch /docs folder contents if exists (for stage mapping)
+        docs_contents = []
+        for item in contents:
+            if item.get("type") == "dir" and item.get("name", "").lower() == "docs":
+                try:
+                    docs_items = self.github.get_repository_contents(
+                        access_token, owner, repo, path="docs"
+                    )
+                    if isinstance(docs_items, dict):
+                        docs_items = [docs_items]
+                    # Add docs subfolders to contents for stage mapping
+                    docs_contents = docs_items
+                    logger.info(f"Found {len(docs_contents)} items in /docs folder")
+                except GitHubAPIError as e:
+                    logger.warning(f"Failed to fetch /docs contents: {e}")
+                break
+
+        # 5. Detect project type
         project_type = self._detect_project_type(languages, contents)
 
-        # 5. Estimate team size from contributors (simplified)
+        # 6. Estimate team size from contributors (simplified)
         # Note: Full contributor API requires additional call
         team_size = self._estimate_team_size(repo_data)
 
-        # 6. Detect compliance requirements
+        # 7. Detect compliance requirements
         compliance = self._detect_compliance_requirements(contents)
 
-        # 7. Recommend policy pack first (needed for structure validation)
+        # 8. Recommend policy pack first (needed for structure validation)
         file_count = len(contents) if contents else 0
         recommended_pack = self._recommend_policy_pack(
             team_size=team_size,
@@ -547,16 +564,17 @@ class ProjectSyncService:
             file_count=file_count
         )
 
-        # 8. Map /docs folders to stages (SDLC 5.1.2: only docs, not code folders)
-        stage_mappings = self._map_folders_to_stages(contents)
+        # 9. Map /docs folders to stages (SDLC 5.1.2: only docs, not code folders)
+        # Use docs_contents (fetched from /docs subfolder) for accurate stage mapping
+        stage_mappings = self._map_folders_to_stages(docs_contents if docs_contents else contents)
 
-        # 9. Validate project structure (SDLC 5.1.2: code folders + required files)
+        # 10. Validate project structure (SDLC 5.1.2: code folders + required files)
         structure_validation = self._validate_project_structure(
             contents=contents,
             recommended_tier=recommended_pack,
         )
 
-        # 10. Build analysis result
+        # 11. Build analysis result
         primary_language = max(languages, key=languages.get) if languages else None
 
         # Calculate codebase metrics for transparency
@@ -769,49 +787,127 @@ class ProjectSyncService:
         Code folders (backend, frontend, tests) are NOT stage-mapped.
         They are validated separately via _validate_project_structure().
 
+        Naming Flexibility (CTO Decision):
+        - Stage NUMBER (00, 01, 02...) MUST be correct - this determines stage mapping
+        - Stage NAME can vary (e.g., "00-Project-Foundation" vs "00-foundation")
+        - Non-standard names get "naming_suggestion" for optional rename
+
         Args:
             contents: List of repository contents from GitHub API
+                      Can be root contents or /docs subfolder contents
 
         Returns:
             List of stage mappings for /docs folders only
         """
         mappings = []
 
+        # Standard SDLC 5.1.2 naming convention (lowercase, hyphenated)
+        STANDARD_NAMES = {
+            "00": "00-foundation",
+            "01": "01-planning",
+            "02": "02-design",
+            "03": "03-integrate",
+            "04": "04-build",
+            "05": "05-test",
+            "06": "06-deploy",
+            "07": "07-operate",
+            "08": "08-collaborate",
+            "09": "09-govern",
+            "10": "10-archive",
+        }
+
         for item in contents:
             if item["type"] != "dir":
                 continue
 
-            path = item["path"].lower()
+            original_path = item["path"]
+            path = original_path.lower()
 
-            # Only process /docs folders for stage mapping
-            if not path.startswith("docs"):
+            # Determine if this is a docs subfolder
+            # Case 1: Contents from /docs folder directly (path = "00-foundation")
+            # Case 2: Contents from root (path = "docs/00-foundation")
+            folder_name = ""
+            if path.startswith("docs/"):
+                # Root-level contents with docs/ prefix
+                parts = path.split("/")
+                if len(parts) >= 2:
+                    folder_name = parts[1]
+            elif not "/" in path:
+                # Direct /docs subfolder contents (no prefix)
+                folder_name = path
+            else:
+                # Skip non-docs folders
                 continue
 
-            # Check against mapping rules (docs only)
-            for folder_pattern, stage in FOLDER_STAGE_MAPPING.items():
-                if path.startswith(folder_pattern) or path == folder_pattern:
-                    mappings.append({
-                        "path": item["path"],
-                        "stage": stage,
-                        "stage_name": SDLC_STAGES[stage]["name"],
-                        "stage_code": stage.replace("STAGE_", ""),  # "00", "01", etc.
-                        "confidence": 0.95 if path == folder_pattern else 0.85,
-                        "status": "found",
-                    })
-                    break
+            if not folder_name:
+                continue
+
+            # Skip legacy folders
+            if folder_name.startswith("99-"):
+                continue
+
+            # Extract stage number from folder name (e.g., "00-Project-Foundation" -> "00")
+            stage_code = None
+            if len(folder_name) >= 2 and folder_name[:2].isdigit():
+                potential_code = folder_name[:2]
+                if potential_code in STANDARD_NAMES:
+                    stage_code = potential_code
+
+            if stage_code:
+                stage_key = f"STAGE_{stage_code}"
+                stage_info = SDLC_STAGES.get(stage_key, {})
+                standard_name = STANDARD_NAMES.get(stage_code, "")
+
+                # Check if folder name matches standard convention
+                # Standard: "00-foundation", Legacy acceptable: "00-Project-Foundation"
+                is_standard_name = folder_name == standard_name
+
+                # Also check legacy patterns in FOLDER_STAGE_MAPPING
+                full_path_lower = f"docs/{folder_name}"
+                is_known_legacy = full_path_lower in FOLDER_STAGE_MAPPING
+
+                # Determine confidence and naming status
+                if is_standard_name:
+                    confidence = 0.98
+                    naming_status = "standard"
+                    naming_suggestion = None
+                elif is_known_legacy:
+                    confidence = 0.95
+                    naming_status = "legacy_accepted"
+                    naming_suggestion = f"docs/{standard_name}"
+                else:
+                    # Non-standard name but correct stage number
+                    confidence = 0.85
+                    naming_status = "non_standard"
+                    naming_suggestion = f"docs/{standard_name}"
+
+                mappings.append({
+                    "path": original_path,
+                    "folder_path": f"docs/{folder_name}" if not original_path.lower().startswith("docs/") else original_path,
+                    "stage": stage_key,
+                    "stage_name": stage_info.get("name", "UNKNOWN"),
+                    "stage_code": stage_code,
+                    "confidence": confidence,
+                    "status": "found",
+                    "naming_status": naming_status,
+                    "naming_suggestion": naming_suggestion,
+                })
             else:
-                # Unrecognized docs subfolder - needs manual mapping
-                if "/" in path and path.startswith("docs/"):
-                    subfolder = path.split("/")[1] if len(path.split("/")) > 1 else ""
-                    if subfolder and not subfolder.startswith("99-"):  # Ignore legacy folders
-                        mappings.append({
-                            "path": item["path"],
-                            "stage": None,
-                            "stage_name": None,
-                            "stage_code": None,
-                            "confidence": 0.0,
-                            "status": "unmapped",
-                        })
+                # Unrecognized folder - doesn't start with valid stage number
+                mappings.append({
+                    "path": original_path,
+                    "folder_path": f"docs/{folder_name}" if not original_path.lower().startswith("docs/") else original_path,
+                    "stage": None,
+                    "stage_name": None,
+                    "stage_code": None,
+                    "confidence": 0.0,
+                    "status": "unmapped",
+                    "naming_status": "unknown",
+                    "naming_suggestion": None,
+                })
+
+        # Sort by stage code for consistent ordering
+        mappings.sort(key=lambda x: x.get("stage_code") or "99")
 
         return mappings
 

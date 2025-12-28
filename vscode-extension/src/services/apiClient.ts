@@ -213,18 +213,11 @@ export class ApiClient {
             },
             async (error: AxiosError) => {
                 if (error.response?.status === 401) {
-                    // Token expired - try to refresh
-                    try {
-                        await this.authService.refreshToken();
-                        // Retry the original request
-                        const originalRequest = error.config;
-                        if (originalRequest) {
-                            const newToken = await this.authService.getToken();
-                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                            return this.client.request(originalRequest);
-                        }
-                    } catch {
-                        // Refresh failed - logout user
+                    const currentToken = await this.authService.getToken();
+
+                    // For API keys, 401 means the key is invalid/revoked - prompt re-login directly
+                    if (currentToken?.startsWith('sdlc_live_')) {
+                        Logger.warn('API key authentication failed (401) - key may be invalid or revoked');
                         await this.authService.logout();
                         void vscode.commands.executeCommand(
                             'setContext',
@@ -232,8 +225,36 @@ export class ApiClient {
                             false
                         );
                         void vscode.window.showErrorMessage(
-                            'Session expired. Please log in again.'
-                        );
+                            'API key is invalid or revoked. Please log in again with a valid API key.',
+                            'Login'
+                        ).then(selection => {
+                            if (selection === 'Login') {
+                                void vscode.commands.executeCommand('sdlc.login');
+                            }
+                        });
+                    } else {
+                        // JWT token expired - try to refresh
+                        try {
+                            await this.authService.refreshToken();
+                            // Retry the original request
+                            const originalRequest = error.config;
+                            if (originalRequest) {
+                                const newToken = await this.authService.getToken();
+                                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                                return this.client.request(originalRequest);
+                            }
+                        } catch {
+                            // Refresh failed - logout user
+                            await this.authService.logout();
+                            void vscode.commands.executeCommand(
+                                'setContext',
+                                'sdlc.isAuthenticated',
+                                false
+                            );
+                            void vscode.window.showErrorMessage(
+                                'Session expired. Please log in again.'
+                            );
+                        }
                     }
                 }
 
@@ -275,11 +296,26 @@ export class ApiClient {
         page: number = 1,
         pageSize: number = 50
     ): Promise<Project[]> {
-        const response = await this.get<PaginatedResponse<Project>>(
-            `/api/v1/projects?page=${page}&page_size=${pageSize}`
-        );
-        // Defensive check for response format
-        return response?.items ?? [];
+        try {
+            const response = await this.get<PaginatedResponse<Project>>(
+                `/api/v1/projects?page=${page}&page_size=${pageSize}`
+            );
+            // Defensive check for response format
+            if (!response || !Array.isArray(response.items)) {
+                Logger.warn('getProjects: Invalid response format, returning empty array');
+                return [];
+            }
+            return response.items;
+        } catch (error) {
+            // Re-throw auth errors so they can be handled by caller
+            // But return empty array for other cases to prevent crashes
+            const apiError = error as ApiError;
+            if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+                throw error;
+            }
+            Logger.error(`getProjects error: ${error instanceof Error ? error.message : String(error)}`);
+            return [];
+        }
     }
 
     /**
@@ -305,11 +341,24 @@ export class ApiClient {
      * Gets gates for a project
      */
     async getGates(projectId: string): Promise<Gate[]> {
-        const response = await this.get<PaginatedResponse<Gate>>(
-            `/api/v1/projects/${projectId}/gates`
-        );
-        // Defensive check for response format
-        return response?.items ?? [];
+        try {
+            const response = await this.get<PaginatedResponse<Gate>>(
+                `/api/v1/projects/${projectId}/gates`
+            );
+            // Defensive check for response format
+            if (!response || !Array.isArray(response.items)) {
+                Logger.warn('getGates: Invalid response format, returning empty array');
+                return [];
+            }
+            return response.items;
+        } catch (error) {
+            const apiError = error as ApiError;
+            if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+                throw error;
+            }
+            Logger.error(`getGates error: ${error instanceof Error ? error.message : String(error)}`);
+            return [];
+        }
     }
 
     /**
@@ -342,20 +391,33 @@ export class ApiClient {
         status?: string,
         severity?: string
     ): Promise<Violation[]> {
-        const params = new URLSearchParams();
-        params.append('project_id', projectId);
-        if (status) {
-            params.append('status', status);
-        }
-        if (severity) {
-            params.append('severity', severity);
-        }
+        try {
+            const params = new URLSearchParams();
+            params.append('project_id', projectId);
+            if (status) {
+                params.append('status', status);
+            }
+            if (severity) {
+                params.append('severity', severity);
+            }
 
-        const response = await this.get<PaginatedResponse<Violation>>(
-            `/api/v1/compliance/violations?${params.toString()}`
-        );
-        // Defensive check for response format
-        return response?.items ?? [];
+            const response = await this.get<PaginatedResponse<Violation>>(
+                `/api/v1/compliance/violations?${params.toString()}`
+            );
+            // Defensive check for response format
+            if (!response || !Array.isArray(response.items)) {
+                Logger.warn('getViolations: Invalid response format, returning empty array');
+                return [];
+            }
+            return response.items;
+        } catch (error) {
+            const apiError = error as ApiError;
+            if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+                throw error;
+            }
+            Logger.error(`getViolations error: ${error instanceof Error ? error.message : String(error)}`);
+            return [];
+        }
     }
 
     /**
@@ -425,17 +487,30 @@ export class ApiClient {
             created_at: string;
         }[]
     > {
-        const response = await this.get<
-            PaginatedResponse<{
-                id: string;
-                violation_id: string;
-                recommendation: string;
-                confidence_score: number;
-                created_at: string;
-            }>
-        >(`/api/v1/ai/council/history/${projectId}?limit=${limit}`);
-        // Defensive check for response format
-        return response?.items ?? [];
+        try {
+            const response = await this.get<
+                PaginatedResponse<{
+                    id: string;
+                    violation_id: string;
+                    recommendation: string;
+                    confidence_score: number;
+                    created_at: string;
+                }>
+            >(`/api/v1/ai/council/history/${projectId}?limit=${limit}`);
+            // Defensive check for response format
+            if (!response || !Array.isArray(response.items)) {
+                Logger.warn('getCouncilHistory: Invalid response format, returning empty array');
+                return [];
+            }
+            return response.items;
+        } catch (error) {
+            const apiError = error as ApiError;
+            if (apiError?.statusCode === 401 || apiError?.statusCode === 403) {
+                throw error;
+            }
+            Logger.error(`getCouncilHistory error: ${error instanceof Error ? error.message : String(error)}`);
+            return [];
+        }
     }
 
     // ============================================

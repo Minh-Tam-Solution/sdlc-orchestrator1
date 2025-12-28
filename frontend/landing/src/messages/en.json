@@ -379,6 +379,217 @@
       "ariaLabel": "Select language"
     }
   },
+  "docs": {
+    "index": {
+      "badge": "Documentation",
+      "title": "Documentation Center",
+      "subtitle": "Learn how to use SDLC Orchestrator to manage and improve software development quality.",
+      "gettingStarted": {
+        "title": "Getting Started",
+        "description": "Guide to set up and use SDLC Orchestrator from scratch.",
+        "badge": "Start here"
+      },
+      "apiReference": {
+        "title": "API Reference",
+        "description": "Complete documentation for API endpoints."
+      },
+      "cliGuide": {
+        "title": "CLI Guide",
+        "description": "Use sdlcctl from terminal."
+      },
+      "vscodeExtension": {
+        "title": "VS Code Extension",
+        "description": "Integrate directly into VS Code."
+      },
+      "framework": {
+        "title": "SDLC 5.1.2 Framework",
+        "description": "10 stages of software development lifecycle."
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "register": "Create account",
+        "pricing": "View pricing",
+        "demo": "View demo",
+        "support": "Contact support"
+      }
+    },
+    "gettingStarted": {
+      "badge": "Getting Started Guide",
+      "title": "Get Started with SDLC Orchestrator",
+      "subtitle": "Follow these simple steps to set up and run your first project in minutes.",
+      "step1": {
+        "title": "Create an Account",
+        "description": "Sign up for a free account to access the dashboard and all basic features.",
+        "cta": "Sign Up Now"
+      },
+      "step2": {
+        "title": "Connect Repository",
+        "description": "Connect your GitHub repository to start tracking and managing your code.",
+        "feature1": "GitHub OAuth 2.0 Integration",
+        "feature2": "Auto-sync PRs and Issues",
+        "feature3": "Real-time webhook events"
+      },
+      "step3": {
+        "title": "Configure Quality Gates",
+        "description": "Set up quality gates to ensure code compliance before merging.",
+        "gate0": "Foundation",
+        "gate1": "Planning",
+        "gate2": "Design",
+        "gate3": "Build"
+      },
+      "step4": {
+        "title": "Install Tools",
+        "description": "Install VS Code Extension and CLI tool for better productivity."
+      },
+      "step5": {
+        "title": "Upgrade to Founder",
+        "description": "Unlock AI Code Generation, Evidence Vault and all premium features.",
+        "cta": "Upgrade Now"
+      },
+      "framework": {
+        "title": "SDLC Framework Overview"
+      },
+      "features": {
+        "title": "Key Features",
+        "gates": {
+          "title": "Quality Gates",
+          "description": "4-gate quality pipeline with OPA policies. Block non-compliant code before it ships."
+        },
+        "vault": {
+          "title": "Evidence Vault",
+          "description": "SHA256 hashed artifacts. 8-state lifecycle. Full audit trail for compliance."
+        },
+        "ai": {
+          "title": "AI Context Engine",
+          "description": "Stage-aware prompts. Integration with Cursor, Claude Code, Copilot."
+        },
+        "reports": {
+          "title": "Reports & Analytics",
+          "description": "Visual dashboard with DORA metrics. Track project progress and quality."
+        }
+      },
+      "help": {
+        "title": "Need Help?",
+        "description": "Our team is always ready to assist you. Contact us via Discord, email or schedule a call.",
+        "discord": "Join Discord",
+        "call": "Schedule Call",
+        "email": "Email Support"
+      }
+    },
+    "apiReference": {
+      "badge": "API Reference",
+      "title": "API Documentation",
+      "subtitle": "Complete reference for SDLC Orchestrator API endpoints.",
+      "baseUrl": {
+        "title": "Base URL",
+        "description": "All API endpoints use this base URL."
+      },
+      "auth": {
+        "title": "Authentication",
+        "description": "Use Bearer token in Authorization header for all requests."
+      },
+      "rateLimits": {
+        "title": "Rate Limits",
+        "description": "Maximum requests allowed per plan."
+      },
+      "cta": {
+        "title": "Start Using the API",
+        "description": "Create an account to get your API key and start integrating.",
+        "getApiKey": "Get API Key",
+        "openApiDocs": "View OpenAPI Docs"
+      }
+    },
+    "cliGuide": {
+      "badge": "CLI Guide",
+      "title": "CLI Guide",
+      "subtitle": "Use sdlcctl to manage projects from the terminal.",
+      "installation": {
+        "title": "Installation",
+        "description": "Install sdlcctl via pip or pipx."
+      },
+      "quickStart": {
+        "title": "Quick Start"
+      },
+      "commands": {
+        "title": "Main Commands"
+      },
+      "config": {
+        "title": "Configuration",
+        "description": "Customize CLI configuration to your needs."
+      },
+      "precommit": {
+        "title": "Pre-commit Hook",
+        "description": "Integrate with pre-commit for automatic validation."
+      },
+      "help": {
+        "title": "Need Help?",
+        "description": "See more documentation and examples on GitHub."
+      }
+    },
+    "vscodeExtension": {
+      "badge": "VS Code Extension",
+      "title": "VS Code Extension",
+      "subtitle": "Integrate SDLC Orchestrator directly into VS Code.",
+      "installation": {
+        "title": "Installation",
+        "description": "Install extension from Marketplace or VSIX file."
+      },
+      "setup": {
+        "title": "Quick Setup"
+      },
+      "features": {
+        "title": "Features"
+      },
+      "shortcuts": {
+        "title": "Keyboard Shortcuts",
+        "description": "Shortcuts to work faster."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Customize extension in settings.json."
+      },
+      "preview": {
+        "title": "Preview"
+      },
+      "help": {
+        "title": "Need Help?",
+        "description": "See more documentation on GitHub or Marketplace."
+      }
+    }
+  },
+  "demo": {
+    "badge": "Interactive Demo",
+    "title": "Experience SDLC Orchestrator",
+    "subtitle": "Explore key features through interactive demos. No login required.",
+    "sections": {
+      "gateEngine": {
+        "title": "Gate Engine Demo",
+        "description": "See how Quality Gates work in practice.",
+        "cta": "Try Gate Engine"
+      },
+      "evidenceVault": {
+        "title": "Evidence Vault Demo",
+        "description": "Explore how to store and manage artifacts.",
+        "cta": "View Evidence Vault"
+      },
+      "aiCodegen": {
+        "title": "AI Code Generation",
+        "description": "Experience IR-based code generation.",
+        "cta": "Try AI Codegen"
+      },
+      "dashboard": {
+        "title": "Dashboard Preview",
+        "description": "View project management interface and metrics.",
+        "cta": "View Dashboard"
+      }
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "description": "Create a free account and start using today.",
+      "primary": "Create Free Account",
+      "secondary": "View Pricing"
+    }
+  },
   "common": {
     "learnMore": "Learn More",
     "getStarted": "Get Started",

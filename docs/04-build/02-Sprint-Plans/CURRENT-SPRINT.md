@@ -1,5 +1,35 @@
 # Current Sprint
 
+## 🌐 Sprint 60: i18n Localization (VN/EN) - NEW
+
+**Status**: IN PROGRESS - G2 APPROVED (Dec 27, 2025)
+**Duration**: 3 days (Dec 28-30, 2025)
+**Goal**: Implement VN/EN language toggle for landing page
+
+See: [SPRINT-60-I18N-LOCALIZATION.md](./SPRINT-60-I18N-LOCALIZATION.md)
+
+### Sprint 60 Overview
+
+| Day | Focus | Deliverables |
+|-----|-------|--------------|
+| Day 1 | Infrastructure | next-intl setup, translation files, LanguageProvider |
+| Day 2 | Translation | Migrate 12 components to i18n |
+| Day 3 | Polish | Language toggle UI, persistence, QA |
+
+### Files to Create (per Design Spec Section 9.1)
+- `frontend/landing/src/lib/i18n.ts` - i18n configuration (~30 lines)
+- `frontend/landing/src/messages/vi.json` - Vietnamese translations (~500 lines)
+- `frontend/landing/src/messages/en.json` - English translations (~500 lines)
+- `frontend/landing/src/app/providers/LanguageProvider.tsx` - Language context provider (~80 lines)
+- `frontend/landing/src/components/ui/LanguageToggle.tsx` - VN/EN toggle component (~40 lines)
+
+### Components to Migrate
+- Header, Hero, Features, HowItWorks
+- VietnamFounders, Pricing, CTASection, Footer
+- Login, Register, Checkout, Checkout Success
+
+---
+
 **Active Sprint**: Sprint 43 - Policy Guards & Evidence UI
 **Status**: 🔄 **IN PROGRESS - Day 5-7 APPROVED** (Dec 22, 2025)
 **Duration**: 2 weeks (Feb 3-14, 2026) → **Early Start: Dec 22, 2025**

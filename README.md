@@ -493,6 +493,14 @@ git clone https://github.com/your-org/sdlc-orchestrator.git
 cd sdlc-orchestrator
 cp .env.example .env
 
+# OAuth (Sprint 59)
+# Backend reads these from environment (see backend/app/core/config.py)
+export GITHUB_CLIENT_ID=your_github_client_id
+export GITHUB_CLIENT_SECRET=your_github_client_secret
+export GOOGLE_CLIENT_ID=your_google_client_id
+export GOOGLE_CLIENT_SECRET=your_google_client_secret
+export OAUTH_REDIRECT_URL=http://localhost:3000/auth/callback
+
 # 2. Start all services
 docker-compose up -d
 

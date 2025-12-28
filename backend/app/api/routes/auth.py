@@ -1,22 +1,24 @@
 """
 =========================================================================
-Authentication Router - Login, Token Refresh, Logout
+Authentication Router - Registration, Login, Token Refresh, Logout
 SDLC Orchestrator - Stage 03 (BUILD)
 
-Version: 1.0.0
-Date: November 28, 2025
-Status: ACTIVE - Week 3 Day 3 API Implementation
+Version: 1.1.0
+Date: December 27, 2025
+Status: ACTIVE - Sprint 58 Registration + VNPay
 Authority: Backend Lead + CTO Approved
 Foundation: FastAPI, JWT Authentication, OWASP ASVS Level 2
-Framework: SDLC 4.9 Complete Lifecycle
+Framework: SDLC 5.1.2 Universal Framework
 
 Purpose:
+- User registration (email/password)
 - User authentication endpoints
 - JWT token management (access + refresh)
 - OAuth 2.0 integration (GitHub, Google, Microsoft)
 - User profile management
 
 Endpoints:
+- POST /auth/register - User registration (Sprint 58)
 - POST /auth/login - Email/password login
 - POST /auth/refresh - Refresh access token
 - POST /auth/logout - Revoke refresh token
@@ -25,10 +27,12 @@ Endpoints:
 - POST /auth/oauth/{provider}/callback - OAuth callback handler
 
 Security:
+- Password hashing (bcrypt, cost=12)
 - Password verification (bcrypt)
 - JWT token generation (HS256)
 - Token expiry enforcement (1h access, 30d refresh)
 - Refresh token revocation (blacklist)
+- Email uniqueness validation
 
 Zero Mock Policy: Production-ready authentication implementation
 =========================================================================
@@ -48,6 +52,7 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_password_hash,
     hash_api_key,
     verify_password,
 )
@@ -56,13 +61,126 @@ from app.models.user import RefreshToken, User
 from app.schemas.auth import (
     LoginRequest,
     LogoutRequest,
+    OAuthAuthorizeResponse,
+    OAuthCallbackRequest,
     RefreshTokenRequest,
+    RegisterRequest,
+    RegisterResponse,
     TokenResponse,
     UserProfile,
 )
 from app.services.audit_service import AuditAction, AuditService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
+async def register(
+    register_data: RegisterRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> RegisterResponse:
+    """
+    Register a new user with email and password.
+
+    Request Body:
+        {
+            "email": "user@example.com",
+            "password": "SecurePassword123!",
+            "full_name": "Nguyễn Văn A"
+        }
+
+    Response (201 Created):
+        {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "email": "user@example.com",
+            "name": "Nguyễn Văn A",
+            "is_active": true,
+            "created_at": "2025-12-27T10:30:00Z",
+            "message": "Registration successful. You can now login."
+        }
+
+    Errors:
+        - 400 Bad Request: Email already registered
+        - 422 Unprocessable Entity: Invalid email format or password too short
+
+    Flow:
+        1. Validate email uniqueness
+        2. Hash password with bcrypt (cost=12)
+        3. Create user record
+        4. Return user info with success message
+
+    Security:
+        - Password hashed with bcrypt (cost=12)
+        - Email stored lowercase and trimmed
+        - No email verification in V1 (per plan v2.2)
+
+    Rate Limiting (per plan v2.2 Section 3.4):
+        - 10 requests/minute per IP
+        - 3 accounts/day per IP
+    """
+    # Initialize audit service
+    audit_service = AuditService(db)
+
+    # Normalize email (lowercase, trimmed)
+    email = register_data.email.lower().strip()
+
+    # Check if email already exists
+    result = await db.execute(select(User).where(User.email == email))
+    existing_user = result.scalar_one_or_none()
+
+    if existing_user:
+        # Audit failed registration attempt
+        await audit_service.log(
+            action=AuditAction.USER_LOGIN_FAILED,  # Reusing existing action type
+            details={
+                "email": email,
+                "failure_reason": "email_already_registered",
+                "action": "registration",
+            },
+            request=request,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
+        )
+
+    # Hash password with bcrypt
+    password_hash = get_password_hash(register_data.password)
+
+    # Create new user
+    new_user = User(
+        email=email,
+        password_hash=password_hash,
+        name=register_data.full_name,
+        is_active=True,  # No email verification in V1
+    )
+    db.add(new_user)
+
+    await db.commit()
+    await db.refresh(new_user)
+
+    # Audit successful registration
+    await audit_service.log(
+        action=AuditAction.USER_CREATED,
+        user_id=new_user.id,
+        resource_type="user",
+        resource_id=new_user.id,
+        details={
+            "email": new_user.email,
+            "registration_method": "email",
+        },
+        request=request,
+    )
+
+    return RegisterResponse(
+        id=new_user.id,
+        email=new_user.email,
+        name=new_user.name,
+        is_active=new_user.is_active,
+        created_at=new_user.created_at,
+        message="Registration successful. You can now login.",
+    )
 
 
 @router.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
@@ -401,6 +519,319 @@ async def get_current_user_profile(
         oauth_providers=oauth_providers,
         created_at=current_user.created_at,
         last_login_at=current_user.last_login,
+    )
+
+
+# =============================================================================
+# OAuth 2.0 Endpoints (Sprint 59)
+# =============================================================================
+
+
+@router.get(
+    "/oauth/{provider}/authorize",
+    response_model=OAuthAuthorizeResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def oauth_authorize(
+    provider: str,
+    redirect_uri: str = None,
+) -> OAuthAuthorizeResponse:
+    """
+    Get OAuth authorization URL for the specified provider.
+
+    Path Parameters:
+        - provider: OAuth provider ('github' or 'google')
+
+    Query Parameters:
+        - redirect_uri: Optional custom redirect URI (default: OAUTH_REDIRECT_URL)
+
+    Response (200 OK):
+        {
+            "authorization_url": "https://github.com/login/oauth/authorize?...",
+            "state": "random-state-string"
+        }
+
+    Errors:
+        - 400 Bad Request: Invalid provider or provider not configured
+
+    Flow:
+        1. Generate state for CSRF protection
+        2. Store state in Redis (10 min TTL)
+        3. Build authorization URL
+        4. Return URL and state
+    """
+    from app.services.oauth_service import oauth_service
+
+    # Validate provider
+    valid_providers = ["github", "google"]
+    if provider not in valid_providers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid OAuth provider. Valid options: {', '.join(valid_providers)}",
+        )
+
+    # Check if provider is configured
+    if provider == "github" and not settings.GITHUB_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="GitHub OAuth is not configured",
+        )
+    if provider == "google" and not settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google OAuth is not configured",
+        )
+
+    # Use default redirect URI if not provided
+    final_redirect_uri = redirect_uri or settings.OAUTH_REDIRECT_URL
+
+    # Generate base state (CSRF protection), then wrap provider metadata into an encoded state.
+    # IMPORTANT: the provider redirect must receive the SAME state value we return to the frontend.
+    import json
+    import base64
+
+    raw_state = oauth_service.generate_state()
+
+    # For Google (PKCE), generate the verifier and persist it in the encoded state.
+    code_verifier = oauth_service.generate_code_verifier() if provider == "google" else None
+
+    state_data = {
+        "provider": provider,
+        "redirect_uri": final_redirect_uri,
+        "code_verifier": code_verifier,
+    }
+
+    encoded_state = base64.urlsafe_b64encode(
+        json.dumps({"state": raw_state, "data": state_data}).encode()
+    ).decode()
+
+    # Build authorization URL based on provider using encoded_state
+    if provider == "github":
+        authorization_url = oauth_service.get_github_auth_url(
+            state=encoded_state,
+            redirect_uri=final_redirect_uri,
+        )
+    else:  # google
+        authorization_url = oauth_service.get_google_auth_url(
+            state=encoded_state,
+            redirect_uri=final_redirect_uri,
+            code_verifier=code_verifier,
+        )
+
+    return OAuthAuthorizeResponse(
+        authorization_url=authorization_url,
+        state=encoded_state,
+    )
+
+
+@router.post(
+    "/oauth/{provider}/callback",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def oauth_callback(
+    provider: str,
+    callback_data: OAuthCallbackRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> TokenResponse:
+    """
+    Handle OAuth callback and exchange code for tokens.
+
+    Path Parameters:
+        - provider: OAuth provider ('github' or 'google')
+
+    Request Body:
+        {
+            "code": "authorization_code_from_provider",
+            "state": "encoded_state_from_authorize"
+        }
+
+    Response (200 OK):
+        {
+            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "token_type": "bearer",
+            "expires_in": 3600
+        }
+
+    Errors:
+        - 400 Bad Request: Invalid state or provider
+        - 401 Unauthorized: OAuth exchange failed
+        - 500 Internal Server Error: User creation failed
+
+    Flow:
+        1. Validate state parameter
+        2. Exchange code for OAuth tokens
+        3. Get user info from provider
+        4. Find or create user
+        5. Link OAuth account
+        6. Generate JWT tokens
+    """
+    import json
+    import base64
+    from app.services.oauth_service import oauth_service
+    from app.models.user import OAuthAccount
+
+    # Validate provider
+    valid_providers = ["github", "google"]
+    if provider not in valid_providers:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid OAuth provider. Valid options: {', '.join(valid_providers)}",
+        )
+
+    # Decode and validate state
+    try:
+        state_json = base64.urlsafe_b64decode(callback_data.state.encode()).decode()
+        state_data = json.loads(state_json)
+        original_state = state_data.get("state")
+        stored_data = state_data.get("data", {})
+
+        if stored_data.get("provider") != provider:
+            raise ValueError("Provider mismatch")
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid state parameter",
+        )
+
+    redirect_uri = stored_data.get("redirect_uri", settings.OAUTH_REDIRECT_URL)
+    code_verifier = stored_data.get("code_verifier")
+
+    # Exchange code for tokens
+    try:
+        if provider == "github":
+            oauth_tokens = await oauth_service.exchange_github_code(
+                code=callback_data.code,
+                redirect_uri=redirect_uri,
+            )
+            user_info = await oauth_service.get_github_user_info(
+                access_token=oauth_tokens.access_token
+            )
+        else:  # google
+            if not code_verifier:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Code verifier missing for Google OAuth",
+                )
+            oauth_tokens = await oauth_service.exchange_google_code(
+                code=callback_data.code,
+                redirect_uri=redirect_uri,
+                code_verifier=code_verifier,
+            )
+            user_info = await oauth_service.get_google_user_info(
+                access_token=oauth_tokens.access_token
+            )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
+
+    # Initialize audit service
+    audit_service = AuditService(db)
+
+    # Find existing user by email
+    email = user_info.email.lower().strip()
+    result = await db.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # Create new user
+        user = User(
+            email=email,
+            name=user_info.name,
+            avatar_url=user_info.avatar_url,
+            is_active=True,
+            password_hash=None,  # OAuth-only user, no password
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+        # Audit user creation
+        await audit_service.log(
+            action=AuditAction.USER_CREATED,
+            user_id=user.id,
+            resource_type="user",
+            resource_id=user.id,
+            details={
+                "email": user.email,
+                "registration_method": f"oauth_{provider}",
+            },
+            request=request,
+        )
+
+    # Check if OAuth account already linked
+    result = await db.execute(
+        select(OAuthAccount).where(
+            OAuthAccount.user_id == user.id,
+            OAuthAccount.provider == provider,
+        )
+    )
+    oauth_account = result.scalar_one_or_none()
+
+    if oauth_account:
+        # Update existing OAuth account
+        oauth_account.access_token = oauth_tokens.access_token
+        oauth_account.refresh_token = oauth_tokens.refresh_token
+        oauth_account.expires_at = (
+            datetime.utcnow() + timedelta(seconds=oauth_tokens.expires_in)
+            if oauth_tokens.expires_in
+            else None
+        )
+    else:
+        # Create new OAuth account link
+        oauth_account = OAuthAccount(
+            user_id=user.id,
+            provider=provider,
+            provider_account_id=user_info.provider_account_id,
+            access_token=oauth_tokens.access_token,
+            refresh_token=oauth_tokens.refresh_token,
+            expires_at=(
+                datetime.utcnow() + timedelta(seconds=oauth_tokens.expires_in)
+                if oauth_tokens.expires_in
+                else None
+            ),
+        )
+        db.add(oauth_account)
+
+    # Generate JWT tokens
+    access_token = create_access_token(subject=str(user.id))
+    refresh_token = create_refresh_token(subject=str(user.id))
+
+    # Store refresh token in database
+    db_refresh_token = RefreshToken(
+        user_id=user.id,
+        token_hash=hash_api_key(refresh_token),
+        expires_at=datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    db.add(db_refresh_token)
+
+    # Update last login timestamp
+    user.last_login = datetime.utcnow()
+
+    await db.commit()
+
+    # Audit OAuth login
+    await audit_service.log(
+        action=AuditAction.USER_LOGIN,
+        user_id=user.id,
+        resource_type="user",
+        resource_id=user.id,
+        details={
+            "email": user.email,
+            "login_method": f"oauth_{provider}",
+        },
+        request=request,
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
     )
 
 

@@ -82,11 +82,20 @@ export interface GapAnalysisResult {
 }
 
 /**
- * SDLC 5.1.2 Stage Definitions (Contract-First Order)
+ * SDLC 5.1.2 Stage Definitions (from Framework README.md)
  *
- * Note: Folder names use SHORT format per SDLC 5.1.2 standard:
- * - docs/00-discover (Stage 00 - WHY)
- * - docs/01-planning (Stage 01 - WHAT)
+ * | Stage | Name | Folder | Question |
+ * |-------|------|--------|----------|
+ * | 00 | FOUNDATION | 00-foundation/ | WHY? |
+ * | 01 | PLANNING | 01-planning/ | WHAT? |
+ * | 02 | DESIGN | 02-design/ | HOW? |
+ * | 03 | INTEGRATE | 03-integrate/ | How connect? |
+ * | 04 | BUILD | 04-build/ | Building right? |
+ * | 05 | TEST | 05-test/ | Works correctly? |
+ * | 06 | DEPLOY | 06-deploy/ | Ship safely? |
+ * | 07 | OPERATE | 07-operate/ | Running reliably? |
+ * | 08 | COLLABORATE | 08-collaborate/ | Team effective? |
+ * | 09 | GOVERN | 09-govern/ | Compliant? |
  *
  * IMPORTANT: Only /docs folders are mapped to stages.
  * Code folders (src, backend, frontend, tests) remain OUTSIDE stage mapping.
@@ -94,17 +103,17 @@ export interface GapAnalysisResult {
 const SDLC_STAGES: SDLCStage[] = [
     {
         number: '00',
-        name: 'discover',
-        displayName: 'Discover (WHY)',
-        description: 'Problem Definition - Design Thinking',
-        folder: 'docs/00-discover',
+        name: 'foundation',
+        displayName: 'Foundation (WHY)',
+        description: 'Strategic Discovery & Validation - Design Thinking',
+        folder: 'docs/00-foundation',
         requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '01',
         name: 'planning',
         displayName: 'Planning (WHAT)',
-        description: 'Requirements Analysis - FRD, User Stories',
+        description: 'Requirements & User Stories',
         folder: 'docs/01-planning',
         requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
@@ -112,15 +121,15 @@ const SDLC_STAGES: SDLCStage[] = [
         number: '02',
         name: 'design',
         displayName: 'Design (HOW)',
-        description: 'Architecture Design - System Design, ADRs',
+        description: 'Architecture & Technical Design',
         folder: 'docs/02-design',
-        requiredTiers: ['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
+        requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '03',
         name: 'integrate',
         displayName: 'Integrate',
-        description: 'API Design & System Integration (Contract-First)',
+        description: 'API Contracts & Third-party Setup',
         folder: 'docs/03-integrate',
         requiredTiers: ['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
@@ -128,47 +137,47 @@ const SDLC_STAGES: SDLCStage[] = [
         number: '04',
         name: 'build',
         displayName: 'Build',
-        description: 'Development & Implementation (docs only)',
+        description: 'Development & Implementation',
         folder: 'docs/04-build',
         requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '05',
-        name: 'deploy',
-        displayName: 'Deploy',
-        description: 'Release & Deployment',
-        folder: 'docs/05-deploy',
-        requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
+        name: 'test',
+        displayName: 'Test',
+        description: 'Quality Assurance & Validation',
+        folder: 'docs/05-test',
+        requiredTiers: ['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '06',
-        name: 'validate',
-        displayName: 'Validate',
-        description: 'Quality Assurance & Testing',
-        folder: 'docs/06-validate',
-        requiredTiers: ['LITE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
+        name: 'deploy',
+        displayName: 'Deploy',
+        description: 'Release & Deployment',
+        folder: 'docs/06-deploy',
+        requiredTiers: ['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '07',
         name: 'operate',
         displayName: 'Operate',
-        description: 'Production & Operations',
+        description: 'Production Operations & Monitoring',
         folder: 'docs/07-operate',
         requiredTiers: ['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '08',
-        name: 'iterate',
-        displayName: 'Iterate',
-        description: 'Feedback & Continuous Improvement',
-        folder: 'docs/08-iterate',
+        name: 'collaborate',
+        displayName: 'Collaborate',
+        description: 'Team Coordination & Knowledge',
+        folder: 'docs/08-collaborate',
         requiredTiers: ['PROFESSIONAL', 'ENTERPRISE'],
     },
     {
         number: '09',
         name: 'govern',
         displayName: 'Govern',
-        description: 'Compliance & Governance',
+        description: 'Compliance & Strategic Oversight',
         folder: 'docs/09-govern',
         requiredTiers: ['ENTERPRISE'],
     },
@@ -205,7 +214,7 @@ export const TIER_DESCRIPTIONS: Record<SDLCTier, { label: string; description: s
  */
 export class SDLCStructureService {
     private readonly configFileName = '.sdlc-config.json';
-    private readonly schemaUrl = 'https://sdlc-orchestrator.io/schemas/config-v1.json';
+    private readonly schemaUrl = 'https://sdlc.nhatquangholding.com/schemas/config-v1.json';
 
     /**
      * Check if current workspace has an SDLC config file
@@ -274,7 +283,7 @@ export class SDLCStructureService {
                 stages: stageMapping,
             },
             server: {
-                url: serverUrl || 'https://sdlc.mtsolution.com.vn',
+                url: serverUrl || 'https://sdlc.nhatquangholding.com',
                 connected: false,
             },
             gates: {
@@ -554,7 +563,7 @@ export class SDLCStructureService {
 
             // Integration templates (STANDARD+)
             templates.push({
-                path: 'docs/03-integration/api-contracts.md',
+                path: 'docs/03-integrate/api-contracts.md',
                 content: `# API Contracts
 
 ## Project: ${projectName}
@@ -652,7 +661,7 @@ ${projectName}/
 │   ├── 00-foundation/     # WHY - Problem Definition
 │   ├── 01-planning/       # WHAT - Requirements
 ${['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'].includes(tier) ? `│   ├── 02-design/        # HOW - Architecture
-│   ├── 03-integration/    # API Design (Contract-First)` : ''}
+│   ├── 03-integrate/      # API Design (Contract-First)` : ''}
 ${['PROFESSIONAL', 'ENTERPRISE'].includes(tier) ? '│   ├── 08-collaborate/   # Team Collaboration' : ''}
 ${tier === 'ENTERPRISE' ? '│   └── 09-govern/        # Compliance & Governance' : '│   └── ...'}
 ├── src/                   # Source code (Stage 04)
@@ -681,7 +690,7 @@ ${tier === 'ENTERPRISE' ? '│   └── 09-govern/        # Compliance & Gove
 - [Problem Statement](docs/00-foundation/problem-statement.md)
 - [Requirements](docs/01-planning/requirements.md)
 ${['STANDARD', 'PROFESSIONAL', 'ENTERPRISE'].includes(tier) ? `- [Architecture](docs/02-design/architecture-overview.md)
-- [API Contracts](docs/03-integration/api-contracts.md)` : ''}
+- [API Contracts](docs/03-integrate/api-contracts.md)` : ''}
 
 ---
 
@@ -697,7 +706,7 @@ Generated by SDLC Orchestrator VS Code Extension
      */
     private generateVSCodeSettings(): Record<string, unknown> {
         return {
-            'sdlc.apiUrl': 'https://sdlc.mtsolution.com.vn',
+            'sdlc.apiUrl': 'https://sdlc.nhatquangholding.com',
             'sdlc.enableNotifications': true,
             'sdlc.aiCouncilEnabled': true,
             'editor.formatOnSave': true,
@@ -721,16 +730,19 @@ Generated by SDLC Orchestrator VS Code Extension
 
         // SDLC 5.1.2: Only /docs folders are mapped to stages
         // Code folders (src, backend, frontend, tests) are NOT stage-mapped
+        // Stage mapping per SDLC 5.1.2 Framework:
+        // 00-foundation, 01-planning, 02-design, 03-integrate, 04-build,
+        // 05-test, 06-deploy, 07-operate, 08-collaborate, 09-govern
         const folderPatterns: Record<string, string[]> = {
-            '00-discover': ['docs/00-discover', 'docs/00-foundation', 'docs/00-Project-Foundation', 'docs/foundation', 'docs/why', 'docs/vision'],
+            '00-foundation': ['docs/00-foundation', 'docs/00-discover', 'docs/00-Project-Foundation', 'docs/foundation', 'docs/why', 'docs/vision'],
             '01-planning': ['docs/01-planning', 'docs/01-Planning-Analysis', 'docs/planning', 'docs/requirements'],
             '02-design': ['docs/02-design', 'docs/02-Design-Architecture', 'docs/design', 'docs/architecture'],
             '03-integrate': ['docs/03-integrate', 'docs/03-integration', 'docs/03-Integration-API', 'docs/api'],
             '04-build': ['docs/04-build', 'docs/03-Development-Implementation', 'docs/development'],
-            '05-deploy': ['docs/05-deploy', 'docs/05-Deployment-Release', 'docs/deployment', 'docs/release'],
-            '06-validate': ['docs/06-validate', 'docs/04-Testing-Quality', 'docs/testing', 'docs/qa'],
+            '05-test': ['docs/05-test', 'docs/04-Testing-Quality', 'docs/testing', 'docs/qa'],
+            '06-deploy': ['docs/06-deploy', 'docs/05-Deployment-Release', 'docs/deployment', 'docs/release'],
             '07-operate': ['docs/07-operate', 'docs/06-Operations-Monitoring', 'docs/operations', 'docs/runbooks'],
-            '08-iterate': ['docs/08-iterate', 'docs/08-Training-Knowledge', 'docs/feedback', 'docs/collaboration'],
+            '08-collaborate': ['docs/08-collaborate', 'docs/08-Training-Knowledge', 'docs/feedback', 'docs/collaboration'],
             '09-govern': ['docs/09-govern', 'docs/09-Executive-Reports', 'docs/compliance', 'docs/governance'],
         };
 

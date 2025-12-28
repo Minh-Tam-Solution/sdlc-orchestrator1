@@ -35,8 +35,11 @@ export declare class ProjectsProvider implements vscode.TreeDataProvider<Project
     private hasError;
     private errorMessage;
     private lastError;
-    private isUsingCachedData;
     constructor(apiClient: ApiClient, cacheService?: CacheService | undefined);
+    /**
+     * Load local project from .sdlc-config.json in workspace
+     */
+    private loadLocalProject;
     /**
      * Refreshes the projects data
      */

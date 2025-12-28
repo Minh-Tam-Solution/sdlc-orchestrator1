@@ -91,7 +91,7 @@ export class CodegenApiService {
                 const errorText = await response.text();
                 let errorMessage = `API error: ${response.status}`;
                 try {
-                    const errorJson = JSON.parse(errorText);
+                    const errorJson = JSON.parse(errorText) as { detail?: string; message?: string };
                     errorMessage = errorJson.detail || errorJson.message || errorMessage;
                 } catch {
                     errorMessage = errorText || errorMessage;
@@ -119,7 +119,7 @@ export class CodegenApiService {
     public async createSession(projectId: string): Promise<OnboardingSession> {
         return this.request<OnboardingSession>(
             'POST',
-            `/api/v1/onboarding/sessions`,
+            '/api/v1/onboarding/sessions',
             { project_id: projectId }
         );
     }

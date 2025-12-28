@@ -111,7 +111,7 @@ export class FileService {
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            if (!file) continue;
+            if (!file) { continue; }
 
             if (onProgress) {
                 onProgress(i, total, file.path);

@@ -393,8 +393,8 @@
       },
       {
         "command": "sdlc.preview",
-        "key": "ctrl+shift+p",
-        "mac": "cmd+shift+p",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p",
         "when": "sdlc.isAuthenticated"
       },
       {

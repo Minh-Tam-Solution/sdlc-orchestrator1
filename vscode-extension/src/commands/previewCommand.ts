@@ -307,7 +307,7 @@ function getLanguageId(path: string): string {
  * Format date string
  */
 function formatDate(dateString?: string): string {
-    if (!dateString) return 'Unknown';
+    if (!dateString) {return 'Unknown';}
     try {
         return new Date(dateString).toLocaleString();
     } catch {

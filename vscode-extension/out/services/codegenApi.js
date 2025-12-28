@@ -88,7 +88,7 @@ class CodegenApiService {
      * Create a new onboarding session
      */
     async createSession(projectId) {
-        return this.request('POST', `/api/v1/onboarding/sessions`, { project_id: projectId });
+        return this.request('POST', '/api/v1/onboarding/sessions', { project_id: projectId });
     }
     /**
      * Get an onboarding session by ID

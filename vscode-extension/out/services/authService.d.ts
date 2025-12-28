@@ -32,6 +32,7 @@ export declare class AuthService {
     setRefreshToken(token: string): Promise<void>;
     /**
      * Refreshes the access token using refresh token
+     * Note: API keys (sdlc_live_*) cannot be refreshed - they just work until revoked
      */
     refreshToken(): Promise<void>;
     /**

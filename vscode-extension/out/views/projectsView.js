@@ -43,6 +43,8 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectsProvider = exports.ProjectTreeItem = void 0;
 const vscode = __importStar(require("vscode"));
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 const cacheService_1 = require("../services/cacheService");
 const logger_1 = require("../utils/logger");
 const config_1 = require("../utils/config");
@@ -117,7 +119,6 @@ class ProjectsProvider {
     hasError = false;
     errorMessage = '';
     lastError;
-    isUsingCachedData = false;
     constructor(apiClient, cacheService) {
         this.apiClient = apiClient;
         this.cacheService = cacheService;
@@ -126,6 +127,53 @@ class ProjectsProvider {
         // Load selected project from config
         const config = config_1.ConfigManager.getInstance();
         this.selectedProjectId = config.defaultProjectId || undefined;
+    }
+    /**
+     * Load local project from .sdlc-config.json in workspace
+     */
+    loadLocalProject() {
+        const folders = vscode.workspace.workspaceFolders;
+        if (!folders || folders.length === 0) {
+            return null;
+        }
+        const workspaceRoot = folders[0]?.uri.fsPath;
+        if (!workspaceRoot) {
+            return null;
+        }
+        const configPath = path.join(workspaceRoot, '.sdlc-config.json');
+        if (!fs.existsSync(configPath)) {
+            return null;
+        }
+        try {
+            const content = fs.readFileSync(configPath, 'utf-8');
+            const config = JSON.parse(content);
+            // Extract project info from either schema format
+            const projectName = config.project?.name || path.basename(workspaceRoot);
+            const projectId = config.project?.id || `local-${projectName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+            const tier = config.tier || config.sdlc?.tier || 'STANDARD';
+            const repoUrl = config.project?.repository;
+            const localProject = {
+                id: projectId,
+                name: projectName,
+                description: config.project?.description || `Local project: ${projectName}`,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                owner_id: 'local',
+                current_gate: 'G0.1',
+            };
+            // Add optional properties only if they have values
+            if (repoUrl) {
+                localProject.github_repo = repoUrl;
+            }
+            logger_1.Logger.info(`Loaded local project: ${projectName} (tier: ${tier})`);
+            return localProject;
+        }
+        catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            logger_1.Logger.warn(`Failed to load local .sdlc-config.json: ${msg}`);
+            return null;
+        }
     }
     /**
      * Refreshes the projects data
@@ -138,48 +186,102 @@ class ProjectsProvider {
         this.hasError = false;
         this.errorMessage = '';
         this.lastError = undefined;
-        this.isUsingCachedData = false;
         try {
-            // Use cache service if available for offline support
-            if (this.cacheService) {
-                const cacheKey = cacheService_1.CacheKeys.PROJECTS;
-                const result = await this.cacheService.getOrFetch(cacheKey, () => this.apiClient.getProjects(), cacheService_1.CacheTTL.PROJECTS);
-                this.projects = result.data;
-                this.isUsingCachedData = result.isCached;
-                if (result.isStale) {
-                    logger_1.Logger.info('Using stale cached projects');
+            // Local-First approach: Load local project from .sdlc-config.json
+            const localProject = this.loadLocalProject();
+            // Try to fetch from server (for sync purposes, not required)
+            let serverProjects = [];
+            try {
+                if (this.cacheService) {
+                    const cacheKey = cacheService_1.CacheKeys.PROJECTS;
+                    const result = await this.cacheService.getOrFetch(cacheKey, () => this.apiClient.getProjects(), cacheService_1.CacheTTL.PROJECTS);
+                    serverProjects = result.data;
+                }
+                else {
+                    serverProjects = await this.apiClient.getProjects();
                 }
             }
-            else {
-                this.projects = await this.apiClient.getProjects();
+            catch (apiError) {
+                // API failed - local project still works (Local-First approach)
+                const classified = (0, errors_1.classifyError)(apiError);
+                if (classified.code === errors_1.ErrorCode.UNAUTHORIZED) {
+                    logger_1.Logger.info('Not authenticated, using local project');
+                }
+                else {
+                    logger_1.Logger.warn(`API error: ${classified.getUserMessage()}`);
+                }
             }
+            // Merge local project with server projects
+            this.projects = [];
+            // Add local project first if exists
+            if (localProject) {
+                // Check if local project already exists in server projects
+                const existsOnServer = serverProjects.some(p => p.name === localProject.name || p.id === localProject.id);
+                if (!existsOnServer) {
+                    // Mark as local project
+                    localProject.description = `📁 ${localProject.description}`;
+                    this.projects.push(localProject);
+                }
+            }
+            // Add server projects
+            this.projects.push(...serverProjects);
             // Sort by name
             this.projects.sort((a, b) => a.name.localeCompare(b.name));
             logger_1.Logger.info(`Loaded ${this.projects.length} projects` +
-                (this.isUsingCachedData ? ' (from cache)' : ''));
+                (localProject ? ' (includes local)' : ''));
             // Update selected project ID from config
             const config = config_1.ConfigManager.getInstance();
             this.selectedProjectId = config.defaultProjectId || undefined;
+            // Auto-select local project if no project selected
+            if (!this.selectedProjectId && localProject) {
+                this.selectedProjectId = localProject.id;
+                await vscode.workspace
+                    .getConfiguration('sdlc')
+                    .update('defaultProjectId', localProject.id, vscode.ConfigurationTarget.Workspace);
+                logger_1.Logger.info(`Auto-selected local project: ${localProject.name}`);
+            }
         }
         catch (error) {
             this.lastError = (0, errors_1.classifyError)(error);
             this.hasError = true;
             this.errorMessage = this.lastError.getUserMessage();
             logger_1.Logger.error(`Failed to refresh projects: ${this.errorMessage}`);
-            // Try to get cached data on error (offline mode)
-            if (this.cacheService) {
-                const cached = this.cacheService.get(cacheService_1.CacheKeys.PROJECTS);
-                if (cached) {
-                    this.projects = cached.data;
-                    this.isUsingCachedData = true;
+            // Handle 401 Unauthorized - prompt re-login
+            if (this.lastError.code === errors_1.ErrorCode.UNAUTHORIZED) {
+                // Still try to load local project
+                const localProject = this.loadLocalProject();
+                if (localProject) {
+                    this.projects = [localProject];
                     this.hasError = false;
-                    logger_1.Logger.info('Using cached projects due to network error');
+                    this.errorMessage = '';
+                }
+                else {
+                    this.projects = [];
+                    void vscode.window.showErrorMessage('Authentication expired. Please log in again.', 'Login').then(selection => {
+                        if (selection === 'Login') {
+                            void vscode.commands.executeCommand('sdlc.login');
+                        }
+                    });
+                }
+            }
+            else {
+                // Try to get cached data on error
+                if (this.cacheService) {
+                    const cached = this.cacheService.get(cacheService_1.CacheKeys.PROJECTS);
+                    if (cached) {
+                        this.projects = cached.data;
+                        this.hasError = false;
+                    }
+                    else {
+                        this.projects = [];
+                    }
                 }
                 else {
                     this.projects = [];
                 }
             }
-            else {
+            // Defensive: ensure projects is always an array
+            if (!Array.isArray(this.projects)) {
                 this.projects = [];
             }
         }
@@ -250,17 +352,9 @@ class ProjectsProvider {
             }
             return [item];
         }
-        // Offline mode indicator
-        if (this.isUsingCachedData) {
-            const offlineItem = new vscode.TreeItem('Offline mode (cached data)', vscode.TreeItemCollapsibleState.None);
-            offlineItem.iconPath = new vscode.ThemeIcon('cloud-offline', new vscode.ThemeColor('editorWarning.foreground'));
-            offlineItem.tooltip = 'Data may be outdated. Click refresh when online.';
-            offlineItem.command = {
-                command: 'sdlc.refreshGates',
-                title: 'Refresh',
-            };
-            items.push(offlineItem);
-        }
+        // Local-First Mode: No status indicators needed
+        // Extension works with local .sdlc-config.json, server sync is automatic
+        // No "offline" or "cached" messages - just show projects
         // No projects found
         if (this.projects.length === 0) {
             const item = new vscode.TreeItem('No projects found', vscode.TreeItemCollapsibleState.None);

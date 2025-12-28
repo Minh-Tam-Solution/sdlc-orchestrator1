@@ -98,7 +98,7 @@ def event_loop() -> Generator:
     loop.close()
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session")
 async def setup_test_database():
     """
     Create test database schema before all tests.
@@ -123,7 +123,7 @@ async def setup_test_database():
 # ============================================================================
 
 @pytest_asyncio.fixture
-async def db() -> AsyncGenerator[AsyncSession, None]:
+async def db(setup_test_database) -> AsyncGenerator[AsyncSession, None]:
     """
     Create database session for each test.
 
@@ -177,7 +177,7 @@ def app() -> FastAPI:
 
 
 @pytest_asyncio.fixture
-async def client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
+async def client(app: FastAPI, setup_test_database) -> AsyncGenerator[AsyncClient, None]:
     """
     Async HTTP client for API testing.
 

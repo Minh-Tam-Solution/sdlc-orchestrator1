@@ -280,8 +280,9 @@ function getLanguageId(path) {
  * Format date string
  */
 function formatDate(dateString) {
-    if (!dateString)
+    if (!dateString) {
         return 'Unknown';
+    }
     try {
         return new Date(dateString).toLocaleString();
     }
