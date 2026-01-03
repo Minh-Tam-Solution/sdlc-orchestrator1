@@ -184,6 +184,105 @@ Route Performance (All PASS - target <1MB):
 
 ---
 
+## Auth E2E Manual Test Procedure
+
+**Date**: January 03, 2026
+**Tester**: Team Lead
+**Environment**: Staging (after NGINX reload)
+
+### Test 1: Protected Route Without Auth → Redirect to Login
+```
+1. Open browser (Incognito mode)
+2. Clear localStorage: DevTools → Application → Local Storage → Clear All
+3. Navigate to: https://sdlc.nhatquangholding.com/platform-admin
+4. EXPECTED: Redirect to /login?redirect=%2Fplatform-admin
+5. VERIFY: URL contains redirect parameter
+```
+**Result**: ⏳ Pending
+
+### Test 2: Login → Redirect to /platform-admin
+```
+1. On /login page, enter valid credentials:
+   - Email: [test user email]
+   - Password: [test user password]
+2. Click "Đăng nhập"
+3. EXPECTED: Redirect to /platform-admin
+4. VERIFY: Dashboard loads with user name in header
+5. VERIFY: localStorage has access_token and refresh_token
+```
+**Result**: ⏳ Pending
+
+### Test 3: Page Refresh → Stay Authenticated
+```
+1. On /platform-admin, press F5 (refresh page)
+2. EXPECTED: Page reloads, user stays authenticated
+3. VERIFY: No redirect to /login
+4. VERIFY: Dashboard shows same user
+```
+**Result**: ⏳ Pending
+
+### Test 4: Navigate Between Dashboard Pages
+```
+1. Click "Projects" in sidebar
+2. EXPECTED: /platform-admin/projects loads with project list
+3. Click "Gates" in sidebar
+4. EXPECTED: /platform-admin/gates loads with gate evaluations
+5. Click "Evidence" in sidebar
+6. EXPECTED: /platform-admin/evidence loads with evidence list
+7. VERIFY: All pages show real API data (not loading forever)
+```
+**Result**: ⏳ Pending
+
+### Test 5: Logout → Clear Tokens + Redirect
+```
+1. Click user avatar/logout button in header
+2. EXPECTED: Redirect to /login
+3. VERIFY: localStorage has NO access_token or refresh_token
+4. Navigate to /platform-admin
+5. EXPECTED: Redirect to /login (not dashboard)
+```
+**Result**: ⏳ Pending
+
+### Test 6: OAuth Login (GitHub)
+```
+1. On /login page, click "GitHub" button
+2. EXPECTED: Redirect to GitHub OAuth
+3. Authorize the app on GitHub
+4. EXPECTED: Redirect to /auth/callback
+5. EXPECTED: Then redirect to /platform-admin
+6. VERIFY: localStorage has access_token and refresh_token
+7. VERIFY: User name from GitHub shows in header
+```
+**Result**: ⏳ Pending
+
+### Test 7: Token Refresh (Simulated)
+```
+1. Login and stay on /platform-admin
+2. In DevTools, manually expire access_token:
+   - localStorage.setItem('access_token', 'expired_token_xxx')
+3. Navigate to /platform-admin/projects
+4. EXPECTED: Silent token refresh (no redirect to login)
+5. VERIFY: New access_token in localStorage
+6. VERIFY: Page loads with real data
+```
+**Result**: ⏳ Pending
+
+### Test Summary
+
+| Test Case | Status | Notes |
+|-----------|--------|-------|
+| Protected route redirect | ⏳ | |
+| Login redirect | ⏳ | |
+| Page refresh auth | ⏳ | |
+| Dashboard navigation | ⏳ | |
+| Logout flow | ⏳ | |
+| OAuth GitHub | ⏳ | |
+| Token refresh | ⏳ | |
+
+**Overall Auth E2E Status**: ⏳ Pending (requires staging deploy)
+
+---
+
 **Created**: January 03, 2026
 **Owner**: Frontend Team Lead
 **Review**: CTO
