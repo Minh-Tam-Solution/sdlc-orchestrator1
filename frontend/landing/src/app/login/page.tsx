@@ -30,7 +30,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   // After login, redirect to Dashboard root
   // Dashboard is served at / for authenticated users (role-based routing)
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = searchParams.get("redirect") || "/platform-admin";
   const t = useTranslations("auth.login");
 
   // Form state

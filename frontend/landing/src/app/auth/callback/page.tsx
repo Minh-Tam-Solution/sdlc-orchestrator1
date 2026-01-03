@@ -91,7 +91,7 @@ function OAuthCallbackHandler() {
         }
 
         // Track successful authentication
-        const oauthFlow = sessionStorage.getItem("oauth_flow");
+        const oauthFlow = localStorage.getItem("oauth_flow");
         if (oauthFlow === "signup") {
           trackRegistrationComplete(provider, 0);
         } else {

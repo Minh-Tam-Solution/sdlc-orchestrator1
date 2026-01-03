@@ -2,8 +2,8 @@
 
 ## 📍 Where We Are Now (Jan 03, 2026)
 
-- **Latest completed sprint**: **Sprint 60** (i18n + Password Reset) ✅
-- **Next sprint to start**: **Sprint 61** (re-baselined by current priorities)
+- **Latest completed milestone**: **Sprint 61 Phase 0 Spike** (Next.js Dashboard Shell) ✅
+- **Next sprint**: **Sprint 62** (Route Group Migration #1)
 
 ### Sprint Numbering Note (to avoid confusion)
 
@@ -79,9 +79,83 @@ See: [SPRINT-60-COMPLETION-REPORT.md](./SPRINT-60-COMPLETION-REPORT.md)
 
 ---
 
-## 🚀 Next Sprint: Sprint 61-64 Frontend Platform Consolidation (Next.js)
+## 🚀 Sprint 61: Frontend Platform Consolidation - Phase 0 Spike
 
-**Status**: 📋 PLANNED - ADR APPROVED (Jan 03, 2026)
+**Status**: ✅ COMPLETE (Jan 03, 2026)
+**Duration**: 3-5 days (Phase 0 Spike)
+**Goal**: Validate Next.js dashboard migration feasibility
+
+### Phase 0 Spike Progress (Jan 03, 2026)
+
+| Deliverable | Status | Notes |
+|-------------|--------|-------|
+| Next.js dashboard shell | ✅ COMPLETE | `/platform-admin` with auth |
+| TanStack Query integration | ✅ COMPLETE | v5 with singleton pattern |
+| Dashboard home page | ✅ COMPLETE | Stats cards, quick actions |
+| Projects page (spike) | ✅ COMPLETE | List, search, filter, gate badges |
+| Gates page (spike) | ✅ COMPLETE | G0-G4 cards, evaluations |
+| Evidence page (spike) | ✅ COMPLETE | Table view, type/status badges |
+| Codegen page (spike) | ✅ COMPLETE | 4-Gate pipeline, sessions |
+| Performance baseline | ✅ COMPLETE | Captured from `next build` output |
+
+**Performance Baseline (final)**: [Sprint-61-Performance-Baseline.md](../../02-design/14-Technical-Specs/Sprint-61-Performance-Baseline.md)
+**Sprint 62 DoD**: [SPRINT-62-DEFINITION-OF-DONE.md](./SPRINT-62-DEFINITION-OF-DONE.md)
+
+### Performance Metrics
+
+| Route | First Load JS | Target | Status |
+|-------|---------------|--------|--------|
+| `/platform-admin` | 99.3 kB | <1 MB | ✅ PASS |
+| `/platform-admin/projects` | 98.4 kB | <1 MB | ✅ PASS |
+| `/platform-admin/gates` | 98.4 kB | <1 MB | ✅ PASS |
+| `/platform-admin/evidence` | 90.3 kB | <1 MB | ✅ PASS |
+| `/platform-admin/codegen` | 90.4 kB | <1 MB | ✅ PASS |
+
+### Components Created (Sprint 61 Phase 0)
+
+**Auth Components**:
+- `src/hooks/useAuth.tsx` - AuthProvider + useAuth hook
+- `src/components/auth/AuthGuard.tsx` - Route protection + RoleGuard
+
+**Dashboard Components**:
+- `src/components/dashboard/Sidebar.tsx` - Navigation sidebar
+- `src/components/dashboard/Header.tsx` - Top nav with profile
+
+**Pages** (5 spike screens):
+- `src/app/platform-admin/layout.tsx` - Dashboard layout
+- `src/app/platform-admin/page.tsx` - Dashboard home
+- `src/app/platform-admin/projects/page.tsx` - Projects list
+- `src/app/platform-admin/gates/page.tsx` - Gate management
+- `src/app/platform-admin/evidence/page.tsx` - Evidence vault
+- `src/app/platform-admin/codegen/page.tsx` - EP-06 codegen
+
+**Infrastructure**:
+- `src/app/providers/QueryProvider.tsx` - TanStack Query v5
+
+### Go/No-Go Decision
+
+**Recommendation**: **GO** - Proceed with Sprint 62 route group migration
+
+All Phase 0 criteria met:
+- ✅ Dashboard shell functional with auth
+- ✅ TanStack Query integrated
+- ✅ 5 screens migrated (exceeds 3-5 target)
+- ✅ Performance targets exceeded (<100 kB vs 1 MB)
+- ✅ Clean production build
+
+### Technical Debt (address before GoLive)
+
+| Issue | Priority | Target Sprint | Notes |
+|-------|----------|--------------|-------|
+| API base URL via env var | P1 | 62 | Use `NEXT_PUBLIC_API_URL` |
+| Token storage → httpOnly cookie | P2 | 63-64 | Reduce XSS token theft risk |
+| npm audit vulnerabilities | P2 | 63 | Supply chain hygiene |
+
+---
+
+## 📋 Sprint 61-64 Frontend Platform Consolidation Roadmap
+
+**Overall Status**: Phase 0 Spike IN PROGRESS
 **Duration**: 8 weeks (Sprint 61-64)
 **Goal**: Standardize to a single frontend platform (Next.js) using strangler migration
 
@@ -167,8 +241,8 @@ See: [SPRINT-60-I18N-LOCALIZATION.md](./SPRINT-60-I18N-LOCALIZATION.md)
 
 ---
 
-**Active Sprint**: Sprint 43 - Policy Guards & Evidence UI
-**Status**: 🔄 **IN PROGRESS - Day 5-7 APPROVED** (Dec 22, 2025)
+**Archived (Legacy snapshot)**: Sprint 43 - Policy Guards & Evidence UI
+**Status**: 📌 Historical record (not the active Sprint 60+ execution track)
 **Duration**: 2 weeks (Feb 3-14, 2026) → **Early Start: Dec 22, 2025**
 **Phase**: Q1 2026 - AI Safety Layer v1
 **Framework**: SDLC 5.1.1 + SASE Level 2
