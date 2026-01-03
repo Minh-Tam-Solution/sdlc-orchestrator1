@@ -1,7 +1,10 @@
 # ADR-024: Frontend Architecture - Dual App vs Monolithic
 ## Decision: KEEP DUAL FRONTEND (Reject Consolidation)
 
-**Status**: ✅ APPROVED  
+> **Update (Jan 03, 2026)**: This ADR is **superseded** by ADR-025 due to a CEO directive to standardize on a single frontend platform (Next.js).
+> See: [ADR-025-Frontend-Platform-Consolidation-Nextjs-Monolith.md](ADR-025-Frontend-Platform-Consolidation-Nextjs-Monolith.md).
+
+**Status**: 🟡 SUPERSEDED  
 **Date**: December 28, 2025  
 **Decision Maker**: CTO  
 **Stage**: Stage 02 (HOW - Design & Architecture)  
@@ -17,8 +20,8 @@ SDLC Orchestrator uses a **dual-frontend architecture**:
 
 | App | Framework | Port | Purpose | Routes | Size |
 |-----|-----------|------|---------|--------|------|
-| **Landing** | Next.js 14 | 8310 | Public marketing, SEO | ~13 pages | 799 MB |
-| **Dashboard** | React 18 + Vite | 8311 | Authenticated SPA | 60+ routes | 363 MB |
+| **Landing** | Next.js 14 | 8311 | Public marketing, SEO | ~13 pages | 799 MB |
+| **Dashboard** | React 18 + Vite | 8310 | Authenticated SPA | 60+ routes | 363 MB |
 
 ### Proposal
 

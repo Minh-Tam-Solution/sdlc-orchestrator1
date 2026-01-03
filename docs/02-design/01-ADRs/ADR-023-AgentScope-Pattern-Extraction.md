@@ -6,7 +6,7 @@
 **Decision Makers**: CTO
 **Stage**: Stage 02 (HOW - Design & Architecture)
 **Framework**: SDLC 5.1.2 Universal Framework
-**Sprints**: Sprint 61-64 (Q1 2026)
+**Sprints**: Sprint 65-68 (Q1/Q2 2026) *(rescheduled due to Sprint 61-64 frontend platform consolidation)*
 
 ---
 

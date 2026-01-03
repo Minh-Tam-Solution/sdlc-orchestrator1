@@ -1,5 +1,19 @@
 # Current Sprint
 
+## 📍 Where We Are Now (Jan 03, 2026)
+
+- **Latest completed sprint**: **Sprint 60** (i18n + Password Reset) ✅
+- **Next sprint to start**: **Sprint 61** (re-baselined by current priorities)
+
+### Sprint Numbering Note (to avoid confusion)
+
+This repo contains multiple sprint numbering streams across time:
+- **Legacy (SDLC 4.9)**: older “Sprint 1–17” status in `PROJECT-STATUS.md` (not kept current)
+- **Core roadmap (SDLC 5.1.x)**: Sprint **41–56** in Q1–Q2 2026 roadmap documents
+- **Landing/Auth track**: Sprint **57–60** (recently completed)
+
+For day-to-day execution and planning “to Sprint 64”, use the **Sprint 60+ track in this file**.
+
 ## 🔐 Sprint 60: i18n Localization + Password Reset - COMPLETE
 
 **Status**: ✅ COMPLETE (Dec 30, 2025)
@@ -42,29 +56,57 @@ See: [SPRINT-60-COMPLETION-REPORT.md](./SPRINT-60-COMPLETION-REPORT.md)
 
 ---
 
-## 🚀 Next Sprint: Sprint 61-64 AI Council Enhancement
+## 🧭 Decision Update (Jan 03, 2026): Single Frontend Platform (Next.js)
 
-**Status**: 📋 PLANNED - ADR APPROVED (Dec 28, 2025)
-**Duration**: 8 weeks (Q1 2026)
-**Goal**: Extract and implement AgentScope patterns into AICouncilService
+**Status**: ✅ APPROVED (Pre-GoLive Experiment)
 
-See: 
-- [ADR-023: AgentScope Pattern Extraction](../../02-design/01-ADRs/ADR-023-AgentScope-Pattern-Extraction.md)
-- [SPRINT-61-64-AI-COUNCIL-ENHANCEMENT.md](./SPRINT-61-64-AI-COUNCIL-ENHANCEMENT.md)
+**Decision**: Standardize SDLC Orchestrator to a **single frontend platform: Next.js (App Router)**.
+
+**ADR**: [ADR-025: Frontend Platform Consolidation - Next.js Monolith](../../02-design/01-ADRs/ADR-025-Frontend-Platform-Consolidation-Nextjs-Monolith.md)
+
+### Migration Strategy (Strangler, no big-bang)
+
+| Phase | Duration | Outcome |
+|------:|----------|---------|
+| Phase 0 | 3-5 days | Spike + perf budget + go/no-go |
+| Phase 1 | 3-4 weeks | Migrate dashboard by route groups |
+| Phase 2 | 1-2 weeks | Stabilize + QA + performance tuning |
+| Phase 3 | 1 week | Cutover + deprecate Vite dashboard |
+
+**Notes**:
+- This is intentionally scheduled while the product is **not officially Go-Live** and has **no paying customers**.
+- If Phase 0 fails performance/complexity criteria, we will escalate with data and re-scope.
+
+---
+
+## 🚀 Next Sprint: Sprint 61-64 Frontend Platform Consolidation (Next.js)
+
+**Status**: 📋 PLANNED - ADR APPROVED (Jan 03, 2026)
+**Duration**: 8 weeks (Sprint 61-64)
+**Goal**: Standardize to a single frontend platform (Next.js) using strangler migration
+
+See:
+- [ADR-025: Frontend Platform Consolidation - Next.js Monolith](../../02-design/01-ADRs/ADR-025-Frontend-Platform-Consolidation-Nextjs-Monolith.md)
+- [SPRINT-61-64-FRONTEND-PLATFORM-CONSOLIDATION.md](./SPRINT-61-64-FRONTEND-PLATFORM-CONSOLIDATION.md)
 
 ### Roadmap Summary
 
 | Sprint | Focus | Deliverables |
 |--------|-------|--------------|
-| Sprint 61 | Research | AgentScope pattern extraction, memory schema design |
-| Sprint 62 | ReAct Loop | Reasoning-action cycle implementation |
-| Sprint 63 | Memory | Long-term memory with pgvector |
-| Sprint 64 | Tools | Parallel tool orchestration |
+| Sprint 61 | Spike | Next.js dashboard shell + perf budget + go/no-go |
+| Sprint 62 | Migration #1 | First dashboard route group migrated |
+| Sprint 63 | Migration #2 | Second route group + stabilization |
+| Sprint 64 | Cutover | Switch routing to Next.js + deprecate Vite |
 
-**Decision**: 🔴 DO NOT integrate AgentScope runtime  
-**Strategy**: ✅ Extract patterns only ("Inspired Evolution")  
-**Cost**: ~$20/mo (OpenAI embeddings)  
-**Risk**: LOW (incremental enhancement)
+---
+
+## ⏭️ Deferred: Sprint 65-68 AI Council Enhancement
+
+**Status**: 📋 PLANNED (rescheduled)
+
+See:
+- [ADR-023: AgentScope Pattern Extraction](../../02-design/01-ADRs/ADR-023-AgentScope-Pattern-Extraction.md)
+- [SPRINT-65-68-AI-COUNCIL-ENHANCEMENT.md](./SPRINT-65-68-AI-COUNCIL-ENHANCEMENT.md)
 
 ---
 

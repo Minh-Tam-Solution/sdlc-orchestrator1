@@ -25,7 +25,7 @@ Our `AICouncilService` (1,550+ LOC) implements 3-stage multi-agent deliberation 
 
 1. **Study AgentScope source code** for architectural patterns
 2. **Extract ReAct, Memory, Tool patterns** for learning
-3. **Implement patterns in AICouncilService** (Sprint 61-64)
+3. **Implement patterns in AICouncilService** (Sprint 65-68)
 4. **Quarterly review** of AgentScope development
 
 ### ❌ PROHIBITED ACTIONS
@@ -102,25 +102,33 @@ Full ownership of existing codebase vs. external framework dependency.
 
 ## 🗺️ Implementation Roadmap: "Inspired Evolution"
 
-### Sprint 61: Research Phase (2 weeks)
+> **Update (Jan 03, 2026)**: Sprint 61-64 is allocated to frontend platform consolidation (Next.js) per ADR-025.
+> This AI Council roadmap is rescheduled to **Sprint 65-68**.
+
+### Sprint 65: Research Phase (2 weeks)
 - Deep-dive AgentScope source code
 - Extract ReAct implementation pattern
 - Design memory enhancement schema
 - Document patterns for team
 
-### Sprint 62: ReAct Enhancement (2 weeks)
+### Sprint 66: ReAct Enhancement (2 weeks)
 - Add ReAct loop to `AICouncilService` Stage 1
 - Implement reasoning chain tracking
 - Add plan generation capability
 - Unit tests for ReAct logic
 
-### Sprint 63: Memory Enhancement (2 weeks)
+### Sprint 67: Memory Enhancement (2 weeks)
 - Design agent memory schema
 - Implement memory retrieval (Redis + pgvector)
 - Add context window optimization
+
+### Sprint 68: Tool Orchestration (2 weeks)
+- Parallel tool execution patterns
+- Timeouts, cancellation, result aggregation
+- Integration points with existing codegen/tooling
 - Migration for existing projects
 
-### Sprint 64: Tool Orchestration (2 weeks)
+### Sprint 68: Tool Orchestration (2 weeks)
 - Add parallel tool executor
 - Implement tool interruption
 - Add tool result aggregation
@@ -161,7 +169,7 @@ DECISION: DO NOT INTEGRATE AGENTSCOPE RUNTIME
 APPROVED ACTIONS:
 ✅ Study source code for patterns
 ✅ Extract ReAct, Memory, Tool patterns
-✅ Implement in AICouncilService (Sprint 61-64)
+✅ Implement in AICouncilService (Sprint 65-68)
 
 PROHIBITED ACTIONS:
 ❌ Add as pip dependency
@@ -190,7 +198,7 @@ Reassess AgentScope integration if:
 **Content**: Full technical analysis, decision rationale, implementation patterns
 
 ### 2. Sprint Roadmap
-**File**: [docs/04-build/02-Sprint-Plans/SPRINT-61-64-AI-COUNCIL-ENHANCEMENT.md](../04-build/02-Sprint-Plans/SPRINT-61-64-AI-COUNCIL-ENHANCEMENT.md)
+**File**: [docs/04-build/02-Sprint-Plans/SPRINT-65-68-AI-COUNCIL-ENHANCEMENT.md](../04-build/02-Sprint-Plans/SPRINT-65-68-AI-COUNCIL-ENHANCEMENT.md)
 
 **Status**: ✅ APPROVED  
 **Content**: 8-week implementation roadmap, deliverables, success criteria
@@ -199,25 +207,26 @@ Reassess AgentScope integration if:
 **File**: [docs/04-build/02-Sprint-Plans/CURRENT-SPRINT.md](../04-build/02-Sprint-Plans/CURRENT-SPRINT.md)
 
 **Status**: ✅ UPDATED  
-**Content**: Sprint 60 marked complete, Sprint 61-64 roadmap added
+**Content**: Sprint 60 marked complete, Sprint 61-64 re-baselined (frontend), AI Council rescheduled to Sprint 65-68
 
 ---
 
 ## 🎯 Next Steps
 
-### Immediate (Week 1 - Sprint 61 Start)
-1. [ ] Assign 2 backend engineers + 1 architect to Sprint 61
-2. [ ] Schedule AgentScope source code deep-dive session
-3. [ ] Create internal wiki page for pattern documentation
-4. [ ] Set up Q2 2026 review gate reminder
+### Immediate (Pre-Sprint 65)
+1. [ ] Confirm reschedule: AI Council enhancement is **Sprint 65-68** (Sprint 61-64 is frontend consolidation per ADR-025)
+2. [ ] Identify owner(s): 2 backend engineers + 1 architect for Sprint 65 start
+3. [ ] Schedule AgentScope source deep-dive session
+4. [ ] Create internal wiki page for pattern documentation
+5. [ ] Set a review gate reminder (Q2 2026)
 
-### Sprint 61 Week 1
+### Sprint 65 Week 1
 1. [ ] Clone AgentScope repo for local analysis
 2. [ ] Study `agentscope/agents/react_agent.py`
 3. [ ] Analyze `agentscope/memory/` architecture
 4. [ ] Review `agentscope/service/` tool orchestration
 
-### Sprint 61 Week 2
+### Sprint 65 Week 2
 1. [ ] Design agent memory schema (PostgreSQL + Redis + pgvector)
 2. [ ] Document extracted patterns
 3. [ ] Create API contract specification
@@ -237,7 +246,7 @@ Reassess AgentScope integration if:
 DECISION SUMMARY:
 • AgentScope runtime integration REJECTED
 • Pattern extraction approach APPROVED
-• Sprint 61-64 roadmap APPROVED
+• Sprint 65-68 roadmap APPROVED (rescheduled)
 • Budget: ~$20/mo incremental cost
 • Review gate: Q2 2026
 
@@ -258,7 +267,7 @@ enabling us to learn from industry-leading research.
 
 **Questions?** Contact CTO or refer to:
 - ADR-023 (technical details)
-- Sprint 61-64 roadmap (implementation plan)
+- Sprint 65-68 roadmap (implementation plan)
 - Q2 2026 review gate (reassessment criteria)
 
 ---
