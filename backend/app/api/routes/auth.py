@@ -42,12 +42,18 @@ from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_active_user, get_current_user
 from app.core.config import settings
+from app.core.cookies import (
+    REFRESH_TOKEN_COOKIE_NAME,
+    clear_auth_cookies,
+    set_access_token_cookie,
+    set_auth_cookies,
+)
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -194,10 +200,13 @@ async def register(
 async def login(
     login_data: LoginRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Login with email and password.
+
+    Sprint 63: Sets httpOnly cookies + returns tokens in body (dual mode).
 
     Request Body:
         {
@@ -206,12 +215,15 @@ async def login(
         }
 
     Response (200 OK):
-        {
+        Body: {
             "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             "token_type": "bearer",
             "expires_in": 3600
         }
+        Cookies:
+            - sdlc_access_token (httpOnly, 15 min)
+            - sdlc_refresh_token (httpOnly, 7 days)
 
     Errors:
         - 401 Unauthorized: Invalid email or password
@@ -219,11 +231,12 @@ async def login(
 
     Flow:
         1. Validate email/password
-        2. Generate access token (1 hour expiry)
-        3. Generate refresh token (30 days expiry)
+        2. Generate access token (15 min cookie, 1 hour body for legacy)
+        3. Generate refresh token (7 days cookie, 30 days body for legacy)
         4. Store refresh token in database
-        5. Update last_login_at timestamp
-        6. Return tokens
+        5. Set httpOnly cookies (Sprint 63)
+        6. Update last_login_at timestamp
+        7. Return tokens in body (backward compatibility)
     """
     # Initialize audit service
     audit_service = AuditService(db)
@@ -298,6 +311,10 @@ async def login(
         request=request,
     )
 
+    # Sprint 63: Set httpOnly cookies for XSS protection
+    set_auth_cookies(response, access_token, refresh_token)
+
+    # Return tokens in body for backward compatibility (Vite dashboard)
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -308,45 +325,64 @@ async def login(
 
 @router.post("/refresh", response_model=TokenResponse, status_code=status.HTTP_200_OK)
 async def refresh_access_token(
-    refresh_data: RefreshTokenRequest,
+    response: Response,
+    refresh_data: Optional[RefreshTokenRequest] = None,
     db: AsyncSession = Depends(get_db),
+    refresh_token_cookie: Optional[str] = Cookie(None, alias=REFRESH_TOKEN_COOKIE_NAME),
 ) -> TokenResponse:
     """
     Refresh access token using refresh token.
 
-    Request Body:
+    Sprint 63 Dual Mode: Accepts refresh token from cookie OR body.
+
+    Request (Option A - Cookie - Sprint 63 preferred):
+        Cookie: sdlc_refresh_token=eyJ...
+
+    Request (Option B - Body - Legacy):
         {
             "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         }
 
     Response (200 OK):
-        {
+        Body: {
             "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             "token_type": "bearer",
             "expires_in": 3600
         }
+        Cookie: sdlc_access_token (new token)
 
     Errors:
         - 401 Unauthorized: Invalid or expired refresh token
         - 401 Unauthorized: Refresh token revoked
 
     Flow:
-        1. Decode and validate refresh token
-        2. Check token type is "refresh"
-        3. Verify token exists in database (not revoked)
-        4. Generate new access token
-        5. Optionally rotate refresh token (security best practice)
-        6. Return new tokens
+        1. Get refresh token from cookie OR body (priority: cookie)
+        2. Decode and validate refresh token
+        3. Check token type is "refresh"
+        4. Verify token exists in database (not revoked)
+        5. Generate new access token
+        6. Set new access token cookie (Sprint 63)
+        7. Return new tokens in body (backward compatibility)
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate refresh token",
     )
 
+    # Sprint 63: Get refresh token from cookie (priority) or body
+    refresh_token: Optional[str] = None
+    if refresh_token_cookie:
+        refresh_token = refresh_token_cookie
+    elif refresh_data and refresh_data.refresh_token:
+        refresh_token = refresh_data.refresh_token
+
+    if not refresh_token:
+        raise credentials_exception
+
     try:
         # Decode refresh token
-        payload = decode_token(refresh_data.refresh_token)
+        payload = decode_token(refresh_token)
 
         # Extract user ID
         user_id: Optional[str] = payload.get("sub")
@@ -366,7 +402,7 @@ async def refresh_access_token(
 
     # Check if refresh token exists in database (and not revoked)
     # Hash the token to match database storage
-    token_hash = hash_api_key(refresh_data.refresh_token)
+    token_hash = hash_api_key(refresh_token)
     result = await db.execute(
         select(RefreshToken).where(
             RefreshToken.user_id == UUID(user_id),
@@ -399,13 +435,13 @@ async def refresh_access_token(
     # Generate new access token
     access_token = create_access_token(subject=str(user.id))
 
-    # Optional: Rotate refresh token (security best practice)
-    # For simplicity, we'll reuse the same refresh token
-    # In production: revoke old token + issue new one
+    # Sprint 63: Set new access token cookie
+    set_access_token_cookie(response, access_token)
 
+    # Return tokens in body for backward compatibility
     return TokenResponse(
         access_token=access_token,
-        refresh_token=refresh_data.refresh_token,
+        refresh_token=refresh_token,
         token_type="bearer",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_HOURS * 3600,
     )
@@ -413,53 +449,69 @@ async def refresh_access_token(
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(
-    logout_data: LogoutRequest,
     request: Request,
+    response: Response,
+    logout_data: Optional[LogoutRequest] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    refresh_token_cookie: Optional[str] = Cookie(None, alias=REFRESH_TOKEN_COOKIE_NAME),
 ) -> None:
     """
     Logout and revoke refresh token.
 
-    Request Body:
+    Sprint 63 Dual Mode: Accepts refresh token from cookie OR body.
+
+    Request (Option A - Cookie - Sprint 63):
+        Cookie: sdlc_refresh_token=eyJ...
+
+    Request (Option B - Body - Legacy):
         {
             "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         }
 
     Response (204 No Content):
-        (empty response)
+        Clear-Cookie: sdlc_access_token
+        Clear-Cookie: sdlc_refresh_token
+        (empty body)
 
     Errors:
         - 401 Unauthorized: Invalid access token
-        - 404 Not Found: Refresh token not found
+        - 404 Not Found: Refresh token not found (only if body provided)
 
     Flow:
         1. Validate access token (current_user dependency)
-        2. Find refresh token in database
-        3. Mark refresh token as revoked (revoked_at = now)
-        4. Return 204 No Content
+        2. Get refresh token from cookie OR body
+        3. Find and revoke refresh token in database
+        4. Clear cookies (Sprint 63)
+        5. Return 204 No Content
     """
-    # Find and revoke refresh token
-    # Hash the token to match database storage
-    token_hash = hash_api_key(logout_data.refresh_token)
-    result = await db.execute(
-        select(RefreshToken).where(
-            RefreshToken.user_id == current_user.id,
-            RefreshToken.token_hash == token_hash,
-            RefreshToken.is_revoked == False,
-        )
-    )
-    db_refresh_token = result.scalar_one_or_none()
+    # Sprint 63: Get refresh token from cookie (priority) or body
+    refresh_token: Optional[str] = None
+    if refresh_token_cookie:
+        refresh_token = refresh_token_cookie
+    elif logout_data and logout_data.refresh_token:
+        refresh_token = logout_data.refresh_token
 
-    if not db_refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Refresh token not found or already revoked",
+    # If we have a refresh token, try to revoke it
+    if refresh_token:
+        # Hash the token to match database storage
+        token_hash = hash_api_key(refresh_token)
+        result = await db.execute(
+            select(RefreshToken).where(
+                RefreshToken.user_id == current_user.id,
+                RefreshToken.token_hash == token_hash,
+                RefreshToken.is_revoked == False,
+            )
         )
+        db_refresh_token = result.scalar_one_or_none()
 
-    # Revoke refresh token
-    db_refresh_token.is_revoked = True
-    await db.commit()
+        if db_refresh_token:
+            # Revoke refresh token
+            db_refresh_token.is_revoked = True
+            await db.commit()
+
+    # Sprint 63: Clear httpOnly cookies
+    clear_auth_cookies(response)
 
     # Audit logout
     audit_service = AuditService(db)
@@ -643,6 +695,7 @@ async def oauth_callback(
     provider: str,
     callback_data: OAuthCallbackRequest,
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
@@ -836,6 +889,10 @@ async def oauth_callback(
         },
         request=request,
     )
+
+    # Sprint 63: Set httpOnly cookies (XSS protection)
+    # Cookies are set in addition to returning tokens in body for backward compatibility
+    set_auth_cookies(response, access_token, refresh_token)
 
     return TokenResponse(
         access_token=access_token,

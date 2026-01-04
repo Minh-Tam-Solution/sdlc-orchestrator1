@@ -238,10 +238,12 @@ app.add_middleware(PrometheusMetricsMiddleware)
 
 # CORS - Allow frontend access
 # P2 FIX (Sprint 33 Day 1): Explicit methods instead of wildcard
+# Sprint 63: allow_credentials=True required for httpOnly cookie authentication
+# IMPORTANT: Cannot use allow_origins=["*"] with allow_credentials=True
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
-    allow_credentials=True,
+    allow_credentials=True,  # Required for cookie-based auth (Sprint 63)
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],  # Explicit whitelist
     allow_headers=["*"],
 )

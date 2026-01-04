@@ -33,13 +33,14 @@ Zero Mock Policy: Production-ready authentication dependencies
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.cookies import ACCESS_TOKEN_COOKIE_NAME
 from app.core.security import decode_token, hash_api_key
 from app.db.session import get_db
 from app.models.user import User, APIKey
@@ -118,25 +119,30 @@ async def validate_api_key(api_key: str, db: AsyncSession) -> User:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
     db: AsyncSession = Depends(get_db),
+    access_token_cookie: Optional[str] = Cookie(None, alias=ACCESS_TOKEN_COOKIE_NAME),
 ) -> User:
     """
-    Get current authenticated user from JWT token OR API key.
+    Get current authenticated user from JWT token, API key, OR httpOnly cookie.
 
-    Headers:
-        Authorization: Bearer <access_token_or_api_key>
+    Sprint 63 Dual Mode Authentication:
+    - Supports BOTH cookie and header authentication (backward compatibility)
+    - Cookie auth is preferred (more secure against XSS)
+    - Header auth is fallback for legacy clients (Vite dashboard)
 
-    Supports two authentication methods:
-        1. JWT token: Standard access tokens (starts with 'ey...')
-        2. API key: Personal access tokens (starts with 'sdlc_live_')
+    Authentication Priority:
+        1. httpOnly Cookie (sdlc_access_token) - Sprint 63 preferred method
+        2. Authorization header (Bearer token) - Legacy method
+        3. API key (sdlc_live_*) - Personal access tokens
 
     Returns:
         User: Current authenticated user
 
     Raises:
-        HTTPException(401): If token/key is invalid or user not found
-        HTTPException(401): If token/key is expired
+        HTTPException(401): If no valid auth found
+        HTTPException(401): If token/key is invalid or expired
         HTTPException(401): If user account is deleted
 
     Usage:
@@ -144,13 +150,11 @@ async def get_current_user(
         async def get_me(current_user: User = Depends(get_current_user)):
             return {"user_id": current_user.id, "email": current_user.email}
 
-    Security Flow:
-        1. Extract token from Authorization header
-        2. Check if it's an API key (starts with 'sdlc_live_')
-           - If yes: Validate API key via hash lookup
-           - If no: Decode and validate JWT token
-        3. Fetch user from database
-        4. Verify user exists and is not deleted
+    Security Flow (Sprint 63):
+        1. Try cookie first (sdlc_access_token)
+        2. If no cookie, try Authorization header
+        3. Validate token (JWT or API key)
+        4. Fetch user from database
         5. Return User object
     """
     credentials_exception = HTTPException(
@@ -159,7 +163,19 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    token = credentials.credentials
+    token: Optional[str] = None
+
+    # Priority 1: Try httpOnly cookie (Sprint 63 - preferred method)
+    if access_token_cookie:
+        token = access_token_cookie
+
+    # Priority 2: Fallback to Authorization header (backward compatibility)
+    elif credentials:
+        token = credentials.credentials
+
+    # No auth found
+    if not token:
+        raise credentials_exception
 
     # Check if it's an API key (starts with 'sdlc_live_')
     if token.startswith("sdlc_live_"):

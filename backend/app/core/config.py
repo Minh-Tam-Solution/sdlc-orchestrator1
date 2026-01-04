@@ -204,6 +204,15 @@ class Settings(BaseSettings):
     VNPAY_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"  # Sandbox URL
     VNPAY_RETURN_URL: str = "http://localhost:3000/checkout/success"  # Return URL after payment
 
+    # Cookie Authentication (Sprint 63)
+    # See: docs/04-build/02-Sprint-Plans/SPRINT-63-DEFINITION-OF-DONE.md
+    # httpOnly cookies for XSS protection (OWASP ASVS Level 2)
+    COOKIE_DOMAIN: Optional[str] = None  # None for localhost, "sdlc.nhatquangholding.com" for prod
+    COOKIE_SECURE: bool = True  # HTTPS only (set to False for local dev if needed)
+    COOKIE_SAMESITE: str = "lax"  # Allow OAuth redirects, block CSRF
+    COOKIE_ACCESS_TOKEN_MAX_AGE: int = 900  # 15 minutes (seconds)
+    COOKIE_REFRESH_TOKEN_MAX_AGE: int = 604800  # 7 days (seconds)
+
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse ALLOWED_ORIGINS into list"""

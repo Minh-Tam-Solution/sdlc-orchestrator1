@@ -4,7 +4,7 @@
  * @module frontend/landing/src/hooks/useAuth
  * @description React hook for authentication state management
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 61 - Frontend Platform Consolidation
+ * @status Sprint 63 - httpOnly Cookie Migration
  */
 
 "use client";
@@ -14,13 +14,10 @@ import type { ReactNode } from "react";
 import { getCurrentUser, logout as apiLogout, refreshToken as apiRefreshToken } from "@/lib/api";
 import type { UserProfile, TokenResponse } from "@/lib/api";
 
-// Token storage keys
-// NOTE: Existing landing/auth pages already persist tokens under these keys.
-// Keep compatibility with any older prefixed keys during the spike.
-const ACCESS_TOKEN_KEY = "access_token";
-const REFRESH_TOKEN_KEY = "refresh_token";
-const LEGACY_ACCESS_TOKEN_KEY = "sdlc_access_token";
-const LEGACY_REFRESH_TOKEN_KEY = "sdlc_refresh_token";
+// Sprint 63: httpOnly Cookie Authentication
+// Tokens are stored in httpOnly cookies by backend (Set-Cookie headers)
+// JavaScript cannot read httpOnly cookies - browser auto-includes them
+// All token storage functions are no-ops for backward compatibility
 
 interface AuthState {
   user: UserProfile | null;
@@ -40,47 +37,46 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 /**
  * Get stored access token
+ * Sprint 63: NO-OP - Token is in httpOnly cookie, JavaScript cannot read it
+ * Backend reads from Cookie header automatically via credentials: 'include'
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getStoredAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return (
-    localStorage.getItem(ACCESS_TOKEN_KEY) ||
-    localStorage.getItem(LEGACY_ACCESS_TOKEN_KEY)
-  );
+  // httpOnly cookies cannot be read by JavaScript
+  // Return null to indicate tokens are cookie-based
+  return null;
 }
 
 /**
  * Get stored refresh token
+ * Sprint 63: NO-OP - Token is in httpOnly cookie, JavaScript cannot read it
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getStoredRefreshToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return (
-    localStorage.getItem(REFRESH_TOKEN_KEY) ||
-    localStorage.getItem(LEGACY_REFRESH_TOKEN_KEY)
-  );
+  // httpOnly cookies cannot be read by JavaScript
+  return null;
 }
 
 /**
  * Store tokens in localStorage
+ * Sprint 63: NO-OP - Cookies are set by backend Set-Cookie headers
+ * Keep function signature for backward compatibility
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function storeTokens(accessToken: string, refreshToken: string): void {
-  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-
-  // Back-compat for any code paths still reading legacy keys.
-  localStorage.setItem(LEGACY_ACCESS_TOKEN_KEY, accessToken);
-  localStorage.setItem(LEGACY_REFRESH_TOKEN_KEY, refreshToken);
+  // NO-OP: Backend sets httpOnly cookies via Set-Cookie headers
+  // Browser automatically manages cookies
+  // Keep function to avoid breaking login flow that calls this
 }
 
 /**
  * Clear stored tokens
+ * Sprint 63: NO-OP - Backend clears cookies via Set-Cookie with Max-Age=0
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function clearTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-
-  localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
-  localStorage.removeItem(LEGACY_REFRESH_TOKEN_KEY);
+  // NO-OP: Backend clears httpOnly cookies
+  // Keep function to avoid breaking logout flow
 }
 
 /**
@@ -95,11 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   /**
-   * Fetch user profile with access token
+   * Fetch user profile
+   * Sprint 63: Uses httpOnly cookie for authentication
    */
-  const fetchUser = useCallback(async (accessToken: string): Promise<UserProfile | null> => {
+  const fetchUser = useCallback(async (): Promise<UserProfile | null> => {
     try {
-      const user = await getCurrentUser(accessToken);
+      const user = await getCurrentUser();
       return user;
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -109,17 +106,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Initialize auth state on mount
+   * Sprint 63: Check auth by calling /auth/me (cookie-based)
    */
   useEffect(() => {
     const initAuth = async () => {
-      const accessToken = getStoredAccessToken();
-
-      if (!accessToken) {
-        setState((prev) => ({ ...prev, isLoading: false }));
-        return;
-      }
-
-      const user = await fetchUser(accessToken);
+      // Try to fetch user profile using httpOnly cookie
+      const user = await fetchUser();
 
       if (user) {
         setState({
@@ -129,28 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           error: null,
         });
       } else {
-        // Try to refresh token
-        const refreshTokenValue = getStoredRefreshToken();
-        if (refreshTokenValue) {
-          try {
-            const tokens = await apiRefreshToken(refreshTokenValue);
-            storeTokens(tokens.access_token, tokens.refresh_token);
-            const refreshedUser = await fetchUser(tokens.access_token);
-            if (refreshedUser) {
-              setState({
-                user: refreshedUser,
-                isLoading: false,
-                isAuthenticated: true,
-                error: null,
-              });
-              return;
-            }
-          } catch {
-            // Refresh failed, clear tokens
-            clearTokens();
-          }
-        }
-
+        // No valid cookie or expired - user needs to login
         setState({
           user: null,
           isLoading: false,
@@ -165,10 +136,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Login with tokens (called after successful auth)
+   * Sprint 63: Tokens are already set as httpOnly cookies by backend
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const login = useCallback(async (tokens: TokenResponse) => {
-    storeTokens(tokens.access_token, tokens.refresh_token);
-    const user = await fetchUser(tokens.access_token);
+    // Backend has already set httpOnly cookies via Set-Cookie headers
+    // Just fetch user profile to update state
+    const user = await fetchUser();
 
     if (user) {
       setState({
@@ -187,20 +161,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Logout and clear tokens
+   * Sprint 63: Backend clears httpOnly cookies
    */
   const logout = useCallback(async () => {
-    const accessToken = getStoredAccessToken();
-    const refreshTokenValue = getStoredRefreshToken();
-
-    if (accessToken && refreshTokenValue) {
-      try {
-        await apiLogout(accessToken, refreshTokenValue);
-      } catch (error) {
-        console.error("Logout API error:", error);
-      }
+    try {
+      // Backend reads tokens from cookies and clears them
+      await apiLogout();
+    } catch (error) {
+      console.error("Logout API error:", error);
     }
 
-    clearTokens();
+    // No need to clear localStorage - cookies are httpOnly
     setState({
       user: null,
       isLoading: false,
@@ -211,18 +182,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Refresh authentication
+   * Sprint 63: Backend reads refresh_token from httpOnly cookie
    */
   const refreshAuth = useCallback(async (): Promise<boolean> => {
-    const refreshTokenValue = getStoredRefreshToken();
-
-    if (!refreshTokenValue) {
-      return false;
-    }
-
     try {
-      const tokens = await apiRefreshToken(refreshTokenValue);
-      storeTokens(tokens.access_token, tokens.refresh_token);
-      const user = await fetchUser(tokens.access_token);
+      // Backend reads refresh_token cookie and sets new cookies
+      await apiRefreshToken();
+      const user = await fetchUser();
 
       if (user) {
         setState({
@@ -235,7 +201,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Token refresh failed:", error);
-      clearTokens();
       setState({
         user: null,
         isLoading: false,
@@ -249,9 +214,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /**
    * Get current access token
+   * Sprint 63: Returns null - token is in httpOnly cookie
    */
   const getAccessToken = useCallback((): string | null => {
-    return getStoredAccessToken();
+    // httpOnly cookies cannot be read by JavaScript
+    // Token is automatically included in requests via credentials: 'include'
+    return null;
   }, []);
 
   const value: AuthContextType = {

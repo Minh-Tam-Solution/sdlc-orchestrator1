@@ -219,6 +219,8 @@ services:
     build:
       context: ./frontend/landing
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     container_name: sdlc-frontend-landing
     restart: unless-stopped
     environment:

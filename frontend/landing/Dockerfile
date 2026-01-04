@@ -37,6 +37,10 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# Build-time argument for API URL (NEXT_PUBLIC_* must be set at build time)
+ARG NEXT_PUBLIC_API_URL=http://localhost:8300/api/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build production bundle
 RUN npm run build
 
