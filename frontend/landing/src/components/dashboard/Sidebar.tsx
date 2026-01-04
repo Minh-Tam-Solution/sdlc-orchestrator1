@@ -48,7 +48,7 @@ const navigationItems = [
   },
   {
     name: "SOP Generator",
-    href: "/platform-admin/sop",
+    href: "/platform-admin/sop-generator",
     icon: ClipboardDocumentListIcon,
   },
 ];
