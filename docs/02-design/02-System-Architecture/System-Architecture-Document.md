@@ -1,14 +1,20 @@
 # System Architecture Document
 ## 5-Layer Architecture + Bridge-First Design (Software 3.0)
 
-**Version**: 3.0.0
-**Date**: December 23, 2025
+**Version**: 3.1.0
+**Date**: January 08, 2026
 **Status**: ACTIVE - APPROVED
 **Authority**: CTO + Tech Lead + Backend Lead
 **Foundation**: Stage 01 (Requirements v3.1.0, API Specs v3.1.0, Data Model v3.1.0)
 **Stage**: Stage 02 (HOW - Design & Architecture)
 **Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
 **Positioning**: Operating System for Software 3.0
+
+**Changelog v3.1.0** (Jan 08, 2026):
+- **MinIO Migration**: Migrated to AI-Platform shared service (`ai-platform-minio` on `ai-net` network)
+- **Port Change**: MinIO S3 API now on port 9020 (host) / 9000 (container)
+- **Shared Service Architecture**: MinIO now serves multiple AI services centrally
+- **Frontend Consolidation**: Sprint 64-69 complete, unified Next.js on port 8310
 
 **Changelog v3.0.0** (Dec 23, 2025):
 - **SOFTWARE 3.0 PIVOT**: 5-Layer Architecture (EP-06 Codegen Layer added)
@@ -100,7 +106,8 @@
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
 │  │ OPA          │  │ MinIO        │  │ Grafana      │         │
 │  │ (Apache-2.0) │  │ (AGPL v3)    │  │ (AGPL v3)    │         │
-│  │ Port: 8181   │  │ Port: 9000   │  │ Port: 3000   │         │
+│  │ Port: 8181   │  │ Port: 9020   │  │ Port: 3000   │         │
+│  │              │  │ (ai-net)     │  │              │         │
 │  └──────────────┘  └──────────────┘  └──────────────┘         │
 │                                                                 │
 │  ┌──────────────┐  ┌──────────────┐                           │
@@ -441,12 +448,18 @@ class OPAService:
 import httpx
 
 class MinIOService:
-    """Thin wrapper around MinIO S3 API."""
+    """
+    Thin wrapper around MinIO S3 API.
+
+    Note: MinIO migrated to AI-Platform shared service (Jan 08, 2026)
+    Container: ai-platform-minio on ai-net network
+    S3 API: localhost:9020 (host) / ai-platform-minio:9000 (container)
+    """
 
     async def upload_file(self, bucket: str, object_name: str, file: BinaryIO):
         async with httpx.AsyncClient() as client:
             await client.put(
-                f"http://minio:9000/{bucket}/{object_name}",
+                f"http://ai-platform-minio:9000/{bucket}/{object_name}",
                 data=file
             )
 ```
@@ -476,7 +489,7 @@ class GrafanaService:
 | Component | Version | License | Port | Purpose |
 |-----------|---------|---------|------|---------|
 | **OPA** | 0.58.0 | Apache-2.0 | 8181 | Policy engine |
-| **MinIO** | Latest | AGPL v3 | 9000 | S3-compatible storage |
+| **MinIO** | Latest | AGPL v3 | 9020 (host) / 9000 (container) | S3-compatible storage (AI-Platform shared) |
 | **Grafana** | 10.2.0 | AGPL v3 | 3000 | Dashboards |
 | **PostgreSQL** | 15.5 | PostgreSQL | 5432 | Primary database |
 | **Redis** | 7.2 | BSD-3 | 6379 | Cache + sessions |

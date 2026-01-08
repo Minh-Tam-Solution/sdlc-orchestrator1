@@ -4,16 +4,20 @@
  * @module frontend/landing/src/hooks/useProjects
  * @description React Query hooks for Projects API
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 62 - Route Group Migration
+ * @status Sprint 69 - Cookie Auth Migration
  */
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProjects,
   getProject,
+  createProject,
   type Project,
   type ProjectDetail,
+  type CreateProjectRequest,
+  type CreateProjectResponse,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // Query keys for cache management
 export const projectKeys = {
@@ -26,47 +30,36 @@ export const projectKeys = {
 };
 
 /**
- * Get access token from localStorage
- */
-function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
-}
-
-/**
  * Hook to fetch list of projects
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function useProjects(options?: { skip?: number; limit?: number }) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: projectKeys.list(options),
-    queryFn: async () => {
-      if (!accessToken) {
-        throw new Error("Not authenticated");
-      }
-      return getProjects(accessToken, options);
-    },
-    enabled: !!accessToken,
+    queryFn: () => getProjects(options),
+    enabled: isAuthenticated && !authLoading,
     staleTime: 60 * 1000, // 1 minute
   });
 }
 
 /**
  * Hook to fetch a single project by ID
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function useProject(projectId: string | undefined) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: projectKeys.detail(projectId || ""),
-    queryFn: async () => {
-      if (!accessToken || !projectId) {
-        throw new Error("Not authenticated or missing project ID");
+    queryFn: () => {
+      if (!projectId) {
+        throw new Error("Missing project ID");
       }
-      return getProject(accessToken, projectId);
+      return getProject(projectId);
     },
-    enabled: !!accessToken && !!projectId,
+    enabled: isAuthenticated && !authLoading && !!projectId,
     staleTime: 60 * 1000, // 1 minute
   });
 }
@@ -82,5 +75,23 @@ export function useInvalidateProjects() {
   };
 }
 
+/**
+ * Hook to create a new project
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
+ */
+export function useCreateProject() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateProjectRequest): Promise<CreateProjectResponse> => {
+      return createProject(data);
+    },
+    onSuccess: () => {
+      // Invalidate projects list to refetch
+      queryClient.invalidateQueries({ queryKey: projectKeys.all });
+    },
+  });
+}
+
 // Export types for use in components
-export type { Project, ProjectDetail };
+export type { Project, ProjectDetail, CreateProjectRequest, CreateProjectResponse };

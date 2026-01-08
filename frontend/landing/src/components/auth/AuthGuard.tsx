@@ -102,3 +102,78 @@ export function RoleGuard({
 
   return <>{children}</>;
 }
+
+/**
+ * Admin Guard - Requires is_superuser=true
+ * Used for /admin/* routes (superuser only)
+ */
+interface AdminGuardProps {
+  children: React.ReactNode;
+  fallbackPath?: string;
+}
+
+export function AdminGuard({
+  children,
+  fallbackPath = "/app",
+}: AdminGuardProps) {
+  const { user, isLoading, isAuthenticated } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (!user.is_superuser) {
+        router.push(fallbackPath);
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router, fallbackPath]);
+
+  if (isLoading) {
+    return <AuthLoadingSkeleton />;
+  }
+
+  if (!isAuthenticated || !user) {
+    return null;
+  }
+
+  if (!user.is_superuser) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
+          <p className="mt-2 text-gray-600">
+            You need admin privileges to access this page.
+          </p>
+          <button
+            onClick={() => router.push(fallbackPath)}
+            className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+/**
+ * @deprecated PlatformAdminGuard is no longer needed
+ * After Sprint 69 route restructure:
+ * - /app/* is accessible to ALL authenticated users
+ * - /admin/* requires is_superuser (use AdminGuard)
+ *
+ * Keeping for backwards compatibility, but it now just passes through.
+ */
+interface PlatformAdminGuardProps {
+  children: React.ReactNode;
+  fallbackPath?: string;
+}
+
+export function PlatformAdminGuard({
+  children,
+}: PlatformAdminGuardProps) {
+  // After Sprint 69: /app/* is for all authenticated users
+  // This guard is deprecated - just pass through
+  return <>{children}</>;
+}

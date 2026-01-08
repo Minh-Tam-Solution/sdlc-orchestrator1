@@ -4,7 +4,7 @@
  * @module frontend/landing/src/hooks/useEvidence
  * @description React Query hooks for Evidence API
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 62 - Route Group Migration
+ * @status Sprint 69 - Cookie Auth Migration
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
   type EvidenceListResponse,
   type EvidenceListOptions,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // Query keys for cache management
 export const evidenceKeys = {
@@ -27,28 +28,16 @@ export const evidenceKeys = {
 };
 
 /**
- * Get access token from localStorage
- */
-function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
-}
-
-/**
  * Hook to fetch list of evidence with pagination and filters
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function useEvidenceList(options?: EvidenceListOptions) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: evidenceKeys.list(options),
-    queryFn: async () => {
-      if (!accessToken) {
-        throw new Error("Not authenticated");
-      }
-      return getEvidenceList(accessToken, options);
-    },
-    enabled: !!accessToken,
+    queryFn: () => getEvidenceList(options),
+    enabled: isAuthenticated && !authLoading,
     staleTime: 60 * 1000, // 1 minute
   });
 }
@@ -69,19 +58,20 @@ export function useEvidenceByType(evidenceType: string | undefined) {
 
 /**
  * Hook to fetch a single evidence item by ID
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function useEvidence(evidenceId: string | undefined) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: evidenceKeys.detail(evidenceId || ""),
-    queryFn: async () => {
-      if (!accessToken || !evidenceId) {
-        throw new Error("Not authenticated or missing evidence ID");
+    queryFn: () => {
+      if (!evidenceId) {
+        throw new Error("Missing evidence ID");
       }
-      return getEvidence(accessToken, evidenceId);
+      return getEvidence(evidenceId);
     },
-    enabled: !!accessToken && !!evidenceId,
+    enabled: isAuthenticated && !authLoading && !!evidenceId,
     staleTime: 60 * 1000, // 1 minute
   });
 }

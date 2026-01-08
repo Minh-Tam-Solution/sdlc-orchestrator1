@@ -1,18 +1,75 @@
 # Current Sprint
 
-## 📍 Where We Are Now (Jan 03, 2026)
+## 📍 Where We Are Now (Jan 08, 2026)
 
-- **Latest completed milestone**: **Sprint 61 Phase 0 Spike** (Next.js Dashboard Shell) ✅
-- **Next sprint**: **Sprint 62** (Route Group Migration #1)
+- **Latest completed milestone**: **Sprint 69** (Route Restructure + Auth Flow Fix + MinIO Migration) ✅
+- **Next sprint**: **Sprint 70** (TBD)
 
 ### Sprint Numbering Note (to avoid confusion)
 
 This repo contains multiple sprint numbering streams across time:
-- **Legacy (SDLC 4.9)**: older “Sprint 1–17” status in `PROJECT-STATUS.md` (not kept current)
+- **Legacy (SDLC 4.9)**: older "Sprint 1–17" status in `PROJECT-STATUS.md` (not kept current)
 - **Core roadmap (SDLC 5.1.x)**: Sprint **41–56** in Q1–Q2 2026 roadmap documents
-- **Landing/Auth track**: Sprint **57–60** (recently completed)
+- **Landing/Auth track**: Sprint **57–60** (completed)
+- **Frontend Platform Consolidation**: Sprint **61–69** (completed)
 
-For day-to-day execution and planning “to Sprint 64”, use the **Sprint 60+ track in this file**.
+For day-to-day execution and planning, use this file.
+
+---
+
+## 🔄 Sprint 69: Route Restructure + Auth Flow Fix + MinIO Migration - COMPLETE
+
+**Status**: ✅ COMPLETE (Jan 08, 2026)
+**Duration**: 5 days (Jan 04-08, 2026)
+**Goal**: Fix confusing `/platform-admin` route naming, implement proper RBAC, migrate MinIO to shared service
+
+See: [SPRINT-69-DEFINITION-OF-DONE.md](./SPRINT-69-DEFINITION-OF-DONE.md)
+
+### Key Changes
+
+| Before | After | Access |
+|--------|-------|--------|
+| `/platform-admin/*` | `/app/*` | All authenticated users |
+| `/platform-admin/admin/*` | `/admin/*` | Superusers only |
+
+### Route Architecture (Final)
+
+```
+/app/*     → Web App (all authenticated users)
+/admin/*   → Admin Panel (superusers only)
+/dashboard → Redirects to /app
+```
+
+### MinIO Migration to AI-Platform Shared Service (Jan 08, 2026)
+
+| Property | Old (sdlc-minio) | New (ai-platform-minio) |
+|----------|------------------|-------------------------|
+| Container | `sdlc-minio` | `ai-platform-minio` |
+| Network | `sdlc-network` | `ai-net` (shared) |
+| S3 API Port | `9010:9000` | `9020:9000` |
+| Console Port | `9011:9001` | `9021:9001` |
+| Endpoint | `minio:9000` | `ai-platform-minio:9000` |
+
+**Buckets Created**: `evidence-vault`, `artifacts`, `orchdocs`, `reports`
+
+### Deliverables
+
+| Task | Status |
+|------|--------|
+| Rename `/platform-admin/` → `/app/` | ✅ |
+| Move `/platform-admin/admin/` → `/admin/` | ✅ |
+| Update AuthGuard (deprecate PlatformAdminGuard) | ✅ |
+| Sidebar: Hide Admin Panel for non-superusers | ✅ |
+| OAuth callback → `/app` | ✅ |
+| Migrate MinIO to AI-Platform shared service | ✅ |
+| Update docker-compose.yml for MinIO migration | ✅ |
+| Update .env with new MinIO credentials | ✅ |
+| Create buckets on ai-platform-minio | ✅ |
+| Remove old sdlc-minio container | ✅ |
+| Build & Deploy | ✅ |
+| Documentation updated | ✅ |
+
+---
 
 ## 🔐 Sprint 60: i18n Localization + Password Reset - COMPLETE
 

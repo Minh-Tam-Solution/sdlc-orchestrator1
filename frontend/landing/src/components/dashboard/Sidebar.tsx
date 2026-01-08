@@ -13,58 +13,49 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
-// Navigation items configuration
+// Navigation items configuration - Updated for /app/* routes (Sprint 69)
 const navigationItems = [
   {
     name: "Dashboard",
-    href: "/platform-admin",
+    href: "/app",
     icon: HomeIcon,
   },
   {
     name: "Projects",
-    href: "/platform-admin/projects",
+    href: "/app/projects",
     icon: FolderIcon,
   },
   {
     name: "Gates",
-    href: "/platform-admin/gates",
+    href: "/app/gates",
     icon: ShieldCheckIcon,
   },
   {
     name: "Evidence",
-    href: "/platform-admin/evidence",
+    href: "/app/evidence",
     icon: DocumentIcon,
   },
   {
     name: "Policies",
-    href: "/platform-admin/policies",
+    href: "/app/policies",
     icon: DocumentTextIcon,
   },
   {
     name: "App Builder",
-    href: "/platform-admin/codegen",
+    href: "/app/codegen",
     icon: CodeBracketIcon,
   },
   {
     name: "SOP Generator",
-    href: "/platform-admin/sop-generator",
+    href: "/app/sop-generator",
     icon: ClipboardDocumentListIcon,
   },
 ];
 
-const adminItems = [
-  {
-    name: "Users",
-    href: "/platform-admin/admin/users",
-    icon: UsersIcon,
-  },
-  {
-    name: "Settings",
-    href: "/platform-admin/settings",
-    icon: CogIcon,
-  },
-];
+// Admin items moved to inline conditional rendering (Sprint 69)
+// Admin Panel only shown to superusers
 
 // Simple icon components (inline SVG)
 function HomeIcon({ className }: { className?: string }) {
@@ -164,6 +155,10 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(collapsed);
+  const { user } = useAuth();
+
+  // Only show Admin Panel link for superusers
+  const isSuperuser = user?.is_superuser;
 
   const handleToggle = () => {
     setIsCollapsed(!isCollapsed);
@@ -180,7 +175,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4">
         {!isCollapsed && (
-          <Link href="/platform-admin" className="flex items-center gap-2">
+          <Link href="/app" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
               <span className="text-sm font-bold text-white">S</span>
             </div>
@@ -229,31 +224,51 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {/* Divider */}
         <div className="my-4 border-t border-gray-200" />
 
-        {/* Admin items */}
-        {adminItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
+        {/* Settings - always visible */}
+        <Link
+          href="/app/settings"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            pathname === "/app/settings" || pathname.startsWith("/app/settings/")
+              ? "bg-blue-50 text-blue-700"
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+          )}
+          title={isCollapsed ? "Settings" : undefined}
+        >
+          <CogIcon
+            className={cn(
+              "h-5 w-5 flex-shrink-0",
+              pathname === "/app/settings" || pathname.startsWith("/app/settings/")
+                ? "text-blue-700"
+                : "text-gray-400"
+            )}
+          />
+          {!isCollapsed && <span>Settings</span>}
+        </Link>
+
+        {/* Admin Panel - only for superusers */}
+        {isSuperuser && (
+          <Link
+            href="/admin"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              pathname === "/admin" || pathname.startsWith("/admin/")
+                ? "bg-red-50 text-red-700"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            )}
+            title={isCollapsed ? "Admin Panel" : undefined}
+          >
+            <UsersIcon
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                "h-5 w-5 flex-shrink-0",
+                pathname === "/admin" || pathname.startsWith("/admin/")
+                  ? "text-red-700"
+                  : "text-gray-400"
               )}
-              title={isCollapsed ? item.name : undefined}
-            >
-              <item.icon
-                className={cn(
-                  "h-5 w-5 flex-shrink-0",
-                  isActive ? "text-blue-700" : "text-gray-400"
-                )}
-              />
-              {!isCollapsed && <span>{item.name}</span>}
-            </Link>
-          );
-        })}
+            />
+            {!isCollapsed && <span>Admin Panel</span>}
+          </Link>
+        )}
       </nav>
 
       {/* Footer */}

@@ -28,9 +28,8 @@ interface FormErrors {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // After login, redirect to Dashboard root
-  // Dashboard is served at / for authenticated users (role-based routing)
-  const redirectTo = searchParams.get("redirect") || "/platform-admin";
+  // After login, redirect to Web App
+  const redirectTo = searchParams.get("redirect") || "/app";
   const t = useTranslations("auth.login");
 
   // Form state

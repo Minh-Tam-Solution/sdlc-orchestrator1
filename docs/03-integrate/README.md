@@ -4,11 +4,16 @@
 **Stage**: 07 - INTEGRATE
 **Question**: How do we connect with others?
 **Version**: 2.0.0
-**Date**: December 23, 2025
+**Date**: January 08, 2026
 **Status**: ✅ ACTIVE - EP-06 Codegen Integration Points
 **Authority**: Backend Lead + CTO Approved
 **Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
 **Positioning**: Operating System for Software 3.0
+
+**Changelog v2.1.0** (Jan 08, 2026):
+- **MinIO Migration**: Migrated to AI-Platform shared service (`ai-platform-minio` on `ai-net` network)
+- **Port Change**: MinIO S3 API now on port 9020 (host) / 9000 (container), Console on 9021
+- **Shared Service**: MinIO now shared across SDLC Orchestrator, AI-Chat-UI, and other AI services
 
 **Changelog v2.0.0** (Dec 23, 2025):
 - **EP-06 Codegen Integration**: Multi-Provider Gateway, Quality Gates Pipeline
@@ -256,7 +261,7 @@ Performance:
 | **Ollama** | AI Provider | MIT | HTTP API | Sprint 45 |
 | **Claude** | AI Provider | Commercial | HTTP API | Sprint 45 |
 | **OPA** | Policy Engine | Apache-2.0 | HTTP API | Sprint 43 |
-| **MinIO** | Object Storage | AGPL v3 | S3 API (network-only) | MVP |
+| **MinIO** | Object Storage | AGPL v3 | S3 API (network-only, AI-Platform shared) | MVP |
 | **Grafana** | Dashboards | AGPL v3 | iframe embed | MVP |
 | **Semgrep** | SAST Scanner | LGPL | CLI/HTTP | Sprint 43 |
 | **GitHub** | VCS | Commercial | REST API | MVP |
@@ -279,6 +284,34 @@ BANNED:
 ❌ Code linking (dynamic or static)
 ❌ Library dependencies (pip install minio)
 ```
+
+### MinIO Shared Service Configuration (Jan 08, 2026)
+
+MinIO has been migrated to the AI-Platform shared service for centralized storage management:
+
+| Property | Old (sdlc-minio) | New (ai-platform-minio) |
+|----------|------------------|-------------------------|
+| Container Name | `sdlc-minio` | `ai-platform-minio` |
+| Network | `sdlc-network` | `ai-net` (shared) |
+| S3 API Port | `9010:9000` | `9020:9000` |
+| Console Port | `9011:9001` | `9021:9001` |
+| Endpoint (container) | `minio:9000` | `ai-platform-minio:9000` |
+| Endpoint (host) | `localhost:9010` | `localhost:9020` |
+
+**Environment Variables**:
+```bash
+MINIO_ENDPOINT=ai-platform-minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin_secure_2026
+MINIO_BUCKET=evidence-vault
+MINIO_SECURE=false
+```
+
+**Buckets**:
+- `evidence-vault` - SDLC Evidence storage
+- `artifacts` - Build artifacts
+- `orchdocs` - Document storage
+- `reports` - Generated reports
 
 **Enforcement**:
 - Pre-commit hooks block AGPL imports

@@ -1,10 +1,10 @@
 /**
- * Dashboard Header - SDLC Orchestrator
+ * Admin Panel Header - SDLC Orchestrator
  *
- * @module frontend/landing/src/components/dashboard/Header
- * @description Top navigation header for dashboard
+ * @module frontend/landing/src/components/admin/AdminHeader
+ * @description Top navigation header for admin panel
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 61 - Frontend Platform Consolidation
+ * @status Sprint 69 - Route Restructure
  */
 
 "use client";
@@ -54,7 +54,15 @@ function CogIcon({ className }: { className?: string }) {
   );
 }
 
-export function Header() {
+function ShieldExclamationIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286Zm0 13.036h.008v.008H12v-.008Z" />
+    </svg>
+  );
+}
+
+export function AdminHeader() {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -65,9 +73,13 @@ export function Header() {
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
-      {/* Left side - Breadcrumb / Search */}
-      <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
+      {/* Left side - Admin indicator */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 rounded-lg bg-red-100 px-3 py-1.5">
+          <ShieldExclamationIcon className="h-4 w-4 text-red-600" />
+          <span className="text-sm font-medium text-red-700">Admin Panel</span>
+        </div>
+        <span className="text-sm text-gray-500">Superuser Access Required</span>
       </div>
 
       {/* Right side - Actions */}
@@ -84,21 +96,21 @@ export function Header() {
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className="flex items-center gap-2 rounded-lg p-2 hover:bg-gray-100"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100">
               {user?.name ? (
-                <span className="text-sm font-medium text-blue-600">
+                <span className="text-sm font-medium text-red-600">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               ) : (
-                <UserCircleIcon className="h-5 w-5 text-blue-600" />
+                <UserCircleIcon className="h-5 w-5 text-red-600" />
               )}
             </div>
             <div className="hidden text-left md:block">
               <p className="text-sm font-medium text-gray-900">
-                {user?.name || user?.email || "User"}
+                {user?.name || user?.email || "Admin"}
               </p>
-              <p className="text-xs text-gray-500">
-                {user?.roles?.[0] || "Member"}
+              <p className="text-xs text-red-600 font-medium">
+                Superuser
               </p>
             </div>
             <ChevronDownIcon className="hidden h-4 w-4 text-gray-400 md:block" />
@@ -114,18 +126,19 @@ export function Header() {
               <div className="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
                 <div className="border-b border-gray-100 px-4 py-3">
                   <p className="text-sm font-medium text-gray-900">
-                    {user?.name || "User"}
+                    {user?.name || "Admin"}
                   </p>
                   <p className="text-xs text-gray-500">{user?.email}</p>
+                  <p className="mt-1 text-xs font-medium text-red-600">Superuser</p>
                 </div>
 
                 <Link
-                  href="/app/settings"
+                  href="/admin/settings"
                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   onClick={() => setIsProfileOpen(false)}
                 >
                   <CogIcon className="h-4 w-4" />
-                  Settings
+                  Admin Settings
                 </Link>
 
                 <button

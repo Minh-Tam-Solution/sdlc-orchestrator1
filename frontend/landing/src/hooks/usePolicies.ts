@@ -4,7 +4,7 @@
  * @module frontend/landing/src/hooks/usePolicies
  * @description React Query hooks for Policies API
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 65 - Route Group Migration
+ * @status Sprint 69 - Cookie Auth Migration
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
   type PolicyListResponse,
   type PolicyListOptions,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 // Query keys for cache management
 export const policyKeys = {
@@ -26,28 +27,16 @@ export const policyKeys = {
 };
 
 /**
- * Get access token from localStorage
- */
-function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
-}
-
-/**
  * Hook to fetch list of policies with pagination and filters
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function usePolicies(options?: PolicyListOptions) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: policyKeys.list(options),
-    queryFn: async () => {
-      if (!accessToken) {
-        throw new Error("Not authenticated");
-      }
-      return getPolicies(accessToken, options);
-    },
-    enabled: !!accessToken,
+    queryFn: () => getPolicies(options),
+    enabled: isAuthenticated && !authLoading,
     staleTime: 60 * 1000, // 1 minute
   });
 }
@@ -68,19 +57,20 @@ export function useAllPoliciesSummary() {
 
 /**
  * Hook to fetch a single policy by ID
+ * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
  */
 export function usePolicy(policyId: string | undefined) {
-  const accessToken = getAccessToken();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   return useQuery({
     queryKey: policyKeys.detail(policyId || ""),
-    queryFn: async () => {
-      if (!accessToken || !policyId) {
-        throw new Error("Not authenticated or missing policy ID");
+    queryFn: () => {
+      if (!policyId) {
+        throw new Error("Missing policy ID");
       }
-      return getPolicy(accessToken, policyId);
+      return getPolicy(policyId);
     },
-    enabled: !!accessToken && !!policyId,
+    enabled: isAuthenticated && !authLoading && !!policyId,
     staleTime: 60 * 1000, // 1 minute
   });
 }

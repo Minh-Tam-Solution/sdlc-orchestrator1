@@ -1,7 +1,7 @@
 # SDLC Orchestrator - Docker Compose
-# OSS Stack: OPA + MinIO + Grafana + PostgreSQL (external) + Redis
+# OSS Stack: OPA + Grafana + PostgreSQL (external) + Redis
 # Date: 2025-11-13
-# Updated: 2025-12-24 - Use postgres-central (external) on port 15432
+# Updated: 2026-01-08 - MinIO migrated to AI-Platform shared service (ai-net)
 
 services:
   # ============================================================================
@@ -33,48 +33,12 @@ services:
       - sdlc-network
 
   # ============================================================================
-  # MinIO - S3-Compatible Object Storage (Evidence Vault)
+  # MinIO - MIGRATED to AI-Platform Shared Service (Jan 8, 2026)
+  # Container: ai-platform-minio on ai-net network
+  # S3 API: minio:9000 (internal) / localhost:9020 (host)
+  # Console: localhost:9021
+  # Buckets: evidence-vault, artifacts, documents
   # ============================================================================
-  minio:
-    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
-    container_name: sdlc-minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin_changeme}
-      MINIO_BROWSER_REDIRECT_URL: http://localhost:9011
-    ports:
-      - "9010:9000"  # IT Admin: SDLC MinIO API (PORT_ALLOCATION_MANAGEMENT.md)
-      - "9011:9001"  # IT Admin: SDLC MinIO Console (PORT_ALLOCATION_MANAGEMENT.md)
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - sdlc-network
-
-  # MinIO bucket initialization
-  minio-init:
-    image: minio/mc:latest
-    container_name: sdlc-minio-init
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      sleep 10;
-      /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin_changeme};
-      /usr/bin/mc mb myminio/evidence-vault --ignore-existing;
-      /usr/bin/mc mb myminio/orchdocs --ignore-existing;
-      /usr/bin/mc mb myminio/reports --ignore-existing;
-      /usr/bin/mc anonymous set download myminio/reports;
-      echo 'MinIO buckets initialized successfully';
-      "
-    networks:
-      - sdlc-network
 
   # ============================================================================
   # Open Policy Agent (OPA) - Gate Engine & Policy Guards
@@ -187,33 +151,9 @@ services:
       - sdlc-network
 
   # ============================================================================
-  # React Frontend - SDLC Orchestrator Platform Admin Dashboard
-  # Main application dashboard (Projects, Gates, Evidence, Policies, etc.)
-  # ============================================================================
-  frontend:
-    build:
-      context: ./frontend/web
-      dockerfile: Dockerfile
-    container_name: sdlc-frontend
-    restart: unless-stopped
-    environment:
-      VITE_API_URL: https://sdlc.nhatquangholding.com/api/v1
-    ports:
-      - "8310:80"
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    networks:
-      - sdlc-network
-
-  # ============================================================================
-  # Next.js Frontend - SDLC Orchestrator Landing Page
-  # Marketing site with OAuth login, registration, docs, checkout
+  # Next.js Frontend - SDLC Orchestrator (Consolidated)
+  # Sprint 64: Unified frontend - Landing + Dashboard + Admin
+  # IT Admin Port: 8310 (PORT_ALLOCATION_MANAGEMENT.md)
   # ============================================================================
   frontend-landing:
     build:
@@ -226,7 +166,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     ports:
-      - "8311:3000"
+      - "8310:3000"  # IT Admin: SDLC Frontend on 8310
     depends_on:
       backend:
         condition: service_healthy
@@ -261,10 +201,11 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: 60
       REFRESH_TOKEN_EXPIRE_DAYS: 30
 
-      # MinIO S3
-      MINIO_ENDPOINT: minio:9000
+      # MinIO S3 - AI-Platform Shared Service (Jan 8, 2026)
+      # Container: ai-platform-minio on ai-net network
+      MINIO_ENDPOINT: ai-platform-minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin_changeme}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin_secure_2026}
       MINIO_BUCKET: evidence-vault
       MINIO_SECURE: "false"
 
@@ -310,6 +251,12 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@sdlc-orchestrator.com}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-SDLC Orchestrator}
 
+      # Cookie Authentication (Sprint 63 - httpOnly cookies)
+      # Required for cross-domain cookie authentication with OAuth
+      COOKIE_DOMAIN: .nhatquangholding.com
+      COOKIE_SECURE: "true"
+      COOKIE_SAMESITE: lax
+
     ports:
       - "8300:8300"
     volumes:
@@ -317,8 +264,7 @@ services:
       - ./docs:/docs:ro  # Mount docs directory as read-only for user support documentation
       - backend_cache:/app/.pytest_cache
     depends_on:
-      minio:
-        condition: service_healthy
+      # MinIO now external (ai-platform-minio on ai-net) - no local dependency
       opa:
         condition: service_started
       redis:
@@ -341,8 +287,7 @@ services:
 volumes:
   redis_data:
     driver: local
-  minio_data:
-    driver: local
+  # minio_data removed - MinIO migrated to AI-Platform shared service
   prometheus_data:
     driver: local
   grafana_data:

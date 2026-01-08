@@ -72,8 +72,8 @@ function OAuthCallbackHandler() {
       // Avoid decoding `state` in the browser (it's urlsafe base64 and backend-defined).
       const provider = (localStorage.getItem("oauth_provider") as "github" | "google" | null) || "github";
 
-      // Capture redirect BEFORE cleanup - default to Dashboard root
-      const redirectTo = localStorage.getItem("oauth_redirect") || "/";
+      // Capture redirect BEFORE cleanup - default to /app for logged in users
+      const redirectTo = localStorage.getItem("oauth_redirect") || "/app";
 
       try {
         // Exchange code for tokens
