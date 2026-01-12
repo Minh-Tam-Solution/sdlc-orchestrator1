@@ -17,8 +17,8 @@ metadata:
   artifact_id: "BRS-PILOT-001"
   version: "1.0.0"
   created_date: "2025-12-23"
-  updated_date: "2025-12-23"
-  status: "DRAFT"
+  updated_date: "2026-01-17"
+  status: "APPROVED"
 
   # Traceability
   project_id: "SE3-PILOT"
@@ -33,7 +33,8 @@ metadata:
   reviewers:
     - name: "CTO"
       role: "SE4H"
-      approved: false
+      approved: true
+      approved_date: "2026-01-17"
     - name: "Tech Lead"
       role: "SE4H"
       approved: false

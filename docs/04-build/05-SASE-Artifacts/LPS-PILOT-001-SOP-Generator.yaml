@@ -1,0 +1,668 @@
+# LoopScript: NQH-Bot SOP Generator Pilot
+# SASE Artifact for SE 3.0 Phase 2-Pilot
+# Reference: arXiv:2509.06216v2 - Agentic Software Engineering
+#
+# Purpose: Define iteration workflow for SOP Generator pilot execution
+# Author: Tech Lead (SE4H - Agent Coach)
+# Consumer: Development Team (SE4A - Agent Executors)
+#
+# Version: 1.0.0
+# Framework: SDLC 5.1.0
+# Phase: Phase 2-Pilot (Track 1)
+
+---
+# METADATA SECTION
+metadata:
+  artifact_type: "LoopScript"
+  artifact_id: "LPS-PILOT-001"
+  version: "1.0.0"
+  created_date: "2026-01-17"
+  updated_date: "2026-01-17"
+  status: "APPROVED"
+
+  # Traceability
+  project_id: "SE3-PILOT"
+  parent_briefing: "BRS-PILOT-001"  # Links to BriefingScript
+  sdlc_stage: "03"  # BUILD - Development & Implementation
+  gate_id: "G3"     # Ship Ready
+
+  # Ownership
+  author:
+    name: "Tech Lead"
+    role: "SE4H (Agent Coach)"
+    email: "tech-lead@mtc.vn"
+  reviewers:
+    - name: "CTO"
+      role: "SE4H"
+      approved: true
+      approved_date: "2026-01-17"
+    - name: "PM/PO"
+      role: "SE4H"
+      approved: true
+      approved_date: "2026-01-17"
+
+  # Phase 2-Pilot Context
+  pilot_info:
+    phase: "Phase 2-Pilot"
+    timeline: "Jan 20 - Feb 14, 2026"
+    budget: "$23,000"
+    maturity_level: "Level 1 (Agent-Assisted)"
+    team:
+      - "2 Backend Developers"
+      - "1 Frontend Developer"
+      - "1 Tech Lead (Agent Coach)"
+
+---
+# LOOP CONFIGURATION (MANDATORY)
+loop_config:
+  total_iterations: 6
+  iteration_duration: "1 week each"
+  start_date: "2026-01-20"
+  end_date: "2026-02-14"
+
+  # Success criteria for pilot
+  exit_criteria:
+    - "All 6 iterations complete"
+    - "5 SOPs generated (1 per type)"
+    - "MRP-PILOT-001 created with evidence"
+    - "VCR-PILOT-001 issued (APPROVED status)"
+    - "Developer satisfaction ≥4/5"
+    - "Time reduction ≥20% demonstrated"
+    - "Agent cost <$50/month"
+    - "Zero P0 incidents"
+
+  # Early termination criteria (abort if ANY triggered)
+  abort_criteria:
+    - "Developer satisfaction <3/5 after Iteration 3"
+    - "Time-to-deliver regression (slower than manual)"
+    - "Agent cost >$100 total (2x over budget)"
+    - ">3 P1/P0 bugs by Iteration 4"
+
+---
+# ITERATION 1: Template Design + Basic Generation (Week 6: Jan 20-24)
+iteration_1:
+  name: "Template Design + Basic Generation"
+  duration: "5 days (Jan 20-24)"
+  budget: "$4,000"
+
+  # Objectives
+  objectives:
+    - "Design SOP template structure (7 sections)"
+    - "Implement basic Ollama integration"
+    - "Generate first SOP (Deployment type)"
+    - "Validate template with Tech Lead"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I1-001"
+        title: "Create SOP template schema (YAML)"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "Schema covers 7 SOP sections (Header, Purpose, Scope, Procedure, Roles, Quality, Revision)"
+
+      - id: "BE-I1-002"
+        title: "Implement Ollama service integration"
+        owner: "Backend Dev 2"
+        duration: "2 days"
+        acceptance: "Ollama API callable, response parsed correctly"
+
+      - id: "BE-I1-003"
+        title: "Create SOP generation endpoint (POST /api/v1/sops/generate)"
+        owner: "Backend Dev 1"
+        duration: "2 days"
+        acceptance: "API returns generated SOP markdown, <30s latency"
+
+    frontend:
+      - id: "FE-I1-001"
+        title: "Create SOP creation form (basic)"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "Form with workflow description input + SOP type selector"
+
+      - id: "FE-I1-002"
+        title: "Display generated SOP (markdown preview)"
+        owner: "Frontend Dev"
+        duration: "1 day"
+        acceptance: "SOP markdown rendered with syntax highlighting"
+
+    quality:
+      - id: "QA-I1-001"
+        title: "Generate Deployment SOP sample"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "First SOP generated, all 7 sections present, human-readable"
+
+  # Deliverables
+  deliverables:
+    - "SOP template schema (YAML)"
+    - "Ollama service integration (Python)"
+    - "POST /api/v1/sops/generate endpoint"
+    - "SOP creation form (React)"
+    - "First SOP generated (Deployment type)"
+
+  # Success metrics
+  success_metrics:
+    - metric: "First SOP generated"
+      target: "Yes"
+      measurement: "Manual verification"
+
+    - metric: "Generation time"
+      target: "<30s"
+      measurement: "API latency (p95)"
+
+    - metric: "Template completeness"
+      target: "7/7 sections"
+      measurement: "Section count validation"
+
+  # Risks
+  risks:
+    - risk: "Ollama API unstable"
+      mitigation: "Fallback to Claude API (already integrated)"
+
+    - risk: "Template design unclear"
+      mitigation: "Tech Lead review after task BE-I1-001"
+
+---
+# ITERATION 2: ISO 9001 Compliance Validation (Week 7: Jan 27-31)
+iteration_2:
+  name: "ISO 9001 Compliance Validation"
+  duration: "5 days (Jan 27-31)"
+  budget: "$4,000"
+
+  # Objectives
+  objectives:
+    - "Add ISO 9001 document control elements"
+    - "Implement compliance validation logic"
+    - "Generate 2nd SOP (Incident Response type)"
+    - "Validate ISO compliance with QA team"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I2-001"
+        title: "Add ISO 9001 validation rules"
+        owner: "Backend Dev 1"
+        duration: "2 days"
+        acceptance: "80% ISO 9001 checklist items validated automatically"
+
+      - id: "BE-I2-002"
+        title: "Enhance SOP template with document control"
+        owner: "Backend Dev 2"
+        duration: "2 days"
+        acceptance: "Template includes: Document ID, Version, Effective Date, Owner, Approver, Revision History"
+
+      - id: "BE-I2-003"
+        title: "Create compliance validation endpoint (POST /api/v1/sops/:id/validate)"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "API returns compliance score (0-100%) + violations list"
+
+    frontend:
+      - id: "FE-I2-001"
+        title: "Add compliance score display"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "Show compliance % + violations as alerts"
+
+      - id: "FE-I2-002"
+        title: "Add SOP metadata editor"
+        owner: "Frontend Dev"
+        duration: "1 day"
+        acceptance: "User can edit Document ID, Version, Owner, etc."
+
+    quality:
+      - id: "QA-I2-001"
+        title: "Generate Incident Response SOP"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "2nd SOP generated, ISO compliance ≥80%"
+
+  # Deliverables
+  deliverables:
+    - "ISO 9001 validation rules (Python)"
+    - "Compliance validation endpoint"
+    - "Compliance score UI component"
+    - "SOP metadata editor"
+    - "2nd SOP generated (Incident Response type)"
+
+  # Success metrics
+  success_metrics:
+    - metric: "ISO 9001 compliance"
+      target: "≥80%"
+      measurement: "Compliance validation API"
+
+    - metric: "2nd SOP generated"
+      target: "Yes"
+      measurement: "Manual verification"
+
+---
+# ITERATION 3: Evidence Vault Integration (Week 8: Feb 3-7)
+iteration_3:
+  name: "Evidence Vault Integration"
+  duration: "5 days (Feb 3-7)"
+  budget: "$4,000"
+
+  # Objectives
+  objectives:
+    - "Store SOPs in Evidence Vault (MinIO)"
+    - "Generate SHA256 hash for integrity"
+    - "Implement SOP retrieval API"
+    - "Generate 3rd SOP (Change Management type)"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I3-001"
+        title: "Integrate MinIO evidence storage"
+        owner: "Backend Dev 2"
+        duration: "2 days"
+        acceptance: "SOP stored in MinIO bucket 'evidence-vault', SHA256 hash computed"
+
+      - id: "BE-I3-002"
+        title: "Create SOP storage metadata table"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "PostgreSQL table: sop_evidence (id, sop_id, minio_path, sha256, created_at)"
+
+      - id: "BE-I3-003"
+        title: "Create SOP retrieval endpoint (GET /api/v1/sops/:id/evidence)"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "API returns SOP content from Evidence Vault + SHA256 verification"
+
+    frontend:
+      - id: "FE-I3-001"
+        title: "Add Evidence Vault indicator"
+        owner: "Frontend Dev"
+        duration: "1 day"
+        acceptance: "Show 'Stored in Evidence Vault' badge + SHA256 hash"
+
+      - id: "FE-I3-002"
+        title: "Add SOP history view"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "List all SOPs with created date, type, status"
+
+    quality:
+      - id: "QA-I3-001"
+        title: "Generate Change Management SOP"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "3rd SOP generated, stored in Evidence Vault with SHA256"
+
+  # Deliverables
+  deliverables:
+    - "MinIO evidence storage integration"
+    - "sop_evidence PostgreSQL table"
+    - "SOP retrieval API"
+    - "Evidence Vault UI indicator"
+    - "SOP history view"
+    - "3rd SOP generated (Change Management type)"
+
+  # Success metrics
+  success_metrics:
+    - metric: "Evidence storage"
+      target: "100%"
+      measurement: "All SOPs stored with SHA256"
+
+    - metric: "3rd SOP generated"
+      target: "Yes"
+      measurement: "Manual verification"
+
+---
+# ITERATION 4: MRP/VCR Workflow (Week 9: Feb 10-14)
+iteration_4:
+  name: "MRP/VCR Workflow Implementation"
+  duration: "5 days (Feb 10-14)"
+  budget: "$4,000"
+
+  # Objectives
+  objectives:
+    - "Generate MRP (Merge-Readiness Pack) for SOPs"
+    - "Implement VCR (Version Controlled Resolution) approval workflow"
+    - "Generate 4th SOP (Backup & Recovery type)"
+    - "Validate MRP/VCR with Tech Lead"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I4-001"
+        title: "Create MRP generator service"
+        owner: "Backend Dev 1"
+        duration: "2 days"
+        acceptance: "MRP includes: SOP content, template used, generation time, quality score, SHA256"
+
+      - id: "BE-I4-002"
+        title: "Create VCR workflow endpoints (POST /api/v1/vcrs/create, PATCH /api/v1/vcrs/:id/decide)"
+        owner: "Backend Dev 2"
+        duration: "2 days"
+        acceptance: "VCR can be created, decision recorded (APPROVED/REJECTED/REVISION)"
+
+      - id: "BE-I4-003"
+        title: "Link MRP to VCR in database"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "vcrs table has mrp_id foreign key"
+
+    frontend:
+      - id: "FE-I4-001"
+        title: "Create MRP summary card"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "Show MRP evidence (5 sections), download link"
+
+      - id: "FE-I4-002"
+        title: "Create VCR approval UI"
+        owner: "Frontend Dev"
+        duration: "1 day"
+        acceptance: "Tech Lead can review MRP + issue VCR (APPROVED/REJECTED/REVISION)"
+
+    quality:
+      - id: "QA-I4-001"
+        title: "Generate Backup & Recovery SOP"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "4th SOP generated, MRP created, VCR issued (APPROVED)"
+
+  # Deliverables
+  deliverables:
+    - "MRP generator service"
+    - "VCR workflow endpoints"
+    - "MRP summary card UI"
+    - "VCR approval UI"
+    - "4th SOP generated (Backup & Recovery type)"
+    - "MRP-PILOT-001 artifact"
+    - "VCR-PILOT-001 artifact"
+
+  # Success metrics
+  success_metrics:
+    - metric: "MRP completeness"
+      target: "5/5 evidence types"
+      measurement: "MRP validation check"
+
+    - metric: "VCR workflow"
+      target: "Working"
+      measurement: "Tech Lead successfully approves VCR"
+
+    - metric: "4th SOP generated"
+      target: "Yes"
+      measurement: "Manual verification"
+
+---
+# ITERATION 5: 5 SOP Types Implementation (Week 10: Feb 17-21)
+iteration_5:
+  name: "Complete All 5 SOP Types"
+  duration: "5 days (Feb 17-21)"
+  budget: "$4,000"
+
+  # Objectives
+  objectives:
+    - "Generate 5th SOP (Security type)"
+    - "Validate all 5 SOP types work correctly"
+    - "Performance optimization (<30s p95)"
+    - "Bug fixes from Iterations 1-4"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I5-001"
+        title: "Add Security SOP template variant"
+        owner: "Backend Dev 1"
+        duration: "1 day"
+        acceptance: "Security SOP template includes: Access Control, Incident Reporting, Vulnerability Mgmt, Compliance"
+
+      - id: "BE-I5-002"
+        title: "Performance optimization (caching, async)"
+        owner: "Backend Dev 2"
+        duration: "2 days"
+        acceptance: "API p95 latency <30s (measured with 10 generations)"
+
+      - id: "BE-I5-003"
+        title: "Bug fixes from Iterations 1-4"
+        owner: "Backend Dev 1 + 2"
+        duration: "1 day"
+        acceptance: "All known bugs fixed, regression tests pass"
+
+    frontend:
+      - id: "FE-I5-001"
+        title: "Add SOP type filter"
+        owner: "Frontend Dev"
+        duration: "1 day"
+        acceptance: "User can filter SOPs by type (Deployment, Incident, Change, Backup, Security)"
+
+      - id: "FE-I5-002"
+        title: "UI polish + bug fixes"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "UI responsive, accessible (WCAG 2.1 AA), all known bugs fixed"
+
+    quality:
+      - id: "QA-I5-001"
+        title: "Generate Security SOP"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "5th SOP generated, all 5 types validated"
+
+      - id: "QA-I5-002"
+        title: "Performance testing (10 SOPs)"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "p95 latency <30s, success rate >95%"
+
+  # Deliverables
+  deliverables:
+    - "5th SOP generated (Security type)"
+    - "All 5 SOP types validated"
+    - "Performance optimization complete"
+    - "Bug fixes complete"
+    - "SOP type filter UI"
+
+  # Success metrics
+  success_metrics:
+    - metric: "5 SOP types complete"
+      target: "Yes"
+      measurement: "Manual verification (1 sample per type)"
+
+    - metric: "Performance (p95)"
+      target: "<30s"
+      measurement: "API latency monitoring (10 generations)"
+
+    - metric: "Success rate"
+      target: ">95%"
+      measurement: "Successful generations / Total attempts"
+
+---
+# ITERATION 6: Quality Review + Pilot Completion (Week 11: Feb 24-28)
+iteration_6:
+  name: "Quality Review + Pilot Completion"
+  duration: "5 days (Feb 24-28)"
+  budget: "$3,000"
+
+  # Objectives
+  objectives:
+    - "Final quality review (Tech Lead + CTO)"
+    - "Collect pilot metrics (time, cost, satisfaction)"
+    - "Developer satisfaction survey (≥4/5 target)"
+    - "Document lessons learned"
+
+  # Tasks breakdown
+  tasks:
+    backend:
+      - id: "BE-I6-001"
+        title: "Metrics collection (API usage, cost, latency)"
+        owner: "Backend Dev 2"
+        duration: "1 day"
+        acceptance: "Dashboard shows: total SOPs, avg time, total cost, success rate"
+
+      - id: "BE-I6-002"
+        title: "Final documentation (API docs, setup guide)"
+        owner: "Backend Dev 1"
+        duration: "2 days"
+        acceptance: "OpenAPI spec updated, README complete, setup guide tested"
+
+    frontend:
+      - id: "FE-I6-001"
+        title: "Metrics dashboard"
+        owner: "Frontend Dev"
+        duration: "2 days"
+        acceptance: "Dashboard displays pilot metrics (SOPs, time, cost, satisfaction)"
+
+    quality:
+      - id: "QA-I6-001"
+        title: "Final quality review"
+        owner: "Tech Lead + CTO"
+        duration: "1 day"
+        acceptance: "All 5 SOPs reviewed, quality ≥4/5"
+
+      - id: "QA-I6-002"
+        title: "Developer satisfaction survey"
+        owner: "PM/PO"
+        duration: "1 day"
+        acceptance: "Survey sent to 2 BE + 1 FE, results ≥4/5"
+
+      - id: "QA-I6-003"
+        title: "Lessons learned documentation"
+        owner: "Tech Lead"
+        duration: "1 day"
+        acceptance: "Document captures: what worked, what didn't, recommendations"
+
+  # Deliverables
+  deliverables:
+    - "Metrics collection dashboard"
+    - "Final documentation (API docs, README, setup guide)"
+    - "Developer satisfaction survey results"
+    - "Lessons learned document"
+    - "Pilot completion report"
+
+  # Success metrics
+  success_metrics:
+    - metric: "Developer satisfaction"
+      target: "≥4/5"
+      measurement: "Survey average score"
+
+    - metric: "Time reduction"
+      target: "≥20%"
+      measurement: "Avg SOP generation time (30s) vs manual (2-4h)"
+
+    - metric: "Agent cost"
+      target: "<$50/month"
+      measurement: "Total Ollama + Claude API costs"
+
+    - metric: "P0 incidents"
+      target: "0"
+      measurement: "Incident tracking"
+
+---
+# CHECKPOINTS & REVIEWS (MANDATORY)
+checkpoints:
+  weekly:
+    day: "Friday"
+    time: "3:00pm"
+    attendees: ["CTO", "PM/PO", "Tech Lead", "Development Team"]
+    format: "15-min standup (achievements, blockers, next week plan)"
+
+    # Kill-switch criteria review
+    review_criteria:
+      - "Developer satisfaction (survey after Iteration 3, 6)"
+      - "Time-to-deliver (measure each iteration)"
+      - "Agent cost (track weekly)"
+      - "P0/P1 bugs (track daily)"
+
+  iteration_end:
+    format: "30-min demo + retrospective"
+    attendees: ["CTO", "PM/PO", "Tech Lead", "Development Team"]
+    activities:
+      - "Demo iteration deliverables"
+      - "Review success metrics (target vs actual)"
+      - "Identify blockers for next iteration"
+      - "Adjust plan if needed"
+
+---
+# ESCALATION & DECISION AUTHORITY
+escalation:
+  level_1_blockers:
+    description: "Technical issues (API down, bug, performance)"
+    resolver: "Tech Lead"
+    sla: "24 hours"
+    example: "Ollama API timeout, template rendering bug"
+
+  level_2_blockers:
+    description: "Scope/timeline issues (iteration delay, requirement change)"
+    resolver: "PM/PO + Tech Lead"
+    sla: "48 hours"
+    example: "ISO 9001 validation more complex than expected"
+
+  level_3_blockers:
+    description: "Strategic issues (abort criteria triggered, budget overrun)"
+    resolver: "CTO + PM/PO + Tech Lead"
+    sla: "Immediate (same day)"
+    example: "Developer satisfaction <3/5, agent cost >$100"
+
+  decision_authority:
+    iteration_scope:
+      authority: "Tech Lead"
+      approval_required: false
+      example: "Swap task priority within iteration"
+
+    pilot_timeline:
+      authority: "PM/PO + Tech Lead"
+      approval_required: "CTO approval if >1 week delay"
+      example: "Extend Iteration 2 by 2 days"
+
+    pilot_abort:
+      authority: "CTO"
+      approval_required: "PM/PO + Tech Lead recommendation"
+      example: "Abort pilot if kill-switch criteria triggered"
+
+---
+# SUCCESS CRITERIA SUMMARY (PILOT COMPLETION)
+pilot_success_criteria:
+  functional:
+    - "5 SOPs generated (1 per type: Deployment, Incident, Change, Backup, Security)"
+    - "All SOPs stored in Evidence Vault with SHA256 hash"
+    - "MRP-PILOT-001 created (5 evidence types)"
+    - "VCR-PILOT-001 issued (APPROVED status)"
+    - "ISO 9001 compliance ≥80% for all SOPs"
+
+  non_functional:
+    - "API p95 latency <30s"
+    - "Success rate >95% (generated SOPs pass validation)"
+    - "Agent cost <$50/month"
+    - "Zero P0 incidents"
+
+  qualitative:
+    - "Developer satisfaction ≥4/5 (survey after Iteration 6)"
+    - "Time reduction ≥20% (30s generation vs 2-4h manual)"
+    - "Tech Lead + CTO quality review PASS (≥4/5)"
+
+---
+# REVISION HISTORY
+revision_history:
+  - version: "1.0.0"
+    date: "2026-01-17"
+    author: "Tech Lead"
+    changes: "Initial version - 6 iterations defined for Phase 2-Pilot"
+    approved_by: "CTO + PM/PO"
+
+---
+# LOOPSCRIPT NOTES
+#
+# This LoopScript defines the execution workflow for BRS-PILOT-001 (SOP Generator).
+# It follows the research paper structure (arXiv:2509.06216v2) with 6 iterations.
+#
+# Key Principles:
+# - Each iteration builds on previous (incremental delivery)
+# - Weekly checkpoints with kill-switch criteria review
+# - Clear escalation path (Level 1 → 2 → 3)
+# - Evidence-based (MRP/VCR workflow in Iteration 4)
+#
+# Status Flow:
+#   APPROVED (LPS) → Iteration 1 → ... → Iteration 6 → COMPLETE (MRP + VCR)
+#
+# Next Steps after CTO Approval:
+# 1. Monday Jan 20: Kickoff meeting (review LPS, assign tasks)
+# 2. Week 6 (Jan 20-24): Execute Iteration 1
+# 3. Weekly checkpoints: Friday 3pm standup
+#
+# Reference: BRS-PILOT-001-NQH-Bot-SOP-Generator.yaml
