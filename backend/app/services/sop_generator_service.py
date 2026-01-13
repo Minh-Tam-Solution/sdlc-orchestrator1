@@ -713,8 +713,17 @@ def get_sop_generator_service() -> SOPGeneratorService:
     Returns:
         Configured SOPGeneratorService instance
     """
-    ollama_url = getattr(settings, "OLLAMA_URL", "http://localhost:11434")
-    ollama_model = getattr(settings, "OLLAMA_MODEL", "qwen3:14b")
+    # NOTE:
+    # - In some deployments (including pilot docker-compose), OLLAMA_URL may be unset/empty.
+    # - requests requires a fully-qualified URL with scheme.
+    # - Default to NQH AI Platform endpoint for this pilot, but allow overriding via env.
+    ollama_url = (getattr(settings, "OLLAMA_URL", "") or "").strip()
+    if not ollama_url:
+        ollama_url = "http://api.nhatquangholding.com"
+    elif not (ollama_url.startswith("http://") or ollama_url.startswith("https://")):
+        ollama_url = f"http://{ollama_url}"
+
+    ollama_model = (getattr(settings, "OLLAMA_MODEL", "qwen3:14b") or "qwen3:14b").strip()
 
     return SOPGeneratorService(
         ollama_base_url=ollama_url,
