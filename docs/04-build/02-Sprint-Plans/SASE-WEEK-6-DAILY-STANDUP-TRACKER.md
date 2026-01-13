@@ -15,7 +15,7 @@
 
 | Day | Attendees | Shipped (PR/commit) | Planned Today | Blockers | TC-001 Result | Notes |
 |-----|-----------|---------------------|---------------|----------|--------------|-------|
-| Mon Jan 20 | All (Kickoff) | Kickoff complete, Sprint Plan reviewed | Boot env + run TC-001 | None | ⏳ Pending | Ollama URL fix applied |
+| Mon Jan 20 | All (Kickoff) | `390cc89` Sprint Plan + Ollama fix | Boot env + run TC-001 | Ollama API network (team to verify) | ⏳ Team to run | Code ready, API files verified |
 | Tue Jan 21 |  |  | Validate + stabilize |  |  |  |
 | Wed Jan 22 |  |  | Smoke endpoints + tune prompt |  |  |  |
 | Thu Jan 23 |  |  | Dry-run demo + timing capture |  |  |  |
@@ -28,3 +28,29 @@
 - MRP retrievable for generated SOP.
 - VCR submit + get works (at least APPROVED path).
 - Timing evidence captured (3 runs) and shared in checkpoint.
+
+## TC-001 Test Command (Team to Run)
+
+```bash
+# 1. Start backend server
+cd backend && uvicorn app.main:app --reload --port 8000
+
+# 2. Run TC-001 - Generate Deployment SOP
+curl -X POST http://localhost:8000/api/sop/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sop_type": "deployment",
+    "workflow_description": "Deploy FastAPI application to Kubernetes cluster with zero-downtime. Include health checks, database migrations, and rollback procedure if deployment fails."
+  }'
+
+# Expected: 201 response with sop_id, 5 sections, generation_time_ms < 30000
+```
+
+## Ollama Connectivity Check
+
+```bash
+# Verify Ollama API reachable from dev machine
+curl http://api.nhatquangholding.com/api/tags
+
+# If unreachable, check VPN/network and contact DevOps
+```
