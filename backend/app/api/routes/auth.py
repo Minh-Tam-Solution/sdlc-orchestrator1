@@ -66,6 +66,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import PasswordResetToken, RefreshToken, User
+from app.services.settings_service import SettingsService, get_settings_service
 from app.schemas.auth import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
@@ -202,6 +203,7 @@ async def login(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    settings_service: "SettingsService" = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Login with email and password.
@@ -280,8 +282,11 @@ async def login(
             detail="User account is inactive",
         )
 
-    # Generate JWT tokens
-    access_token = create_access_token(subject=str(user.id))
+    # Generate JWT tokens (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
     refresh_token = create_refresh_token(subject=str(user.id))
 
     # Store refresh token in database (for revocation support)
@@ -329,6 +334,7 @@ async def refresh_access_token(
     refresh_data: Optional[RefreshTokenRequest] = None,
     db: AsyncSession = Depends(get_db),
     refresh_token_cookie: Optional[str] = Cookie(None, alias=REFRESH_TOKEN_COOKIE_NAME),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Refresh access token using refresh token.
@@ -432,8 +438,11 @@ async def refresh_access_token(
     if not user or not user.is_active:
         raise credentials_exception
 
-    # Generate new access token
-    access_token = create_access_token(subject=str(user.id))
+    # Generate new access token (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
 
     # Sprint 63: Set new access token cookie
     set_access_token_cookie(response, access_token)
@@ -697,6 +706,7 @@ async def oauth_callback(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Handle OAuth callback and exchange code for tokens.
@@ -860,8 +870,11 @@ async def oauth_callback(
         )
         db.add(oauth_account)
 
-    # Generate JWT tokens
-    access_token = create_access_token(subject=str(user.id))
+    # Generate JWT tokens (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
     refresh_token = create_refresh_token(subject=str(user.id))
 
     # Store refresh token in database

@@ -54,6 +54,7 @@ from app.db.session import get_db
 from app.models.project import Project
 from app.models.stage_mapping import ProjectStageMapping
 from app.models.user import OAuthAccount, User, RefreshToken
+from app.services.settings_service import SettingsService, get_settings_service
 from app.schemas.github import (
     GitHubConnectionStatus,
     GitHubOAuthCallbackRequest,
@@ -152,6 +153,7 @@ async def get_authorization_url(
 async def handle_oauth_callback(
     callback_data: GitHubOAuthCallbackRequest,
     db: AsyncSession = Depends(get_db),
+    settings_service: "SettingsService" = Depends(get_settings_service),
 ) -> GitHubOAuthCallbackResponse:
     """
     Handle GitHub OAuth callback.
@@ -268,8 +270,11 @@ async def handle_oauth_callback(
         if not user.name and github_name:
             user.name = github_name
 
-        # 5. Generate JWT tokens for app authentication
-        access_token = create_access_token(subject=str(user.id))
+        # 5. Generate JWT tokens for app authentication (ADR-027: session_timeout from DB)
+        access_token = await create_access_token(
+            subject=str(user.id),
+            settings_service=settings_service
+        )
         refresh_token = create_refresh_token(subject=str(user.id))
 
         # Store refresh token in database
