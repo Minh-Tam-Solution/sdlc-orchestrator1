@@ -51,6 +51,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.api.dependencies import get_db, require_superuser
+from app.services.settings_service import SettingsService, get_settings_service
 
 logger = logging.getLogger(__name__)
 from app.models import AuditLog, Gate, Project, SystemSetting, User
@@ -316,6 +317,7 @@ async def update_user(
     request: Request,
     admin: User = Depends(require_superuser),
     db: AsyncSession = Depends(get_db),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> AdminUserDetail:
     """
     Update user information (Enhanced in Sprint 40 Part 2).
@@ -385,6 +387,10 @@ async def update_user(
 
     # Update password (Sprint 40 Part 2)
     if update_data.new_password is not None:
+        # ADR-027: Validate password meets minimum length requirement
+        from app.utils.password_validator import validate_password_strength
+        await validate_password_strength(update_data.new_password, settings_service)
+
         # Hash password with bcrypt (cost=12)
         password_hash = bcrypt.hashpw(
             update_data.new_password.encode('utf-8'),
@@ -492,6 +498,7 @@ async def create_user(
     request: Request,
     admin: User = Depends(require_superuser),
     db: AsyncSession = Depends(get_db),
+    settings_service: "SettingsService" = Depends(get_settings_service),
 ) -> AdminUserDetail:
     """
     Create a new user account.
@@ -507,6 +514,10 @@ async def create_user(
     Returns:
         AdminUserDetail: Created user details
     """
+    # ADR-027: Validate password meets minimum length requirement
+    from app.utils.password_validator import validate_password_strength
+    await validate_password_strength(user_data.password, settings_service)
+
     # Check if email already exists
     existing_user = await db.scalar(
         select(User).where(User.email == user_data.email.lower())
@@ -1349,3 +1360,113 @@ async def bulk_user_action(
         failed_users=failed_users,
     )
 
+
+
+# =========================================================================
+# ADR-027 Phase 1: Account Lockout Management
+# =========================================================================
+
+@router.post(
+    "/users/{user_id}/unlock",
+    status_code=status.HTTP_200_OK,
+    summary="Unlock user account (ADR-027)",
+    description="Admin can manually unlock accounts locked due to failed login attempts",
+)
+async def unlock_user_account(
+    user_id: UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin endpoint to manually unlock locked user accounts.
+
+    ADR-027 Phase 1: max_login_attempts implementation
+    
+    Use Case:
+    - User contacts support after account locked due to failed login attempts
+    - Admin verifies identity and unlocks account manually
+    - Account lockout is cleared immediately (no need to wait 30 minutes)
+
+    Request:
+        POST /api/v1/admin/users/{user_id}/unlock
+
+    Response (200 OK):
+        {
+            "message": "User account unlocked successfully",
+            "user_id": "550e8400-e29b-41d4-a716-446655440000",
+            "email": "user@example.com",
+            "failed_login_count": 0,
+            "locked_until": null,
+            "unlocked_by": "admin@example.com",
+            "unlocked_at": "2026-01-14T12:34:56Z"
+        }
+
+    Errors:
+        - 404 Not Found: User not found
+        - 400 Bad Request: User account is not locked
+
+    Security:
+        - Requires is_superuser=true
+        - Audit logged (who unlocked which account when)
+        - Cannot unlock own account (self-action prevention)
+
+    Zero Mock Policy: Real database update with audit trail
+    """
+    # Cannot unlock self (prevent self-action)
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot unlock your own account",
+        )
+
+    # Find user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User not found with id: {user_id}",
+        )
+
+    # Check if user is actually locked
+    if not user.locked_until:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"User account is not locked. Email: {user.email}",
+        )
+
+    # Unlock account
+    user.failed_login_count = 0
+    user.locked_until = None
+    user.updated_at = datetime.utcnow()
+
+    await db.commit()
+
+    # Audit log
+    from app.services.audit_service import get_audit_service
+    audit_service = get_audit_service(db)
+
+    await audit_service.log(
+        action="USER_ACCOUNT_UNLOCKED",
+        user_id=admin.id,
+        resource_type="user",
+        resource_id=user.id,
+        details={
+            "target_user_email": user.email,
+            "unlocked_by": admin.email,
+            "previous_failed_count": user.failed_login_count,
+        },
+        request=request,
+    )
+
+    return {
+        "message": "User account unlocked successfully",
+        "user_id": str(user.id),
+        "email": user.email,
+        "failed_login_count": user.failed_login_count,
+        "locked_until": None,
+        "unlocked_by": admin.email,
+        "unlocked_at": datetime.utcnow().isoformat(),
+    }

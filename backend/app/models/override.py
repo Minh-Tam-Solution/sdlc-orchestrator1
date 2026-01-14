@@ -120,8 +120,9 @@ class ValidationOverride(Base):
     )
 
     # Request details
+    # Note: Using String instead of Enum to match existing VARCHAR columns in DB
     override_type = Column(
-        Enum(OverrideType),
+        String(50),
         nullable=False,
         index=True,
     )
@@ -130,9 +131,9 @@ class ValidationOverride(Base):
         nullable=False,
     )
     status = Column(
-        Enum(OverrideStatus),
+        String(50),
         nullable=False,
-        default=OverrideStatus.PENDING,
+        default=OverrideStatus.PENDING.value,
         index=True,
     )
 

@@ -180,7 +180,10 @@ export function AdminSidebar({ collapsed = false, onToggle }: AdminSidebarProps)
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-2 py-4">
         {adminNavigationItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          // Fix: Overview (/admin) should only be active when pathname is exactly /admin
+          const isActive = item.href === "/admin"
+            ? pathname === "/admin"
+            : pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.name}

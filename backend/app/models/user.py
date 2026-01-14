@@ -63,6 +63,8 @@ class User(Base):
         - mfa_secret: TOTP secret (encrypted, 32-byte base32)
         - backup_codes: One-time recovery codes (10 codes, hashed)
         - last_login: Last successful login timestamp
+        - failed_login_count: Consecutive failed login attempts (ADR-027)
+        - locked_until: Account lockout expiry timestamp (ADR-027)
         - deleted_at: Soft delete timestamp (NULL = active, NOT NULL = deleted)
         - deleted_by: Foreign key to User who performed deletion (for audit)
         - created_at: Account creation timestamp
@@ -109,6 +111,20 @@ class User(Base):
 
     # Session Management
     last_login = Column(DateTime, nullable=True)
+
+    # Login Lockout (ADR-027 Phase 1 - max_login_attempts)
+    failed_login_count = Column(
+        postgresql.INTEGER,
+        default=0,
+        nullable=False,
+        server_default='0',
+        comment='Number of consecutive failed login attempts'
+    )
+    locked_until = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment='Account locked until this timestamp (NULL = not locked)'
+    )
 
     # Soft Delete (Sprint 40 - Admin Panel CRUD)
     deleted_at = Column(DateTime, nullable=True, index=True)  # Soft delete timestamp
