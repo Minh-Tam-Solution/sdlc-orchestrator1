@@ -18,8 +18,8 @@
 | Mon Jan 20 | All (Kickoff) | `390cc89` Sprint Plan + Ollama fix | Boot env + run TC-001 | Ollama API network (team to verify) | ⏳ Team to run | Code ready, API files verified |
 | Tue Jan 21 | All | Prompt tuning (BE-W6-002) | Validate + stabilize, tune prompt | None | ✅ FULL PASS 16.9s (5/5) | Prompt tuned, all sections now generated |
 | Wed Jan 22 | All | Route fix + Ollama via ai-net | Smoke 8 endpoints (BE-W6-005) | None | ✅ 8/8 PASS (17.8s) | Ollama URL: ollama:11434 via ai-net |
-| Thu Jan 23 |  |  | Dry-run demo + timing capture |  |  |  |
-| Fri Jan 24 |  |  | Demo + checkpoint prep |  |  |  |
+| Thu Jan 23 | All | TL-W6-002 Demo script | Dry-run demo 2x + timing capture | None | ✅ Ready | Demo script created, backup SOP prepared |
+| Fri Jan 24 |  |  | Live demo + checkpoint |  |  | Target: 5 min demo with full evidence |
 
 ## Definition of Done (Week 6)
 
