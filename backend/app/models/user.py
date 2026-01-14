@@ -62,6 +62,8 @@ class User(Base):
         - mfa_enabled: MFA enrollment status
         - mfa_secret: TOTP secret (encrypted, 32-byte base32)
         - backup_codes: One-time recovery codes (10 codes, hashed)
+        - mfa_setup_deadline: Deadline for completing MFA setup (7-day grace, ADR-027)
+        - is_mfa_exempt: User exempt from MFA requirement (admin override, ADR-027)
         - last_login: Last successful login timestamp
         - failed_login_count: Consecutive failed login attempts (ADR-027)
         - locked_until: Account lockout expiry timestamp (ADR-027)
@@ -108,6 +110,20 @@ class User(Base):
     mfa_enabled = Column(Boolean, default=False, nullable=False)
     mfa_secret = Column(String(255), nullable=True)  # Encrypted TOTP secret
     backup_codes = Column(String(1024), nullable=True)  # JSON array of hashed codes
+
+    # MFA Enforcement (ADR-027 Phase 1 - mfa_required)
+    mfa_setup_deadline = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment='Deadline for completing MFA setup when mfa_required is enabled (7-day grace period)'
+    )
+    is_mfa_exempt = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        server_default='false',
+        comment='User is exempt from MFA requirement (admin override)'
+    )
 
     # Session Management
     last_login = Column(DateTime, nullable=True)

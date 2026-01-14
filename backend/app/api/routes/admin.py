@@ -19,6 +19,9 @@ Endpoints:
 - DELETE /api/v1/admin/users/{id}    - Soft delete user (Sprint 40)
 - DELETE /api/v1/admin/users/bulk    - Bulk soft delete (Sprint 40 Part 3)
 - POST /api/v1/admin/users/bulk      - Bulk activate/deactivate
+- POST /api/v1/admin/users/{id}/unlock - Unlock locked account (ADR-027)
+- POST /api/v1/admin/users/{id}/mfa-exempt - Set MFA exemption (ADR-027)
+- GET  /api/v1/admin/users/{id}/mfa-status - Get MFA status (ADR-027)
 - GET  /api/v1/admin/audit-logs      - Audit logs (paginated)
 - GET  /api/v1/admin/settings        - Get all settings
 - GET  /api/v1/admin/settings/{key}  - Get setting by key
@@ -1469,4 +1472,199 @@ async def unlock_user_account(
         "locked_until": None,
         "unlocked_by": admin.email,
         "unlocked_at": datetime.utcnow().isoformat(),
+    }
+
+
+# =========================================================================
+# MFA Exemption Endpoints (ADR-027 Phase 1 - mfa_required)
+# =========================================================================
+
+@router.post(
+    "/users/{user_id}/mfa-exempt",
+    status_code=status.HTTP_200_OK,
+    summary="Set MFA exemption (ADR-027)",
+    description="Admin can exempt specific users from MFA requirement",
+)
+async def set_mfa_exemption(
+    user_id: UUID,
+    exempt: bool = Body(..., description="True to exempt user, False to remove exemption"),
+    request: Request = None,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin endpoint to exempt users from MFA requirement.
+
+    Use Cases:
+    - Service accounts (API-only access, no human login)
+    - External integrations (OAuth-only, MFA not applicable)
+    - Emergency access (temporary exemption during incident)
+
+    Args:
+        user_id: Target user UUID
+        exempt: True to exempt, False to remove exemption
+        request: FastAPI request object
+        db: Database session
+        admin: Authenticated admin user
+
+    Returns:
+        {
+            "message": "MFA exemption updated successfully",
+            "user_id": "...",
+            "email": "user@example.com",
+            "is_mfa_exempt": true,
+            "mfa_setup_deadline": null,
+            "updated_by": "admin@example.com",
+            "updated_at": "2026-01-14T12:34:56Z"
+        }
+
+    Raises:
+        HTTPException(400): If trying to exempt self
+        HTTPException(404): If user not found
+    """
+    # Cannot exempt self (prevent self-action)
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot modify your own MFA exemption status",
+        )
+
+    # Find user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User not found with id: {user_id}",
+        )
+
+    # Update exemption status
+    old_status = user.is_mfa_exempt
+    user.is_mfa_exempt = exempt
+
+    # Clear deadline if exempting user (no longer needed)
+    if exempt and user.mfa_setup_deadline:
+        user.mfa_setup_deadline = None
+
+    user.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(user)
+
+    # Audit log
+    from app.services.audit_service import get_audit_service
+    audit_service = get_audit_service(db)
+
+    await audit_service.log(
+        action="USER_MFA_EXEMPTION_UPDATED",
+        user_id=admin.id,
+        resource_type="user",
+        resource_id=user.id,
+        details={
+            "target_user_email": user.email,
+            "updated_by": admin.email,
+            "previous_status": old_status,
+            "new_status": exempt,
+            "reason": "Admin override",
+        },
+        request=request,
+    )
+
+    action = "exempt from" if exempt else "no longer exempt from"
+
+    return {
+        "message": f"User is now {action} MFA requirement",
+        "user_id": str(user.id),
+        "email": user.email,
+        "is_mfa_exempt": user.is_mfa_exempt,
+        "mfa_setup_deadline": user.mfa_setup_deadline.isoformat() if user.mfa_setup_deadline else None,
+        "updated_by": admin.email,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+
+
+@router.get(
+    "/users/{user_id}/mfa-status",
+    status_code=status.HTTP_200_OK,
+    summary="Get user MFA status (ADR-027)",
+    description="Admin can view user's MFA enforcement status",
+)
+async def get_user_mfa_status(
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+    settings_service: SettingsService = Depends(get_settings_service),
+) -> dict:
+    """
+    Admin endpoint to view user's MFA status.
+
+    Shows:
+    - Whether MFA is enabled for the user
+    - Whether user is exempt from MFA requirement
+    - MFA setup deadline (if applicable)
+    - Days remaining in grace period
+
+    Args:
+        user_id: Target user UUID
+        db: Database session
+        admin: Authenticated admin user
+        settings_service: Settings service instance
+
+    Returns:
+        {
+            "user_id": "...",
+            "email": "user@example.com",
+            "mfa_enabled": false,
+            "is_mfa_exempt": false,
+            "mfa_required_global": true,
+            "mfa_setup_deadline": "2026-01-21T12:34:56Z",
+            "days_remaining": 5,
+            "enforcement_status": "grace_period"
+        }
+
+    Raises:
+        HTTPException(404): If user not found
+    """
+    # Find user
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User not found with id: {user_id}",
+        )
+
+    # Get global MFA requirement setting
+    mfa_required_global = await settings_service.is_mfa_required()
+
+    # Calculate days remaining
+    days_remaining = None
+    enforcement_status = "compliant"
+
+    if user.mfa_enabled:
+        enforcement_status = "mfa_enabled"
+    elif user.is_mfa_exempt:
+        enforcement_status = "exempt"
+    elif mfa_required_global and user.mfa_setup_deadline:
+        now = datetime.utcnow()
+        if now > user.mfa_setup_deadline:
+            enforcement_status = "deadline_expired"
+            days_remaining = 0
+        else:
+            enforcement_status = "grace_period"
+            days_remaining = (user.mfa_setup_deadline - now).days
+    elif mfa_required_global:
+        enforcement_status = "deadline_not_set"
+
+    return {
+        "user_id": str(user.id),
+        "email": user.email,
+        "mfa_enabled": user.mfa_enabled,
+        "is_mfa_exempt": user.is_mfa_exempt,
+        "mfa_required_global": mfa_required_global,
+        "mfa_setup_deadline": user.mfa_setup_deadline.isoformat() if user.mfa_setup_deadline else None,
+        "days_remaining": days_remaining,
+        "enforcement_status": enforcement_status,
     }
