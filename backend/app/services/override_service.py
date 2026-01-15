@@ -154,7 +154,7 @@ class OverrideService:
             select(ValidationOverride).where(
                 and_(
                     ValidationOverride.event_id == event_id,
-                    ValidationOverride.status == OverrideStatus.PENDING,
+                    ValidationOverride.status == OverrideStatus.PENDING.value,
                 )
             )
         )
@@ -180,7 +180,7 @@ class OverrideService:
             project_id=event.project_id,
             override_type=override_type,
             reason=reason,
-            status=OverrideStatus.PENDING,
+            status=OverrideStatus.PENDING.value,
             requested_by_id=requested_by.id,
             requested_at=datetime.utcnow(),
             expires_at=expires_at,
@@ -199,7 +199,7 @@ class OverrideService:
             action=OverrideAuditAction.REQUEST_CREATED,
             action_by_id=requested_by.id,
             action_at=datetime.utcnow(),
-            new_status=OverrideStatus.PENDING,
+            new_status=OverrideStatus.PENDING.value,
             comment=f"Override request created: {override_type.value}",
             ip_address=ip_address,
             user_agent=user_agent,
@@ -283,7 +283,7 @@ class OverrideService:
             )
             .where(
                 and_(
-                    ValidationOverride.status == OverrideStatus.PENDING,
+                    ValidationOverride.status == OverrideStatus.PENDING.value,
                     ValidationOverride.is_expired == False,
                 )
             )
@@ -291,7 +291,7 @@ class OverrideService:
 
         count_query = select(func.count()).select_from(ValidationOverride).where(
             and_(
-                ValidationOverride.status == OverrideStatus.PENDING,
+                ValidationOverride.status == OverrideStatus.PENDING.value,
                 ValidationOverride.is_expired == False,
             )
         )
@@ -327,8 +327,8 @@ class OverrideService:
             )
             .where(
                 ValidationOverride.status.in_([
-                    OverrideStatus.APPROVED,
-                    OverrideStatus.REJECTED,
+                    OverrideStatus.APPROVED.value,
+                    OverrideStatus.REJECTED.value,
                 ])
             )
         )
@@ -384,7 +384,7 @@ class OverrideService:
             raise OverrideNotFoundError(f"Override with ID {override_id} not found")
 
         # Validate status
-        if override.status != OverrideStatus.PENDING:
+        if override.status != OverrideStatus.PENDING.value:
             raise OverrideValidationError(
                 f"Cannot approve override with status {override.status.value}"
             )
@@ -393,7 +393,7 @@ class OverrideService:
             raise OverrideValidationError("Cannot approve expired override")
 
         # Update override
-        override.status = OverrideStatus.APPROVED
+        override.status = OverrideStatus.APPROVED.value
         override.resolved_by_id = approver.id
         override.resolved_at = datetime.utcnow()
         override.resolution_comment = comment
@@ -411,8 +411,8 @@ class OverrideService:
             action=OverrideAuditAction.APPROVED,
             action_by_id=approver.id,
             action_at=datetime.utcnow(),
-            previous_status=OverrideStatus.PENDING,
-            new_status=OverrideStatus.APPROVED,
+            previous_status=OverrideStatus.PENDING.value,
+            new_status=OverrideStatus.APPROVED.value,
             comment=comment or "Override approved",
             ip_address=ip_address,
             user_agent=user_agent,
@@ -470,13 +470,13 @@ class OverrideService:
             raise OverrideNotFoundError(f"Override with ID {override_id} not found")
 
         # Validate status
-        if override.status != OverrideStatus.PENDING:
+        if override.status != OverrideStatus.PENDING.value:
             raise OverrideValidationError(
                 f"Cannot reject override with status {override.status.value}"
             )
 
         # Update override
-        override.status = OverrideStatus.REJECTED
+        override.status = OverrideStatus.REJECTED.value
         override.resolved_by_id = rejector.id
         override.resolved_at = datetime.utcnow()
         override.resolution_comment = reason
@@ -487,8 +487,8 @@ class OverrideService:
             action=OverrideAuditAction.REJECTED,
             action_by_id=rejector.id,
             action_at=datetime.utcnow(),
-            previous_status=OverrideStatus.PENDING,
-            new_status=OverrideStatus.REJECTED,
+            previous_status=OverrideStatus.PENDING.value,
+            new_status=OverrideStatus.REJECTED.value,
             comment=reason,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -533,13 +533,13 @@ class OverrideService:
                 "Only the requester or an admin can cancel an override request"
             )
 
-        if override.status != OverrideStatus.PENDING:
+        if override.status != OverrideStatus.PENDING.value:
             raise OverrideValidationError(
                 f"Cannot cancel override with status {override.status.value}"
             )
 
         # Update override
-        override.status = OverrideStatus.CANCELLED
+        override.status = OverrideStatus.CANCELLED.value
         override.resolved_at = datetime.utcnow()
         override.resolution_comment = "Cancelled by requester"
 
@@ -549,8 +549,8 @@ class OverrideService:
             action=OverrideAuditAction.REQUEST_CANCELLED,
             action_by_id=user.id,
             action_at=datetime.utcnow(),
-            previous_status=OverrideStatus.PENDING,
-            new_status=OverrideStatus.CANCELLED,
+            previous_status=OverrideStatus.PENDING.value,
+            new_status=OverrideStatus.CANCELLED.value,
             comment="Override request cancelled",
             ip_address=ip_address,
             user_agent=user_agent,
@@ -583,7 +583,7 @@ class OverrideService:
         result = await self.db.execute(
             select(ValidationOverride).where(
                 and_(
-                    ValidationOverride.status == OverrideStatus.PENDING,
+                    ValidationOverride.status == OverrideStatus.PENDING.value,
                     ValidationOverride.expires_at < now,
                     ValidationOverride.is_expired == False,
                 )
@@ -592,7 +592,7 @@ class OverrideService:
         expired_overrides = list(result.scalars().all())
 
         for override in expired_overrides:
-            override.status = OverrideStatus.EXPIRED
+            override.status = OverrideStatus.EXPIRED.value
             override.is_expired = True
             override.resolved_at = now
 
@@ -601,8 +601,8 @@ class OverrideService:
                 override_id=override.id,
                 action=OverrideAuditAction.EXPIRED,
                 action_at=now,
-                previous_status=OverrideStatus.PENDING,
-                new_status=OverrideStatus.EXPIRED,
+                previous_status=OverrideStatus.PENDING.value,
+                new_status=OverrideStatus.EXPIRED.value,
                 comment=f"Override request expired after {OVERRIDE_EXPIRY_DAYS} days",
             )
             self.db.add(audit_log)

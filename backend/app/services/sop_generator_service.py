@@ -385,8 +385,7 @@ class SOPGeneratorService:
         """
         template = SOP_TEMPLATES[sop_type]
 
-        prompt = f"""
-{template["prompt_context"]}
+        prompt = f"""{template["prompt_context"]}
 
 Generate a complete Standard Operating Procedure (SOP) in Markdown format.
 
@@ -395,45 +394,50 @@ WORKFLOW DESCRIPTION:
 
 {"ADDITIONAL CONTEXT:" + chr(10) + additional_context if additional_context else ""}
 
-REQUIRED SOP STRUCTURE (ISO 9001 compliant):
+CRITICAL: You MUST include ALL 5 numbered sections below. Do not skip any section.
 
-# SOP: [Title based on workflow]
+# SOP: [Create a descriptive title]
 
 ## Document Control
-- **Document ID:** SOP-{sop_type.value.upper()}-[NUMBER]
+- **Document ID:** SOP-{sop_type.value.upper()}-001
 - **Version:** 1.0.0
-- **Effective Date:** [Today's Date]
-- **Owner:** [Appropriate Role]
-- **Approver:** [Appropriate Role]
+- **Effective Date:** 2026-01-21
+- **Owner:** Operations Team
+- **Approver:** Tech Lead
 
 ## 1. Purpose
-[2-3 sentences explaining what this SOP covers and why it's important]
+[Write 2-3 sentences explaining what this SOP covers and why it's important]
 
 ## 2. Scope
-- [What systems/processes are covered]
-- [What is explicitly excluded]
+[List what systems/processes are covered and what is excluded]
 
 ## 3. Procedure
-[Numbered step-by-step instructions with clear, actionable language]
+[Write numbered step-by-step instructions]
 
 ## 4. Roles and Responsibilities
 | Role | Responsibility | RACI |
 |------|----------------|------|
-| [Role] | [Description] | R/A/C/I |
+| DevOps Engineer | Execute deployment | R |
+| Tech Lead | Approve deployment | A |
+| QA Team | Verify deployment | C |
+| Stakeholders | Receive updates | I |
 
 ## 5. Quality Criteria
-- [ ] [Checklist item 1]
-- [ ] [Checklist item 2]
-- [ ] [How to verify procedure was followed correctly]
+- [ ] All pre-deployment checks passed
+- [ ] Deployment completed without errors
+- [ ] Post-deployment verification successful
+- [ ] Rollback procedure tested
 
 ## Revision History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | [Date] | AI Agent | Initial version |
+| 1.0.0 | 2026-01-21 | AI Agent | Initial version |
 
-Generate a complete, professional SOP following this exact structure.
-Ensure all sections are filled with relevant, specific content.
-Do not use placeholder text like "[TBD]" or "[TODO]".
+IMPORTANT RULES:
+1. Include ALL 5 numbered sections (Purpose, Scope, Procedure, Roles, Quality)
+2. Fill each section with specific, relevant content
+3. Do not use placeholder text like [TBD] or [TODO]
+4. Keep the exact section headers: "## 1. Purpose", "## 2. Scope", etc.
 """
         return prompt
 
@@ -674,9 +678,17 @@ Do not use placeholder text like "[TBD]" or "[TODO]".
             sha256_hash=sha256_hash,
         )
 
+        # BE-W6-003: Structured latency logging with full context
         logger.info(
-            f"SOP generated: id={sop_id}, completeness={completeness_score:.1f}%, "
-            f"time={metrics['generation_time_ms']:.0f}ms"
+            f"SOP_GENERATED | "
+            f"sop_id={sop_id} | "
+            f"mrp_id={mrp_id} | "
+            f"sop_type={request.sop_type.value} | "
+            f"generation_time_ms={metrics['generation_time_ms']:.0f} | "
+            f"model={metrics.get('model', self.ollama_model)} | "
+            f"provider=ollama | "
+            f"sections={sections_present}/5 | "
+            f"completeness={completeness_score:.1f}%"
         )
 
         return sop, mrp
@@ -713,11 +725,22 @@ def get_sop_generator_service() -> SOPGeneratorService:
     Returns:
         Configured SOPGeneratorService instance
     """
-    ollama_url = getattr(settings, "OLLAMA_URL", "http://localhost:11434")
-    ollama_model = getattr(settings, "OLLAMA_MODEL", "qwen3:14b")
+    # NOTE:
+    # - Ollama container is in 'ai-net' Docker network
+    # - Container name 'ollama' resolves to the Ollama service within ai-net
+    # - sdlc-backend is also connected to ai-net, so it can reach ollama:11434
+    # - requests requires a fully-qualified URL with scheme.
+    # - Default to container name, but allow overriding via env (e.g., for production AI-Platform).
+    ollama_url = (getattr(settings, "OLLAMA_URL", "") or "").strip()
+    if not ollama_url:
+        ollama_url = "http://ollama:11434"
+    elif not (ollama_url.startswith("http://") or ollama_url.startswith("https://")):
+        ollama_url = f"http://{ollama_url}"
+
+    ollama_model = (getattr(settings, "OLLAMA_MODEL", "qwen3:14b") or "qwen3:14b").strip()
 
     return SOPGeneratorService(
         ollama_base_url=ollama_url,
         ollama_model=ollama_model,
-        timeout=30,  # NFR1: <30s
+        timeout=60,  # NFR1: <30s target, but allow 60s for complex SOPs
     )

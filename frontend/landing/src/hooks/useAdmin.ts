@@ -387,7 +387,7 @@ export function useSystemHealth() {
 export function useOverrideQueue() {
   return useQuery({
     queryKey: adminQueryKeys.overrideQueue(),
-    queryFn: () => fetchWithAuth<OverrideQueueResponse>("/admin/overrides/queue"),
+    queryFn: () => fetchWithAuth<OverrideQueueResponse>("/admin/override-queue"),
     refetchInterval: 30 * 1000, // Auto-refresh for real-time queue updates
     staleTime: 15 * 1000,
   });
@@ -400,7 +400,7 @@ export function useOverrideStats(days: number = 30) {
   return useQuery({
     queryKey: adminQueryKeys.overrideStats(days),
     queryFn: () =>
-      fetchWithAuth<OverrideStatsResponse>(`/admin/overrides/stats?days=${days}`),
+      fetchWithAuth<OverrideStatsResponse>(`/admin/override-stats?days=${days}`),
     staleTime: 60 * 1000, // Stats don't change as frequently
   });
 }
@@ -414,7 +414,7 @@ export function useApproveOverride() {
 
   return useMutation({
     mutationFn: ({ overrideId, comment }: { overrideId: string; comment: string }) =>
-      fetchWithAuth<{ success: boolean }>(`/admin/overrides/${overrideId}/approve`, {
+      fetchWithAuth<{ success: boolean }>(`/overrides/${overrideId}/approve`, {
         method: "POST",
         body: JSON.stringify({ comment }),
       }),
@@ -434,7 +434,7 @@ export function useRejectOverride() {
 
   return useMutation({
     mutationFn: ({ overrideId, reason }: { overrideId: string; reason: string }) =>
-      fetchWithAuth<{ success: boolean }>(`/admin/overrides/${overrideId}/reject`, {
+      fetchWithAuth<{ success: boolean }>(`/overrides/${overrideId}/reject`, {
         method: "POST",
         body: JSON.stringify({ reason }),
       }),

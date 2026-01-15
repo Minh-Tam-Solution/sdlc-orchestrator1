@@ -66,6 +66,7 @@ from app.core.security import (
 )
 from app.db.session import get_db
 from app.models.user import PasswordResetToken, RefreshToken, User
+from app.services.settings_service import SettingsService, get_settings_service
 from app.schemas.auth import (
     ForgotPasswordRequest,
     ForgotPasswordResponse,
@@ -92,6 +93,7 @@ async def register(
     register_data: RegisterRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> RegisterResponse:
     """
     Register a new user with email and password.
@@ -137,6 +139,10 @@ async def register(
 
     # Normalize email (lowercase, trimmed)
     email = register_data.email.lower().strip()
+
+    # ADR-027: Validate password meets minimum length requirement
+    from app.utils.password_validator import validate_password_strength
+    await validate_password_strength(register_data.password, settings_service)
 
     # Check if email already exists
     result = await db.execute(select(User).where(User.email == email))
@@ -202,6 +208,7 @@ async def login(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    settings_service: "SettingsService" = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Login with email and password.
@@ -245,8 +252,70 @@ async def login(
     result = await db.execute(select(User).where(User.email == login_data.email))
     user = result.scalar_one_or_none()
 
+    # ADR-027: Check if account is locked (max_login_attempts)
+    if user and user.locked_until:
+        # Check if lockout period has expired (30 minutes auto-unlock)
+        if datetime.utcnow() < user.locked_until:
+            # Still locked - reject login
+            await audit_service.log(
+                action=AuditAction.USER_LOGIN_FAILED,
+                user_id=user.id,
+                resource_type="user",
+                resource_id=user.id,
+                details={
+                    "email": login_data.email,
+                    "failure_reason": "account_locked",
+                    "locked_until": user.locked_until.isoformat(),
+                },
+                request=request,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Account locked due to too many failed login attempts. Try again after {user.locked_until.strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            )
+        else:
+            # Lockout expired - auto-unlock account
+            user.failed_login_count = 0
+            user.locked_until = None
+            await db.commit()
+
     # Verify user exists and password is correct
     if not user or not verify_password(login_data.password, user.password_hash):
+        # ADR-027: Increment failed login counter if user exists
+        if user:
+            # Get max_login_attempts from settings (default: 5)
+            max_attempts = await settings_service.get_max_login_attempts()
+
+            user.failed_login_count += 1
+
+            # Check if max attempts reached
+            if user.failed_login_count >= max_attempts:
+                # Lock account for 30 minutes
+                user.locked_until = datetime.utcnow() + timedelta(minutes=30)
+                await db.commit()
+
+                # Audit account lockout
+                await audit_service.log(
+                    action=AuditAction.USER_LOGIN_FAILED,
+                    user_id=user.id,
+                    resource_type="user",
+                    resource_id=user.id,
+                    details={
+                        "email": login_data.email,
+                        "failure_reason": "max_attempts_exceeded",
+                        "failed_login_count": user.failed_login_count,
+                        "locked_until": user.locked_until.isoformat(),
+                    },
+                    request=request,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Account locked due to {max_attempts} failed login attempts. Try again after 30 minutes.",
+                )
+            else:
+                # Not locked yet, just increment counter
+                await db.commit()
+
         # Audit failed login attempt
         await audit_service.log(
             action=AuditAction.USER_LOGIN_FAILED,
@@ -280,8 +349,11 @@ async def login(
             detail="User account is inactive",
         )
 
-    # Generate JWT tokens
-    access_token = create_access_token(subject=str(user.id))
+    # Generate JWT tokens (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
     refresh_token = create_refresh_token(subject=str(user.id))
 
     # Store refresh token in database (for revocation support)
@@ -295,6 +367,10 @@ async def login(
 
     # Update last login timestamp
     user.last_login = datetime.utcnow()
+
+    # ADR-027: Reset failed login counter on successful login
+    user.failed_login_count = 0
+    user.locked_until = None
 
     await db.commit()
 
@@ -329,6 +405,7 @@ async def refresh_access_token(
     refresh_data: Optional[RefreshTokenRequest] = None,
     db: AsyncSession = Depends(get_db),
     refresh_token_cookie: Optional[str] = Cookie(None, alias=REFRESH_TOKEN_COOKIE_NAME),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Refresh access token using refresh token.
@@ -432,8 +509,11 @@ async def refresh_access_token(
     if not user or not user.is_active:
         raise credentials_exception
 
-    # Generate new access token
-    access_token = create_access_token(subject=str(user.id))
+    # Generate new access token (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
 
     # Sprint 63: Set new access token cookie
     set_access_token_cookie(response, access_token)
@@ -697,6 +777,7 @@ async def oauth_callback(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    settings_service: SettingsService = Depends(get_settings_service),
 ) -> TokenResponse:
     """
     Handle OAuth callback and exchange code for tokens.
@@ -860,8 +941,11 @@ async def oauth_callback(
         )
         db.add(oauth_account)
 
-    # Generate JWT tokens
-    access_token = create_access_token(subject=str(user.id))
+    # Generate JWT tokens (ADR-027: session_timeout from DB setting)
+    access_token = await create_access_token(
+        subject=str(user.id),
+        settings_service=settings_service
+    )
     refresh_token = create_refresh_token(subject=str(user.id))
 
     # Store refresh token in database

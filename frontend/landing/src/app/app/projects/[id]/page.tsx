@@ -9,9 +9,10 @@
 
 "use client";
 
-import { use } from "react";
+import { use, Suspense } from "react";
 import Link from "next/link";
 import { useProject } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 
 // =============================================================================
 // Types
@@ -100,16 +101,45 @@ function formatDate(dateStr: string | null): string {
 }
 
 // =============================================================================
-// Main Component
+// Loading Component
 // =============================================================================
 
-interface PageProps {
-  params: Promise<{ id: string }>;
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+    </div>
+  );
 }
 
-export default function ProjectDetailPage({ params }: PageProps) {
-  const { id } = use(params);
-  const { data: project, isLoading, error } = useProject(id);
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+      </div>
+      <div className="h-10 w-64 bg-gray-200 rounded animate-pulse" />
+      <div className="h-5 w-96 bg-gray-200 rounded animate-pulse" />
+      <div className="grid gap-4 md:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-lg border p-6">
+            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2" />
+            <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// =============================================================================
+// Project Content Component (fetches data after auth check)
+// =============================================================================
+
+function ProjectContent({ projectId }: { projectId: string }) {
+  const { data: project, isLoading, error, isError } = useProject(projectId);
 
   // Group gates by stage
   const gatesByStage = (project?.gates || []).reduce<Record<string, ProjectGate[]>>((acc, gate) => {
@@ -120,29 +150,26 @@ export default function ProjectDetailPage({ params }: PageProps) {
   }, {});
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {/* Loading skeleton */}
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-          <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
-          <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-        </div>
-        <div className="h-10 w-64 bg-gray-200 rounded animate-pulse" />
-        <div className="h-5 w-96 bg-gray-200 rounded animate-pulse" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg border p-6">
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2" />
-              <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
-  if (error || !project) {
+  if (isError || error || !project) {
+    // Check if it's an auth error (401) - redirect to login
+    const isAuthError = error && typeof error === "object" && "status" in error && (error as { status: number }).status === 401;
+    if (isAuthError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="text-amber-600 mb-4">Session expired. Please log in again.</div>
+          <Link
+            href="/login"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go to Login
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="text-red-500 mb-4">Project not found</div>
@@ -301,5 +328,48 @@ export default function ProjectDetailPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+// =============================================================================
+// Main Page Component with Auth Check
+// =============================================================================
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ProjectDetailPage({ params }: PageProps) {
+  // Safely unwrap params using React.use()
+  const resolvedParams = use(params);
+  const projectId = resolvedParams.id;
+
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Show auth loading state
+  if (authLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="text-amber-600 mb-4">Please log in to view this project.</div>
+        <Link
+          href="/login"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
+
+  // Render project content (data fetching happens here)
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <ProjectContent projectId={projectId} />
+    </Suspense>
   );
 }

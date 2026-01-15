@@ -95,13 +95,18 @@ def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
 
 
-def create_access_token(subject: str | dict, expires_delta: Optional[timedelta] = None) -> str:
+async def create_access_token(
+    subject: str | dict,
+    expires_delta: Optional[timedelta] = None,
+    settings_service: Optional["SettingsService"] = None
+) -> str:
     """
-    Create JWT access token (short-lived, 1 hour).
+    Create JWT access token (configurable expiry via System Settings).
 
     Args:
         subject: User ID (str) or claims dict
-        expires_delta: Optional expiry override (default: 1 hour)
+        expires_delta: Optional expiry override (default: from DB setting)
+        settings_service: Optional SettingsService for dynamic timeout (ADR-027)
 
     Returns:
         JWT token string (Base64-encoded)
@@ -115,18 +120,31 @@ def create_access_token(subject: str | dict, expires_delta: Optional[timedelta] 
         }
 
     Security:
-        - Expiry: 1 hour (short-lived)
+        - Expiry: Configurable via system_settings.session_timeout_minutes (default: 30 min)
         - Algorithm: HS256 (HMAC SHA-256)
         - Secret: From environment variable (256-bit)
+        - Fallback: If settings_service unavailable, uses ACCESS_TOKEN_EXPIRE_HOURS env var
+
+    ADR-027 Integration:
+        - Phase 1 implementation: session_timeout_minutes from DB
+        - Cache TTL: 5 minutes (changes propagate within 5 min)
+        - Backward compatible: Falls back to env var if settings_service not provided
 
     Example:
-        >>> token = create_access_token(subject="user-123")
+        >>> from app.services.settings_service import SettingsService
+        >>> settings_svc = SettingsService(db)
+        >>> token = await create_access_token(subject="user-123", settings_service=settings_svc)
         >>> len(token) > 100
         True
     """
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
+    elif settings_service:
+        # ADR-027: Read timeout from database setting with Redis caching
+        timeout_minutes = await settings_service.get_session_timeout_minutes()
+        expire = datetime.utcnow() + timedelta(minutes=timeout_minutes)
     else:
+        # Fallback to env var for backward compatibility
         expire = datetime.utcnow() + timedelta(hours=settings.ACCESS_TOKEN_EXPIRE_HOURS)
 
     to_encode = {"exp": expire, "iat": datetime.utcnow(), "type": "access"}

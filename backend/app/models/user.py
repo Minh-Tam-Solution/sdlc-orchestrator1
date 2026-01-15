@@ -62,7 +62,11 @@ class User(Base):
         - mfa_enabled: MFA enrollment status
         - mfa_secret: TOTP secret (encrypted, 32-byte base32)
         - backup_codes: One-time recovery codes (10 codes, hashed)
+        - mfa_setup_deadline: Deadline for completing MFA setup (7-day grace, ADR-027)
+        - is_mfa_exempt: User exempt from MFA requirement (admin override, ADR-027)
         - last_login: Last successful login timestamp
+        - failed_login_count: Consecutive failed login attempts (ADR-027)
+        - locked_until: Account lockout expiry timestamp (ADR-027)
         - deleted_at: Soft delete timestamp (NULL = active, NOT NULL = deleted)
         - deleted_by: Foreign key to User who performed deletion (for audit)
         - created_at: Account creation timestamp
@@ -107,8 +111,36 @@ class User(Base):
     mfa_secret = Column(String(255), nullable=True)  # Encrypted TOTP secret
     backup_codes = Column(String(1024), nullable=True)  # JSON array of hashed codes
 
+    # MFA Enforcement (ADR-027 Phase 1 - mfa_required)
+    mfa_setup_deadline = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment='Deadline for completing MFA setup when mfa_required is enabled (7-day grace period)'
+    )
+    is_mfa_exempt = Column(
+        Boolean,
+        default=False,
+        nullable=False,
+        server_default='false',
+        comment='User is exempt from MFA requirement (admin override)'
+    )
+
     # Session Management
     last_login = Column(DateTime, nullable=True)
+
+    # Login Lockout (ADR-027 Phase 1 - max_login_attempts)
+    failed_login_count = Column(
+        postgresql.INTEGER,
+        default=0,
+        nullable=False,
+        server_default='0',
+        comment='Number of consecutive failed login attempts'
+    )
+    locked_until = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment='Account locked until this timestamp (NULL = not locked)'
+    )
 
     # Soft Delete (Sprint 40 - Admin Panel CRUD)
     deleted_at = Column(DateTime, nullable=True, index=True)  # Soft delete timestamp

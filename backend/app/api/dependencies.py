@@ -274,6 +274,10 @@ def require_roles(allowed_roles: List[str]):
     async def check_roles(
         current_user: User = Depends(get_current_active_user),
     ) -> User:
+        # Superusers bypass role checks (Sprint 69 fix)
+        if current_user.is_superuser:
+            return current_user
+
         # Get user's role names from relationships
         user_role_names = [role.display_name for role in current_user.roles]
 

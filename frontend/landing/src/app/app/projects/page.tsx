@@ -13,6 +13,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useProjects, useCreateProject, type Project } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 
 // Icons
 function PlusIcon({ className }: { className?: string }) {
@@ -335,13 +336,45 @@ function CreateProjectModal({
   );
 }
 
+// Loading spinner component
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+    </div>
+  );
+}
+
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+  // Auth check (Sprint 69 fix)
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
   // Fetch projects from API using TanStack Query
   const { data: projects, isLoading, error } = useProjects();
+
+  // Show auth loading state
+  if (authLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="text-amber-600 mb-4">Please log in to view projects.</div>
+        <Link
+          href="/login"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Go to Login
+        </Link>
+      </div>
+    );
+  }
 
   // Filter projects based on search and status
   const filteredProjects = (projects || []).filter((project) => {
