@@ -67,6 +67,7 @@ from app.schemas.council import (
     CouncilResponse,
 )
 from app.services.ai_council_service import AICouncilService
+from app.services.settings_service import SettingsService
 
 logger = logging.getLogger(__name__)
 
@@ -254,13 +255,14 @@ async def trigger_deliberation(
     Trigger AI Council deliberation for a compliance violation.
 
     This endpoint:
-    1. Validates violation access
-    2. Determines council mode (single, council, or auto)
-    3. Executes 3-stage deliberation:
+    1. Checks if AI Council is enabled (ADR-027 Phase 2)
+    2. Validates violation access
+    3. Determines council mode (single, council, or auto)
+    4. Executes 3-stage deliberation:
        - Stage 1: Parallel queries to multiple LLM providers
        - Stage 2: Anonymized peer review and ranking
        - Stage 3: Chairman synthesis of best elements
-    4. Stores result and returns comprehensive response
+    5. Stores result and returns comprehensive response
 
     Performance Targets:
     - Single mode: <3s p95 latency
@@ -273,7 +275,18 @@ async def trigger_deliberation(
 
     Returns:
         CouncilResponse with recommendation and deliberation details
+
+    Raises:
+        HTTPException 503: If AI Council is disabled by admin
     """
+    # ADR-027 Phase 2: Check if AI Council is enabled
+    settings_service = SettingsService(db)
+    if not await settings_service.is_ai_council_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI Council is currently disabled. Contact admin to enable this feature.",
+        )
+
     # Check violation access
     violation = await check_violation_access(request.violation_id, current_user, db)
 
