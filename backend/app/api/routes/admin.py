@@ -1668,3 +1668,217 @@ async def get_user_mfa_status(
         "days_remaining": days_remaining,
         "enforcement_status": enforcement_status,
     }
+
+
+# =========================================================================
+# ADR-027 Phase 3: Evidence Retention Management
+# =========================================================================
+
+
+@router.get(
+    "/evidence/retention-stats",
+    status_code=status.HTTP_200_OK,
+    summary="Get evidence retention statistics (ADR-027)",
+    description="Get current evidence retention stats including active, archived, and due for cleanup",
+)
+async def get_evidence_retention_stats(
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin endpoint to view evidence retention statistics.
+
+    ADR-027 Phase 3: evidence_retention_days implementation
+
+    Shows:
+    - Total evidence count
+    - Active vs archived evidence
+    - Evidence due for archival
+    - Evidence due for permanent deletion
+
+    Returns:
+        {
+            "total_evidence": 5000,
+            "active_evidence": 4800,
+            "archived_evidence": 180,
+            "evidence_due_for_archive": 20,
+            "evidence_due_for_purge": 10,
+            "oldest_evidence_date": "2024-01-15T10:30:00",
+            "newest_evidence_date": "2026-01-15T08:15:00",
+            "retention_days": 365,
+            "grace_period_days": 30
+        }
+
+    Security:
+        - Requires is_superuser=true
+
+    Zero Mock Policy: Real database queries
+    """
+    from app.tasks.evidence_retention import EvidenceRetentionTask
+
+    task = EvidenceRetentionTask(db)
+    stats = await task.get_retention_stats()
+
+    return stats
+
+
+@router.post(
+    "/evidence/retention-archive",
+    status_code=status.HTTP_200_OK,
+    summary="Trigger evidence archival (ADR-027)",
+    description="Manually trigger archival of evidence older than retention period",
+)
+async def trigger_evidence_archival(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin endpoint to manually trigger evidence archival.
+
+    ADR-027 Phase 3: evidence_retention_days implementation
+
+    Use Cases:
+    - Force archival before scheduled cron job
+    - Test archival logic in staging environment
+    - Compliance audit requiring immediate archival
+
+    Process:
+    1. Read evidence_retention_days from database
+    2. Find all active evidence older than retention period
+    3. Soft-delete evidence (set deleted_at timestamp)
+    4. Files remain in MinIO until purge job runs
+
+    Returns:
+        {
+            "message": "Evidence archival completed",
+            "archived_count": 125,
+            "cutoff_date": "2025-01-15T00:00:00",
+            "retention_days": 365,
+            "duration_seconds": 2.5,
+            "status": "success",
+            "triggered_by": "admin@example.com"
+        }
+
+    Security:
+        - Requires is_superuser=true
+        - Audit logged
+
+    Zero Mock Policy: Real database operations
+    """
+    from app.tasks.evidence_retention import EvidenceRetentionTask
+
+    task = EvidenceRetentionTask(db)
+
+    # Get stats before
+    stats_before = await task.get_retention_stats()
+    logger.info(f"Evidence retention stats before archival: {stats_before}")
+
+    # Run archival
+    result = await task.archive_old_evidence()
+
+    # Audit log
+    audit_service = get_audit_service(db)
+    await audit_service.log(
+        action="EVIDENCE_ARCHIVAL_TRIGGERED",
+        user_id=admin.id,
+        resource_type="evidence",
+        resource_id=None,
+        details={
+            "triggered_by": admin.email,
+            "archived_count": result.get("archived_count", 0),
+            "retention_days": result.get("retention_days"),
+            "status": result.get("status"),
+        },
+        request=request,
+    )
+
+    result["triggered_by"] = admin.email
+    result["message"] = "Evidence archival completed"
+
+    return result
+
+
+@router.post(
+    "/evidence/retention-purge",
+    status_code=status.HTTP_200_OK,
+    summary="Trigger evidence purge (ADR-027)",
+    description="Manually trigger permanent deletion of archived evidence beyond grace period",
+)
+async def trigger_evidence_purge(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    admin: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin endpoint to manually trigger evidence purge.
+
+    ADR-027 Phase 3: evidence_retention_days implementation
+
+    WARNING: This permanently deletes evidence files from MinIO!
+    Use with caution. Consider archival first for reversible cleanup.
+
+    Use Cases:
+    - Free up storage space
+    - Compliance requirement to permanently delete old data
+    - Clean up after testing
+
+    Process:
+    1. Find all soft-deleted evidence older than grace period (30 days)
+    2. Delete files from MinIO storage
+    3. Hard-delete records from database
+    4. Log results for audit trail
+
+    Returns:
+        {
+            "message": "Evidence purge completed",
+            "purged_count": 50,
+            "files_deleted": 48,
+            "files_failed": 2,
+            "cutoff_date": "2024-12-15T00:00:00",
+            "grace_period_days": 30,
+            "duration_seconds": 5.2,
+            "status": "success",
+            "triggered_by": "admin@example.com"
+        }
+
+    Security:
+        - Requires is_superuser=true
+        - Audit logged
+        - Irreversible action!
+
+    Zero Mock Policy: Real database and MinIO operations
+    """
+    from app.tasks.evidence_retention import EvidenceRetentionTask
+
+    task = EvidenceRetentionTask(db)
+
+    # Get stats before
+    stats_before = await task.get_retention_stats()
+    logger.info(f"Evidence retention stats before purge: {stats_before}")
+
+    # Run purge
+    result = await task.purge_expired_evidence()
+
+    # Audit log
+    audit_service = get_audit_service(db)
+    await audit_service.log(
+        action="EVIDENCE_PURGE_TRIGGERED",
+        user_id=admin.id,
+        resource_type="evidence",
+        resource_id=None,
+        details={
+            "triggered_by": admin.email,
+            "purged_count": result.get("purged_count", 0),
+            "files_deleted": result.get("files_deleted", 0),
+            "files_failed": result.get("files_failed", 0),
+            "grace_period_days": result.get("grace_period_days"),
+            "status": result.get("status"),
+        },
+        request=request,
+    )
+
+    result["triggered_by"] = admin.email
+    result["message"] = "Evidence purge completed"
+
+    return result
