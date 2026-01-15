@@ -30,10 +30,12 @@ import logging
 from datetime import timedelta
 from typing import Any, Optional
 
+from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings as app_settings
+from app.db.session import get_db
 from app.models.support import SystemSetting
 from app.utils.redis import get_redis_client
 
@@ -547,7 +549,9 @@ def create_settings_service(db: AsyncSession) -> SettingsService:
     return SettingsService(db)
 
 
-async def get_settings_service(db: AsyncSession) -> SettingsService:
+async def get_settings_service(
+    db: AsyncSession = Depends(get_db),
+) -> SettingsService:
     """
     Dependency injection helper for FastAPI.
 
@@ -557,7 +561,6 @@ async def get_settings_service(db: AsyncSession) -> SettingsService:
         @router.get("/example")
         async def example(
             settings: SettingsService = Depends(get_settings_service),
-            db: AsyncSession = Depends(get_db)
         ):
             timeout = await settings.get_session_timeout_minutes()
     """
