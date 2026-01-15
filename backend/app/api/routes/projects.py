@@ -33,6 +33,7 @@ from app.services.cache_service import (
     CACHE_TTL_SHORT,
     PROJECTS_CACHE,
 )
+from app.services.settings_service import SettingsService
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -127,7 +128,30 @@ async def create_project(
 
     Returns:
         Created project with ID, slug, and policy pack tier
+
+    ADR-027 Phase 2:
+        Enforces max_projects_per_user limit from system settings.
     """
+    # ADR-027 Phase 2: Check max_projects_per_user limit
+    settings_service = SettingsService(db)
+    max_projects = await settings_service.get_max_projects_per_user()
+
+    # Count user's owned projects
+    owned_count_result = await db.execute(
+        select(func.count(Project.id)).where(
+            Project.owner_id == current_user.id,
+            Project.deleted_at.is_(None),
+        )
+    )
+    owned_count = owned_count_result.scalar() or 0
+
+    if owned_count >= max_projects:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Project limit reached. You own {owned_count} projects (max: {max_projects}). "
+            f"Delete existing projects or contact admin to increase limit.",
+        )
+
     # Validate tier
     tier = (data.policy_pack or "standard").lower()
     if tier not in TIER_NAMES:
@@ -601,10 +625,11 @@ async def init_project(
     - CLI sdlcctl init command
 
     Flow:
-    1. Create project in database
-    2. Add user as project owner
-    3. Generate .sdlc-config.json content
-    4. Return project ID and configuration
+    1. Check max_projects_per_user limit (ADR-027 Phase 2)
+    2. Create project in database
+    3. Add user as project owner
+    4. Generate .sdlc-config.json content
+    5. Return project ID and configuration
 
     Args:
         data: Project initialization request
@@ -613,6 +638,25 @@ async def init_project(
     Returns:
         ProjectInitResponse with project_id and config
     """
+    # ADR-027 Phase 2: Check max_projects_per_user limit
+    settings_service = SettingsService(db)
+    max_projects = await settings_service.get_max_projects_per_user()
+
+    owned_count_result = await db.execute(
+        select(func.count(Project.id)).where(
+            Project.owner_id == current_user.id,
+            Project.deleted_at.is_(None),
+        )
+    )
+    owned_count = owned_count_result.scalar() or 0
+
+    if owned_count >= max_projects:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Project limit reached. You own {owned_count} projects (max: {max_projects}). "
+            f"Delete existing projects or contact admin to increase limit.",
+        )
+
     # Validate tier
     valid_tiers = ["LITE", "STANDARD", "PROFESSIONAL", "ENTERPRISE"]
     tier = data.tier.upper()

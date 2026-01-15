@@ -57,6 +57,7 @@ from app.schemas.evidence import (
     IntegrityCheckResponse,
 )
 from app.services.minio_service import minio_service
+from app.services.settings_service import SettingsService
 
 router = APIRouter()
 
@@ -139,12 +140,16 @@ async def upload_evidence(
     file_content = await file.read()
     file_size = len(file_content)
 
-    # Validate file size (100MB limit)
-    max_size = 100 * 1024 * 1024  # 100MB
+    # ADR-027 Phase 2: Get max_file_size_mb from database settings
+    settings_service = SettingsService(db)
+    max_file_size_mb = await settings_service.get_max_file_size_mb()
+    max_size = max_file_size_mb * 1024 * 1024  # Convert MB to bytes
+
     if file_size > max_size:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File size {file_size} bytes exceeds maximum {max_size} bytes",
+            detail=f"File size {file_size / (1024 * 1024):.2f}MB exceeds maximum {max_file_size_mb}MB. "
+            f"Contact admin to adjust file size limit.",
         )
 
     # Upload to MinIO (real S3 upload)
