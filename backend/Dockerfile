@@ -27,6 +27,9 @@ COPY requirements-docker.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
+# Install Semgrep for SAST scanning (added Jan 17, 2026)
+RUN pip install --no-cache-dir semgrep
+
 # Copy application code
 COPY . .
 
