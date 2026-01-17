@@ -67,6 +67,12 @@ const AuditLogsPage = lazy(() => import('@/pages/admin/AuditLogsPage'))
 const SystemSettingsPage = lazy(() => import('@/pages/admin/SystemSettingsPage'))
 const SystemHealthPage = lazy(() => import('@/pages/admin/SystemHealthPage'))
 
+// Teams pages (Sprint 72)
+const TeamsPage = lazy(() => import('@/pages/TeamsPage'))  // Teams list
+const TeamDetailPage = lazy(() => import('@/pages/TeamDetailPage'))  // Team dashboard
+const TeamMembersPage = lazy(() => import('@/pages/TeamMembersPage'))  // Members management
+const TeamSettingsPage = lazy(() => import('@/pages/TeamSettingsPage'))  // Team settings
+
 /**
  * Loading fallback component for Suspense
  * Displays centered spinner during lazy load
@@ -184,6 +190,39 @@ function App() {
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Teams - Sprint 72 */}
+          <Route
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <TeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:teamId"
+            element={
+              <ProtectedRoute>
+                <TeamDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:teamId/members"
+            element={
+              <ProtectedRoute>
+                <TeamMembersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/teams/:teamId/settings"
+            element={
+              <ProtectedRoute>
+                <TeamSettingsPage />
               </ProtectedRoute>
             }
           />
