@@ -72,8 +72,8 @@ Go-Live Requirements:
 | Start Date | February 10, 2026 (Monday) |
 | End Date | February 14, 2026 (Friday) |
 | Working Days | 5 |
-| Story Points | 20 |
-| Team Capacity | QA (3d), Backend Dev (2d), DevOps (2d), Tech Lead (1d), PM (1d) |
+| Story Points | 23 (+3 for BUG #7 fix) |
+| Team Capacity | QA (3d), Backend Dev (3d), DevOps (2d), Tech Lead (1d), PM (1d) |
 
 ---
 
@@ -127,6 +127,51 @@ Go-Live Requirements:
 - [ ] Project visibility restricted to team members
 - [ ] Team deletion cascades correctly
 - [ ] Organization plan limits enforced
+
+---
+
+#### Story 2.5: BUG #7 - Project-Gate Auto-Creation (3 SP) 🐛
+**Bug Reference:** E2E Test Report - BUG #7  
+**Issue:** Design states gates should be auto-created when project created  
+**Actual:** New projects have 0 gates, must create manually  
+**Impact:** User must manually create gates for each project
+
+| Task ID | Task | Owner | Est | Status |
+|---------|------|-------|-----|--------|
+| S73-T11A | Define default gate templates per project type | Backend Dev | 1h | ⏳ |
+| S73-T11B | Create `auto_create_gates()` function | Backend Dev | 2h | ⏳ |
+| S73-T11C | Hook auto_create_gates to project creation | Backend Dev | 1h | ⏳ |
+| S73-T11D | Create default gates config in Team.settings | Backend Dev | 1h | ⏳ |
+| S73-T11E | Add "Skip auto-creation" option | Backend Dev | 0.5h | ⏳ |
+| S73-T11F | Backfill existing projects with default gates | Backend Dev | 1.5h | ⏳ |
+| S73-T11G | Test auto-creation for new projects | QA | 1h | ⏳ |
+
+**Default Gate Template:**
+```yaml
+default_gates:
+  - name: "Planning Review"
+    stage: "01-PLAN"
+    required: true
+  - name: "Design Review"
+    stage: "02-DESIGN"
+    required: true
+  - name: "Code Review"
+    stage: "03-BUILD"
+    required: true
+  - name: "Test Review"
+    stage: "05-TEST"
+    required: true
+  - name: "Deploy Approval"
+    stage: "06-DEPLOY"
+    required: true
+```
+
+**Acceptance Criteria:**
+- [ ] New projects automatically get 5 default gates
+- [ ] Gates match SDLC 10-stage lifecycle
+- [ ] Team can customize default gates in settings
+- [ ] Option to skip auto-creation available
+- [ ] Existing projects backfilled with gates
 
 ---
 

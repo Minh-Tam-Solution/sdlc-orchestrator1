@@ -54,8 +54,8 @@ With Platform (Enterprise Teams):
 | Start Date | January 20, 2026 (Monday) |
 | End Date | January 24, 2026 (Friday) |
 | Working Days | 5 |
-| Story Points | 21 |
-| Team Capacity | Backend Dev (5d), Tech Lead (1d) |
+| Story Points | 24 (+3 for E2E Bug Fixes) |
+| Team Capacity | Backend Dev (5d), Frontend Dev (0.5d), Tech Lead (1d) |
 
 ---
 
@@ -154,6 +154,53 @@ With Platform (Enterprise Teams):
 - [ ] 20+ unit tests passing
 - [ ] Test coverage ≥ 90% for new models
 - [ ] Edge cases covered (duplicates, nulls, cascades)
+
+---
+
+### Epic: E2E Bug Fixes (Non-Teams)
+
+#### Story 5: BUG #2 - User name Field Fix (1 SP) 🐛
+**Bug Reference:** E2E Test Report - BUG #2  
+**Issue:** Design Doc specifies `full_name` but database has `name`  
+**Impact:** API responses use `name` but design says `full_name`
+
+| Task ID | Task | Owner | Est | Status |
+|---------|------|-------|-----|
+| S70-T24 | Add migration to rename `name` → `full_name` | Backend Dev | 1h | ⏳ |
+| S70-T25 | Update User model with `full_name` field | Backend Dev | 0.5h | ⏳ |
+| S70-T26 | Update UserResponse schema with `full_name` | Backend Dev | 0.5h | ⏳ |
+| S70-T27 | Update frontend to use `full_name` | Frontend Dev | 1h | ⏳ |
+| S70-T28 | Test name field displays correctly | QA | 0.5h | ⏳ |
+
+**Acceptance Criteria:**
+- [ ] Database column is `full_name`
+- [ ] API returns `full_name` in user responses
+- [ ] Frontend displays full_name correctly
+- [ ] No breaking changes for existing users
+
+---
+
+#### Story 6: BUG #8 - User Role Field Missing (2 SP) 🐛
+**Bug Reference:** E2E Test Report - BUG #8  
+**Issue:** Design Doc specifies user `role` enum (ceo, cto, pm, dev, etc.) but database has no role column  
+**Impact:** RBAC may not work as designed
+
+| Task ID | Task | Owner | Est | Status |
+|---------|------|-------|-----|
+| S70-T29 | Add migration for `role` column to users | Backend Dev | 1h | ⏳ |
+| S70-T30 | Update User model with `role` field | Backend Dev | 0.5h | ⏳ |
+| S70-T31 | Create RoleEnum (ceo, cto, pm, dev, qa, etc.) | Backend Dev | 0.5h | ⏳ |
+| S70-T32 | Update UserResponse/UserCreate schemas | Backend Dev | 0.5h | ⏳ |
+| S70-T33 | Add role selector to user profile/settings | Frontend Dev | 1.5h | ⏳ |
+| S70-T34 | Backfill existing users with default role | Backend Dev | 0.5h | ⏳ |
+| S70-T35 | Test RBAC with role field | QA | 1h | ⏳ |
+
+**Acceptance Criteria:**
+- [ ] `role` column exists in users table
+- [ ] RoleEnum: `ceo`, `cto`, `pm`, `dev`, `qa`, `devops`, `designer`
+- [ ] Default role = `dev` for existing users
+- [ ] User can update their role in settings
+- [ ] Role displayed in user profile
 
 ---
 
