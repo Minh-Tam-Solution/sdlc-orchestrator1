@@ -105,7 +105,9 @@ class SessionMetadata(BaseModel):
     model: str
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    total_tokens: int = 0  # Combined prompt + completion tokens
     generation_time_ms: int = 0
+    quality_score: Optional[int] = None  # 0-100 quality score from pipeline
     resume_count: int = 0
 
 

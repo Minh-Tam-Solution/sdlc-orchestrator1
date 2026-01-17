@@ -20,6 +20,7 @@ Status: ACTIVE
 """
 
 import logging
+from datetime import datetime
 from typing import Optional, Dict, Any, List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -1296,11 +1297,14 @@ async def generate_with_quality(
     Generate code with full 4-Gate Quality Pipeline.
 
     This endpoint:
-    1. Generates code using AI provider (Ollama/Claude)
-    2. Runs 4-Gate Quality Pipeline (Syntax, Security, Context, Tests)
-    3. Returns detailed quality report
+    1. Creates session in Redis for tracking
+    2. Generates code using AI provider (Ollama/Claude)
+    3. Runs 4-Gate Quality Pipeline (Syntax, Security, Context, Tests)
+    4. Saves completed session to Redis
+    5. Returns detailed quality report
 
     Sprint 49: EP-06 Full Code Generation with Quality
+    Sprint 69: Session persistence for history tracking
 
     Args:
         request: GenerateRequest with app_blueprint
@@ -1312,12 +1316,34 @@ async def generate_with_quality(
         503: No providers available
         500: Generation failed
     """
+    from uuid import uuid4
+    from app.api.dependencies import get_redis
     from app.services.codegen.quality_pipeline import get_quality_pipeline
+    from app.services.codegen.session_manager import SessionManager
+    from app.schemas.session import GeneratedFileCheckpoint, ErrorContext
 
     logger.info(
         f"Full code generation requested by user {current_user.id}: "
         f"language={request.language}, framework={request.framework}"
     )
+
+    # Get Redis for session management
+    redis = await get_redis()
+    session_manager = SessionManager(redis)
+
+    # Create session for tracking
+    app_name = request.app_blueprint.get("name", "Generated App")
+    project_id = uuid4()  # Default project ID if not provided
+    session = await session_manager.create_session(
+        project_id=project_id,
+        user_id=current_user.id,
+        blueprint=request.app_blueprint,
+        total_files_expected=10,  # Estimate
+        provider=request.preferred_provider or "ollama",
+        model="qwen3-coder:30b"
+    )
+
+    logger.info(f"Created session {session.session_id} for generation")
 
     try:
         # Step 1: Generate code
@@ -1351,6 +1377,37 @@ async def generate_with_quality(
         # Calculate file stats
         file_count = len(result.files)
         total_lines = sum(len(content.split('\n')) for content in result.files.values())
+
+        # Step 3: Save completed session to Redis
+        import hashlib
+        final_files = [
+            GeneratedFileCheckpoint(
+                file_path=file_path,
+                content=content,
+                language=request.language,
+                lines=len(content.split('\n')),
+                checksum=hashlib.sha256(content.encode()).hexdigest(),
+                generated_at=datetime.utcnow()
+            )
+            for file_path, content in result.files.items()
+        ]
+
+        # Calculate quality score based on gates passed
+        gates_passed = sum(1 for g in quality_result.gates if g.status.value == "passed")
+        gates_total = len(quality_result.gates)
+        quality_score = int((gates_passed / gates_total) * 100) if gates_total > 0 else 0
+
+        await session_manager.complete_session(
+            session_id=session.session_id,
+            final_files=final_files,
+            metadata_updates={
+                "total_tokens": result.tokens_used,
+                "generation_time_ms": result.generation_time_ms,
+                "quality_score": quality_score,
+            }
+        )
+
+        logger.info(f"Session {session.session_id} completed and saved to Redis")
 
         # Convert quality result to response format
         quality_response = QualityPipelineResult(
@@ -1398,6 +1455,15 @@ async def generate_with_quality(
 
     except NoProviderAvailableError as e:
         logger.error(f"No providers available: {e}")
+        # Mark session as failed
+        await session_manager.fail_session(
+            session_id=session.session_id,
+            error=ErrorContext(
+                error_type="NoProviderAvailableError",
+                error_message=str(e),
+                recoverable=True
+            )
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=str(e)
@@ -1405,9 +1471,34 @@ async def generate_with_quality(
 
     except GenerationError as e:
         logger.error(f"Generation failed: {e}")
+        # Mark session as failed
+        await session_manager.fail_session(
+            session_id=session.session_id,
+            error=ErrorContext(
+                error_type="GenerationError",
+                error_message=str(e),
+                recoverable=False
+            )
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Code generation failed: {e}"
+        )
+
+    except Exception as e:
+        logger.error(f"Unexpected error during generation: {e}")
+        # Mark session as failed for any unexpected error
+        await session_manager.fail_session(
+            session_id=session.session_id,
+            error=ErrorContext(
+                error_type=type(e).__name__,
+                error_message=str(e),
+                recoverable=False
+            )
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error: {e}"
         )
 
 
@@ -2242,4 +2333,187 @@ async def stream_quality_pipeline(
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
         }
+    )
+
+
+# ============================================================================
+# Session History & Templates Endpoints (Sprint 69 - Zero Mock Policy)
+# ============================================================================
+
+
+class CodegenTemplate(BaseModel):
+    """Codegen template definition."""
+    id: str = Field(..., description="Template identifier")
+    name: str = Field(..., description="Template display name")
+    description: str = Field(..., description="Template description")
+    language: str = Field(default="python", description="Target language")
+    framework: str = Field(default="fastapi", description="Target framework")
+
+
+class SessionSummary(BaseModel):
+    """Session summary for list view."""
+    id: str = Field(..., description="Session UUID")
+    name: str = Field(..., description="Generation name")
+    project: str = Field(..., description="Project name")
+    template: str = Field(..., description="Template used")
+    status: str = Field(..., description="Session status")
+    quality_score: Optional[int] = Field(None, description="Quality score 0-100")
+    provider: str = Field(..., description="AI provider used")
+    gates_passed: int = Field(default=0, description="Number of gates passed")
+    gates_total: int = Field(default=4, description="Total gates")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    duration: str = Field(..., description="Duration string")
+
+
+class SessionListResponse(BaseModel):
+    """Response for sessions list."""
+    sessions: List[SessionSummary]
+    total: int
+    page: int
+    page_size: int
+
+
+# Available templates - defined in code, no database needed
+CODEGEN_TEMPLATES = [
+    CodegenTemplate(
+        id="fastapi",
+        name="FastAPI Service",
+        description="Full CRUD service with authentication",
+        language="python",
+        framework="fastapi",
+    ),
+    CodegenTemplate(
+        id="crud",
+        name="CRUD Endpoint",
+        description="Single resource endpoint with validation",
+        language="python",
+        framework="fastapi",
+    ),
+    CodegenTemplate(
+        id="worker",
+        name="Background Job",
+        description="Async task worker with retry logic",
+        language="python",
+        framework="celery",
+    ),
+    CodegenTemplate(
+        id="vietnam",
+        name="Vietnamese Domain",
+        description="E-commerce, HRM, CRM templates for SME",
+        language="python",
+        framework="fastapi",
+    ),
+]
+
+
+@router.get("/templates", response_model=List[CodegenTemplate])
+async def list_templates(
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    List available codegen templates.
+
+    Sprint 69: Zero Mock Policy - Real API for templates
+
+    Returns:
+        List of available templates
+    """
+    return CODEGEN_TEMPLATES
+
+
+@router.get("/sessions", response_model=SessionListResponse)
+async def list_sessions(
+    page: int = 1,
+    page_size: int = 20,
+    status_filter: Optional[str] = None,
+    current_user: User = Depends(get_current_active_user),
+):
+    """
+    List all codegen sessions for current user.
+
+    Sprint 69: Zero Mock Policy - Real API for session history
+
+    Args:
+        page: Page number (1-indexed)
+        page_size: Items per page (max 100)
+        status_filter: Optional status filter (completed, failed, validating)
+
+    Returns:
+        Paginated list of session summaries
+    """
+    from app.api.dependencies import get_redis
+    from app.services.codegen.session_manager import SessionManager
+    from app.schemas.session import SessionStatus
+
+    redis = await get_redis()
+    session_manager = SessionManager(redis)
+
+    # Map status filter to SessionStatus enum
+    status_list = None
+    if status_filter:
+        status_map = {
+            "completed": [SessionStatus.COMPLETED],
+            "failed": [SessionStatus.FAILED],
+            "validating": [SessionStatus.IN_PROGRESS, SessionStatus.CHECKPOINTED],
+        }
+        status_list = status_map.get(status_filter)
+
+    # Get all sessions for user
+    sessions = await session_manager.list_user_sessions(
+        user_id=current_user.id,
+        status_filter=status_list,
+    )
+
+    # Calculate pagination
+    total = len(sessions)
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    paginated = sessions[start_idx:end_idx]
+
+    # Convert to summaries
+    summaries = []
+    for session in paginated:
+        # Calculate duration
+        if session.updated_at and session.created_at:
+            duration_seconds = (session.updated_at - session.created_at).total_seconds()
+            duration = f"{duration_seconds:.1f}s"
+        else:
+            duration = "—"
+
+        # Map status to frontend-friendly values
+        status_map = {
+            SessionStatus.CREATED: "pending",
+            SessionStatus.IN_PROGRESS: "validating",
+            SessionStatus.CHECKPOINTED: "validating",
+            SessionStatus.COMPLETED: "completed",
+            SessionStatus.FAILED: "failed",
+            SessionStatus.RESUMED: "validating",
+        }
+
+        # Get metadata for provider info
+        metadata = await session_manager.get_metadata(session.session_id)
+        provider_name = metadata.provider.capitalize() if metadata else "Ollama"
+        quality_score = getattr(metadata, 'quality_score', None) if metadata else None
+
+        summaries.append(
+            SessionSummary(
+                id=str(session.session_id),
+                name=f"Session {str(session.session_id)[:8]}",
+                project="Code Generation",
+                template="fastapi",
+                status=status_map.get(session.status, "pending"),
+                quality_score=quality_score,
+                provider=provider_name,
+                gates_passed=session.files_completed if session.status == SessionStatus.COMPLETED else 0,
+                gates_total=4,
+                created_at=session.created_at,
+                duration=duration,
+            )
+        )
+
+    return SessionListResponse(
+        sessions=summaries,
+        total=total,
+        page=page,
+        page_size=page_size,
     )

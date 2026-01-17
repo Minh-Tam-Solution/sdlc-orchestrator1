@@ -2,8 +2,8 @@
 SAST API Routes - Static Application Security Testing
 
 SDLC Stage: 04 - BUILD
-Sprint: 43 - Policy Guards & Evidence UI
-Framework: SDLC 5.1.1
+Sprint: 69 - CTO Go-Live Requirements
+Framework: SDLC 5.1.2
 Epic: EP-02 AI Safety Layer v1
 
 Purpose:
@@ -22,6 +22,11 @@ Security:
 - Requires authentication
 - Project-level access control
 - Rate limited (10 scans/minute per project)
+
+Sprint 69 Updates:
+- Added database persistence for scan results
+- Implemented real scan history queries
+- Added trend analysis from historical data
 """
 
 import logging
@@ -32,6 +37,14 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.dependencies import get_current_active_user
+from app.db.session import get_db
+from app.models.sast_scan import SASTScan, SASTFinding as SASTFindingModel
+from app.models.sast_scan import SASTScanStatus, SASTScanType as SASTScanTypeModel
+from app.models.user import User
 
 from ...schemas.sast import (
     SASTAnalyticsResponse,
@@ -146,6 +159,8 @@ def _get_top_affected_files(findings: List[SASTFinding], limit: int = 10) -> lis
 async def initiate_sast_scan(
     project_id: UUID,
     request: SASTScanRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> SASTScanResponse:
     """
     Initiate a SAST scan for a project.
@@ -295,6 +310,65 @@ async def initiate_sast_scan(
             f"{summary.critical_count} critical, {summary.high_count} high"
         )
 
+        # Persist scan to database - map schema type to model type
+        scan_type_model = SASTScanTypeModel.FULL
+        if request.scan_type == SASTScanType.QUICK:
+            scan_type_model = SASTScanTypeModel.QUICK
+        elif request.scan_type == SASTScanType.PR:
+            scan_type_model = SASTScanTypeModel.PR
+        elif request.scan_type == SASTScanType.INCREMENTAL:
+            scan_type_model = SASTScanTypeModel.INCREMENTAL
+
+        # Convert findings to dict for JSONB storage
+        findings_json = [
+            {
+                "file_path": f.file_path,
+                "start_line": f.start_line,
+                "end_line": f.end_line,
+                "start_col": f.start_col,
+                "end_col": f.end_col,
+                "rule_id": f.rule_id,
+                "rule_name": f.rule_name,
+                "severity": f.severity.value,
+                "category": f.category.value,
+                "message": f.message,
+                "snippet": f.snippet,
+                "fix_suggestion": f.fix_suggestion,
+                "cwe": f.cwe,
+                "owasp": f.owasp,
+                "references": f.references,
+                "confidence": f.confidence,
+            }
+            for f in findings
+        ]
+
+        db_scan = SASTScan(
+            id=scan_id,
+            project_id=project_id,
+            scan_type=scan_type_model,
+            status=SASTScanStatus.COMPLETED,
+            branch=request.branch,
+            commit_sha=request.commit_sha,
+            total_findings=len(findings),
+            critical_count=severity_counts.get("critical", 0),
+            high_count=severity_counts.get("high", 0),
+            medium_count=severity_counts.get("medium", 0),
+            low_count=severity_counts.get("low", 0),
+            info_count=severity_counts.get("info", 0),
+            files_scanned=scan_result.files_scanned,
+            rules_run=scan_result.rules_run,
+            scan_duration_ms=scan_result.duration_ms,
+            blocks_merge=blocks_merge,
+            findings=findings_json,
+            by_category=category_counts,
+            top_affected_files=summary.top_affected_files,
+            started_at=started_at,
+            completed_at=completed_at,
+            triggered_by=current_user.id,
+        )
+        db.add(db_scan)
+        await db.commit()
+
         return SASTScanResponse(
             scan_id=scan_id,
             project_id=project_id,
@@ -311,6 +385,35 @@ async def initiate_sast_scan(
 
     except Exception as e:
         logger.error(f"SAST scan error: {e}", exc_info=True)
+
+        # Persist failed scan to database
+        completed_at = datetime.utcnow()
+        scan_type_model = SASTScanTypeModel.FULL
+        if request.scan_type == SASTScanType.QUICK:
+            scan_type_model = SASTScanTypeModel.QUICK
+        elif request.scan_type == SASTScanType.PR:
+            scan_type_model = SASTScanTypeModel.PR
+        elif request.scan_type == SASTScanType.INCREMENTAL:
+            scan_type_model = SASTScanTypeModel.INCREMENTAL
+
+        try:
+            db_scan = SASTScan(
+                id=scan_id,
+                project_id=project_id,
+                scan_type=scan_type_model,
+                status=SASTScanStatus.FAILED,
+                branch=request.branch,
+                commit_sha=request.commit_sha,
+                error_message=str(e),
+                started_at=started_at,
+                completed_at=completed_at,
+                triggered_by=current_user.id,
+            )
+            db.add(db_scan)
+            await db.commit()
+        except Exception as db_error:
+            logger.error(f"Failed to persist scan error: {db_error}")
+
         return SASTScanResponse(
             scan_id=scan_id,
             project_id=project_id,
@@ -322,7 +425,7 @@ async def initiate_sast_scan(
             branch=request.branch,
             commit_sha=request.commit_sha,
             started_at=started_at,
-            completed_at=datetime.utcnow(),
+            completed_at=completed_at,
             blocks_merge=False,
         )
 
@@ -460,6 +563,8 @@ async def get_scan_history(
     project_id: UUID,
     page: int = Query(default=1, ge=1, description="Page number"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> SASTScanHistoryResponse:
     """
     Get SAST scan history for a project.
@@ -472,12 +577,50 @@ async def get_scan_history(
     Returns:
         Paginated scan history
     """
-    # TODO: Implement database query for scan history
-    # For now, return empty history
+    # Get total count
+    count_query = select(func.count()).select_from(SASTScan).where(
+        SASTScan.project_id == project_id
+    )
+    total_result = await db.execute(count_query)
+    total_scans = total_result.scalar() or 0
+
+    # Get paginated scans
+    offset = (page - 1) * page_size
+    scans_query = (
+        select(SASTScan)
+        .where(SASTScan.project_id == project_id)
+        .order_by(SASTScan.completed_at.desc().nullslast())
+        .offset(offset)
+        .limit(page_size)
+    )
+    result = await db.execute(scans_query)
+    scans = result.scalars().all()
+
+    # Convert to response format
+    scan_items = [
+        SASTScanHistoryItem(
+            scan_id=scan.id,
+            scan_type=SASTScanType(scan.scan_type.value) if scan.scan_type else SASTScanType.FULL,
+            status="completed" if scan.status == SASTScanStatus.COMPLETED else (
+                "failed" if scan.status == SASTScanStatus.FAILED else "pending"
+            ),
+            branch=scan.branch,
+            commit_sha=scan.commit_sha,
+            total_findings=scan.total_findings,
+            critical_count=scan.critical_count,
+            high_count=scan.high_count,
+            blocks_merge=scan.blocks_merge,
+            started_at=scan.started_at,
+            completed_at=scan.completed_at,
+            duration_ms=scan.scan_duration_ms,
+        )
+        for scan in scans
+    ]
+
     return SASTScanHistoryResponse(
         project_id=project_id,
-        scans=[],
-        total_scans=0,
+        scans=scan_items,
+        total_scans=total_scans,
         page=page,
         page_size=page_size,
     )
@@ -492,6 +635,8 @@ async def get_scan_history(
 async def get_scan_details(
     project_id: UUID,
     scan_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> SASTScanResponse:
     """
     Get details of a specific SAST scan.
@@ -503,10 +648,74 @@ async def get_scan_details(
     Returns:
         Full scan details with findings
     """
-    # TODO: Implement database query for scan details
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Scan {scan_id} not found",
+    # Query scan from database
+    result = await db.execute(
+        select(SASTScan).where(
+            SASTScan.id == scan_id,
+            SASTScan.project_id == project_id,
+        )
+    )
+    scan = result.scalar_one_or_none()
+
+    if not scan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Scan {scan_id} not found",
+        )
+
+    # Convert findings from JSONB to response format
+    findings: List[SASTFinding] = []
+    if scan.findings:
+        for f in scan.findings[:100]:  # Limit to 100 findings
+            findings.append(
+                SASTFinding(
+                    file_path=f.get("file_path", ""),
+                    start_line=f.get("start_line", 0),
+                    end_line=f.get("end_line"),
+                    start_col=f.get("start_col"),
+                    end_col=f.get("end_col"),
+                    rule_id=f.get("rule_id", ""),
+                    rule_name=f.get("rule_name"),
+                    severity=SASTSeverity(f.get("severity", "medium")),
+                    category=SASTCategory(f.get("category", "other")),
+                    message=f.get("message", ""),
+                    snippet=f.get("snippet"),
+                    fix_suggestion=f.get("fix_suggestion"),
+                    cwe=f.get("cwe"),
+                    owasp=f.get("owasp"),
+                    references=f.get("references"),
+                    confidence=f.get("confidence"),
+                )
+            )
+
+    # Build summary
+    summary = SASTScanSummary(
+        total_findings=scan.total_findings,
+        critical_count=scan.critical_count,
+        high_count=scan.high_count,
+        medium_count=scan.medium_count,
+        low_count=scan.low_count,
+        info_count=scan.info_count,
+        files_scanned=scan.files_scanned,
+        rules_run=scan.rules_run,
+        scan_duration_ms=scan.scan_duration_ms,
+        by_category=scan.by_category or {},
+        top_affected_files=scan.top_affected_files or [],
+    )
+
+    return SASTScanResponse(
+        scan_id=scan.id,
+        project_id=scan.project_id,
+        success=scan.status == SASTScanStatus.COMPLETED,
+        error_message=scan.error_message,
+        summary=summary,
+        findings=findings,
+        scan_type=SASTScanType(scan.scan_type.value) if scan.scan_type else SASTScanType.FULL,
+        branch=scan.branch,
+        commit_sha=scan.commit_sha,
+        started_at=scan.started_at,
+        completed_at=scan.completed_at,
+        blocks_merge=scan.blocks_merge,
     )
 
 
@@ -519,6 +728,8 @@ async def get_scan_details(
 async def get_findings_trend(
     project_id: UUID,
     days: int = Query(default=30, ge=7, le=90, description="Number of days"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> SASTTrendResponse:
     """
     Get SAST findings trend over time.
@@ -530,14 +741,57 @@ async def get_findings_trend(
     Returns:
         Trend data with direction indicator
     """
-    # TODO: Implement database query for trend data
-    # For now, return empty trend
+    # Get scans from the last N days
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    result = await db.execute(
+        select(SASTScan)
+        .where(
+            SASTScan.project_id == project_id,
+            SASTScan.status == SASTScanStatus.COMPLETED,
+            SASTScan.completed_at >= start_date,
+        )
+        .order_by(SASTScan.completed_at.asc())
+    )
+    scans = result.scalars().all()
+
+    # Build trend data points
+    data_points: List[SASTTrendPoint] = []
+    for scan in scans:
+        if scan.completed_at:
+            data_points.append(
+                SASTTrendPoint(
+                    date=scan.completed_at.date().isoformat(),
+                    total_findings=scan.total_findings,
+                    critical_count=scan.critical_count,
+                    high_count=scan.high_count,
+                    medium_count=scan.medium_count,
+                    low_count=scan.low_count,
+                )
+            )
+
+    # Calculate trend direction
+    trend_direction = "stable"
+    percent_change = 0.0
+
+    if len(data_points) >= 2:
+        first_findings = data_points[0].total_findings
+        last_findings = data_points[-1].total_findings
+
+        if first_findings > 0:
+            percent_change = ((last_findings - first_findings) / first_findings) * 100
+
+        if percent_change > 10:
+            trend_direction = "increasing"
+        elif percent_change < -10:
+            trend_direction = "decreasing"
+
     return SASTTrendResponse(
         project_id=project_id,
         period_days=days,
-        data_points=[],
-        trend_direction="stable",
-        percent_change=0.0,
+        data_points=data_points,
+        trend_direction=trend_direction,
+        percent_change=round(percent_change, 2),
     )
 
 
@@ -550,6 +804,8 @@ async def get_findings_trend(
 async def get_sast_analytics(
     project_id: UUID,
     days: int = Query(default=30, ge=7, le=90, description="Analysis period"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ) -> SASTAnalyticsResponse:
     """
     Get comprehensive SAST analytics for a project.
@@ -559,22 +815,131 @@ async def get_sast_analytics(
     Args:
         project_id: Project UUID
         days: Analysis period in days
+        db: Database session
+        current_user: Authenticated user
 
     Returns:
         Comprehensive analytics response
     """
-    # TODO: Implement database query for analytics
+    start_date = datetime.utcnow() - timedelta(days=days)
+
+    # Get completed scans in the period
+    scans_result = await db.execute(
+        select(SASTScan)
+        .where(
+            SASTScan.project_id == project_id,
+            SASTScan.status == SASTScanStatus.COMPLETED,
+            SASTScan.completed_at >= start_date,
+        )
+        .order_by(SASTScan.completed_at.desc())
+    )
+    scans = scans_result.scalars().all()
+
+    total_scans = len(scans)
+
+    # Aggregate findings from all scans
+    all_findings: List[dict] = []
+    category_counts: dict = {}
+    category_severity: dict = {}
+    rule_counts: dict = {}
+    file_counts: dict = {}
+
+    for scan in scans:
+        if scan.findings:
+            for finding in scan.findings:
+                all_findings.append(finding)
+
+                # Count by category
+                cat = finding.get("category", "other")
+                category_counts[cat] = category_counts.get(cat, 0) + 1
+
+                # Track severity distribution per category
+                if cat not in category_severity:
+                    category_severity[cat] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+                severity = finding.get("severity", "medium")
+                if severity in category_severity[cat]:
+                    category_severity[cat][severity] += 1
+
+                # Count by rule
+                rule_id = finding.get("rule_id", "unknown")
+                rule_name = finding.get("rule_name", rule_id)
+                if rule_id not in rule_counts:
+                    rule_counts[rule_id] = {"rule_id": rule_id, "rule_name": rule_name, "count": 0}
+                rule_counts[rule_id]["count"] += 1
+
+                # Count by file
+                file_path = finding.get("file_path", "unknown")
+                file_counts[file_path] = file_counts.get(file_path, 0) + 1
+
+    total_findings = len(all_findings)
+
+    # Build category breakdown
+    category_breakdown: List[SASTCategoryBreakdown] = []
+    for cat, count in sorted(category_counts.items(), key=lambda x: -x[1]):
+        try:
+            category_enum = SASTCategory(cat)
+            percent = (count / total_findings * 100) if total_findings > 0 else 0.0
+            category_breakdown.append(
+                SASTCategoryBreakdown(
+                    category=category_enum,
+                    count=count,
+                    percent=round(percent, 2),
+                    severity_distribution=category_severity.get(cat, {}),
+                )
+            )
+        except ValueError:
+            # Skip invalid categories
+            pass
+
+    # Get top 10 rules
+    top_rules = sorted(rule_counts.values(), key=lambda x: -x["count"])[:10]
+
+    # Get top 10 file hotspots
+    file_hotspots = [
+        {"file": f, "count": c}
+        for f, c in sorted(file_counts.items(), key=lambda x: -x[1])[:10]
+    ]
+
+    # Calculate findings_new (from latest scan) and findings_fixed
+    findings_new = 0
+    findings_fixed = 0
+
+    if len(scans) >= 2:
+        latest_scan = scans[0]
+        previous_scan = scans[1]
+
+        latest_findings_set = set()
+        if latest_scan.findings:
+            for f in latest_scan.findings:
+                # Use file_path + rule_id + start_line as unique key
+                key = f"{f.get('file_path')}:{f.get('rule_id')}:{f.get('start_line')}"
+                latest_findings_set.add(key)
+
+        previous_findings_set = set()
+        if previous_scan.findings:
+            for f in previous_scan.findings:
+                key = f"{f.get('file_path')}:{f.get('rule_id')}:{f.get('start_line')}"
+                previous_findings_set.add(key)
+
+        # New findings = in latest but not in previous
+        findings_new = len(latest_findings_set - previous_findings_set)
+        # Fixed findings = in previous but not in latest
+        findings_fixed = len(previous_findings_set - latest_findings_set)
+    elif len(scans) == 1 and scans[0].findings:
+        # All findings in first scan are "new"
+        findings_new = len(scans[0].findings)
+
     return SASTAnalyticsResponse(
         project_id=project_id,
         period_days=days,
-        total_scans=0,
-        total_findings=0,
-        findings_fixed=0,
-        findings_new=0,
-        category_breakdown=[],
-        top_rules=[],
-        file_hotspots=[],
-        avg_time_to_fix_hours=None,
+        total_scans=total_scans,
+        total_findings=total_findings,
+        findings_fixed=findings_fixed,
+        findings_new=findings_new,
+        category_breakdown=category_breakdown,
+        top_rules=top_rules,
+        file_hotspots=file_hotspots,
+        avg_time_to_fix_hours=None,  # Would require tracking individual finding lifecycle
     )
 
 

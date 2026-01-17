@@ -4,16 +4,23 @@
  * @module frontend/landing/src/hooks/usePolicies
  * @description React Query hooks for Policies API
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 69 - Cookie Auth Migration
+ * @status Sprint 69 - CTO Go-Live Requirements
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getPolicies,
   getPolicy,
+  updatePolicy,
+  evaluatePolicy,
+  getGateEvaluations,
   type Policy,
   type PolicyListResponse,
   type PolicyListOptions,
+  type PolicyUpdateRequest,
+  type PolicyEvaluationRequest,
+  type PolicyEvaluationResult,
+  type PolicyEvaluationListResponse,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -75,5 +82,86 @@ export function usePolicy(policyId: string | undefined) {
   });
 }
 
+/**
+ * Hook to fetch policy evaluations for a gate
+ * Sprint 69: Audit trail for policy compliance
+ */
+export function useGateEvaluations(gateId: string | undefined) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  return useQuery({
+    queryKey: [...policyKeys.all, "evaluations", gateId] as const,
+    queryFn: () => {
+      if (!gateId) {
+        throw new Error("Missing gate ID");
+      }
+      return getGateEvaluations(gateId);
+    },
+    enabled: isAuthenticated && !authLoading && !!gateId,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook to invalidate policies cache
+ */
+export function useInvalidatePolicies() {
+  const queryClient = useQueryClient();
+
+  return () => {
+    queryClient.invalidateQueries({ queryKey: policyKeys.all });
+  };
+}
+
+/**
+ * Hook to update a policy
+ * Sprint 69: Policy management with version tracking
+ */
+export function useUpdatePolicy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      policyId,
+      data,
+    }: {
+      policyId: string;
+      data: PolicyUpdateRequest;
+    }) => updatePolicy(policyId, data),
+    onSuccess: (updatedPolicy) => {
+      // Invalidate policies list
+      queryClient.invalidateQueries({ queryKey: policyKeys.lists() });
+      // Update the specific policy in cache
+      queryClient.setQueryData(policyKeys.detail(updatedPolicy.id), updatedPolicy);
+    },
+  });
+}
+
+/**
+ * Hook to evaluate a policy against a gate
+ * Sprint 69: Real OPA policy evaluation
+ */
+export function useEvaluatePolicy() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: PolicyEvaluationRequest) => evaluatePolicy(data),
+    onSuccess: (_, variables) => {
+      // Invalidate evaluations for the gate
+      queryClient.invalidateQueries({
+        queryKey: [...policyKeys.all, "evaluations", variables.gate_id],
+      });
+    },
+  });
+}
+
 // Export types for use in components
-export type { Policy, PolicyListResponse, PolicyListOptions };
+export type {
+  Policy,
+  PolicyListResponse,
+  PolicyListOptions,
+  PolicyUpdateRequest,
+  PolicyEvaluationRequest,
+  PolicyEvaluationResult,
+  PolicyEvaluationListResponse,
+};

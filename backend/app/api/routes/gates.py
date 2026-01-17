@@ -53,7 +53,7 @@ from app.models.gate_approval import GateApproval
 from app.models.gate_evidence import GateEvidence
 from app.models.policy import PolicyEvaluation
 from app.models.project import Project, ProjectMember
-from app.models.user import User
+from app.models.user import User, Role
 from app.schemas.gate import (
     GateApprovalRequest,
     GateApprovalResponse,
@@ -183,6 +183,75 @@ async def get_policy_violations(gate_id: UUID, db: AsyncSession) -> list:
                     "evaluated_at": eval.evaluated_at.isoformat() if eval.evaluated_at else None,
                 })
     return violations
+
+
+async def get_gate_approvers(db: AsyncSession) -> List[User]:
+    """
+    Get users who can approve gates (CTO, CPO, CEO roles).
+
+    Args:
+        db: Database session
+
+    Returns:
+        List of users with approval roles
+    """
+    result = await db.execute(
+        select(User)
+        .join(User.roles)
+        .where(
+            Role.name.in_(["cto", "cpo", "ceo", "CTO", "CPO", "CEO"]),
+            User.is_active == True,
+        )
+        .distinct()
+    )
+    return list(result.scalars().all())
+
+
+async def get_gate_stakeholders(gate: Gate, db: AsyncSession) -> List[User]:
+    """
+    Get users who should be notified about gate status changes.
+
+    This includes:
+    - Gate creator
+    - Project owner
+    - PM role users in the project
+
+    Args:
+        gate: Gate object
+        db: Database session
+
+    Returns:
+        List of stakeholder users
+    """
+    stakeholder_ids = set()
+
+    # Add gate creator
+    if gate.created_by:
+        stakeholder_ids.add(gate.created_by)
+
+    # Get project members with owner/pm roles
+    result = await db.execute(
+        select(ProjectMember)
+        .where(
+            ProjectMember.project_id == gate.project_id,
+            ProjectMember.role.in_(["owner", "pm", "admin"]),
+        )
+    )
+    members = result.scalars().all()
+    for member in members:
+        stakeholder_ids.add(member.user_id)
+
+    # Fetch user objects
+    if stakeholder_ids:
+        users_result = await db.execute(
+            select(User).where(
+                User.id.in_(stakeholder_ids),
+                User.is_active == True,
+            )
+        )
+        return list(users_result.scalars().all())
+
+    return []
 
 
 async def evaluate_gate_policies(gate: Gate, db: AsyncSession) -> list:
@@ -812,7 +881,28 @@ async def submit_gate(
     # TD-03: Trigger OPA policy evaluation on gate submit
     policy_violations = await evaluate_gate_policies(gate, db)
 
-    # TODO Sprint 17: Send notifications to CTO/CPO/CEO
+    # Send notifications to CTO/CPO/CEO
+    try:
+        from app.services.notification_service import create_notification_service
+
+        notification_service = create_notification_service(db)
+        approvers = await get_gate_approvers(db)
+
+        if approvers:
+            await notification_service.send_gate_approval_notification(
+                project=gate.project,
+                gate_name=gate.gate_name,
+                gate_code=gate.gate_type or gate.gate_name,
+                approvers=approvers,
+                submitted_by=current_user,
+            )
+            logger.info(
+                f"Sent gate approval notifications to {len(approvers)} approvers "
+                f"for gate {gate.gate_name}"
+            )
+    except Exception as e:
+        # Don't block gate submission if notifications fail
+        logger.error(f"Failed to send gate approval notifications: {e}")
 
     await db.commit()
     await db.refresh(gate)
@@ -912,6 +1002,44 @@ async def approve_gate(
     await db.commit()
     await db.refresh(gate)
     await db.refresh(approval)
+
+    # Send notifications to gate stakeholders
+    try:
+        from app.services.notification_service import create_notification_service
+
+        notification_service = create_notification_service(db)
+        stakeholders = await get_gate_stakeholders(gate, db)
+
+        if stakeholders:
+            if approval_data.approved:
+                await notification_service.send_gate_approved_notification(
+                    project=gate.project,
+                    gate_name=gate.gate_name,
+                    gate_code=gate.gate_type or gate.gate_name,
+                    approved_by=current_user,
+                    comments=approval_data.comments,
+                    recipients=stakeholders,
+                )
+                logger.info(
+                    f"Sent gate approval notification to {len(stakeholders)} stakeholders "
+                    f"for gate {gate.gate_name}"
+                )
+            else:
+                await notification_service.send_gate_rejected_notification(
+                    project=gate.project,
+                    gate_name=gate.gate_name,
+                    gate_code=gate.gate_type or gate.gate_name,
+                    rejected_by=current_user,
+                    comments=approval_data.comments,
+                    recipients=stakeholders,
+                )
+                logger.info(
+                    f"Sent gate rejection notification to {len(stakeholders)} stakeholders "
+                    f"for gate {gate.gate_name}"
+                )
+    except Exception as e:
+        # Don't block approval response if notifications fail
+        logger.error(f"Failed to send gate approval/rejection notifications: {e}")
 
     # Get real evidence count and policy violations (TD-04+05)
     evidence_count = await get_evidence_count(gate_id, db)

@@ -301,7 +301,17 @@
       "Bash(docker rmi:*)",
       "Bash(docker builder prune:*)",
       "Bash(git diff:*)",
-      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjgzOTA1NTcsImlhdCI6MTc2ODM4Njk1NywidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.VwhcYB0Cc08MSH3leK6EMgpEAunjQ9APeYi-yJ0-3lE\")"
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjgzOTA1NTcsImlhdCI6MTc2ODM4Njk1NywidHlwZSI6ImFjY2VzcyIsInN1YiI6ImEwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSJ9.VwhcYB0Cc08MSH3leK6EMgpEAunjQ9APeYi-yJ0-3lE\")",
+      "Bash(gh pr create:*)",
+      "Bash(python -m alembic:*)",
+      "Bash(alembic upgrade:*)",
+      "Bash(python -c:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(docker:*)",
+      "Bash(docker-compose:*)",
+      "Bash(__NEW_LINE_03795e89efeb506a__ echo \"\")",
+      "Bash(__NEW_LINE_9ff64ba5661d9b9e__ echo \"\")",
+      "Bash(__NEW_LINE_2447af53688e22fb__ echo \"\")"
     ],
     "deny": [],
     "ask": []

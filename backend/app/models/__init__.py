@@ -88,6 +88,12 @@ from app.models.subscription import (
     PaymentStatus,
 )
 
+# SAST Scanning (Sprint 69) - 2 models
+from app.models.sast_scan import SASTScan, SASTFinding
+
+# Council Sessions (Sprint 69) - 1 model
+from app.models.council_session import CouncilSession
+
 __all__ = [
     # Base
     "Base",
@@ -160,4 +166,9 @@ __all__ = [
     "SubscriptionPlan",
     "SubscriptionStatus",
     "PaymentStatus",
+    # SAST Scanning (2)
+    "SASTScan",
+    "SASTFinding",
+    # Council Sessions (1)
+    "CouncilSession",
 ]

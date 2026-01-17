@@ -340,11 +340,28 @@ async def list_timeline_events(
     result = await db.execute(status_query)
     by_status = {row.validation_result: row.count for row in result.all()}
 
+    # Calculate override rate from ValidationOverride table
+    override_count_result = await db.execute(
+        select(func.count())
+        .select_from(ValidationOverride)
+        .where(
+            and_(
+                ValidationOverride.project_id == project_id,
+                ValidationOverride.status == DBOverrideStatus.APPROVED,
+            )
+        )
+    )
+    approved_overrides = override_count_result.scalar() or 0
+
+    # Get count of failed validations
+    failed_count = by_status.get("failed", 0)
+    override_rate = (approved_overrides / failed_count * 100) if failed_count > 0 else 0.0
+
     stats = EvidenceTimelineStats(
         total_events=total_events,
         ai_detected=ai_detected,
         pass_rate=pass_rate,
-        override_rate=0.0,  # TODO: Calculate from override table
+        override_rate=round(override_rate, 2),
         by_tool=by_tool,
         by_status=by_status,
     )
@@ -447,11 +464,29 @@ async def get_timeline_stats(
     result = await db.execute(status_query)
     by_status = {row.validation_result: row.count for row in result.all()}
 
+    # Calculate override rate from ValidationOverride table
+    override_count_result = await db.execute(
+        select(func.count())
+        .select_from(ValidationOverride)
+        .where(
+            and_(
+                ValidationOverride.project_id == project_id,
+                ValidationOverride.status == DBOverrideStatus.APPROVED,
+                ValidationOverride.created_at >= date_start,
+            )
+        )
+    )
+    approved_overrides = override_count_result.scalar() or 0
+
+    # Get count of failed validations
+    failed_count = by_status.get("failed", 0)
+    override_rate = (approved_overrides / failed_count * 100) if failed_count > 0 else 0.0
+
     return EvidenceTimelineStats(
         total_events=total_events,
         ai_detected=ai_detected,
         pass_rate=pass_rate,
-        override_rate=0.0,
+        override_rate=round(override_rate, 2),
         by_tool=by_tool,
         by_status=by_status,
     )

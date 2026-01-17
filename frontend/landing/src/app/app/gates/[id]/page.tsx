@@ -6,11 +6,12 @@
  */
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useGate } from "@/hooks/useGates";
+import { useUploadEvidence } from "@/hooks/useEvidence";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Card,
@@ -37,6 +38,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -88,6 +107,23 @@ export default function GateDetailPage({ params }: PageProps) {
   const { data: gate, isLoading, error } = useGate(id);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    gate_name: "",
+    description: "",
+    stage: "",
+  });
+
+  // Upload evidence state
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState("DOCUMENTATION");
+  const [uploadDescription, setUploadDescription] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Upload mutation
+  const uploadMutation = useUploadEvidence();
 
   // Submit gate for approval
   const submitMutation = useMutation({
@@ -157,6 +193,110 @@ export default function GateDetailPage({ params }: PageProps) {
       router.push("/app/gates");
     },
   });
+
+  // Update gate
+  const updateMutation = useMutation({
+    mutationFn: async (data: { gate_name: string; description: string; stage: string }) => {
+      const response = await fetch(`${API_BASE_URL}/gates/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: "Failed to update gate" }));
+        throw new Error(error.detail || "Failed to update gate");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      setEditDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+    },
+  });
+
+  // Open edit dialog with current values
+  const handleOpenEdit = () => {
+    if (gate) {
+      setEditForm({
+        gate_name: gate.gate_name,
+        description: gate.description || "",
+        stage: gate.stage,
+      });
+      setEditDialogOpen(true);
+    }
+  };
+
+  // Handle file selection for upload
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        setUploadError("File size must be less than 50MB");
+        return;
+      }
+      setSelectedFile(file);
+      setUploadError(null);
+    }
+  }, []);
+
+  // Handle upload
+  const handleUpload = useCallback(async () => {
+    if (!selectedFile) {
+      setUploadError("Please select a file");
+      return;
+    }
+
+    try {
+      setUploadError(null);
+      await uploadMutation.mutateAsync({
+        data: {
+          gate_id: id,
+          evidence_type: uploadType,
+          description: uploadDescription || selectedFile.name,
+        },
+        file: selectedFile,
+      });
+
+      // Success - close modal and reset
+      setUploadModalOpen(false);
+      setSelectedFile(null);
+      setUploadDescription("");
+      setUploadType("DOCUMENTATION");
+      // Refresh gate data to update evidence count
+      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    }
+  }, [selectedFile, uploadType, uploadDescription, uploadMutation, id, queryClient]);
+
+  // Close upload modal
+  const handleCloseUploadModal = useCallback(() => {
+    setUploadModalOpen(false);
+    setSelectedFile(null);
+    setUploadDescription("");
+    setUploadError(null);
+    setUploadType("DOCUMENTATION");
+  }, []);
+
+  // Evidence type options
+  const evidenceTypes = [
+    { value: "DESIGN_DOCUMENT", label: "Design Documents" },
+    { value: "TEST_RESULTS", label: "Test Results" },
+    { value: "CODE_REVIEW", label: "Code Reviews" },
+    { value: "DEPLOYMENT_PROOF", label: "Deployment Proofs" },
+    { value: "DOCUMENTATION", label: "Documentation" },
+    { value: "COMPLIANCE", label: "Compliance" },
+  ];
+
+  // Format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
 
   // Check if user can approve
   const canApprove = user?.is_superuser || user?.roles?.some((r: string) =>
@@ -246,7 +386,7 @@ export default function GateDetailPage({ params }: PageProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleOpenEdit}>
                 <svg
                   className="mr-2 h-4 w-4"
                   fill="none"
@@ -337,6 +477,81 @@ export default function GateDetailPage({ params }: PageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Gate Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Gate</DialogTitle>
+            <DialogDescription>
+              Update gate information. Click save when you&apos;re done.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              updateMutation.mutate(editForm);
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="gate_name">Gate Name</Label>
+              <Input
+                id="gate_name"
+                value={editForm.gate_name}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, gate_name: e.target.value }))
+                }
+                placeholder="e.g., G0.1 Problem Definition"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stage">Stage</Label>
+              <Select
+                value={editForm.stage}
+                onValueChange={(value) =>
+                  setEditForm((prev) => ({ ...prev, stage: value }))
+                }
+              >
+                <SelectTrigger id="stage">
+                  <SelectValue placeholder="Select a stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SDLC_STAGES.map((stage) => (
+                    <SelectItem key={stage.code} value={stage.code}>
+                      {stage.code} - {stage.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editForm.description}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Gate description..."
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Gate info grid */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -624,7 +839,7 @@ export default function GateDetailPage({ params }: PageProps) {
         <Link href={`/app/projects/${gate.project_id}`}>
           <Button variant="outline">Back to Project</Button>
         </Link>
-        <Button variant="outline">
+        <Button variant="outline" onClick={() => setUploadModalOpen(true)}>
           <svg
             className="mr-2 h-4 w-4"
             fill="none"
@@ -641,6 +856,137 @@ export default function GateDetailPage({ params }: PageProps) {
           Upload Evidence
         </Button>
       </div>
+
+      {/* Upload Evidence Modal */}
+      {uploadModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Upload Evidence</h2>
+              <button
+                onClick={handleCloseUploadModal}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {uploadError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="text-sm text-red-700">{uploadError}</p>
+              </div>
+            )}
+
+            {/* File Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select File
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileSelect}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.md,.json,.yaml,.yml"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
+              >
+                {selectedFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                      {selectedFile.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      ({formatFileSize(selectedFile.size)})
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <svg className="h-8 w-8 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <p className="text-sm text-gray-600">Click to select file</p>
+                    <p className="text-xs text-gray-400 mt-1">Max 50MB</p>
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Evidence Type */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Evidence Type
+              </label>
+              <select
+                value={uploadType}
+                onChange={(e) => setUploadType(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {evidenceTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                value={uploadDescription}
+                onChange={(e) => setUploadDescription(e.target.value)}
+                placeholder="Add a description for this evidence..."
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseUploadModal}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={!selectedFile || uploadMutation.isPending}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadMutation.isPending ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                    </svg>
+                    Upload
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

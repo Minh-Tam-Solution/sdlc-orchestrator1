@@ -181,8 +181,8 @@ class PolicyGuardValidator(BaseValidator):
                     blocking=False,
                 )
 
-            # Prepare input for OPA
-            file_contents = await self._get_file_contents(project_id, files)
+            # Prepare input for OPA - pass diff to extract file contents
+            file_contents = await self._get_file_contents(project_id, files, diff)
             input_data = self._prepare_input(file_contents, diff, policy_pack)
 
             # Evaluate all policies
@@ -233,23 +233,101 @@ class PolicyGuardValidator(BaseValidator):
         self,
         project_id: UUID,
         file_paths: List[str],
+        diff: str = "",
     ) -> List[Dict[str, Any]]:
         """
         Get file contents for policy evaluation.
 
-        Note: In production, this would fetch from GitHub or local git.
-        For now, returns file metadata only.
+        Extracts content from the diff for policy evaluation.
+        Falls back to file metadata if content unavailable.
+
+        Args:
+            project_id: Project UUID
+            file_paths: List of file paths to get content for
+            diff: Unified diff string containing file changes
+
+        Returns:
+            List of file dictionaries with content and metadata
         """
+        # Parse diff to extract file contents
+        diff_contents = self._parse_diff_contents(diff)
+
         files = []
         for path in file_paths:
+            # Get content from diff if available
+            content = diff_contents.get(path, "")
+            language = self._detect_language(path)
+
+            # Extract imports from content
+            imports = self._extract_imports(content, language) if content else []
+
             files.append({
                 "path": path,
-                "content": "",  # TODO: Fetch actual content
-                "language": self._detect_language(path),
-                "imports": [],  # TODO: Parse imports
+                "content": content,
+                "language": language,
+                "imports": imports,
                 "layer": self._detect_layer(path),
+                "has_content": bool(content),
             })
+
+        # Log warning if no content found
+        files_without_content = [f["path"] for f in files if not f.get("has_content")]
+        if files_without_content:
+            logger.warning(
+                f"Policy evaluation: {len(files_without_content)} files without content, "
+                f"policy checks may be incomplete"
+            )
+
         return files
+
+    def _parse_diff_contents(self, diff: str) -> Dict[str, str]:
+        """
+        Parse unified diff to extract file contents.
+
+        Extracts added lines (+) from each file in the diff.
+        This provides the new content for policy evaluation.
+
+        Args:
+            diff: Unified diff string
+
+        Returns:
+            Dict mapping file paths to their added content
+        """
+        if not diff:
+            return {}
+
+        contents = {}
+        current_file = None
+        current_lines = []
+
+        for line in diff.split('\n'):
+            # Detect new file in diff
+            if line.startswith('+++ b/'):
+                # Save previous file
+                if current_file and current_lines:
+                    contents[current_file] = '\n'.join(current_lines)
+
+                # Start new file
+                current_file = line[6:]  # Remove '+++ b/' prefix
+                current_lines = []
+            elif line.startswith('+++ '):
+                # Handle +++ /dev/null case
+                if current_file and current_lines:
+                    contents[current_file] = '\n'.join(current_lines)
+                current_file = None
+                current_lines = []
+            elif current_file and line.startswith('+') and not line.startswith('+++'):
+                # Add line (remove + prefix)
+                current_lines.append(line[1:])
+            elif current_file and not line.startswith('-') and not line.startswith('@@'):
+                # Context line (unchanged)
+                current_lines.append(line)
+
+        # Don't forget last file
+        if current_file and current_lines:
+            contents[current_file] = '\n'.join(current_lines)
+
+        return contents
 
     def _prepare_input(
         self,

@@ -304,6 +304,103 @@ class NotificationService:
 
         return await self._send_to_all_channels(payload, approvers)
 
+    async def send_gate_approved_notification(
+        self,
+        project: Project,
+        gate_name: str,
+        gate_code: str,
+        approved_by: User,
+        comments: Optional[str] = None,
+        recipients: list[User] = None,
+    ) -> dict[str, Any]:
+        """
+        Send notification when gate is approved.
+
+        Args:
+            project: Project containing the gate
+            gate_name: Name of the gate
+            gate_code: Gate code (e.g., G2)
+            approved_by: User who approved
+            comments: Approval comments
+            recipients: List of users to notify
+
+        Returns:
+            Delivery status
+        """
+        message = (
+            f"Gate {gate_code} ({gate_name}) in project {project.name} "
+            f"has been *approved* by {approved_by.name or approved_by.email}."
+        )
+        if comments:
+            message += f"\n\n**Comments:** {comments}"
+
+        payload = NotificationPayload(
+            type=NotificationType.GATE_APPROVED,
+            priority=NotificationPriority.MEDIUM,
+            title=f"Gate Approved: {gate_code} - {project.name}",
+            message=message,
+            project_id=project.id,
+            project_name=project.name,
+            metadata={
+                "gate_name": gate_name,
+                "gate_code": gate_code,
+                "approved_by": str(approved_by.id),
+                "approved_by_name": approved_by.name or approved_by.email,
+                "comments": comments,
+            },
+        )
+
+        return await self._send_to_all_channels(payload, recipients or [])
+
+    async def send_gate_rejected_notification(
+        self,
+        project: Project,
+        gate_name: str,
+        gate_code: str,
+        rejected_by: User,
+        comments: Optional[str] = None,
+        recipients: list[User] = None,
+    ) -> dict[str, Any]:
+        """
+        Send notification when gate is rejected.
+
+        Args:
+            project: Project containing the gate
+            gate_name: Name of the gate
+            gate_code: Gate code (e.g., G2)
+            rejected_by: User who rejected
+            comments: Rejection reason
+            recipients: List of users to notify
+
+        Returns:
+            Delivery status
+        """
+        message = (
+            f"Gate {gate_code} ({gate_name}) in project {project.name} "
+            f"has been *rejected* by {rejected_by.name or rejected_by.email}."
+        )
+        if comments:
+            message += f"\n\n**Rejection Reason:** {comments}"
+        message += "\n\nPlease review the feedback and resubmit when ready."
+
+        payload = NotificationPayload(
+            type=NotificationType.GATE_REJECTED,
+            priority=NotificationPriority.HIGH,  # Higher priority for rejections
+            title=f"Gate Rejected: {gate_code} - {project.name}",
+            message=message,
+            project_id=project.id,
+            project_name=project.name,
+            metadata={
+                "gate_name": gate_name,
+                "gate_code": gate_code,
+                "rejected_by": str(rejected_by.id),
+                "rejected_by_name": rejected_by.name or rejected_by.email,
+                "comments": comments,
+            },
+        )
+
+        return await self._send_to_all_channels(payload, recipients or [])
+
     # ========================================================================
     # Channel-Specific Methods
     # ========================================================================

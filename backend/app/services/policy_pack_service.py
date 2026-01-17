@@ -479,20 +479,55 @@ class PolicyPackService:
         """
         Check if user can manage policies for a project.
 
+        Only project owners and admins can manage policies.
+        System-level admins can manage all projects.
+
         Args:
             user: User model instance
             project_id: Project UUID
 
         Returns:
-            True if user can manage policies
+            True if user can manage policies, False otherwise
         """
-        # Project admins and owners can manage policies
-        # This should be replaced with actual permission check
+        from sqlalchemy import select
+        from app.models.project import ProjectMember
+
+        # System admins can manage all policies
         if hasattr(user, "is_admin") and user.is_admin:
             return True
 
-        # TODO: Check project membership and role
-        return True
+        # Check project membership and role
+        try:
+            stmt = select(ProjectMember).where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user.id
+            )
+            result = await self.db.execute(stmt)
+            membership = result.scalar_one_or_none()
+
+            if not membership:
+                logger.warning(
+                    f"User {user.id} is not a member of project {project_id}"
+                )
+                return False
+
+            # Only 'owner' and 'admin' roles can manage policies
+            allowed_roles = {"owner", "admin"}
+            if membership.role not in allowed_roles:
+                logger.warning(
+                    f"User {user.id} has role '{membership.role}' in project {project_id}, "
+                    f"policy management requires {allowed_roles}"
+                )
+                return False
+
+            return True
+
+        except Exception as e:
+            logger.error(
+                f"Permission check failed for user {user.id} on project {project_id}: {e}"
+            )
+            # Fail closed - deny access on error
+            return False
 
     # =========================================================================
     # Policy Evaluation

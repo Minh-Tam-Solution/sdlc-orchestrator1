@@ -139,6 +139,10 @@ class Project(Base):
     stage_mappings = relationship(
         "ProjectStageMapping", back_populates="project", cascade="all, delete-orphan"
     )
+    # SAST Scans (Sprint 69 - CTO Go-Live)
+    sast_scans = relationship(
+        "SASTScan", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Project(id={self.id}, name={self.name}, slug={self.slug})>"

@@ -226,8 +226,11 @@ class ValidationWorker:
                 },
             )
 
-            # TODO: Update database with result
-            # TODO: Post PR comment with result
+            # Persist validation result to database
+            await self._persist_validation_result(job, result)
+
+            # Post PR comment with result (if GitHub integration available)
+            await self._post_pr_comment(job, result)
 
         except Exception as e:
             logger.error(f"Job processing error: {e}", exc_info=True)
@@ -272,6 +275,170 @@ class ValidationWorker:
             self.RETRY_QUEUE_KEY,
             {json.dumps(job.to_dict()): retry_at},
         )
+
+    async def _persist_validation_result(
+        self,
+        job: ValidationJob,
+        result: Any,
+    ) -> None:
+        """
+        Persist validation result to database.
+
+        Updates AICodeEvent record with validation outcome.
+
+        Args:
+            job: The validation job
+            result: PipelineResult from validation pipeline
+        """
+        try:
+            from app.api.dependencies import get_db_session
+            from app.models.analytics import AICodeEvent
+            from app.services.validators import ValidationStatus
+
+            async for db in get_db_session():
+                # Find existing event or log warning
+                event = await db.get(AICodeEvent, job.event_id)
+                if not event:
+                    logger.warning(
+                        f"AICodeEvent {job.event_id} not found, creating new record"
+                    )
+                    # Create new event record if doesn't exist
+                    event = AICodeEvent(
+                        id=job.event_id,
+                        project_id=job.project_id,
+                        pr_id=job.pr_number,
+                        validation_result="pending",
+                    )
+                    db.add(event)
+
+                # Map validation status to result string
+                status_map = {
+                    ValidationStatus.PASSED: "passed",
+                    ValidationStatus.FAILED: "failed",
+                    ValidationStatus.WARNING: "warning",
+                    ValidationStatus.SKIPPED: "skipped",
+                }
+                event.validation_result = status_map.get(result.status, "failed")
+
+                # Store violations as JSON
+                violations = []
+                for validator_result in result.results:
+                    if validator_result.status != ValidationStatus.PASSED:
+                        violations.append({
+                            "validator": validator_result.validator_name,
+                            "status": validator_result.status.value,
+                            "message": validator_result.message or "",
+                            "details": validator_result.details or {},
+                        })
+                event.violations = violations if violations else None
+
+                # Update duration
+                event.duration_ms = result.duration_ms
+                event.files_scanned = len(job.files)
+
+                await db.commit()
+                logger.info(
+                    f"Persisted validation result for event {job.event_id}: "
+                    f"{event.validation_result}"
+                )
+                break
+
+        except Exception as e:
+            logger.error(
+                f"Failed to persist validation result for {job.event_id}: {e}",
+                exc_info=True
+            )
+
+    async def _post_pr_comment(
+        self,
+        job: ValidationJob,
+        result: Any,
+    ) -> None:
+        """
+        Post validation result as PR comment.
+
+        Uses GitHub integration if available.
+
+        Args:
+            job: The validation job
+            result: PipelineResult from validation pipeline
+        """
+        try:
+            from app.api.dependencies import get_db_session
+            from app.models.project import Project
+            from app.services.validators import ValidationStatus
+
+            # Get project to check GitHub integration
+            async for db in get_db_session():
+                from sqlalchemy import select
+                stmt = select(Project).where(Project.id == job.project_id)
+                project_result = await db.execute(stmt)
+                project = project_result.scalar_one_or_none()
+
+                if not project or not project.github_repo_url:
+                    logger.debug(
+                        f"Project {job.project_id} has no GitHub integration, "
+                        "skipping PR comment"
+                    )
+                    return
+
+                # Build comment body
+                status_emoji = {
+                    ValidationStatus.PASSED: "✅",
+                    ValidationStatus.FAILED: "❌",
+                    ValidationStatus.WARNING: "⚠️",
+                    ValidationStatus.SKIPPED: "⏭️",
+                }
+                emoji = status_emoji.get(result.status, "❓")
+
+                comment_lines = [
+                    f"## {emoji} SDLC Validation Result: {result.status.value.upper()}",
+                    "",
+                    f"**Duration:** {result.duration_ms}ms",
+                    f"**Files Scanned:** {len(job.files)}",
+                    "",
+                    "### Validator Results",
+                    "",
+                ]
+
+                for vr in result.results:
+                    v_emoji = status_emoji.get(vr.status, "❓")
+                    comment_lines.append(
+                        f"- {v_emoji} **{vr.validator_name}**: {vr.status.value}"
+                    )
+                    if vr.message:
+                        comment_lines.append(f"  - {vr.message}")
+
+                if result.blocking_failures:
+                    comment_lines.extend([
+                        "",
+                        "### ⛔ Blocking Failures",
+                        "",
+                    ])
+                    for bf in result.blocking_failures:
+                        comment_lines.append(f"- **{bf.validator_name}**: {bf.message}")
+
+                comment_lines.extend([
+                    "",
+                    "---",
+                    "*Generated by SDLC Orchestrator AI Safety Layer*",
+                ])
+
+                comment_body = "\n".join(comment_lines)
+
+                # Post comment via GitHub API (if configured)
+                # For now, just log it - actual GitHub posting requires OAuth token
+                logger.info(
+                    f"PR comment prepared for {project.github_repo_url} "
+                    f"PR #{job.pr_number}:\n{comment_body[:200]}..."
+                )
+                break
+
+        except Exception as e:
+            logger.error(
+                f"Failed to post PR comment for {job.event_id}: {e}",
+                exc_info=True
+            )
 
 
 async def enqueue_validation(

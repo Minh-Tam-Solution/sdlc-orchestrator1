@@ -347,10 +347,10 @@ export default function GatesPage() {
             </div>
             <div className="border-t border-gray-200 p-4">
               <Link
-                href="/app/gate-history"
+                href="/app/gates"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                View all gate activity →
+                View all gates →
               </Link>
             </div>
           </div>

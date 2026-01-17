@@ -50,7 +50,9 @@ import {
   Bell,
   Sliders,
   Bot,
+  ExternalLink,
 } from "lucide-react";
+import Link from "next/link";
 
 const CATEGORY_ICONS: Record<SettingCategory, React.ReactNode> = {
   security: <Shield className="h-5 w-5" />,
@@ -301,8 +303,8 @@ export default function SystemSettingsPage() {
     }
   };
 
+  // AI settings are managed in dedicated AI Providers page
   const categories: SettingCategory[] = [
-    "ai",
     "security",
     "limits",
     "features",
@@ -339,6 +341,29 @@ export default function SystemSettingsPage() {
           </span>
         </div>
       </div>
+
+      {/* AI Providers link */}
+      <Card className="bg-muted/30">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bot className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="font-medium">AI Provider Configuration</p>
+                <p className="text-sm text-muted-foreground">
+                  Manage Ollama, Claude, OpenAI settings and fallback chain
+                </p>
+              </div>
+            </div>
+            <Link href="/admin/ai-providers">
+              <Button variant="outline" size="sm">
+                <ExternalLink className="h-4 w-4 mr-1" />
+                Open AI Providers
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Settings sections */}
       {isLoading ? (

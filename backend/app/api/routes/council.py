@@ -58,6 +58,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_active_user
 from app.db.session import get_db
 from app.models.compliance_scan import ComplianceViolation
+from app.models.council_session import (
+    CouncilSession,
+    CouncilModeType,
+    CouncilSessionStatus,
+)
 from app.models.project import Project, ProjectMember
 from app.models.user import User
 from app.schemas.council import (
@@ -298,6 +303,24 @@ async def trigger_deliberation(
     # Create council service
     council_service = AICouncilService(db)
 
+    # Map schema enum to model enum
+    mode_requested = CouncilModeType.AUTO
+    if request.council_mode == CouncilMode.SINGLE:
+        mode_requested = CouncilModeType.SINGLE
+    elif request.council_mode == CouncilMode.COUNCIL:
+        mode_requested = CouncilModeType.COUNCIL
+
+    # Create session record (pending)
+    session = CouncilSession(
+        project_id=violation.project_id,
+        violation_id=violation.id,
+        triggered_by=current_user.id,
+        mode_requested=mode_requested,
+        status=CouncilSessionStatus.IN_PROGRESS,
+    )
+    db.add(session)
+    await db.flush()  # Get session ID
+
     try:
         # Execute deliberation
         response = await council_service.deliberate(
@@ -313,6 +336,36 @@ async def trigger_deliberation(
             f"duration={response.total_duration_ms:.2f}ms, cost=${response.total_cost_usd:.4f}"
         )
 
+        # Update session with results
+        mode_used = CouncilModeType.SINGLE
+        if response.mode_used == "council":
+            mode_used = CouncilModeType.COUNCIL
+        elif response.mode_used == "auto":
+            mode_used = CouncilModeType.AUTO
+
+        session.mode_used = mode_used
+        session.status = CouncilSessionStatus.COMPLETED
+        session.providers_used = [p.name for p in response.providers_used] if response.providers_used else []
+        session.recommendation = response.recommendation
+        session.confidence_score = response.confidence_score
+        session.total_duration_ms = response.total_duration_ms
+        session.total_cost_usd = response.total_cost_usd
+        session.completed_at = datetime.utcnow()
+
+        # Store provider responses if available
+        if hasattr(response, 'provider_responses') and response.provider_responses:
+            session.provider_responses = [
+                {
+                    "provider": pr.get("provider"),
+                    "model": pr.get("model"),
+                    "response": pr.get("response", "")[:1000],  # Truncate
+                    "latency_ms": pr.get("latency_ms"),
+                    "cost_usd": pr.get("cost_usd"),
+                    "tokens_used": pr.get("tokens_used"),
+                }
+                for pr in response.provider_responses
+            ]
+
         # Update violation with AI recommendation (Sprint 26 integration)
         violation.ai_recommendation = response.recommendation
         violation.ai_provider = f"council-{response.mode_used}"
@@ -325,6 +378,13 @@ async def trigger_deliberation(
         logger.error(
             f"Council deliberation failed for violation {request.violation_id}: {e}"
         )
+
+        # Update session with failure
+        session.status = CouncilSessionStatus.FAILED
+        session.error_message = str(e)
+        session.completed_at = datetime.utcnow()
+        await db.commit()
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Council deliberation failed: {str(e)}",
@@ -345,9 +405,6 @@ async def get_deliberation_status(
     """
     Get the status of a council deliberation request.
 
-    Note: Currently council deliberations are synchronous, so this endpoint
-    returns the stored result. Future versions may support async deliberations.
-
     Args:
         request_id: UUID of the deliberation request
         current_user: Authenticated user
@@ -356,12 +413,55 @@ async def get_deliberation_status(
     Returns:
         CouncilResponse with deliberation result
     """
-    # TODO: Implement deliberation_sessions table in future sprint
-    # For now, return 501 Not Implemented as deliberations are synchronous
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Deliberation status tracking will be available in Sprint 27. "
-        "Currently, deliberations are synchronous and return immediately.",
+    # Query session from database
+    result = await db.execute(
+        select(CouncilSession).where(CouncilSession.id == request_id)
+    )
+    session = result.scalar_one_or_none()
+
+    if not session:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Deliberation session not found: {request_id}",
+        )
+
+    # Check project access
+    await check_project_access(session.project_id, current_user, db)
+
+    # Map status
+    if session.status == CouncilSessionStatus.FAILED:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Deliberation failed: {session.error_message}",
+        )
+
+    if session.status in (CouncilSessionStatus.PENDING, CouncilSessionStatus.IN_PROGRESS):
+        raise HTTPException(
+            status_code=status.HTTP_202_ACCEPTED,
+            detail="Deliberation is still in progress. Please check again later.",
+        )
+
+    # Build response from session
+    providers_used = []
+    if session.providers_used:
+        for p in session.providers_used:
+            try:
+                providers_used.append(CouncilProvider(p.upper()))
+            except ValueError:
+                pass
+
+    mode_used = session.mode_used.value if session.mode_used else "single"
+
+    return CouncilResponse(
+        request_id=session.id,
+        violation_id=session.violation_id,
+        mode_used=mode_used,
+        providers_used=providers_used,
+        recommendation=session.recommendation or "",
+        confidence_score=session.confidence_score or 0,
+        total_duration_ms=session.total_duration_ms or 0.0,
+        total_cost_usd=session.total_cost_usd or 0.0,
+        created_at=session.created_at,
     )
 
 
@@ -382,9 +482,6 @@ async def get_project_council_history(
     """
     Get council deliberation history for a project.
 
-    Note: This endpoint will be fully implemented in Sprint 27 when
-    deliberation_sessions table is added. Currently returns empty list.
-
     Args:
         project_id: UUID of the project
         limit: Maximum number of results
@@ -399,12 +496,45 @@ async def get_project_council_history(
     # Check project access
     await check_project_access(project_id, current_user, db)
 
-    # TODO: Implement with deliberation_sessions table in Sprint 27
-    # For now, return empty list
-    logger.warning(
-        f"Council history requested for project {project_id} but not yet implemented"
+    # Build query
+    query = select(CouncilSession).where(
+        CouncilSession.project_id == project_id,
+        CouncilSession.status == CouncilSessionStatus.COMPLETED,
     )
-    return []
+
+    # Apply mode filter
+    if mode:
+        mode_lower = mode.lower()
+        if mode_lower == "single":
+            query = query.where(CouncilSession.mode_used == CouncilModeType.SINGLE)
+        elif mode_lower == "council":
+            query = query.where(CouncilSession.mode_used == CouncilModeType.COUNCIL)
+        elif mode_lower == "auto":
+            query = query.where(CouncilSession.mode_used == CouncilModeType.AUTO)
+
+    # Order by created_at DESC and apply pagination
+    query = query.order_by(desc(CouncilSession.created_at)).offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    sessions = result.scalars().all()
+
+    # Convert to response format
+    history = []
+    for session in sessions:
+        history.append(
+            CouncilHistoryItemSchema(
+                request_id=session.id,
+                violation_id=session.violation_id,
+                mode_used=session.mode_used.value if session.mode_used else "single",
+                confidence_score=session.confidence_score or 0,
+                providers_used=session.providers_used or [],
+                total_duration_ms=session.total_duration_ms or 0.0,
+                total_cost_usd=session.total_cost_usd or 0.0,
+                created_at=session.created_at,
+            )
+        )
+
+    return history
 
 
 @router.get(
@@ -421,9 +551,6 @@ async def get_project_council_stats(
     """
     Get aggregated council statistics for a project.
 
-    Note: This endpoint will be fully implemented in Sprint 27 when
-    deliberation_sessions table is added.
-
     Args:
         project_id: UUID of the project
         current_user: Authenticated user
@@ -432,23 +559,74 @@ async def get_project_council_stats(
     Returns:
         Council statistics summary
     """
+    from sqlalchemy import func as sqlfunc
+
     # Check project access
     await check_project_access(project_id, current_user, db)
 
-    # TODO: Implement with deliberation_sessions table in Sprint 27
-    # For now, return zero stats
-    logger.warning(
-        f"Council stats requested for project {project_id} but not yet implemented"
+    # Get all sessions for this project
+    result = await db.execute(
+        select(CouncilSession).where(CouncilSession.project_id == project_id)
     )
+    sessions = result.scalars().all()
+
+    if not sessions:
+        return CouncilStatsResponse(
+            total_deliberations=0,
+            single_mode_count=0,
+            council_mode_count=0,
+            auto_mode_count=0,
+            average_confidence=0.0,
+            average_duration_ms=0.0,
+            total_cost_usd=0.0,
+            success_rate=0.0,
+        )
+
+    # Calculate stats
+    total_deliberations = len(sessions)
+    single_mode_count = 0
+    council_mode_count = 0
+    auto_mode_count = 0
+    completed_count = 0
+    confidences = []
+    durations = []
+    total_cost = 0.0
+
+    for session in sessions:
+        # Count by mode
+        if session.mode_used == CouncilModeType.SINGLE:
+            single_mode_count += 1
+        elif session.mode_used == CouncilModeType.COUNCIL:
+            council_mode_count += 1
+        elif session.mode_used == CouncilModeType.AUTO:
+            auto_mode_count += 1
+
+        # Track completed sessions
+        if session.status == CouncilSessionStatus.COMPLETED:
+            completed_count += 1
+            if session.confidence_score:
+                confidences.append(session.confidence_score)
+            if session.total_duration_ms:
+                durations.append(session.total_duration_ms)
+
+        # Accumulate cost
+        if session.total_cost_usd:
+            total_cost += session.total_cost_usd
+
+    # Calculate averages
+    average_confidence = sum(confidences) / len(confidences) if confidences else 0.0
+    average_duration_ms = sum(durations) / len(durations) if durations else 0.0
+    success_rate = (completed_count / total_deliberations * 100) if total_deliberations > 0 else 0.0
+
     return CouncilStatsResponse(
-        total_deliberations=0,
-        single_mode_count=0,
-        council_mode_count=0,
-        auto_mode_count=0,
-        average_confidence=0.0,
-        average_duration_ms=0.0,
-        total_cost_usd=0.0,
-        success_rate=0.0,
+        total_deliberations=total_deliberations,
+        single_mode_count=single_mode_count,
+        council_mode_count=council_mode_count,
+        auto_mode_count=auto_mode_count,
+        average_confidence=round(average_confidence, 2),
+        average_duration_ms=round(average_duration_ms, 2),
+        total_cost_usd=round(total_cost, 4),
+        success_rate=round(success_rate, 2),
     )
 
 

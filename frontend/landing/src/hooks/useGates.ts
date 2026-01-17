@@ -4,16 +4,22 @@
  * @module frontend/landing/src/hooks/useGates
  * @description React Query hooks for Gates API
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 69 - Cookie Auth Migration
+ * @status Sprint 69 - CTO Go-Live Requirements
  */
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getGates,
   getGate,
+  submitGate,
+  approveGate,
+  getGateApprovals,
   type Gate,
   type GateListResponse,
   type GateListOptions,
+  type GateSubmitRequest,
+  type GateApprovalRequest,
+  type GateApproval,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -86,5 +92,84 @@ export function useInvalidateGates() {
   };
 }
 
+/**
+ * Hook to fetch gate approval history
+ * Sprint 69: Audit trail for gate decisions
+ */
+export function useGateApprovals(gateId: string | undefined) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  return useQuery({
+    queryKey: [...gateKeys.details(), gateId, "approvals"] as const,
+    queryFn: () => {
+      if (!gateId) {
+        throw new Error("Missing gate ID");
+      }
+      return getGateApprovals(gateId);
+    },
+    enabled: isAuthenticated && !authLoading && !!gateId,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook to submit gate for approval
+ * Sprint 69: Gate workflow - submit DRAFT → PENDING_APPROVAL
+ */
+export function useSubmitGate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      gateId,
+      data,
+    }: {
+      gateId: string;
+      data?: GateSubmitRequest;
+    }) => submitGate(gateId, data),
+    onSuccess: (updatedGate) => {
+      // Invalidate gates list
+      queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
+      // Update the specific gate in cache
+      queryClient.setQueryData(gateKeys.detail(updatedGate.id), updatedGate);
+    },
+  });
+}
+
+/**
+ * Hook to approve or reject gate (CTO/CPO/CEO only)
+ * Sprint 69: Gate workflow - approve/reject PENDING_APPROVAL → APPROVED/REJECTED
+ */
+export function useApproveGate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      gateId,
+      data,
+    }: {
+      gateId: string;
+      data: GateApprovalRequest;
+    }) => approveGate(gateId, data),
+    onSuccess: (updatedGate) => {
+      // Invalidate gates list
+      queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
+      // Update the specific gate in cache
+      queryClient.setQueryData(gateKeys.detail(updatedGate.id), updatedGate);
+      // Invalidate approvals for this gate
+      queryClient.invalidateQueries({
+        queryKey: [...gateKeys.details(), updatedGate.id, "approvals"],
+      });
+    },
+  });
+}
+
 // Export types for use in components
-export type { Gate, GateListResponse, GateListOptions };
+export type {
+  Gate,
+  GateListResponse,
+  GateListOptions,
+  GateSubmitRequest,
+  GateApprovalRequest,
+  GateApproval,
+};

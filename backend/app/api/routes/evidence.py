@@ -41,6 +41,7 @@ from uuid import UUID
 
 from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -475,6 +476,64 @@ async def download_evidence(
         "file_name": evidence.file_name,
         "expires_in": 900,
     }
+
+
+@router.get(
+    "/evidence/{evidence_id}/file",
+    summary="Download evidence file (streaming)",
+    description="""
+    Download evidence file directly through backend (streaming response).
+
+    This endpoint streams the file through the backend, avoiding CORS/mixed-content
+    issues when MinIO is not directly accessible from the browser.
+
+    **Response**: Binary file with appropriate Content-Type and Content-Disposition headers.
+    """,
+)
+async def download_evidence_file(
+    evidence_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Download evidence file directly (streaming through backend)."""
+    # Fetch evidence
+    result = await db.execute(
+        select(GateEvidence).where(GateEvidence.id == evidence_id)
+    )
+    evidence = result.scalar_one_or_none()
+
+    if not evidence:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Evidence with ID {evidence_id} not found",
+        )
+
+    # Download file from MinIO
+    try:
+        file_content = minio_service.download_file(evidence.s3_key)
+    except ClientError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to download file: {str(e)}",
+        )
+
+    # Increment download count (if column exists)
+    if hasattr(evidence, 'download_count'):
+        evidence.download_count = (evidence.download_count or 0) + 1
+        await db.commit()
+
+    # Determine content type
+    content_type = evidence.file_type or "application/octet-stream"
+
+    # Create streaming response
+    return StreamingResponse(
+        BytesIO(file_content),
+        media_type=content_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{evidence.file_name}"',
+            "Content-Length": str(len(file_content)),
+        },
+    )
 
 
 @router.post(

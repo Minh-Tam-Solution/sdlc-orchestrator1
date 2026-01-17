@@ -9,8 +9,9 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
-import { useEvidenceList, type Evidence } from "@/hooks/useEvidence";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { useEvidenceList, useUploadEvidence, useDownloadEvidence, type Evidence } from "@/hooks/useEvidence";
+import { useGates } from "@/hooks/useGates";
 
 // Evidence type options for filter
 const evidenceTypes = [
@@ -69,6 +70,23 @@ function ArrowDownTrayIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+  );
+}
+
+function XMarkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className}`} fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
     </svg>
   );
 }
@@ -172,12 +190,93 @@ function TableRowSkeleton() {
 export default function EvidencePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedEvidence, setSelectedEvidence] = useState<Evidence | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadType, setUploadType] = useState("DOCUMENTATION");
+  const [selectedGateId, setSelectedGateId] = useState("");
+  const [description, setDescription] = useState("");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch gates for the dropdown
+  const { data: gatesResponse } = useGates({ page_size: 100 });
 
   // Fetch evidence from API using TanStack Query
-  const { data: evidenceResponse, isLoading, error } = useEvidenceList({
+  const { data: evidenceResponse, isLoading, error, refetch } = useEvidenceList({
     evidence_type: typeFilter !== "all" ? typeFilter : undefined,
     page_size: 100,
   });
+
+  // Upload mutation
+  const uploadMutation = useUploadEvidence();
+
+  // Download mutation
+  const downloadMutation = useDownloadEvidence();
+
+  // Handle download
+  const handleDownload = useCallback((evidenceId: string) => {
+    downloadMutation.mutate(evidenceId);
+  }, [downloadMutation]);
+
+  // Handle file selection
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        setUploadError("File size must be less than 50MB");
+        return;
+      }
+      setSelectedFile(file);
+      setUploadError(null);
+    }
+  }, []);
+
+  // Handle upload
+  const handleUpload = useCallback(async () => {
+    if (!selectedFile) {
+      setUploadError("Please select a file");
+      return;
+    }
+
+    if (!selectedGateId) {
+      setUploadError("Please select a gate");
+      return;
+    }
+
+    try {
+      setUploadError(null);
+      await uploadMutation.mutateAsync({
+        data: {
+          gate_id: selectedGateId,
+          evidence_type: uploadType,
+          description: description || selectedFile.name,
+        },
+        file: selectedFile,
+      });
+
+      // Success - close modal and reset
+      setIsUploadModalOpen(false);
+      setSelectedFile(null);
+      setDescription("");
+      setUploadType("DOCUMENTATION");
+      setSelectedGateId("");
+      refetch();
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+    }
+  }, [selectedFile, selectedGateId, uploadType, description, uploadMutation, refetch]);
+
+  // Reset modal state
+  const handleCloseModal = useCallback(() => {
+    setIsUploadModalOpen(false);
+    setSelectedFile(null);
+    setDescription("");
+    setUploadError(null);
+    setUploadType("DOCUMENTATION");
+    setSelectedGateId("");
+  }, []);
 
   // Calculate stats from real data
   const stats = useMemo(() => {
@@ -210,7 +309,10 @@ export default function EvidencePage() {
             Quản lý và theo dõi bằng chứng cho các gate
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button
+          onClick={() => setIsUploadModalOpen(true)}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
           <ArrowUpTrayIcon className="h-4 w-4" />
           Upload Evidence
         </button>
@@ -364,18 +466,20 @@ export default function EvidencePage() {
                   <td className="whitespace-nowrap px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
+                        onClick={() => setSelectedEvidence(item)}
                         className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                         title="View details"
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
-                      <a
-                        href={item.download_url}
-                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      <button
+                        onClick={() => handleDownload(item.id)}
+                        disabled={downloadMutation.isPending}
+                        className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
                         title="Download"
                       >
                         <ArrowDownTrayIcon className="h-5 w-5" />
-                      </a>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -394,6 +498,243 @@ export default function EvidencePage() {
               ? "Try adjusting your search query"
               : "Upload evidence to get started"}
           </p>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {isUploadModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Upload Evidence</h2>
+              <button
+                onClick={handleCloseModal}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {uploadError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="text-sm text-red-700">{uploadError}</p>
+              </div>
+            )}
+
+            {/* File Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select File
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileSelect}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.md,.json,.yaml,.yml"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-blue-500 hover:bg-blue-50 transition-colors"
+              >
+                {selectedFile ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <DocumentIcon className="h-6 w-6 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                      {selectedFile.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      ({formatFileSize(selectedFile.size)})
+                    </span>
+                  </div>
+                ) : (
+                  <div>
+                    <ArrowUpTrayIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Click to select file</p>
+                    <p className="text-xs text-gray-400 mt-1">Max 50MB</p>
+                  </div>
+                )}
+              </button>
+            </div>
+
+            {/* Gate Selector */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Gate <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={selectedGateId}
+                onChange={(e) => setSelectedGateId(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">-- Select a gate --</option>
+                {gatesResponse?.items?.map((gate) => (
+                  <option key={gate.id} value={gate.id}>
+                    {gate.gate_name} ({gate.stage})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Evidence Type */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Evidence Type
+              </label>
+              <select
+                value={uploadType}
+                onChange={(e) => setUploadType(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {evidenceTypes.filter(t => t.value !== "all").map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description (optional)
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add a description for this evidence..."
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseModal}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpload}
+                disabled={!selectedFile || uploadMutation.isPending}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadMutation.isPending ? (
+                  <>
+                    <SpinnerIcon className="h-4 w-4" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <ArrowUpTrayIcon className="h-4 w-4" />
+                    Upload
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence Detail Modal */}
+      {selectedEvidence && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Evidence Details</h2>
+              <button
+                onClick={() => setSelectedEvidence(null)}
+                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Evidence Info */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500">File Name</label>
+                <p className="mt-1 text-sm text-gray-900">{selectedEvidence.file_name}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Evidence Type</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedEvidence.evidence_type}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">File Size</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatFileSize(selectedEvidence.file_size)}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Gate ID</label>
+                  <p className="mt-1 text-sm text-gray-900 font-mono text-xs">{selectedEvidence.gate_id}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Integrity Status</label>
+                  <p className="mt-1">
+                    <IntegrityBadge status={selectedEvidence.integrity_status} />
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Uploaded By</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedEvidence.uploaded_by_name}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Uploaded At</label>
+                  <p className="mt-1 text-sm text-gray-900">{formatDate(selectedEvidence.uploaded_at)}</p>
+                </div>
+              </div>
+
+              {selectedEvidence.description && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Description</label>
+                  <p className="mt-1 text-sm text-gray-900">{selectedEvidence.description}</p>
+                </div>
+              )}
+
+              {selectedEvidence.sha256_hash && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">SHA256 Hash</label>
+                  <p className="mt-1 text-xs font-mono text-gray-600 break-all bg-gray-50 p-2 rounded">
+                    {selectedEvidence.sha256_hash}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setSelectedEvidence(null)}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  handleDownload(selectedEvidence.id);
+                  setSelectedEvidence(null);
+                }}
+                disabled={downloadMutation.isPending}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                <ArrowDownTrayIcon className="h-4 w-4" />
+                Download
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

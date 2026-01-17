@@ -4,75 +4,17 @@
  * @module frontend/landing/src/app/app/codegen/page
  * @description EP-06 IR-Based Code Generation interface
  * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 61 - Frontend Platform Consolidation (Spike)
+ * @status Sprint 69 - Zero Mock Policy Compliance
  */
 
 "use client";
 
 import { useState } from "react";
-
-// Mock data for spike - will be replaced with TanStack Query
-const mockCodegenSessions = [
-  {
-    id: "cg-001",
-    name: "UserAuthService",
-    project: "BFlow Platform",
-    template: "FastAPI Service",
-    status: "completed",
-    quality_score: 94,
-    provider: "Ollama (qwen3-coder:30b)",
-    gates_passed: 4,
-    gates_total: 4,
-    created_at: "2025-12-28T11:30:00Z",
-    duration: "12.3s",
-  },
-  {
-    id: "cg-002",
-    name: "ProductCatalogAPI",
-    project: "MTEP Dashboard",
-    template: "CRUD Endpoint",
-    status: "validating",
-    quality_score: null,
-    provider: "Claude (claude-sonnet-4-5)",
-    gates_passed: 2,
-    gates_total: 4,
-    created_at: "2025-12-28T10:45:00Z",
-    duration: "8.7s",
-  },
-  {
-    id: "cg-003",
-    name: "NotificationWorker",
-    project: "NQH-Bot",
-    template: "Background Job",
-    status: "failed",
-    quality_score: 67,
-    provider: "Ollama (qwen3-coder:30b)",
-    gates_passed: 2,
-    gates_total: 4,
-    created_at: "2025-12-27T16:20:00Z",
-    duration: "15.1s",
-  },
-  {
-    id: "cg-004",
-    name: "ReportGenerator",
-    project: "SOP Generator",
-    template: "Vietnamese Domain",
-    status: "completed",
-    quality_score: 98,
-    provider: "Ollama (qwen3-coder:30b)",
-    gates_passed: 4,
-    gates_total: 4,
-    created_at: "2025-12-27T14:10:00Z",
-    duration: "9.8s",
-  },
-];
-
-const templates = [
-  { id: "fastapi", name: "FastAPI Service", description: "Full CRUD service with auth" },
-  { id: "crud", name: "CRUD Endpoint", description: "Single resource endpoint" },
-  { id: "worker", name: "Background Job", description: "Async task worker" },
-  { id: "vietnam", name: "Vietnamese Domain", description: "E-commerce, HRM, CRM" },
-];
+import {
+  useCodegenTemplates,
+  useCodegenSessions,
+  useCreateCodegenSession,
+} from "@/hooks/useCodegen";
 
 // Icons
 function CodeBracketIcon({ className }: { className?: string }) {
@@ -145,6 +87,11 @@ function StatusBadge({ status }: { status: string }) {
       text: "text-yellow-700",
       icon: <ArrowPathIcon className="h-4 w-4 animate-spin" />,
     },
+    pending: {
+      bg: "bg-gray-100",
+      text: "text-gray-700",
+      icon: <ClockIcon className="h-4 w-4" />,
+    },
     failed: {
       bg: "bg-red-100",
       text: "text-red-700",
@@ -152,7 +99,7 @@ function StatusBadge({ status }: { status: string }) {
     },
   };
 
-  const { bg, text, icon } = config[status] || config.validating;
+  const { bg, text, icon } = config[status] || config.pending;
 
   return (
     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${bg} ${text}`}>
@@ -200,8 +147,147 @@ function GateProgress({ passed, total }: { passed: number; total: number }) {
   );
 }
 
+// Loading skeleton
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 w-48 bg-gray-200 rounded" />
+      <div className="grid gap-4 md:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-24 bg-gray-200 rounded-lg" />
+        ))}
+      </div>
+      <div className="h-32 bg-gray-200 rounded-lg" />
+      <div className="h-64 bg-gray-200 rounded-lg" />
+    </div>
+  );
+}
+
+// Error display
+function ErrorDisplay({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
+      <XCircleIcon className="mx-auto h-12 w-12 text-red-400" />
+      <h3 className="mt-2 text-lg font-medium text-red-800">Failed to load codegen data</h3>
+      <p className="mt-1 text-sm text-red-600">{message}</p>
+      <button
+        onClick={onRetry}
+        className="mt-4 rounded-md bg-red-100 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-200"
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
+
+// Empty state
+function EmptyState() {
+  return (
+    <div className="rounded-lg border-2 border-dashed border-gray-200 p-12 text-center">
+      <CodeBracketIcon className="mx-auto h-12 w-12 text-gray-400" />
+      <h3 className="mt-2 text-lg font-medium text-gray-900">No generations yet</h3>
+      <p className="mt-1 text-sm text-gray-500">
+        Select a template above and click &quot;New Generation&quot; to get started
+      </p>
+    </div>
+  );
+}
+
 export default function CodegenPage() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [showNewModal, setShowNewModal] = useState(false);
+  const [generationName, setGenerationName] = useState("");
+  const [generationSpec, setGenerationSpec] = useState("");
+
+  // TanStack Query hooks - Real API data
+  const {
+    data: templates,
+    isLoading: templatesLoading,
+    error: templatesError,
+    refetch: refetchTemplates,
+  } = useCodegenTemplates();
+
+  const {
+    data: sessionsData,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+    refetch: refetchSessions,
+  } = useCodegenSessions({ page: 1, page_size: 20 });
+
+  const createMutation = useCreateCodegenSession();
+
+  const sessions = sessionsData?.sessions || [];
+
+  // Calculate stats from real data
+  const stats = {
+    total: sessionsData?.total || 0,
+    successRate: sessions.length > 0
+      ? Math.round((sessions.filter(s => s.status === "completed").length / sessions.length) * 100)
+      : 0,
+    avgDuration: sessions.length > 0
+      ? (sessions.reduce((sum, s) => sum + parseFloat(s.duration.replace("s", "") || "0"), 0) / sessions.length).toFixed(1)
+      : "0",
+    avgScore: sessions.filter(s => s.quality_score !== null).length > 0
+      ? Math.round(
+          sessions
+            .filter(s => s.quality_score !== null)
+            .reduce((sum, s) => sum + (s.quality_score || 0), 0) /
+          sessions.filter(s => s.quality_score !== null).length
+        )
+      : 0,
+  };
+
+  const handleNewGeneration = () => {
+    if (!selectedTemplate) {
+      alert("Please select a template first");
+      return;
+    }
+    setShowNewModal(true);
+  };
+
+  const handleSubmitGeneration = async () => {
+    if (!generationName.trim()) {
+      alert("Please enter a name");
+      return;
+    }
+
+    try {
+      await createMutation.mutateAsync({
+        name: generationName,
+        template_id: selectedTemplate!,
+        specification: generationSpec || undefined,
+      });
+
+      setShowNewModal(false);
+      setGenerationName("");
+      setGenerationSpec("");
+
+      // Refetch sessions to show new generation
+      refetchSessions();
+    } catch (error) {
+      console.error("Failed to create generation:", error);
+      alert("Failed to create generation. Please try again.");
+    }
+  };
+
+  const isLoading = templatesLoading || sessionsLoading;
+  const error = templatesError || sessionsError;
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <ErrorDisplay
+        message={error instanceof Error ? error.message : "Unknown error"}
+        onRetry={() => {
+          refetchTemplates();
+          refetchSessions();
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -210,12 +296,16 @@ export default function CodegenPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Code Generation</h1>
           <p className="mt-1 text-gray-500">
-            EP-06 IR-Based Codegen với 4-Gate Quality Pipeline
+            EP-06 IR-Based Codegen with 4-Gate Quality Pipeline
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+        <button
+          onClick={handleNewGeneration}
+          disabled={createMutation.isPending}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
           <SparklesIcon className="h-4 w-4" />
-          New Generation
+          {createMutation.isPending ? "Creating..." : "New Generation"}
         </button>
       </div>
 
@@ -227,7 +317,7 @@ export default function CodegenPage() {
               <CodeBracketIcon className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">156</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               <p className="text-sm text-gray-500">Total Generations</p>
             </div>
           </div>
@@ -238,7 +328,7 @@ export default function CodegenPage() {
               <CheckCircleIcon className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">89%</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
               <p className="text-sm text-gray-500">Success Rate</p>
             </div>
           </div>
@@ -249,7 +339,7 @@ export default function CodegenPage() {
               <ClockIcon className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">11.2s</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.avgDuration}s</p>
               <p className="text-sm text-gray-500">Avg Generation</p>
             </div>
           </div>
@@ -260,7 +350,7 @@ export default function CodegenPage() {
               <SparklesIcon className="h-5 w-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">92%</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.avgScore}%</p>
               <p className="text-sm text-gray-500">Avg Quality Score</p>
             </div>
           </div>
@@ -271,87 +361,95 @@ export default function CodegenPage() {
       <div>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Templates</h2>
         <div className="grid gap-3 md:grid-cols-4">
-          {templates.map((template) => (
-            <button
-              key={template.id}
-              onClick={() => setSelectedTemplate(template.id)}
-              className={`rounded-lg border p-4 text-left transition-all hover:border-blue-300 hover:shadow-sm ${
-                selectedTemplate === template.id
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 bg-white"
-              }`}
-            >
-              <p className="font-medium text-gray-900">{template.name}</p>
-              <p className="mt-1 text-sm text-gray-500">{template.description}</p>
-            </button>
-          ))}
+          {templates && templates.length > 0 ? (
+            templates.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => setSelectedTemplate(template.id)}
+                className={`rounded-lg border p-4 text-left transition-all hover:border-blue-300 hover:shadow-sm ${
+                  selectedTemplate === template.id
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 bg-white"
+                }`}
+              >
+                <p className="font-medium text-gray-900">{template.name}</p>
+                <p className="mt-1 text-sm text-gray-500">{template.description}</p>
+              </button>
+            ))
+          ) : (
+            <p className="col-span-4 text-center text-gray-500 py-4">No templates available</p>
+          )}
         </div>
       </div>
 
       {/* Recent generations */}
       <div>
         <h2 className="mb-3 text-lg font-semibold text-gray-900">Recent Generations</h2>
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Generation
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Template
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Quality Gates
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Score
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {mockCodegenSessions.map((session) => (
-                <tr key={session.id} className="hover:bg-gray-50">
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{session.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {session.project} • {session.duration}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <p className="text-sm text-gray-900">{session.template}</p>
-                    <p className="text-xs text-gray-500">{session.provider}</p>
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <StatusBadge status={session.status} />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <GateProgress
-                      passed={session.gates_passed}
-                      total={session.gates_total}
-                    />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4">
-                    <QualityScore score={session.quality_score} />
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-right">
-                    <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
-                      <EyeIcon className="h-5 w-5" />
-                    </button>
-                  </td>
+        {sessions.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Generation
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Template
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Quality Gates
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Score
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {sessions.map((session) => (
+                  <tr key={session.id} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div>
+                        <p className="font-medium text-gray-900">{session.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {session.project} &bull; {session.duration}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <p className="text-sm text-gray-900">{session.template}</p>
+                      <p className="text-xs text-gray-500">{session.provider}</p>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <StatusBadge status={session.status} />
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <GateProgress
+                        passed={session.gates_passed}
+                        total={session.gates_total}
+                      />
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <QualityScore score={session.quality_score} />
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-right">
+                      <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                        <EyeIcon className="h-5 w-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* 4-Gate Pipeline visualization */}
@@ -380,6 +478,73 @@ export default function CodegenPage() {
           ))}
         </div>
       </div>
+
+      {/* New Generation Modal */}
+      {showNewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900">New Code Generation</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Template: {templates?.find(t => t.id === selectedTemplate)?.name || selectedTemplate}
+            </p>
+
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Generation Name
+                </label>
+                <input
+                  type="text"
+                  value={generationName}
+                  onChange={(e) => setGenerationName(e.target.value)}
+                  placeholder="e.g., UserAuthService"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Specification (optional)
+                </label>
+                <textarea
+                  value={generationSpec}
+                  onChange={(e) => setGenerationSpec(e.target.value)}
+                  placeholder="Describe what you want to generate..."
+                  rows={4}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowNewModal(false)}
+                disabled={createMutation.isPending}
+                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitGeneration}
+                disabled={createMutation.isPending}
+                className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {createMutation.isPending ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <SparklesIcon className="h-4 w-4" />
+                    Generate Code
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
