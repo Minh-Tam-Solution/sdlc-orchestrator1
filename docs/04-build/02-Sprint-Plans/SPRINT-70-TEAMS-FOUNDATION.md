@@ -7,6 +7,45 @@
 
 ---
 
+## 🎯 Why Teams is THE Core Feature
+
+> **"Built BY AI+Human Teams FOR AI+Human Teams"** - SDLC 5.1.2
+
+### SDLC Orchestrator = Nhạc Trưởng (Conductor)
+
+```
+Without Platform (Single Developer):
+  Human ──► AI Agent ──► SDLC Framework ──► Code
+  (Chỉ cần nhắc AI đọc SDLC-Enterprise-Framework là đủ)
+
+With Platform (Enterprise Teams):
+  ┌─────────────────────────────────────────────────┐
+  │            SDLC ORCHESTRATOR PLATFORM           │
+  │                                                 │
+  │  Team A ──┐                                     │
+  │           │      BriefingScript (Intent)        │
+  │  Team B ──┼────► MentorScript (Standards)       │
+  │           │      MRP/VCR (Evidence/Approval)    │
+  │  AI Agent─┘      Quality Gates (Governance)     │
+  │                                                 │
+  │  = COORDINATED GOVERNANCE + AUDIT TRAIL        │
+  └─────────────────────────────────────────────────┘
+```
+
+### Team Collaboration per SDLC 5.1.2
+
+| Concept | SDLC Framework | Orchestrator Implementation |
+|---------|----------------|----------------------------|
+| **SE4H** | Agent Coach (Human) | Team Owner/Admin roles |
+| **SE4A** | Agent Executor (AI) | TeamMember with "ai_agent" type |
+| **BriefingScript** | Intent specification | Project.briefs |
+| **MentorScript** | Standards/patterns | Team.settings.mentor_scripts |
+| **MRP** | Merge evidence | Gate.evidence |
+| **VCR** | Approval record | Gate.approvals |
+| **CRP** | Escalation | Gate.escalations |
+
+---
+
 ## 📋 Sprint Overview
 
 | Attribute | Value |

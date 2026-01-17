@@ -9,6 +9,55 @@
 
 ---
 
+## 🎯 Orchestrator Philosophy: Dual Workbench Support
+
+Per SDLC 5.1.2 Principle #6 "Dual Workbenches", the UI must support both:
+
+### Agent Coaching Environment (ACE) - For SE4H
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  ACE Dashboard (Team Owner/Admin View)                     │
+├─────────────────────────────────────────────────────────────┤
+│  📋 BriefingScript Editor    │  📊 Team Performance        │
+│  ├─ Task Queue               │  ├─ Sprint Burndown         │
+│  ├─ Agent Assignment         │  ├─ MRP Approval Rate       │
+│  └─ Priority Matrix          │  └─ CRP Statistics          │
+│─────────────────────────────────────────────────────────────│
+│  📝 MentorScript Manager     │  ✅ VCR Approval Queue      │
+│  ├─ Standards Library        │  ├─ Pending MRPs            │
+│  └─ Prompt Templates         │  └─ Review History          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Agent Execution Environment (AEE) - For SE4A
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  AEE Dashboard (Agent/Member View)                         │
+├─────────────────────────────────────────────────────────────┤
+│  📖 Current BriefingScript   │  📤 MRP Submission          │
+│  ├─ Assigned Tasks           │  ├─ Evidence Upload         │
+│  ├─ Acceptance Criteria      │  ├─ Test Results            │
+│  └─ MentorScript Reference   │  └─ Self-Assessment         │
+│─────────────────────────────────────────────────────────────│
+│  🤔 CRP Console              │  📊 My Progress             │
+│  ├─ Request Guidance         │  ├─ Tasks Completed         │
+│  └─ Consultation History     │  └─ MRP Approval Rate       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### UI Component Mapping
+
+| Component | ACE (SE4H) | AEE (SE4A) |
+|-----------|------------|------------|
+| Team Dashboard | Full stats + settings | Limited to assigned tasks |
+| Member List | Edit/remove members | View only |
+| Settings Page | Full access | Read-only |
+| Activity Feed | All team activity | Personal activity only |
+
+---
+
 ## 📋 Sprint Overview
 
 | Attribute | Value |

@@ -9,6 +9,43 @@
 
 ---
 
+## 🎯 Orchestrator Philosophy: SE4H + SE4A Roles
+
+Per SDLC 5.1.2 Agentic Core Principles, Teams API must support:
+
+### Team Roles → SASE Mapping
+
+| Team Role | SASE Role | Permissions | Use Case |
+|-----------|-----------|-------------|----------|
+| **owner** | SE4H (Agent Coach) | Full control, VCR authority | Define BriefingScript, approve MRP |
+| **admin** | SE4H (Agent Coach) | Manage members, update settings | MentorScript maintenance |
+| **member** | SE4A (Agent Executor) or SE4H | Execute tasks, create MRP | Implementation work |
+| **ai_agent** | SE4A (Agent Executor) | Read-only BRS, create MRP/CRP | Autonomous execution |
+
+### Team Settings → SASE Artifacts
+
+```yaml
+Team.settings:
+  mentor_scripts:          # MentorScript references
+    - /docs/02-design/MTS-001-Backend-Standards.yaml
+  briefing_templates:      # BriefingScript templates
+    - /docs/01-planning/BRS-Template.yaml
+  agentic_maturity: L1     # L0-L3 per SDLC 5.1.2
+  crp_threshold: 0.7       # CRP required if confidence < 70%
+  auto_approve_mrp: false  # Human VCR required
+```
+
+### API Design Alignment with SASE
+
+| Endpoint | SASE Discipline | Purpose |
+|----------|-----------------|---------|
+| `POST /teams` | BriefingEng | Create team with initial brief |
+| `POST /teams/{id}/members` | ATIE | Add human or AI agent |
+| `GET /teams/{id}/statistics` | ATME | Monitor team performance |
+| `PATCH /teams/{id}/settings` | AGE | Governance configuration |
+
+---
+
 ## 📋 Sprint Overview
 
 | Attribute | Value |
