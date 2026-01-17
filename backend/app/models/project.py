@@ -100,6 +100,15 @@ class Project(Base):
         index=True,
     )
 
+    # Team (Sprint 70 - Teams Foundation)
+    team_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("teams.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="Parent team (NULL during migration or for standalone projects)"
+    )
+
     # Project Status
     is_active = Column(Boolean, default=True, nullable=False, index=True)
 
@@ -118,6 +127,7 @@ class Project(Base):
 
     # Relationships
     owner = relationship("User", back_populates="owned_projects", foreign_keys=[owner_id])
+    team = relationship("Team", back_populates="projects")  # Sprint 70 - Teams Foundation
     members = relationship(
         "ProjectMember", back_populates="project", cascade="all, delete-orphan"
     )

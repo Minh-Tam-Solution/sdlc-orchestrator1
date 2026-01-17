@@ -31,6 +31,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
 
+# Import UserRole enum from auth schemas
+from app.schemas.auth import UserRole
+
 
 # =========================================================================
 # Dashboard Statistics Schemas
@@ -77,7 +80,7 @@ class AdminUserListItem(BaseModel):
         {
             "id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "nguyen.van.anh@mtc.com.vn",
-            "name": "Nguyễn Văn Anh",
+            "full_name": "Nguyễn Văn Anh",
             "is_active": true,
             "is_superuser": false,
             "created_at": "2025-10-01T08:00:00Z",
@@ -87,7 +90,8 @@ class AdminUserListItem(BaseModel):
 
     id: UUID = Field(..., description="User UUID")
     email: EmailStr = Field(..., description="User email")
-    name: Optional[str] = Field(None, description="User full name")
+    full_name: Optional[str] = Field(None, description="User full name")  # BUG #2 Fix
+    role: UserRole = Field(UserRole.DEV, description="User role")  # BUG #8 Fix
     is_active: bool = Field(..., description="Active status")
     is_superuser: bool = Field(..., description="Superuser status")
     created_at: datetime = Field(..., description="Account creation timestamp")
@@ -105,7 +109,7 @@ class AdminUserDetail(BaseModel):
         {
             "id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "nguyen.van.anh@mtc.com.vn",
-            "name": "Nguyễn Văn Anh",
+            "full_name": "Nguyễn Văn Anh",
             "avatar_url": "https://avatars.githubusercontent.com/...",
             "is_active": true,
             "is_superuser": false,
@@ -120,7 +124,8 @@ class AdminUserDetail(BaseModel):
 
     id: UUID = Field(..., description="User UUID")
     email: EmailStr = Field(..., description="User email")
-    name: Optional[str] = Field(None, description="User full name")
+    full_name: Optional[str] = Field(None, description="User full name")  # BUG #2 Fix
+    role: UserRole = Field(UserRole.DEV, description="User role")  # BUG #8 Fix
     avatar_url: Optional[str] = Field(None, description="Avatar URL")
     is_active: bool = Field(..., description="Active status")
     is_superuser: bool = Field(..., description="Superuser status")
@@ -143,7 +148,7 @@ class AdminUserCreate(BaseModel):
         {
             "email": "newuser@example.com",
             "password": "SecurePassword123!",
-            "name": "New User",
+            "full_name": "New User",
             "is_active": true,
             "is_superuser": false
         }
@@ -159,7 +164,8 @@ class AdminUserCreate(BaseModel):
 
     email: EmailStr = Field(..., description="User email (must be unique)")
     password: str = Field(..., min_length=12, description="Password (min 12 characters)")
-    name: Optional[str] = Field(None, max_length=255, description="User full name")
+    full_name: Optional[str] = Field(None, max_length=255, description="User full name")  # BUG #2 Fix
+    role: UserRole = Field(UserRole.DEV, description="User role (default: dev)")  # BUG #8 Fix
     is_active: bool = Field(default=True, description="Active status (default: true)")
     is_superuser: bool = Field(default=False, description="Superuser status (default: false)")
 
@@ -170,7 +176,7 @@ class AdminUserUpdate(BaseModel):
 
     Request Body:
         {
-            "name": "Updated Name",
+            "full_name": "Updated Name",
             "is_active": true,
             "is_superuser": false
         }
@@ -180,7 +186,8 @@ class AdminUserUpdate(BaseModel):
         - System must have at least one superuser
     """
 
-    name: Optional[str] = Field(None, max_length=255, description="User full name")
+    full_name: Optional[str] = Field(None, max_length=255, description="User full name")  # BUG #2 Fix
+    role: Optional[UserRole] = Field(None, description="User role")  # BUG #8 Fix
     is_active: Optional[bool] = Field(None, description="Active status")
     is_superuser: Optional[bool] = Field(None, description="Superuser status")
 
@@ -192,7 +199,7 @@ class AdminUserUpdateFull(BaseModel):
     Request Body:
         {
             "email": "updated@example.com",
-            "name": "Updated Name",
+            "full_name": "Updated Name",
             "is_active": true,
             "is_superuser": false,
             "new_password": "NewSecurePassword123!"
@@ -209,7 +216,8 @@ class AdminUserUpdateFull(BaseModel):
     """
 
     email: Optional[EmailStr] = Field(None, description="User email (must be unique)")
-    name: Optional[str] = Field(None, max_length=255, description="User full name")
+    full_name: Optional[str] = Field(None, max_length=255, description="User full name")  # BUG #2 Fix
+    role: Optional[UserRole] = Field(None, description="User role")  # BUG #8 Fix
     is_active: Optional[bool] = Field(None, description="Active status")
     is_superuser: Optional[bool] = Field(None, description="Superuser status")
     new_password: Optional[str] = Field(None, min_length=12, description="New password (min 12 chars, optional)")

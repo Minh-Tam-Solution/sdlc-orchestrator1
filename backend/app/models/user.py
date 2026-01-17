@@ -53,10 +53,12 @@ class User(Base):
 
     Fields:
         - id: UUID primary key
+        - organization_id: Parent organization (Sprint 70)
         - email: Unique email address (lowercase, validated)
         - password_hash: bcrypt hash (cost=12, 72-byte output)
-        - name: Full name (optional, from OAuth providers)
+        - full_name: Full name (optional, from OAuth providers) [BUG #2 Fix]
         - avatar_url: Profile picture URL (optional, from OAuth)
+        - role: User role (ceo, cto, pm, dev, qa, etc.) [BUG #8 Fix]
         - is_active: Account status (True by default, False = suspended)
         - is_superuser: Admin flag (CTO, CEO only)
         - mfa_enabled: MFA enrollment status
@@ -94,13 +96,30 @@ class User(Base):
     # Primary Key
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
 
+    # Organization (Sprint 70 - Teams Foundation)
+    organization_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        comment="Parent organization (NULL during migration or for unassigned users)"
+    )
+
     # Authentication
     email = Column(String(255), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=True)  # Nullable for OAuth-only users
 
     # Profile
-    name = Column(String(255), nullable=True)
+    full_name = Column(String(255), nullable=True)  # BUG #2 Fix: Renamed from 'name'
     avatar_url = Column(String(512), nullable=True)
+    role = Column(
+        String(50),
+        nullable=False,
+        default="dev",
+        server_default="dev",
+        index=True,
+        comment="User role: ceo, cto, cpo, cio, cfo, em, tl, pm, dev, qa, devops, security, ba, designer"
+    )  # BUG #8 Fix: Added role column
 
     # Account Status
     is_active = Column(Boolean, default=True, nullable=False, index=True)
@@ -155,6 +174,10 @@ class User(Base):
     oauth_accounts = relationship("OAuthAccount", back_populates="user", cascade="all, delete-orphan")
     api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+
+    # Organization & Team Relationships (Sprint 70 - Teams Foundation)
+    organization = relationship("Organization", back_populates="users")
+    team_memberships = relationship("TeamMember", back_populates="user", cascade="all, delete-orphan")
 
     # Project Relationships
     owned_projects = relationship("Project", back_populates="owner", foreign_keys="[Project.owner_id]")

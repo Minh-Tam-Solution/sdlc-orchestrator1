@@ -26,10 +26,57 @@ Zero Mock Policy: Production-ready Pydantic models
 """
 
 from datetime import datetime
+from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
+
+
+# =========================================================================
+# Enums (BUG #8 Fix: User Role)
+# =========================================================================
+
+
+class UserRole(str, Enum):
+    """
+    User role enumeration for RBAC.
+
+    SDLC Orchestrator Roles (14 total):
+        C-Suite (5 roles):
+            - CEO: Chief Executive Officer (all permissions)
+            - CTO: Chief Technology Officer (technical decisions)
+            - CPO: Chief Product Officer (product strategy)
+            - CIO: Chief Information Officer (IT infrastructure)
+            - CFO: Chief Financial Officer (budget approval)
+
+        Engineering (6 roles):
+            - EM: Engineering Manager (team oversight)
+            - TL: Tech Lead (architecture decisions)
+            - DEV: Developer (code implementation)
+            - QA: QA Engineer (testing, quality gates)
+            - DEVOPS: DevOps Engineer (deployment, infrastructure)
+            - SECURITY: Security Engineer (security review)
+
+        Product & Business (3 roles):
+            - PM: Product Manager (requirements, roadmap)
+            - BA: Business Analyst (data analysis)
+            - DESIGNER: UI/UX Designer (design artifacts)
+    """
+    CEO = "ceo"
+    CTO = "cto"
+    CPO = "cpo"
+    CIO = "cio"
+    CFO = "cfo"
+    EM = "em"
+    TL = "tl"
+    PM = "pm"
+    DEV = "dev"
+    QA = "qa"
+    DEVOPS = "devops"
+    SECURITY = "security"
+    BA = "ba"
+    DESIGNER = "designer"
 
 
 # =========================================================================
@@ -71,6 +118,10 @@ class RegisterRequest(BaseModel):
         max_length=100,
         description="User full name (optional)"
     )
+    role: UserRole = Field(
+        UserRole.DEV,
+        description="User role (default: dev)"
+    )  # BUG #8 Fix
 
 
 class RegisterResponse(BaseModel):
@@ -81,7 +132,8 @@ class RegisterResponse(BaseModel):
         {
             "id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "user@example.com",
-            "name": "Nguyễn Văn A",
+            "full_name": "Nguyễn Văn A",
+            "role": "dev",
             "is_active": true,
             "created_at": "2025-12-27T10:30:00Z",
             "message": "Registration successful. You can now login."
@@ -90,7 +142,8 @@ class RegisterResponse(BaseModel):
 
     id: UUID = Field(..., description="User UUID")
     email: EmailStr = Field(..., description="User email address")
-    name: Optional[str] = Field(None, description="User full name")
+    full_name: Optional[str] = Field(None, description="User full name")  # BUG #2 Fix
+    role: UserRole = Field(..., description="User role")  # BUG #8 Fix
     is_active: bool = Field(..., description="User active status")
     created_at: datetime = Field(..., description="Account creation timestamp")
     message: str = Field(

@@ -94,6 +94,11 @@ from app.models.sast_scan import SASTScan, SASTFinding
 # Council Sessions (Sprint 69) - 1 model
 from app.models.council_session import CouncilSession
 
+# Teams Foundation (Sprint 70) - 3 models
+from app.models.organization import Organization
+from app.models.team import Team
+from app.models.team_member import TeamMember
+
 __all__ = [
     # Base
     "Base",
@@ -171,4 +176,8 @@ __all__ = [
     "SASTFinding",
     # Council Sessions (1)
     "CouncilSession",
+    # Teams Foundation (3)
+    "Organization",
+    "Team",
+    "TeamMember",
 ]
