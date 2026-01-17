@@ -34,6 +34,7 @@ from app.services.cache_service import (
     PROJECTS_CACHE,
 )
 from app.services.settings_service import SettingsService
+from app.services.gate_auto_creation_service import create_default_gates
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -45,6 +46,11 @@ class ProjectCreate(BaseModel):
     policy_pack: Optional[str] = Field(
         "standard",
         description="Governance tier: lite, standard, professional, enterprise"
+    )
+    team_id: Optional[str] = Field(None, description="Team ID to assign project to (Sprint 73)")
+    skip_auto_creation: bool = Field(
+        False,
+        description="Skip auto-creation of default gates (BUG #7 fix - Sprint 73)"
     )
     github_repo_id: Optional[int] = Field(None, description="GitHub repository ID if importing from GitHub")
     github_repo_full_name: Optional[str] = Field(None, description="GitHub repository full name (owner/repo)")
@@ -176,13 +182,14 @@ async def create_project(
         slug = f"{base_slug}-{counter}"
         counter += 1
 
-    # Create project with optional GitHub fields
+    # Create project with optional GitHub fields and team assignment (Sprint 73)
     project = Project(
         name=data.name,
         slug=slug,
         description=data.description,
         owner_id=current_user.id,
         is_active=True,
+        team_id=UUID(data.team_id) if data.team_id else None,  # Sprint 73 - Teams Integration
         github_repo_id=data.github_repo_id,
         github_repo_full_name=data.github_repo_full_name,
         github_sync_status="synced" if data.github_repo_id else None,
@@ -214,6 +221,17 @@ async def create_project(
         joined_at=datetime.utcnow(),
     )
     db.add(member)
+
+    # BUG #7 Fix (Sprint 73): Auto-create default gates for new project
+    # Create 5 default gates: Planning, Design, Code Review, Test, Deploy
+    auto_created_gates = await create_default_gates(
+        db=db,
+        project_id=project.id,
+        created_by=current_user.id,
+        skip_auto_creation=data.skip_auto_creation,
+        team_id=project.team_id,
+    )
+
     await db.commit()
     await db.refresh(project)
 
@@ -228,6 +246,8 @@ async def create_project(
         "owner_id": str(project.owner_id),
         "is_active": project.is_active,
         "policy_pack": tier,
+        "team_id": str(project.team_id) if project.team_id else None,  # Sprint 73
+        "gates_created": len(auto_created_gates),  # BUG #7 fix - Sprint 73
         "github_repo_id": project.github_repo_id,
         "github_repo_full_name": project.github_repo_full_name,
         "created_at": project.created_at.isoformat() if project.created_at else None,
