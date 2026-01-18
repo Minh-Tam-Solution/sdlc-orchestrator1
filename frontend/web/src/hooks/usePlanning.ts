@@ -201,6 +201,101 @@ export interface PaginatedResponse<T> {
 }
 
 // ============================================================================
+// Sprint 77 Analytics Types
+// ============================================================================
+
+/** Burndown data point */
+export interface BurndownDataPoint {
+  date: string;
+  ideal_remaining: number;
+  actual_remaining: number | null;
+  completed_points: number;
+}
+
+/** Sprint burndown response */
+export interface SprintBurndown {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  total_points: number;
+  completed_points: number;
+  remaining_points: number;
+  data_points: BurndownDataPoint[];
+}
+
+/** Forecast risk */
+export interface ForecastRisk {
+  risk_type: string;
+  severity: "low" | "medium" | "high" | "critical";
+  message: string;
+  recommendation: string;
+}
+
+/** Sprint forecast response */
+export interface SprintForecast {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  probability: number;
+  predicted_end_date: string | null;
+  on_track: boolean;
+  remaining_points: number;
+  total_points: number;
+  completed_points: number;
+  current_burn_rate: number;
+  required_burn_rate: number;
+  days_elapsed: number;
+  days_remaining: number;
+  risks: ForecastRisk[];
+  recommendations: string[];
+}
+
+/** Retrospective insight */
+export interface RetroInsight {
+  category: string;
+  insight_type: string;
+  title: string;
+  description: string;
+  impact: "low" | "medium" | "high";
+}
+
+/** Retrospective action item */
+export interface RetroAction {
+  id: string;
+  description: string;
+  owner: string | null;
+  due_date: string | null;
+  status: "pending" | "in_progress" | "done";
+  priority: "low" | "medium" | "high";
+}
+
+/** Retrospective metrics */
+export interface RetroMetrics {
+  committed_points: number;
+  completed_points: number;
+  completion_rate: number;
+  p0_total: number;
+  p0_completed: number;
+  p0_completion_rate: number;
+  items_added_mid_sprint: number;
+  blocked_items: number;
+  velocity_trend: "improving" | "stable" | "declining";
+}
+
+/** Sprint retrospective response */
+export interface SprintRetrospective {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  generated_at: string;
+  metrics: RetroMetrics;
+  went_well: RetroInsight[];
+  needs_improvement: RetroInsight[];
+  action_items: RetroAction[];
+  summary: string;
+}
+
+// ============================================================================
 // Query Keys
 // ============================================================================
 
@@ -230,6 +325,12 @@ export const planningKeys = {
     [...planningKeys.sprintDetail(id), "statistics"] as const,
   sprintGates: (id: string) =>
     [...planningKeys.sprintDetail(id), "gates"] as const,
+  sprintBurndown: (id: string) =>
+    [...planningKeys.sprintDetail(id), "burndown"] as const,
+  sprintForecast: (id: string) =>
+    [...planningKeys.sprintDetail(id), "forecast"] as const,
+  sprintRetrospective: (id: string) =>
+    [...planningKeys.sprintDetail(id), "retrospective"] as const,
 
   // Backlog
   backlog: () => [...planningKeys.all, "backlog"] as const,
@@ -594,6 +695,78 @@ export function useDeleteSprint() {
         variant: "destructive",
       });
     },
+  });
+}
+
+// ============================================================================
+// React Query Hooks - Sprint Analytics (Sprint 77)
+// ============================================================================
+
+/** Fetch sprint burndown data */
+async function fetchSprintBurndown(sprintId: string): Promise<SprintBurndown> {
+  const response = await apiClient.get<SprintBurndown>(
+    `/planning/sprints/${sprintId}/burndown`
+  );
+  return response.data;
+}
+
+/** Fetch sprint forecast data */
+async function fetchSprintForecast(sprintId: string): Promise<SprintForecast> {
+  const response = await apiClient.get<SprintForecast>(
+    `/planning/sprints/${sprintId}/forecast`
+  );
+  return response.data;
+}
+
+/** Fetch sprint retrospective data */
+async function fetchSprintRetrospective(
+  sprintId: string
+): Promise<SprintRetrospective> {
+  const response = await apiClient.get<SprintRetrospective>(
+    `/planning/sprints/${sprintId}/retrospective`
+  );
+  return response.data;
+}
+
+/**
+ * Hook to fetch sprint burndown chart data
+ * Sprint 77 Day 2 - Burndown Charts
+ */
+export function useSprintBurndown(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintBurndown(sprintId || ""),
+    queryFn: () => fetchSprintBurndown(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint forecast data
+ * Sprint 77 Day 3 - Sprint Forecasting
+ */
+export function useSprintForecast(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintForecast(sprintId || ""),
+    queryFn: () => fetchSprintForecast(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 2 * 60 * 1000, // 2 minutes (more dynamic)
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint retrospective data
+ * Sprint 77 Day 4 - Retrospective Automation
+ */
+export function useSprintRetrospective(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintRetrospective(sprintId || ""),
+    queryFn: () => fetchSprintRetrospective(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 10 * 60 * 1000, // 10 minutes (less dynamic)
+    gcTime: 60 * 60 * 1000, // 1 hour
   });
 }
 

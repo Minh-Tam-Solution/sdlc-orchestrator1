@@ -27,7 +27,7 @@ Zero Mock Policy: 100% real implementation
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -418,3 +418,346 @@ class CouncilConfig(BaseModel):
         default=True,
         description="Fall back to single mode if council times out",
     )
+
+
+# ============================================================================
+# Sprint 77: AI Council Sprint Context Integration
+# ============================================================================
+
+
+class TeamMemberContext(BaseModel):
+    """
+    Team member context for AI Council decisions.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+    """
+
+    user_id: UUID = Field(..., description="Team member UUID")
+    full_name: str = Field(..., description="Team member full name")
+    role: str = Field(
+        default="developer",
+        description="Role: developer, tech_lead, pm, qa"
+    )
+    availability: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="Availability factor (0-1, 1=fully available)"
+    )
+    expertise: list[str] = Field(
+        default_factory=list,
+        description="Expertise areas (e.g., frontend, backend, security)"
+    )
+    workload_items: int = Field(
+        default=0,
+        ge=0,
+        description="Number of assigned backlog items"
+    )
+
+
+class BacklogSummary(BaseModel):
+    """
+    Summary of sprint backlog for AI Council decisions.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+    """
+
+    total_items: int = Field(
+        default=0,
+        ge=0,
+        description="Total number of backlog items in sprint"
+    )
+    completed_items: int = Field(
+        default=0,
+        ge=0,
+        description="Number of completed items"
+    )
+    blocked_items: int = Field(
+        default=0,
+        ge=0,
+        description="Number of blocked items"
+    )
+    in_progress_items: int = Field(
+        default=0,
+        ge=0,
+        description="Number of items in progress"
+    )
+    p0_count: int = Field(
+        default=0,
+        ge=0,
+        description="Total P0 (critical) items"
+    )
+    p0_completed: int = Field(
+        default=0,
+        ge=0,
+        description="Completed P0 items"
+    )
+    p1_count: int = Field(
+        default=0,
+        ge=0,
+        description="Total P1 (high) items"
+    )
+    p1_completed: int = Field(
+        default=0,
+        ge=0,
+        description="Completed P1 items"
+    )
+    total_points: int = Field(
+        default=0,
+        ge=0,
+        description="Total story points in sprint"
+    )
+    completed_points: int = Field(
+        default=0,
+        ge=0,
+        description="Completed story points"
+    )
+
+
+class VelocityContext(BaseModel):
+    """
+    Velocity context for AI Council decisions.
+
+    Sprint 77 Day 1: Velocity metrics from historical sprints
+    """
+
+    average: float = Field(
+        default=0.0,
+        ge=0.0,
+        description="Average velocity in story points"
+    )
+    trend: str = Field(
+        default="unknown",
+        description="Trend: increasing, decreasing, stable, unknown"
+    )
+    confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence score based on data availability"
+    )
+    sprint_count: int = Field(
+        default=0,
+        ge=0,
+        description="Number of sprints analyzed for velocity"
+    )
+
+
+class SprintHealthContext(BaseModel):
+    """
+    Sprint health context for AI Council decisions.
+
+    Sprint 77 Day 1: Health indicators for current sprint
+    """
+
+    completion_rate: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Completion percentage (0-100)"
+    )
+    risk_level: str = Field(
+        default="low",
+        description="Risk level: low, medium, high, critical"
+    )
+    days_remaining: int = Field(
+        default=0,
+        ge=0,
+        description="Days until sprint end"
+    )
+    days_elapsed: int = Field(
+        default=0,
+        ge=0,
+        description="Days since sprint start"
+    )
+    expected_completion: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Expected completion based on time elapsed"
+    )
+    on_track: bool = Field(
+        default=True,
+        description="True if sprint is on track"
+    )
+
+
+class CouncilSprintContext(BaseModel):
+    """
+    Sprint context for AI Council decisions.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+
+    This context enables Council to:
+    - Consider sprint velocity when estimating review time
+    - Assign reviewers based on team expertise
+    - Prioritize decisions based on sprint health
+    - Account for blocked items and risk levels
+    """
+
+    sprint_id: UUID = Field(..., description="Sprint UUID")
+    sprint_number: int = Field(..., ge=1, description="Sprint number (immutable)")
+    sprint_name: str = Field(..., description="Sprint name")
+    sprint_goal: str = Field(..., description="Sprint goal/objective")
+    sprint_status: str = Field(
+        default="active",
+        description="Sprint status: planning, active, completed"
+    )
+    team_members: list[TeamMemberContext] = Field(
+        default_factory=list,
+        description="Team members with availability/expertise"
+    )
+    velocity: VelocityContext = Field(
+        default_factory=VelocityContext,
+        description="Velocity metrics from historical sprints"
+    )
+    health: SprintHealthContext = Field(
+        default_factory=SprintHealthContext,
+        description="Current sprint health indicators"
+    )
+    backlog_summary: BacklogSummary = Field(
+        default_factory=BacklogSummary,
+        description="Summary of sprint backlog"
+    )
+    g_sprint_passed: bool = Field(
+        default=False,
+        description="G-Sprint gate passed (SDLC 5.1.3)"
+    )
+    documentation_overdue: bool = Field(
+        default=False,
+        description="Documentation deadline exceeded (Rule #2)"
+    )
+
+
+class CouncilDecisionType(str, Enum):
+    """Types of decisions AI Council can make."""
+
+    CODE_REVIEW = "code_review"       # Review code changes
+    ARCHITECTURE = "architecture"      # Architecture decisions
+    SECURITY = "security"             # Security review
+    PRIORITIZATION = "prioritization"  # Backlog prioritization
+    ESTIMATION = "estimation"          # Story point estimation
+    BLOCKER = "blocker"               # Blocker resolution
+
+
+class CouncilDecisionRequest(BaseModel):
+    """
+    Council decision request with sprint context.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+
+    This request enables Council to:
+    - Consider sprint context in decisions
+    - Adjust urgency based on sprint health
+    - Recommend reviewers based on team expertise
+    """
+
+    decision_type: CouncilDecisionType = Field(
+        ...,
+        description="Type of decision requested"
+    )
+    resource_id: UUID = Field(
+        ...,
+        description="Resource UUID (backlog item, PR, etc.)"
+    )
+    resource_type: str = Field(
+        ...,
+        description="Resource type: backlog_item, pull_request, violation"
+    )
+    requester_id: UUID = Field(
+        ...,
+        description="User requesting the decision"
+    )
+    description: str = Field(
+        ...,
+        min_length=10,
+        max_length=2000,
+        description="Description of what needs to be decided"
+    )
+    sprint_context: Optional[CouncilSprintContext] = Field(
+        default=None,
+        description="Sprint context for informed decisions"
+    )
+    urgency: str = Field(
+        default="normal",
+        description="Urgency: low, normal, high, critical"
+    )
+    timeout_seconds: int = Field(
+        default=30,
+        ge=5,
+        le=120,
+        description="Maximum time for council deliberation"
+    )
+
+
+class CouncilDecision(BaseModel):
+    """
+    Council decision response with sprint-aware recommendations.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+    """
+
+    decision_id: UUID = Field(
+        default_factory=lambda: uuid4() if uuid4 else None,
+        description="Unique decision identifier"
+    )
+    request_id: UUID = Field(..., description="Original request UUID")
+    decision_type: CouncilDecisionType = Field(..., description="Type of decision")
+    recommendation: str = Field(..., description="Council recommendation")
+    confidence: int = Field(
+        ...,
+        ge=0,
+        le=100,
+        description="Confidence score (0-100)"
+    )
+    reasoning: str = Field(..., description="Council reasoning")
+    suggested_assignee: Optional[UUID] = Field(
+        default=None,
+        description="Suggested team member for action"
+    )
+    urgency_adjusted: str = Field(
+        default="normal",
+        description="Adjusted urgency based on sprint context"
+    )
+    sprint_impact: Optional[str] = Field(
+        default=None,
+        description="Impact assessment on sprint goal"
+    )
+    action_items: list[str] = Field(
+        default_factory=list,
+        description="Concrete action items"
+    )
+    providers_used: list[str] = Field(
+        default_factory=list,
+        description="AI providers that contributed"
+    )
+    total_duration_ms: float = Field(..., description="Decision duration in ms")
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow,
+        description="Decision timestamp"
+    )
+    sprint_id: Optional[UUID] = Field(
+        default=None,
+        description="Sprint ID for traceability"
+    )
+
+
+class CouncilDecisionLog(BaseModel):
+    """
+    Council decision audit log entry.
+
+    Sprint 77 Day 1: Decision logging with sprint reference
+    """
+
+    id: UUID = Field(..., description="Log entry UUID")
+    decision_id: UUID = Field(..., description="Decision UUID")
+    sprint_id: Optional[UUID] = Field(None, description="Sprint UUID")
+    project_id: UUID = Field(..., description="Project UUID")
+    decision_type: str = Field(..., description="Decision type")
+    recommendation_summary: str = Field(..., description="Summary of recommendation")
+    confidence: int = Field(..., description="Confidence score")
+    urgency: str = Field(..., description="Decision urgency")
+    providers_used: list[str] = Field(default_factory=list)
+    total_duration_ms: float = Field(..., description="Decision duration")
+    requester_id: UUID = Field(..., description="Requester UUID")
+    created_at: datetime = Field(..., description="Log timestamp")

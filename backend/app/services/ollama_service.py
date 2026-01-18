@@ -684,6 +684,73 @@ Format your response as actionable steps, not a general explanation."""
         }
 
     # ============================================================================
+    # Sprint 77: Custom Prompt Generation
+    # ============================================================================
+
+    def generate_from_prompt(
+        self,
+        prompt: str,
+        model: Optional[str] = None,
+        temperature: float = 0.3,
+        max_tokens: int = 1500,
+    ) -> dict[str, Any]:
+        """
+        Generate AI response from a custom prompt.
+
+        Sprint 77 Day 1: AI Council Sprint Context Integration
+
+        Args:
+            prompt: Custom prompt to send to AI
+            model: Model to use (default: self.model)
+            temperature: Sampling temperature (default: 0.3 for focused output)
+            max_tokens: Maximum tokens to generate
+
+        Returns:
+            Response result:
+            {
+                "recommendation": str,  # AI-generated response
+                "confidence": int,  # Confidence score (0-100)
+                "model": str,  # Model used
+                "duration_ms": float,  # Inference time
+                "tokens": int  # Tokens generated
+            }
+
+        Example:
+            result = ollama.generate_from_prompt(
+                prompt="Review this code for security issues...",
+            )
+            print(f"Response: {result['recommendation']}")
+        """
+        try:
+            response = self.generate(
+                prompt=prompt,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+
+            # Calculate confidence
+            confidence = self._calculate_confidence(response)
+
+            return {
+                "recommendation": response.response.strip(),
+                "confidence": confidence,
+                "model": response.model,
+                "duration_ms": response.total_duration_ms,
+                "tokens": response.eval_count,
+            }
+
+        except OllamaError as e:
+            logger.error(f"Failed to generate from prompt: {e}")
+            return {
+                "recommendation": "Unable to generate AI response. Please review manually.",
+                "confidence": 20,
+                "model": "fallback",
+                "duration_ms": 0.0,
+                "tokens": 0,
+            }
+
+    # ============================================================================
     # Batch Recommendation Generation
     # ============================================================================
 

@@ -552,6 +552,251 @@ Guidelines:
         return prompt
 
     # ============================================================================
+    # Sprint 77: Custom Prompt Recommendations
+    # ============================================================================
+
+    async def generate_recommendation_from_prompt(
+        self,
+        prompt: str,
+        user_id: Optional[UUID] = None,
+        force_provider: Optional[AIProviderType] = None,
+    ) -> AIRecommendationResult:
+        """
+        Generate AI recommendation from a custom prompt.
+
+        Sprint 77 Day 1: AI Council Sprint Context Integration
+
+        Uses fallback chain: Ollama → Claude → GPT-4 → Rule-based
+
+        Args:
+            prompt: Custom prompt to send to AI
+            user_id: User requesting recommendation
+            force_provider: Force specific provider (bypasses fallback)
+
+        Returns:
+            AIRecommendationResult with recommendation details
+
+        Example:
+            result = await service.generate_recommendation_from_prompt(
+                prompt="Review the following code for security issues...",
+                user_id=current_user.id
+            )
+        """
+        start_time = time.time()
+        fallback_used = False
+        fallback_reason = None
+
+        # Fallback chain
+        providers = [
+            (AIProviderType.OLLAMA, "Primary provider"),
+            (AIProviderType.CLAUDE, "Fallback 1"),
+            (AIProviderType.GPT4, "Fallback 2"),
+            (AIProviderType.RULE_BASED, "Final fallback"),
+        ]
+
+        if force_provider:
+            providers = [(force_provider, "Forced provider")]
+
+        for provider, description_text in providers:
+            try:
+                # Check if provider is available
+                if provider == AIProviderType.OLLAMA:
+                    if not self.ollama.is_available:
+                        fallback_reason = "Ollama not available"
+                        fallback_used = True
+                        continue
+
+                elif provider == AIProviderType.CLAUDE:
+                    if not settings.ANTHROPIC_API_KEY:
+                        fallback_reason = "Anthropic API key not configured"
+                        fallback_used = True
+                        continue
+
+                elif provider == AIProviderType.GPT4:
+                    if not settings.OPENAI_API_KEY:
+                        fallback_reason = "OpenAI API key not configured"
+                        fallback_used = True
+                        continue
+
+                # Generate recommendation
+                result = await self._generate_from_prompt_with_provider(
+                    provider=provider,
+                    prompt=prompt,
+                )
+
+                # Update fallback status
+                result.fallback_used = fallback_used
+                result.fallback_reason = fallback_reason
+
+                # Log request
+                await self._log_request(
+                    provider=provider,
+                    user_id=user_id,
+                    gate_id=None,
+                    request_type="CUSTOM_PROMPT_RECOMMENDATION",
+                    prompt=prompt[:500],  # Truncate for logging
+                    response=result.recommendation[:500],
+                    tokens_in=0,
+                    tokens_out=result.tokens_used,
+                    cost=result.cost_usd,
+                    duration_ms=result.duration_ms,
+                    status="SUCCESS",
+                )
+
+                return result
+
+            except Exception as e:
+                logger.warning(f"{description_text} ({provider}) failed: {e}")
+                fallback_reason = str(e)
+                fallback_used = True
+                continue
+
+        # Rule-based fallback
+        elapsed_ms = (time.time() - start_time) * 1000
+        return AIRecommendationResult(
+            recommendation="Unable to generate AI recommendation. Please review manually.",
+            provider="rule_based",
+            model="fallback",
+            confidence=20,
+            duration_ms=elapsed_ms,
+            tokens_used=0,
+            cost_usd=0.0,
+            fallback_used=True,
+            fallback_reason=fallback_reason,
+        )
+
+    async def _generate_from_prompt_with_provider(
+        self,
+        provider: AIProviderType,
+        prompt: str,
+    ) -> AIRecommendationResult:
+        """Generate recommendation from custom prompt using specific provider."""
+        start_time = time.time()
+
+        if provider == AIProviderType.OLLAMA:
+            result = self.ollama.generate_from_prompt(prompt)
+            return AIRecommendationResult(
+                recommendation=result["recommendation"],
+                provider=AIProviderType.OLLAMA.value,
+                model=result["model"],
+                confidence=result.get("confidence", 70),
+                duration_ms=result["duration_ms"],
+                tokens_used=result.get("tokens", 0),
+                cost_usd=0.0,
+                fallback_used=False,
+            )
+
+        elif provider == AIProviderType.CLAUDE:
+            return await self._generate_from_prompt_with_claude(prompt)
+
+        elif provider == AIProviderType.GPT4:
+            return await self._generate_from_prompt_with_gpt4(prompt)
+
+        else:  # RULE_BASED
+            elapsed_ms = (time.time() - start_time) * 1000
+            return AIRecommendationResult(
+                recommendation="Unable to generate AI recommendation. Please review manually.",
+                provider="rule_based",
+                model="fallback",
+                confidence=20,
+                duration_ms=elapsed_ms,
+                tokens_used=0,
+                cost_usd=0.0,
+                fallback_used=False,
+            )
+
+    async def _generate_from_prompt_with_claude(
+        self,
+        prompt: str,
+    ) -> AIRecommendationResult:
+        """Generate recommendation from custom prompt using Claude API."""
+        import httpx
+
+        if not settings.ANTHROPIC_API_KEY:
+            raise ValueError("Anthropic API key not configured")
+
+        start_time = time.time()
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": settings.ANTHROPIC_API_KEY,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-sonnet-4-20250514",
+                    "max_tokens": 1500,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        recommendation = data["content"][0]["text"]
+        tokens_used = data.get("usage", {}).get("output_tokens", 0)
+        elapsed_ms = (time.time() - start_time) * 1000
+        cost_usd = (tokens_used / 1000) * self.pricing[AIProviderType.CLAUDE]["output"]
+
+        return AIRecommendationResult(
+            recommendation=recommendation,
+            provider=AIProviderType.CLAUDE.value,
+            model="claude-sonnet-4-20250514",
+            confidence=85,
+            duration_ms=elapsed_ms,
+            tokens_used=tokens_used,
+            cost_usd=cost_usd,
+            fallback_used=False,
+        )
+
+    async def _generate_from_prompt_with_gpt4(
+        self,
+        prompt: str,
+    ) -> AIRecommendationResult:
+        """Generate recommendation from custom prompt using GPT-4 API."""
+        import httpx
+
+        if not settings.OPENAI_API_KEY:
+            raise ValueError("OpenAI API key not configured")
+
+        start_time = time.time()
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-4-turbo-preview",
+                    "max_tokens": 1500,
+                    "messages": [{"role": "user", "content": prompt}],
+                },
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        recommendation = data["choices"][0]["message"]["content"]
+        tokens_used = data.get("usage", {}).get("completion_tokens", 0)
+        elapsed_ms = (time.time() - start_time) * 1000
+        cost_usd = (tokens_used / 1000) * self.pricing[AIProviderType.GPT4]["output"]
+
+        return AIRecommendationResult(
+            recommendation=recommendation,
+            provider=AIProviderType.GPT4.value,
+            model="gpt-4-turbo-preview",
+            confidence=80,
+            duration_ms=elapsed_ms,
+            tokens_used=tokens_used,
+            cost_usd=cost_usd,
+            fallback_used=False,
+        )
+
+    # ============================================================================
     # Batch Recommendations
     # ============================================================================
 

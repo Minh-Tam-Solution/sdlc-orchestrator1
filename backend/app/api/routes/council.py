@@ -66,6 +66,8 @@ from app.models.council_session import (
 from app.models.project import Project, ProjectMember
 from app.models.user import User
 from app.schemas.council import (
+    CouncilDecision,
+    CouncilDecisionRequest,
     CouncilMode,
     CouncilProvider,
     CouncilRequest,
@@ -628,6 +630,122 @@ async def get_project_council_stats(
         total_cost_usd=round(total_cost, 4),
         success_rate=round(success_rate, 2),
     )
+
+
+# =========================================================================
+# Sprint 77: Council Decisions with Sprint Context
+# =========================================================================
+
+
+@router.post(
+    "/decide",
+    response_model=CouncilDecision,
+    summary="Request council decision with sprint context",
+    description="""
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+
+    Request an AI Council decision with full sprint context.
+    The council considers sprint health, team availability, velocity,
+    and backlog status when making decisions.
+
+    Decision types:
+    - code_review: Review code changes
+    - architecture: Architecture decisions
+    - security: Security review
+    - prioritization: Backlog prioritization
+    - estimation: Story point estimation
+    - blocker: Blocker resolution
+    """,
+)
+async def request_council_decision(
+    request: CouncilDecisionRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> CouncilDecision:
+    """
+    Request an AI Council decision with sprint context.
+
+    Sprint 77 Day 1: AI Council Sprint Context Integration
+
+    Args:
+        request: CouncilDecisionRequest with decision_type and sprint_context
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        CouncilDecision with recommendation and sprint-aware adjustments
+
+    Example:
+        POST /council/decide
+        {
+            "decision_type": "code_review",
+            "resource_id": "uuid",
+            "resource_type": "backlog_item",
+            "requester_id": "uuid",
+            "description": "Review refactored authentication module",
+            "sprint_context": {
+                "sprint_id": "uuid",
+                "sprint_number": 77,
+                "sprint_name": "Sprint 77",
+                "sprint_goal": "AI Council Integration",
+                "velocity": { "average": 38, "trend": "stable" },
+                "health": { "completion_rate": 65, "risk_level": "low" }
+            }
+        }
+    """
+    logger.info(
+        f"Council decision requested: type={request.decision_type.value}, "
+        f"resource={request.resource_type}/{request.resource_id}, "
+        f"requester={request.requester_id}"
+    )
+
+    # Verify requester is current user or has admin access
+    if request.requester_id != current_user.id:
+        # Check if user has admin rights
+        if not current_user.is_superuser:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot request decisions for other users",
+            )
+
+    # If sprint context provided, verify sprint access
+    if request.sprint_context:
+        sprint_id = request.sprint_context.sprint_id
+        from app.models.sprint import Sprint
+        result = await db.execute(
+            select(Sprint).where(Sprint.id == sprint_id)
+        )
+        sprint = result.scalar_one_or_none()
+        if not sprint:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Sprint not found: {sprint_id}",
+            )
+        # Check project access
+        await check_project_access(sprint.project_id, current_user, db)
+
+    # Create council service
+    council_service = AICouncilService(db)
+
+    try:
+        # Make decision with sprint context
+        decision = await council_service.make_decision(request)
+
+        logger.info(
+            f"Council decision completed: type={decision.decision_type.value}, "
+            f"confidence={decision.confidence}, "
+            f"urgency_adjusted={decision.urgency_adjusted}, "
+            f"duration={decision.total_duration_ms:.2f}ms"
+        )
+
+        return decision
+
+    except Exception as e:
+        logger.error(f"Council decision failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Council decision failed: {str(e)}",
+        )
 
 
 # =========================================================================

@@ -67,6 +67,18 @@ from app.services.sprint_assistant import (
     SprintAssistantService,
     get_sprint_assistant_service,
 )
+from app.services.burndown_service import (
+    BurndownService,
+    get_burndown_service,
+)
+from app.services.forecast_service import (
+    ForecastService,
+    get_forecast_service,
+)
+from app.services.retrospective_service import (
+    RetrospectiveService,
+    get_retrospective_service,
+)
 from app.schemas.planning import (
     # Roadmap
     RoadmapCreate,
@@ -111,6 +123,17 @@ from app.schemas.planning import (
     PrioritySuggestionResponse,
     SprintSuggestionsResponse,
     SprintAnalyticsResponse,
+    # Burndown (Sprint 77)
+    BurndownChartResponse,
+    BurndownPointResponse,
+    # Forecast (Sprint 77)
+    SprintForecastResponse,
+    ForecastRiskResponse,
+    # Retrospective (Sprint 77)
+    SprintRetrospectiveResponse,
+    RetroMetricsResponse,
+    RetroInsightResponse,
+    RetroActionResponse,
 )
 
 
@@ -2158,4 +2181,351 @@ async def get_sprint_analytics(
             for s in analytics.suggestions
         ],
         summary=analytics.summary,
+    )
+
+
+# =========================================================================
+# Sprint Burndown Endpoints (Sprint 77 Day 2)
+#
+# Burndown chart data generation for sprint visualization
+# Performance target: <100ms p95
+# =========================================================================
+
+
+@router.get(
+    "/sprints/{sprint_id}/burndown",
+    response_model=BurndownChartResponse,
+    summary="Get sprint burndown chart data",
+    tags=["Planning", "Analytics", "Sprint 77"],
+)
+async def get_sprint_burndown(
+    sprint_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
+) -> BurndownChartResponse:
+    """
+    Get burndown chart data for a sprint.
+
+    **Sprint 77: Burndown Charts - Day 2 Implementation**
+
+    Generates burndown chart data including:
+    - Ideal burndown line (linear from total points to 0)
+    - Actual burndown line (based on completed items)
+    - Progress metrics (completion rate, days remaining)
+    - On-track indicator (actual vs ideal comparison)
+
+    Performance Budget:
+    - Query time: <50ms
+    - Calculation time: <20ms
+    - Total response: <100ms p95
+
+    Args:
+        sprint_id: Sprint UUID
+
+    Returns:
+        BurndownChartResponse with ideal and actual burndown data
+
+    Raises:
+        404: Sprint not found
+        400: Sprint has no start/end dates
+    """
+    # Verify sprint exists and user has access
+    result = await db.execute(
+        select(Sprint)
+        .options(selectinload(Sprint.project))
+        .where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user)
+
+    # Generate burndown data
+    burndown_service = get_burndown_service(db)
+
+    try:
+        burndown = await burndown_service.get_burndown_data(sprint_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return BurndownChartResponse(
+        sprint_id=burndown.sprint_id,
+        sprint_number=burndown.sprint_number,
+        sprint_name=burndown.sprint_name,
+        total_points=burndown.total_points,
+        start_date=burndown.start_date,
+        end_date=burndown.end_date,
+        ideal=[
+            BurndownPointResponse(
+                point_date=p.date,
+                points=p.points,
+                point_type=p.type,
+            )
+            for p in burndown.ideal
+        ],
+        actual=[
+            BurndownPointResponse(
+                point_date=p.date,
+                points=p.points,
+                point_type=p.type,
+            )
+            for p in burndown.actual
+        ],
+        remaining_points=burndown.remaining_points,
+        completion_rate=burndown.completion_rate,
+        days_elapsed=burndown.days_elapsed,
+        days_remaining=burndown.days_remaining,
+        on_track=burndown.on_track,
+    )
+
+
+# =========================================================================
+# Sprint Forecast Endpoints (Sprint 77 Day 3)
+#
+# Sprint completion prediction and risk analysis
+# Performance target: <100ms p95
+# =========================================================================
+
+
+@router.get(
+    "/sprints/{sprint_id}/forecast",
+    response_model=SprintForecastResponse,
+    summary="Get sprint completion forecast",
+    tags=["Planning", "Analytics", "Sprint 77"],
+)
+async def get_sprint_forecast(
+    sprint_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
+) -> SprintForecastResponse:
+    """
+    Get sprint completion forecast with probability and risks.
+
+    **Sprint 77: Sprint Forecasting - Day 3 Implementation**
+
+    Predicts sprint completion probability based on:
+    - Current vs required burn rate
+    - Blocked items penalty (-5% each)
+    - Incomplete P0 items penalty (-10% each)
+    - Days remaining urgency factor
+
+    Returns:
+    - Completion probability (0-100%)
+    - Predicted end date
+    - On-track indicator
+    - Identified risks with severity
+    - AI-generated recommendations
+
+    Performance Budget:
+    - Query time: <50ms
+    - Calculation time: <30ms
+    - Total response: <100ms p95
+
+    Args:
+        sprint_id: Sprint UUID
+
+    Returns:
+        SprintForecastResponse with probability, risks, and recommendations
+
+    Raises:
+        404: Sprint not found
+        400: Sprint has no start/end dates
+    """
+    # Verify sprint exists and user has access
+    result = await db.execute(
+        select(Sprint)
+        .options(selectinload(Sprint.project))
+        .where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user)
+
+    # Generate forecast
+    forecast_service = get_forecast_service(db)
+
+    try:
+        forecast = await forecast_service.forecast_completion(sprint_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return SprintForecastResponse(
+        sprint_id=forecast.sprint_id,
+        sprint_number=forecast.sprint_number,
+        sprint_name=forecast.sprint_name,
+        probability=forecast.probability,
+        predicted_end_date=forecast.predicted_end_date,
+        on_track=forecast.on_track,
+        remaining_points=forecast.remaining_points,
+        total_points=forecast.total_points,
+        completed_points=forecast.completed_points,
+        current_burn_rate=forecast.current_burn_rate,
+        required_burn_rate=forecast.required_burn_rate,
+        days_elapsed=forecast.days_elapsed,
+        days_remaining=forecast.days_remaining,
+        risks=[
+            ForecastRiskResponse(
+                risk_type=r.risk_type,
+                severity=r.severity,
+                message=r.message,
+                recommendation=r.recommendation,
+            )
+            for r in forecast.risks
+        ],
+        recommendations=forecast.recommendations,
+    )
+
+
+# =========================================================================
+# Sprint Retrospective Endpoints (Sprint 77 Day 4)
+#
+# Auto-generated sprint retrospective with insights and action items
+# Performance target: <100ms p95
+# =========================================================================
+
+
+@router.get(
+    "/sprints/{sprint_id}/retrospective",
+    response_model=SprintRetrospectiveResponse,
+    summary="Get auto-generated sprint retrospective",
+    tags=["Planning", "Analytics", "Sprint 77"],
+)
+async def get_sprint_retrospective(
+    sprint_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
+) -> SprintRetrospectiveResponse:
+    """
+    Get auto-generated sprint retrospective.
+
+    **Sprint 77: Retrospective Automation - Day 4 Implementation**
+
+    Analyzes sprint performance and generates:
+    - Metrics summary (completion rate, P0 status, blocked items)
+    - "Went well" insights (positive patterns)
+    - "Needs improvement" insights (areas for growth)
+    - Action items (concrete next steps)
+    - Executive summary
+
+    Insight Categories:
+    - delivery: Completion and delivery performance
+    - priority: P0/P1 focus and completion
+    - velocity: Velocity trends (improving/stable/declining)
+    - planning: Sprint planning accuracy
+    - scope: Scope changes and creep
+    - blockers: Blocked items management
+
+    Performance Budget:
+    - Query time: <50ms
+    - Analysis time: <30ms
+    - Total response: <100ms p95
+
+    Args:
+        sprint_id: Sprint UUID
+
+    Returns:
+        SprintRetrospectiveResponse with metrics, insights, and actions
+
+    Raises:
+        404: Sprint not found
+    """
+    # Verify sprint exists and user has access
+    result = await db.execute(
+        select(Sprint)
+        .options(selectinload(Sprint.project))
+        .where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user)
+
+    # Generate retrospective
+    retro_service = get_retrospective_service(db)
+
+    try:
+        retro = await retro_service.generate_retrospective(sprint_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+    return SprintRetrospectiveResponse(
+        sprint_id=retro.sprint_id,
+        sprint_number=retro.sprint_number,
+        sprint_name=retro.sprint_name,
+        generated_at=retro.generated_at,
+        metrics=RetroMetricsResponse(
+            committed_points=retro.metrics.committed_points,
+            completed_points=retro.metrics.completed_points,
+            completion_rate=retro.metrics.completion_rate,
+            p0_total=retro.metrics.p0_total,
+            p0_completed=retro.metrics.p0_completed,
+            p0_completion_rate=retro.metrics.p0_completion_rate,
+            items_added_mid_sprint=retro.metrics.items_added_mid_sprint,
+            blocked_items=retro.metrics.blocked_items,
+            average_cycle_time_days=retro.metrics.average_cycle_time_days,
+            velocity_trend=retro.metrics.velocity_trend,
+        ),
+        went_well=[
+            RetroInsightResponse(
+                category=i.category,
+                insight_type=i.insight_type,
+                title=i.title,
+                description=i.description,
+                impact=i.impact,
+            )
+            for i in retro.went_well
+        ],
+        needs_improvement=[
+            RetroInsightResponse(
+                category=i.category,
+                insight_type=i.insight_type,
+                title=i.title,
+                description=i.description,
+                impact=i.impact,
+            )
+            for i in retro.needs_improvement
+        ],
+        action_items=[
+            RetroActionResponse(
+                id=a.id,
+                description=a.description,
+                owner=a.owner,
+                due_date=a.due_date,
+                status=a.status,
+                priority=a.priority,
+            )
+            for a in retro.action_items
+        ],
+        summary=retro.summary,
     )

@@ -62,6 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SprintGatePanel from "@/components/sprints/SprintGatePanel";
 import SprintBacklogList from "@/components/sprints/SprintBacklogList";
 import BacklogKanbanBoard from "@/components/sprints/BacklogKanbanBoard";
+import SprintAnalyticsTab from "@/components/sprints/SprintAnalyticsTab";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 /** Backlog view type */
@@ -307,7 +308,7 @@ export default function SprintDetailPage() {
         </Card>
       )}
 
-      {/* Tabs: Gates, Backlog, Details */}
+      {/* Tabs: Gates, Backlog, Analytics, Details */}
       <Tabs defaultValue="gates" className="space-y-4">
         <TabsList>
           <TabsTrigger value="gates" className="flex items-center gap-2">
@@ -317,6 +318,10 @@ export default function SprintDetailPage() {
           <TabsTrigger value="backlog" className="flex items-center gap-2">
             <ListTodo className="w-4 h-4" />
             Backlog ({backlogData?.total || 0})
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
           </TabsTrigger>
           <TabsTrigger value="details" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
@@ -384,6 +389,14 @@ export default function SprintDetailPage() {
               isLoading={!backlogData}
             />
           )}
+        </TabsContent>
+
+        {/* Analytics Tab - Sprint 77 */}
+        <TabsContent value="analytics">
+          <SprintAnalyticsTab
+            sprintId={sprintId!}
+            sprintStatus={sprint.status}
+          />
         </TabsContent>
 
         {/* Details Tab */}

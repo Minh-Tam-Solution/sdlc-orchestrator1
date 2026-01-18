@@ -318,7 +318,9 @@
       "Bash(./scripts/quick-test-sprint73.sh:*)",
       "Bash(alembic merge:*)",
       "Bash(source .venv/bin/activate)",
-      "Bash(alembic current:*)"
+      "Bash(alembic current:*)",
+      "Bash(python3 -c:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat\\(sprint77\\): Complete Sprint 77 - AI Council Sprint Integration & Advanced Analytics\n\nStatus: COMPLETE \\(38/38 SP - 100%\\)\n\nBackend Services \\(Days 1-4\\):\n- AICouncilService: Sprint context for AI decisions\n- BurndownService: Burndown chart data generation  \n- ForecastService: Sprint completion probability\n- RetrospectiveService: Auto-retrospective generation\n\nAPI Endpoints Added:\n- GET /sprints/{id}/context - AI council context\n- GET /sprints/{id}/burndown - Burndown data\n- GET /sprints/{id}/forecast - Forecast prediction\n- GET /sprints/{id}/retrospective - Auto-retrospective\n\nFrontend Components \\(Day 5\\):\n- SprintBurndownChart: Recharts visualization\n- SprintForecastCard: Probability and risk display\n- SprintRetrospectivePanel: Insights and actions\n- SprintAnalyticsTab: Container component\n\nReact Query Hooks:\n- useSprintBurndown, useSprintForecast, useSprintRetrospective\n\nSDLC 5.1.3 Compliance:\n- Fixed duplicate prefix numbers in docs/04-build/\n- Sprint logs moved to docs/08-collaborate/01-Sprint-Logs/\n- All document paths now comply with SDLC 5.1.3 P6\n\nIntegration Tests: 36 tests across 4 test files\nPerformance: All endpoints <target p95\n\nG-Sprint-Close: ✅ READY FOR CTO APPROVAL\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

@@ -984,3 +984,238 @@ class SprintAnalyticsResponse(BaseModel):
     summary: str = Field(description="AI-generated status summary")
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# =========================================================================
+# Sprint Forecast Schemas (Sprint 77 Day 3)
+# =========================================================================
+
+
+class ForecastRiskResponse(BaseModel):
+    """
+    Identified risk factor.
+
+    Sprint 77: Sprint Forecasting - Risk identification
+    """
+    risk_type: str = Field(
+        description="Risk type: blocked_items, low_completion, p0_incomplete, behind_schedule, time_pressure"
+    )
+    severity: str = Field(
+        description="Severity: low, medium, high, critical"
+    )
+    message: str = Field(description="Human-readable risk description")
+    recommendation: str = Field(description="Suggested action to mitigate risk")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SprintForecastResponse(BaseModel):
+    """
+    Sprint completion forecast.
+
+    Sprint 77: Sprint Forecasting - Completion probability and risk analysis
+    """
+    sprint_id: UUID = Field(description="Sprint UUID")
+    sprint_number: int = Field(description="Sprint number")
+    sprint_name: str = Field(description="Sprint name")
+    probability: float = Field(
+        ge=0.0,
+        le=100.0,
+        description="Completion probability (0-100%)"
+    )
+    predicted_end_date: Optional[date] = Field(
+        default=None,
+        description="Predicted completion date based on current burn rate"
+    )
+    on_track: bool = Field(
+        description="Whether sprint is on track to complete on time"
+    )
+    remaining_points: int = Field(description="Story points remaining")
+    total_points: int = Field(description="Total committed story points")
+    completed_points: int = Field(description="Completed story points")
+    current_burn_rate: float = Field(
+        description="Current points per day burn rate"
+    )
+    required_burn_rate: float = Field(
+        description="Required points per day to complete on time"
+    )
+    days_elapsed: int = Field(description="Days since sprint start")
+    days_remaining: int = Field(description="Days until sprint end")
+    risks: list[ForecastRiskResponse] = Field(
+        default_factory=list,
+        description="Identified risk factors"
+    )
+    recommendations: list[str] = Field(
+        default_factory=list,
+        description="AI-generated recommendations"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# =========================================================================
+# Sprint Burndown Schemas (Sprint 77 Day 2)
+# =========================================================================
+
+
+class BurndownPointResponse(BaseModel):
+    """
+    Single point on burndown chart.
+
+    Sprint 77: Burndown Charts - Data point for visualization
+    """
+    point_date: date = Field(description="Date for this data point")
+    points: float = Field(description="Story points remaining")
+    point_type: str = Field(description="Point type: 'ideal' or 'actual'")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BurndownChartResponse(BaseModel):
+    """
+    Complete burndown chart data.
+
+    Sprint 77: Burndown Charts - Full chart data for visualization
+    """
+    sprint_id: UUID = Field(description="Sprint UUID")
+    sprint_number: int = Field(description="Sprint number")
+    sprint_name: str = Field(description="Sprint name")
+    total_points: int = Field(description="Total committed story points")
+    start_date: date = Field(description="Sprint start date")
+    end_date: date = Field(description="Sprint end date")
+    ideal: list[BurndownPointResponse] = Field(
+        default_factory=list, description="Ideal burndown line (linear)"
+    )
+    actual: list[BurndownPointResponse] = Field(
+        default_factory=list, description="Actual burndown line"
+    )
+    remaining_points: int = Field(
+        default=0, description="Current remaining story points"
+    )
+    completion_rate: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Completion rate (0-100)"
+    )
+    days_elapsed: int = Field(default=0, description="Days since sprint start")
+    days_remaining: int = Field(default=0, description="Days until sprint end")
+    on_track: bool = Field(
+        default=True,
+        description="Whether sprint is on track (actual <= ideal)"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# =========================================================================
+# Sprint Retrospective Schemas (Sprint 77 Day 4)
+# =========================================================================
+
+
+class RetroInsightResponse(BaseModel):
+    """
+    Retrospective insight item.
+
+    Sprint 77: Retrospective Automation - Auto-generated insights
+    """
+    category: str = Field(
+        description="Category: delivery, priority, velocity, planning, scope, blockers, team"
+    )
+    insight_type: str = Field(
+        description="Type: went_well or needs_improvement"
+    )
+    title: str = Field(description="Short insight title")
+    description: str = Field(description="Detailed insight description")
+    impact: str = Field(
+        default="medium",
+        description="Impact level: low, medium, high"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RetroActionResponse(BaseModel):
+    """
+    Retrospective action item.
+
+    Sprint 77: Retrospective Automation - Auto-generated action items
+    """
+    id: UUID = Field(description="Action item UUID")
+    description: str = Field(description="Action item description")
+    owner: Optional[str] = Field(None, description="Assigned owner")
+    due_date: Optional[date] = Field(None, description="Target completion date")
+    status: str = Field(
+        default="pending",
+        description="Status: pending, in_progress, done"
+    )
+    priority: str = Field(
+        default="medium",
+        description="Priority: low, medium, high"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RetroMetricsResponse(BaseModel):
+    """
+    Sprint metrics for retrospective.
+
+    Sprint 77: Retrospective Automation - Sprint performance metrics
+    """
+    committed_points: int = Field(description="Total committed story points")
+    completed_points: int = Field(description="Completed story points")
+    completion_rate: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Completion rate (0-1)"
+    )
+    p0_total: int = Field(description="Total P0 items")
+    p0_completed: int = Field(description="Completed P0 items")
+    p0_completion_rate: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="P0 completion rate (0-1)"
+    )
+    items_added_mid_sprint: int = Field(
+        description="Items added after sprint start"
+    )
+    blocked_items: int = Field(description="Items that were blocked")
+    average_cycle_time_days: Optional[float] = Field(
+        None,
+        description="Average days from start to completion"
+    )
+    velocity_trend: str = Field(
+        default="stable",
+        description="Velocity trend: improving, stable, declining"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SprintRetrospectiveResponse(BaseModel):
+    """
+    Complete sprint retrospective.
+
+    Sprint 77: Retrospective Automation - Full auto-generated retrospective
+    """
+    sprint_id: UUID = Field(description="Sprint UUID")
+    sprint_number: int = Field(description="Sprint number")
+    sprint_name: str = Field(description="Sprint name")
+    generated_at: datetime = Field(description="Generation timestamp")
+    metrics: RetroMetricsResponse = Field(description="Sprint metrics summary")
+    went_well: list[RetroInsightResponse] = Field(
+        default_factory=list,
+        description="What went well"
+    )
+    needs_improvement: list[RetroInsightResponse] = Field(
+        default_factory=list,
+        description="What needs improvement"
+    )
+    action_items: list[RetroActionResponse] = Field(
+        default_factory=list,
+        description="Suggested action items"
+    )
+    summary: str = Field(description="Executive summary of the sprint")
+
+    model_config = ConfigDict(from_attributes=True)

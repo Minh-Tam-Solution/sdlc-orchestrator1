@@ -45,19 +45,27 @@ from app.core.config import settings
 from app.models.compliance_scan import ComplianceViolation
 from app.schemas.council import (
     AIProviderResponse,
+    BacklogSummary,
     CouncilConfig,
+    CouncilDecision,
+    CouncilDecisionRequest,
+    CouncilDecisionType,
     CouncilDeliberation,
     CouncilMode,
     CouncilProvider,
     CouncilRequest,
     CouncilResponse,
+    CouncilSprintContext,
     DeliberationStage,
     FinalSynthesis,
     PeerReview,
     ResponseRanking,
+    SprintHealthContext,
     Stage1Result,
     Stage2Result,
     Stage3Result,
+    TeamMemberContext,
+    VelocityContext,
 )
 from app.middleware.business_metrics import AICouncilMetrics
 from app.services.ai_recommendation_service import (
@@ -1478,6 +1486,335 @@ Format your response as JSON:
                 "council_timeout_ms": self.config.council_timeout_ms,
             },
         }
+
+    # ============================================================================
+    # Sprint 77: Sprint-Aware Council Decisions
+    # ============================================================================
+
+    async def make_decision(
+        self,
+        request: CouncilDecisionRequest,
+    ) -> CouncilDecision:
+        """
+        Make council decision with sprint context.
+
+        Sprint 77 Day 1: AI Council Sprint Context Integration
+
+        Sprint context influences:
+        - Review urgency based on sprint health
+        - Reviewer assignment based on team availability
+        - Architecture decisions based on sprint scope
+
+        Args:
+            request: CouncilDecisionRequest with decision_type and sprint_context
+
+        Returns:
+            CouncilDecision with recommendation and sprint-aware adjustments
+
+        Example:
+            decision = await council.make_decision(
+                CouncilDecisionRequest(
+                    decision_type=CouncilDecisionType.CODE_REVIEW,
+                    resource_id=backlog_item.id,
+                    resource_type="backlog_item",
+                    requester_id=current_user.id,
+                    description="Review refactored authentication module",
+                    sprint_context=sprint_context,
+                )
+            )
+        """
+        start_time = time.time()
+
+        # Build context from sprint data
+        context = self._build_decision_context(request)
+
+        # Determine urgency (adjust based on sprint health)
+        urgency = self._adjust_urgency(request)
+
+        # Build AI prompt with sprint awareness
+        prompt = self._build_decision_prompt(request, context)
+
+        # Generate recommendation via LLM
+        try:
+            result = await self.ai_service.generate_recommendation_from_prompt(
+                prompt=prompt,
+                user_id=request.requester_id,
+            )
+
+            # Extract action items from response
+            action_items = self._extract_action_items(result.recommendation)
+
+            # Find suggested assignee based on expertise
+            suggested_assignee = self._find_best_assignee(
+                request.sprint_context,
+                request.decision_type,
+            )
+
+            # Calculate sprint impact
+            sprint_impact = self._assess_sprint_impact(request, result.recommendation)
+
+            elapsed_ms = (time.time() - start_time) * 1000
+
+            decision = CouncilDecision(
+                decision_id=uuid4(),
+                request_id=uuid4(),
+                decision_type=request.decision_type,
+                recommendation=result.recommendation,
+                confidence=result.confidence,
+                reasoning=f"Based on {request.decision_type.value} analysis",
+                suggested_assignee=suggested_assignee,
+                urgency_adjusted=urgency,
+                sprint_impact=sprint_impact,
+                action_items=action_items,
+                providers_used=[result.provider],
+                total_duration_ms=elapsed_ms,
+                sprint_id=request.sprint_context.sprint_id if request.sprint_context else None,
+            )
+
+            # Log decision with sprint reference
+            await self._log_decision(
+                decision=decision,
+                request=request,
+            )
+
+            return decision
+
+        except Exception as e:
+            logger.error(f"Council decision failed: {e}")
+            raise
+
+    def _build_decision_context(self, request: CouncilDecisionRequest) -> dict[str, Any]:
+        """Build context dictionary from sprint context."""
+        context: dict[str, Any] = {
+            "decision_type": request.decision_type.value,
+            "resource_type": request.resource_type,
+            "description": request.description,
+        }
+
+        if request.sprint_context:
+            ctx = request.sprint_context
+            context["sprint"] = {
+                "id": str(ctx.sprint_id),
+                "number": ctx.sprint_number,
+                "name": ctx.sprint_name,
+                "goal": ctx.sprint_goal,
+                "status": ctx.sprint_status,
+                "velocity_avg": ctx.velocity.average,
+                "velocity_trend": ctx.velocity.trend,
+                "health_risk": ctx.health.risk_level,
+                "completion_rate": ctx.health.completion_rate,
+                "days_remaining": ctx.health.days_remaining,
+                "team_size": len(ctx.team_members),
+                "blocked_items": ctx.backlog_summary.blocked_items,
+                "p0_incomplete": ctx.backlog_summary.p0_count - ctx.backlog_summary.p0_completed,
+                "g_sprint_passed": ctx.g_sprint_passed,
+                "documentation_overdue": ctx.documentation_overdue,
+            }
+
+        return context
+
+    def _adjust_urgency(self, request: CouncilDecisionRequest) -> str:
+        """Adjust urgency based on sprint health and context."""
+        base_urgency = request.urgency
+
+        if not request.sprint_context:
+            return base_urgency
+
+        ctx = request.sprint_context
+
+        # Escalate urgency for sprints at risk
+        if ctx.health.risk_level in ("high", "critical"):
+            if base_urgency == "low":
+                return "normal"
+            elif base_urgency == "normal":
+                return "high"
+
+        # Escalate for documentation deadline
+        if ctx.documentation_overdue:
+            if base_urgency in ("low", "normal"):
+                return "high"
+
+        # Escalate for P0 blockers
+        p0_blocked = ctx.backlog_summary.p0_count > ctx.backlog_summary.p0_completed
+        if p0_blocked and ctx.health.days_remaining <= 2:
+            return "critical"
+
+        return base_urgency
+
+    def _build_decision_prompt(
+        self,
+        request: CouncilDecisionRequest,
+        context: dict[str, Any],
+    ) -> str:
+        """Build LLM prompt with sprint context awareness."""
+        base_prompt = f"""You are an AI Council making a {request.decision_type.value} decision.
+
+## Request
+{request.description}
+
+## Decision Type
+{request.decision_type.value}
+
+## Resource
+- Type: {request.resource_type}
+- ID: {request.resource_id}
+"""
+
+        if request.sprint_context:
+            sprint = context.get("sprint", {})
+            base_prompt += f"""
+## Sprint Context
+- Sprint: {sprint.get('name')} (#{sprint.get('number')})
+- Goal: {sprint.get('goal')}
+- Status: {sprint.get('status')}
+- Days Remaining: {sprint.get('days_remaining')}
+- Completion Rate: {sprint.get('completion_rate'):.1f}%
+- Risk Level: {sprint.get('health_risk')}
+- Blocked Items: {sprint.get('blocked_items')}
+- P0 Incomplete: {sprint.get('p0_incomplete')}
+- Team Size: {sprint.get('team_size')}
+- Velocity: {sprint.get('velocity_avg'):.1f} SP/sprint ({sprint.get('velocity_trend')})
+"""
+
+        base_prompt += """
+## Instructions
+Provide a clear, actionable recommendation considering:
+1. The sprint context and timeline
+2. Team availability and expertise
+3. Risk level and blockers
+4. Impact on sprint goal
+
+Format your response as:
+- **Recommendation**: Your recommendation
+- **Reasoning**: Why this is the best approach
+- **Action Items**: Numbered list of concrete steps
+- **Sprint Impact**: How this affects the sprint goal
+"""
+
+        return base_prompt
+
+    def _extract_action_items(self, recommendation: str) -> list[str]:
+        """Extract action items from recommendation."""
+        import re
+
+        items: list[str] = []
+
+        # Look for numbered items after "Action Items" header
+        action_section = re.search(
+            r'Action Items[:\s]*(.*?)(?:\n\n|$)',
+            recommendation,
+            re.IGNORECASE | re.DOTALL
+        )
+
+        if action_section:
+            text = action_section.group(1)
+            # Extract numbered items
+            numbered = re.findall(r'\d+[.)]\s*([^\n]+)', text)
+            items.extend(numbered[:5])
+
+        # Fallback: look for any numbered list
+        if not items:
+            numbered = re.findall(r'\d+[.)]\s*([^\n]+)', recommendation)
+            items.extend(numbered[:5])
+
+        return items
+
+    def _find_best_assignee(
+        self,
+        sprint_context: Optional[CouncilSprintContext],
+        decision_type: CouncilDecisionType,
+    ) -> Optional[UUID]:
+        """Find best team member for the task based on expertise and availability."""
+        if not sprint_context or not sprint_context.team_members:
+            return None
+
+        # Map decision type to expertise areas
+        expertise_map = {
+            CouncilDecisionType.CODE_REVIEW: ["backend", "frontend", "code_review"],
+            CouncilDecisionType.ARCHITECTURE: ["architecture", "tech_lead", "system_design"],
+            CouncilDecisionType.SECURITY: ["security", "devsecops", "owasp"],
+            CouncilDecisionType.PRIORITIZATION: ["pm", "product", "backlog"],
+            CouncilDecisionType.ESTIMATION: ["estimation", "planning", "developer"],
+            CouncilDecisionType.BLOCKER: ["tech_lead", "senior", "troubleshooting"],
+        }
+
+        required_expertise = expertise_map.get(decision_type, [])
+
+        # Score each team member
+        best_score = -1
+        best_member: Optional[UUID] = None
+
+        for member in sprint_context.team_members:
+            score = 0
+
+            # Expertise match
+            for exp in member.expertise:
+                if exp.lower() in required_expertise:
+                    score += 10
+
+            # Availability factor
+            score *= member.availability
+
+            # Penalize overloaded members
+            if member.workload_items > 5:
+                score *= 0.7
+            elif member.workload_items > 3:
+                score *= 0.85
+
+            if score > best_score:
+                best_score = score
+                best_member = member.user_id
+
+        return best_member
+
+    def _assess_sprint_impact(
+        self,
+        request: CouncilDecisionRequest,
+        recommendation: str,
+    ) -> Optional[str]:
+        """Assess impact of decision on sprint goal."""
+        if not request.sprint_context:
+            return None
+
+        ctx = request.sprint_context
+
+        # Simple heuristic based on sprint state
+        if ctx.health.risk_level == "critical":
+            return "Critical - immediate action required to meet sprint goal"
+        elif ctx.health.risk_level == "high":
+            return "High - decision affects sprint goal achievement"
+        elif ctx.backlog_summary.blocked_items > 0:
+            return f"Medium - {ctx.backlog_summary.blocked_items} blocked items may be affected"
+        elif ctx.health.days_remaining <= 2:
+            return "Medium - limited time remaining in sprint"
+        else:
+            return "Low - minimal impact on current sprint"
+
+    async def _log_decision(
+        self,
+        decision: CouncilDecision,
+        request: CouncilDecisionRequest,
+    ) -> None:
+        """Log council decision with sprint reference for audit."""
+        try:
+            await self.audit_service.log_ai_council_action(
+                action=AuditAction.AI_COUNCIL_COMPLETE,
+                user_id=request.requester_id,
+                violation_id=None,  # Not a violation, it's a decision
+                details={
+                    "decision_id": str(decision.decision_id),
+                    "decision_type": decision.decision_type.value,
+                    "sprint_id": str(decision.sprint_id) if decision.sprint_id else None,
+                    "confidence": decision.confidence,
+                    "urgency": decision.urgency_adjusted,
+                    "providers_used": decision.providers_used,
+                    "duration_ms": decision.total_duration_ms,
+                    "resource_type": request.resource_type,
+                    "resource_id": str(request.resource_id),
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log council decision: {e}")
 
     async def deliberate(
         self,
