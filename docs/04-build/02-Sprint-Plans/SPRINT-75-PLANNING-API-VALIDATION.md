@@ -1,7 +1,7 @@
 # Sprint 75: Planning API Validation & Team Authorization
 
 **Sprint ID:** S75
-**Status:** 🔄 IN PROGRESS (Day 2 Complete)
+**Status:** 🔄 IN PROGRESS (Day 3 Complete)
 **Duration:** 5 days (January 20-24, 2026)
 **Goal:** Complete Team Role Authorization for Sprint Gates + Planning API Testing
 **Story Points:** 34 SP
@@ -28,6 +28,32 @@
 | `test_planning_sprint.py` | 16 | Sprint CRUD + Rule #1 (immutable numbers) |
 | `test_planning_gates.py` | 17 | G-Sprint/G-Sprint-Close gates |
 | **Total** | **54** | **+50% over target** |
+
+### Day 3: Backlog API + OpenAPI Documentation ✅ COMPLETE (Jan 18, 2026)
+
+**Backlog Tests:**
+
+| Test File | Tests | Description |
+|-----------|-------|-------------|
+| `test_planning_backlog.py` | 34 | P0/P1/P2 priority, status transitions, bulk operations |
+
+**OpenAPI Updates:**
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| New Endpoints | 22 | Roadmaps (4), Phases (4), Sprints (4), Gates (4), Backlog (6) |
+| New Schemas | 17 | All Planning Hierarchy request/response types |
+
+**Sprint 75 Total Test Coverage:**
+
+| Test File | Tests | Focus |
+|-----------|-------|-------|
+| `test_planning_roadmap.py` | 10 | CRUD operations |
+| `test_planning_phase.py` | 11 | Auto-numbering |
+| `test_planning_sprint.py` | 16 | Rule #1 immutable |
+| `test_planning_gates.py` | 17 | G-Sprint/SE4H Coach |
+| `test_planning_backlog.py` | 34 | P0/P1/P2, status |
+| **Total** | **88** | **+144% over original target (36)** |
 
 **SDLC 5.1.3 Rules Tested:**
 - ✅ Rule #1 - Sprint numbers immutable: `test_update_sprint_number_immutable`, `test_create_sprint_duplicate_number_fails`
@@ -119,7 +145,7 @@ backend/tests/integration/
 ├── test_planning_phase.py       # 11 tests ✅
 ├── test_planning_sprint.py      # 16 tests ✅
 ├── test_planning_gates.py       # 17 tests ✅
-└── test_planning_backlog.py     # (Sprint 75 Day 3)
+└── test_planning_backlog.py     # 34 tests ✅
 ```
 
 **Test Cases:**
@@ -146,12 +172,12 @@ class TestSprintAPI:
         """Validate sprint status: planned → in_progress → completed → closed."""
 ```
 
-### Day 3: Backlog API & OpenAPI Documentation (6 SP)
+### Day 3: Backlog API & OpenAPI Documentation (6 SP) ✅ COMPLETE
 
 | Task | Owner | Est | Priority | Status |
 |------|-------|-----|----------|--------|
-| Backlog API tests (10 tests) | Backend | 3h | P0 | ⏳ |
-| Bulk operations tests (5 tests) | Backend | 2h | P1 | ⏳ |
+| Backlog API tests (34 tests) | Backend | 3h | P0 | ✅ |
+| OpenAPI spec update (+22 endpoints, +17 schemas) | Backend | 2h | P0 | ✅ |
 | Update OpenAPI spec with Planning endpoints | Backend | 2h | P0 | ⏳ |
 | Generate API documentation | Backend | 1h | P1 | ⏳ |
 
