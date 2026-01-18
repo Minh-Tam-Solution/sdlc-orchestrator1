@@ -73,6 +73,10 @@ const TeamDetailPage = lazy(() => import('@/pages/TeamDetailPage'))  // Team das
 const TeamMembersPage = lazy(() => import('@/pages/TeamMembersPage'))  // Members management
 const TeamSettingsPage = lazy(() => import('@/pages/TeamSettingsPage'))  // Team settings
 
+// Sprints pages (Sprint 75)
+const SprintsPage = lazy(() => import('@/pages/SprintsPage'))  // Sprint list
+const SprintDetailPage = lazy(() => import('@/pages/SprintDetailPage'))  // Sprint detail + gates
+
 /**
  * Loading fallback component for Suspense
  * Displays centered spinner during lazy load
@@ -223,6 +227,23 @@ function App() {
             element={
               <ProtectedRoute>
                 <TeamSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Sprints - Sprint 75: Planning Dashboard */}
+          <Route
+            path="/sprints"
+            element={
+              <ProtectedRoute>
+                <SprintsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/sprints/:sprintId"
+            element={
+              <ProtectedRoute>
+                <SprintDetailPage />
               </ProtectedRoute>
             }
           />
