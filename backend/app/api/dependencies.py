@@ -379,3 +379,151 @@ async def get_current_user_optional(
         return None
 
     return None
+
+
+# =========================================================================
+# Rate Limiting Dependencies (Sprint 76 - P0 Fix)
+# =========================================================================
+
+import logging
+import time
+
+_rate_limit_logger = logging.getLogger(__name__)
+
+
+class RateLimitExceeded(HTTPException):
+    """Exception raised when rate limit is exceeded."""
+
+    def __init__(self, limit: int, window: int, retry_after: int):
+        super().__init__(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail={
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded: {limit} requests per {window} seconds",
+                "limit": limit,
+                "window_seconds": window,
+                "retry_after": retry_after,
+            },
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+def rate_limit(
+    max_requests: int = 10,
+    window_seconds: int = 60,
+    key_prefix: str = "endpoint",
+):
+    """
+    Rate limiter dependency factory for endpoint-specific limits.
+
+    **Sprint 76 P0 Fix: DoS Protection for Analytics Endpoints**
+
+    Creates a FastAPI dependency that enforces per-user rate limiting
+    using Redis sliding window algorithm.
+
+    Args:
+        max_requests: Maximum requests allowed per window (default: 10)
+        window_seconds: Time window in seconds (default: 60)
+        key_prefix: Redis key prefix for this endpoint (default: "endpoint")
+
+    Returns:
+        Dependency function that checks rate limit
+
+    Usage:
+        @router.get("/compute-heavy")
+        async def compute_heavy(
+            _: None = Depends(rate_limit(max_requests=10, window_seconds=60)),
+            user: User = Depends(get_current_user),
+        ):
+            # Rate limited to 10 req/min per user
+            return expensive_computation()
+
+    Security:
+        - Per-user rate limiting (authenticated users)
+        - Sliding window algorithm (smooth rate limiting)
+        - Redis-backed for distributed deployments
+        - Fail-open if Redis unavailable (logs warning)
+
+    OWASP ASVS:
+        - V11.1.7: DoS protection for compute-heavy operations
+    """
+
+    async def check_rate_limit(
+        request: Request,
+        current_user: User = Depends(get_current_user),
+    ) -> None:
+        """Check if user has exceeded rate limit for this endpoint."""
+        try:
+            redis = await get_redis_client()
+
+            # Build rate limit key: prefix:user_id
+            rate_key = f"ratelimit:{key_prefix}:user:{current_user.id}"
+
+            # Get current timestamp
+            now = int(time.time())
+
+            # Remove old entries outside window
+            cutoff = now - window_seconds
+            await redis.zremrangebyscore(rate_key, 0, cutoff)
+
+            # Count requests in window
+            request_count = await redis.zcard(rate_key)
+
+            if request_count >= max_requests:
+                # Calculate retry-after (time until oldest entry expires)
+                oldest = await redis.zrange(rate_key, 0, 0, withscores=True)
+                if oldest:
+                    oldest_ts = int(oldest[0][1])
+                    retry_after = (oldest_ts + window_seconds) - now
+                else:
+                    retry_after = window_seconds
+
+                _rate_limit_logger.warning(
+                    f"Rate limit exceeded for user {current_user.id} on {key_prefix}: "
+                    f"{request_count}/{max_requests} requests"
+                )
+                raise RateLimitExceeded(
+                    limit=max_requests,
+                    window=window_seconds,
+                    retry_after=max(1, retry_after),
+                )
+
+            # Add current request timestamp
+            await redis.zadd(rate_key, {f"{now}:{id(request)}": now})
+
+            # Set TTL on key (window + buffer)
+            await redis.expire(rate_key, window_seconds + 10)
+
+        except RateLimitExceeded:
+            # Re-raise rate limit exceptions
+            raise
+        except Exception as e:
+            # Fail-open: log warning and allow request if Redis unavailable
+            _rate_limit_logger.warning(
+                f"Rate limit check failed (allowing request): {e}"
+            )
+
+    return check_rate_limit
+
+
+# Pre-configured rate limiters for common use cases
+def analytics_rate_limit():
+    """
+    Rate limiter for analytics endpoints (10 req/min per user).
+
+    **Sprint 76 P0 Fix: CTO-mandated rate limiting for compute-heavy endpoints**
+
+    Applies to:
+    - GET /projects/{id}/velocity
+    - GET /sprints/{id}/health
+    - GET /sprints/{id}/suggestions
+    - GET /sprints/{id}/analytics
+
+    Returns:
+        Dependency for 10 req/min rate limiting
+    """
+    return rate_limit(
+        max_requests=10,
+        window_seconds=60,
+        key_prefix="analytics",
+    )

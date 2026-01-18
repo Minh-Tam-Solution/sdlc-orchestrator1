@@ -44,7 +44,7 @@ from sqlalchemy import func, select, Integer, cast
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, analytics_rate_limit
 from app.db.session import get_db
 from app.models.backlog_item import BacklogItem
 from app.models.phase import Phase
@@ -1881,6 +1881,10 @@ async def get_planning_dashboard(
 
 # =========================================================================
 # Sprint Analytics Endpoints (Sprint 76 Day 5)
+#
+# P0 Fix: Rate limited to 10 req/min per user to prevent DoS attacks
+# on compute-heavy analytics operations.
+# Reference: Sprint 76 CTO Review - APPROVED with blocking condition
 # =========================================================================
 
 @router.get(
@@ -1894,6 +1898,7 @@ async def get_project_velocity(
     sprint_count: int = Query(default=5, ge=1, le=20, description="Number of sprints to analyze"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
 ) -> VelocityMetricsResponse:
     """
     Get velocity metrics for a project from historical sprint data.
@@ -1943,6 +1948,7 @@ async def get_sprint_health(
     sprint_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
 ) -> SprintHealthResponse:
     """
     Get health indicators for a sprint.
@@ -2009,6 +2015,7 @@ async def get_sprint_suggestions(
     sprint_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
 ) -> SprintSuggestionsResponse:
     """
     Get AI-powered prioritization suggestions for a sprint.
@@ -2078,6 +2085,7 @@ async def get_sprint_analytics(
     sprint_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
 ) -> SprintAnalyticsResponse:
     """
     Get comprehensive analytics for a sprint.
