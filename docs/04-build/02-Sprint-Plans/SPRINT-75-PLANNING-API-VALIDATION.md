@@ -204,8 +204,6 @@ class TestSprintAPI:
 |------|-------|-----|----------|--------|
 | Backlog API tests (34 tests) | Backend | 3h | P0 | ✅ |
 | OpenAPI spec update (+22 endpoints, +17 schemas) | Backend | 2h | P0 | ✅ |
-| Update OpenAPI spec with Planning endpoints | Backend | 2h | P0 | ⏳ |
-| Generate API documentation | Backend | 1h | P1 | ⏳ |
 
 **OpenAPI Update:**
 
