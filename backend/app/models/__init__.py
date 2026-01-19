@@ -121,6 +121,9 @@ from app.models.sprint_template import SprintTemplate
 # AGENTS.md Integration (Sprint 80) - 2 models
 from app.models.agents_md import AgentsMdFile, ContextOverlay
 
+# Evidence Manifest Hash Chain (Sprint 82) - 2 models
+from app.models.evidence_manifest import EvidenceManifest, EvidenceManifestVerification
+
 __all__ = [
     # Base
     "Base",
@@ -221,4 +224,7 @@ __all__ = [
     # AGENTS.md Integration - Sprint 80 (2 models)
     "AgentsMdFile",
     "ContextOverlay",
+    # Evidence Manifest Hash Chain - Sprint 82 (2 models)
+    "EvidenceManifest",
+    "EvidenceManifestVerification",
 ]

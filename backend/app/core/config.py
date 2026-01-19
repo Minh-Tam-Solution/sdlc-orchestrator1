@@ -129,6 +129,13 @@ class Settings(BaseSettings):
     GITHUB_APP_PRIVATE_KEY: Optional[str] = None  # PEM private key (base64 encoded or raw)
     GITHUB_APP_WEBHOOK_SECRET: Optional[str] = None  # Webhook secret for App events
 
+    # Evidence Manifest (Sprint 82 - Hash Chain)
+    # Secret key for HMAC-SHA256 signing of manifests
+    # CRITICAL: Must be set in production, rotated every 90 days via Vault
+    # See: SPRINT-82-HARDENING-EVIDENCE.md, Pre-Launch Hardening Plan
+    EVIDENCE_MANIFEST_SECRET_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not set
+    EVIDENCE_RETENTION_DAYS: int = 2555  # ~7 years for GDPR compliance
+
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     MICROSOFT_CLIENT_ID: Optional[str] = None

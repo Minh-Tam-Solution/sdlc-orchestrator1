@@ -1,13 +1,13 @@
 """
 =========================================================================
-Evidence Manifest Service - Ed25519 Signed Hash Chain (Sprint 79)
+Evidence Manifest Service - Ed25519 Signed Hash Chain (Sprint 82)
 SDLC Orchestrator - Stage 04 (BUILD)
 
-Version: 1.0.0
+Version: 2.0.0
 Date: January 19, 2026
-Status: ACTIVE - Sprint 79 (Pre-Launch Hardening)
+Status: ACTIVE - Sprint 82 (Pre-Launch Hardening)
 Authority: CTO + Security Lead Approved
-Foundation: Expert Feedback (Expert 6), SPRINT-79-PRE-LAUNCH-HARDENING.md
+Foundation: Expert Feedback (Expert 6), SPRINT-82-HARDENING-EVIDENCE.md
 Framework: SDLC 5.1.3 (7-Pillar Architecture)
 
 Purpose:
@@ -15,6 +15,7 @@ Purpose:
 - Ed25519 asymmetric signing for non-repudiation
 - Hash chain linking for sequential integrity
 - GDPR-compliant anonymization support
+- Database persistence with SQLAlchemy models
 
 Why Ed25519 (not HMAC-SHA256):
 - Asymmetric: Public key for verification, private key for signing
@@ -25,6 +26,9 @@ Why Ed25519 (not HMAC-SHA256):
 Expert 6 Feedback (Jan 19, 2026):
 "HMAC with shared secret = anyone with secret can forge signatures.
  Ed25519 = only server signs, anyone can verify = TRUE non-repudiation."
+
+Go/No-Go Criteria (Feb 28, 2026):
+- Evidence hash chain: Tamper-evident test pass ✅
 
 Zero Mock Policy: 100% real implementation (cryptography library)
 =========================================================================
@@ -38,6 +42,8 @@ from typing import Any, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -606,7 +612,431 @@ class EvidenceManifestService:
 
 
 # ============================================================================
-# Singleton Instance
+# Database Service (Sprint 82)
+# ============================================================================
+
+
+class EvidenceManifestDBService:
+    """
+    Database operations for Evidence Manifests.
+
+    Integrates with SQLAlchemy models to persist and query manifests.
+    Separate from EvidenceManifestService for clean separation of concerns:
+    - EvidenceManifestService: Hash/signature operations (stateless)
+    - EvidenceManifestDBService: Database operations (stateful)
+
+    Usage:
+        from app.services.evidence_manifest_service import evidence_manifest_db_service
+
+        # Create and persist manifest
+        db_manifest = await evidence_manifest_db_service.create_manifest(
+            db=session,
+            project_id=project_id,
+            artifacts=artifacts,
+            created_by=user_id,
+        )
+
+        # Verify chain for project
+        result = await evidence_manifest_db_service.verify_project_chain(
+            db=session,
+            project_id=project_id,
+        )
+    """
+
+    def __init__(self, manifest_service: Optional[EvidenceManifestService] = None):
+        """
+        Initialize database service.
+
+        Args:
+            manifest_service: Optional manifest service for hash/signature ops
+        """
+        self.manifest_service = manifest_service or EvidenceManifestService()
+        logger.info("Evidence Manifest DB service initialized")
+
+    async def create_manifest(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+        artifacts: list[dict[str, Any]],
+        created_by: Optional[UUID] = None,
+    ):
+        """
+        Create and persist a new manifest with hash chain linking.
+
+        Steps:
+        1. Get latest manifest for project (if exists)
+        2. Calculate next sequence number
+        3. Create Pydantic manifest with hash/signature
+        4. Persist to database
+
+        Args:
+            db: Database session
+            project_id: Project UUID
+            artifacts: List of artifact dicts to include
+            created_by: User UUID who triggered creation
+
+        Returns:
+            SQLAlchemy EvidenceManifest model instance
+        """
+        # Import here to avoid circular imports
+        from app.models.evidence_manifest import EvidenceManifest as DBEvidenceManifest
+
+        # Get latest manifest for chain linking
+        latest_query = (
+            select(DBEvidenceManifest)
+            .where(DBEvidenceManifest.project_id == project_id)
+            .order_by(DBEvidenceManifest.sequence_number.desc())
+            .limit(1)
+        )
+        result = await db.execute(latest_query)
+        latest_manifest = result.scalar_one_or_none()
+
+        # Determine sequence number and previous hash
+        if latest_manifest:
+            sequence_number = latest_manifest.sequence_number + 1
+            previous_hash = latest_manifest.manifest_hash
+            is_genesis = False
+            # Convert DB manifest to Pydantic for chain linking
+            prev_pydantic = EvidenceManifest(
+                manifest_id=latest_manifest.id,
+                project_id=latest_manifest.project_id,
+                sequence_number=latest_manifest.sequence_number,
+                artifacts=[
+                    ArtifactEntry(**a) for a in latest_manifest.artifacts
+                ] if latest_manifest.artifacts else [],
+                previous_manifest_hash=latest_manifest.previous_manifest_hash,
+                manifest_hash=latest_manifest.manifest_hash,
+                signature=latest_manifest.signature,
+            )
+        else:
+            sequence_number = 1
+            previous_hash = None
+            is_genesis = True
+            prev_pydantic = None
+
+        # Convert artifact dicts to Pydantic models
+        artifact_entries = []
+        for a in artifacts:
+            artifact_entries.append(
+                ArtifactEntry(
+                    artifact_id=a.get("artifact_id") or uuid4(),
+                    file_path=a.get("file_path", a.get("path", "")),
+                    sha256_hash=a.get("sha256_hash", a.get("sha256", "")),
+                    size_bytes=a.get("size_bytes", a.get("size", 0)),
+                    content_type=a.get("content_type", "application/octet-stream"),
+                    uploaded_at=a.get("uploaded_at") or datetime.now(timezone.utc),
+                    uploaded_by=a.get("uploaded_by") or created_by or uuid4(),
+                    metadata=a.get("metadata", {}),
+                )
+            )
+
+        # Create signed Pydantic manifest
+        pydantic_manifest = self.manifest_service.create_manifest(
+            project_id=project_id,
+            artifacts=artifact_entries,
+            sequence_number=sequence_number,
+            previous_manifest=prev_pydantic,
+        )
+
+        # Convert to DB model
+        db_manifest = DBEvidenceManifest(
+            id=pydantic_manifest.manifest_id,
+            project_id=project_id,
+            sequence_number=sequence_number,
+            manifest_hash=pydantic_manifest.manifest_hash,
+            previous_manifest_hash=previous_hash,
+            artifacts=[
+                {
+                    "artifact_id": str(a.artifact_id),
+                    "file_path": a.file_path,
+                    "sha256_hash": a.sha256_hash,
+                    "size_bytes": a.size_bytes,
+                    "content_type": a.content_type,
+                    "uploaded_at": a.uploaded_at.isoformat(),
+                    "uploaded_by": str(a.uploaded_by),
+                    "metadata": a.metadata,
+                }
+                for a in artifact_entries
+            ],
+            signature=pydantic_manifest.signature or "",
+            is_genesis=is_genesis,
+            created_by=created_by,
+        )
+
+        db.add(db_manifest)
+        await db.commit()
+        await db.refresh(db_manifest)
+
+        logger.info(
+            f"Created manifest {db_manifest.id} for project {project_id}, "
+            f"seq={sequence_number}, is_genesis={is_genesis}, "
+            f"artifacts={len(artifact_entries)}"
+        )
+
+        return db_manifest
+
+    async def get_manifest(
+        self,
+        db: AsyncSession,
+        manifest_id: UUID,
+    ):
+        """
+        Get manifest by ID.
+
+        Args:
+            db: Database session
+            manifest_id: Manifest UUID
+
+        Returns:
+            SQLAlchemy EvidenceManifest or None
+        """
+        from app.models.evidence_manifest import EvidenceManifest as DBEvidenceManifest
+
+        query = select(DBEvidenceManifest).where(DBEvidenceManifest.id == manifest_id)
+        result = await db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def get_project_manifests(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+        limit: int = 100,
+        offset: int = 0,
+    ):
+        """
+        Get all manifests for a project, ordered by sequence.
+
+        Args:
+            db: Database session
+            project_id: Project UUID
+            limit: Max results to return
+            offset: Offset for pagination
+
+        Returns:
+            List of SQLAlchemy EvidenceManifest models
+        """
+        from app.models.evidence_manifest import EvidenceManifest as DBEvidenceManifest
+
+        query = (
+            select(DBEvidenceManifest)
+            .where(DBEvidenceManifest.project_id == project_id)
+            .order_by(DBEvidenceManifest.sequence_number.asc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    async def get_latest_manifest(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+    ):
+        """
+        Get the latest manifest for a project.
+
+        Args:
+            db: Database session
+            project_id: Project UUID
+
+        Returns:
+            SQLAlchemy EvidenceManifest or None
+        """
+        from app.models.evidence_manifest import EvidenceManifest as DBEvidenceManifest
+
+        query = (
+            select(DBEvidenceManifest)
+            .where(DBEvidenceManifest.project_id == project_id)
+            .order_by(DBEvidenceManifest.sequence_number.desc())
+            .limit(1)
+        )
+        result = await db.execute(query)
+        return result.scalar_one_or_none()
+
+    async def verify_project_chain(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+        verified_by: str = "api-request",
+    ) -> ManifestVerificationResult:
+        """
+        Verify the entire hash chain for a project and log result.
+
+        Steps:
+        1. Load all manifests for project
+        2. Convert to Pydantic models
+        3. Verify chain integrity
+        4. Log verification result
+
+        Args:
+            db: Database session
+            project_id: Project UUID
+            verified_by: Identifier for who/what ran verification
+
+        Returns:
+            ManifestVerificationResult
+        """
+        from app.models.evidence_manifest import (
+            EvidenceManifest as DBEvidenceManifest,
+            EvidenceManifestVerification as DBVerification,
+        )
+
+        # Load all manifests
+        db_manifests = await self.get_project_manifests(db, project_id, limit=10000)
+
+        if not db_manifests:
+            # No manifests = valid (empty chain)
+            result = ManifestVerificationResult(
+                is_valid=True,
+                manifest_id=uuid4(),
+                warnings=["No manifests found for project"],
+            )
+            # Log verification
+            verification = DBVerification(
+                project_id=project_id,
+                manifests_checked=0,
+                chain_valid=True,
+                verified_by=verified_by,
+            )
+            db.add(verification)
+            await db.commit()
+            return result
+
+        # Convert to Pydantic models
+        pydantic_manifests = []
+        for m in db_manifests:
+            pydantic_manifests.append(
+                EvidenceManifest(
+                    manifest_id=m.id,
+                    project_id=m.project_id,
+                    sequence_number=m.sequence_number,
+                    artifacts=[
+                        ArtifactEntry(**a) for a in m.artifacts
+                    ] if m.artifacts else [],
+                    previous_manifest_hash=m.previous_manifest_hash,
+                    manifest_hash=m.manifest_hash,
+                    signature=m.signature,
+                )
+            )
+
+        # Verify chain
+        result = self.manifest_service.verify_chain(pydantic_manifests)
+
+        # Log verification result
+        first_broken_id = None
+        if not result.is_valid and result.errors:
+            # Try to extract manifest ID from error message
+            for error in result.errors:
+                if "manifest" in error.lower():
+                    # Parse UUID from error message
+                    import re
+                    uuid_match = re.search(
+                        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                        error,
+                        re.IGNORECASE,
+                    )
+                    if uuid_match:
+                        first_broken_id = UUID(uuid_match.group())
+                        break
+
+        verification = DBVerification(
+            project_id=project_id,
+            manifests_checked=len(db_manifests),
+            chain_valid=result.is_valid,
+            first_broken_at=first_broken_id,
+            error_message="\n".join(result.errors) if result.errors else None,
+            verified_by=verified_by,
+        )
+        db.add(verification)
+        await db.commit()
+
+        logger.info(
+            f"Chain verification for project {project_id}: "
+            f"valid={result.is_valid}, checked={len(db_manifests)}"
+        )
+
+        return result
+
+    async def get_verification_history(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+        limit: int = 10,
+    ):
+        """
+        Get verification history for a project.
+
+        Args:
+            db: Database session
+            project_id: Project UUID
+            limit: Max results to return
+
+        Returns:
+            List of verification records
+        """
+        from app.models.evidence_manifest import EvidenceManifestVerification as DBVerification
+
+        query = (
+            select(DBVerification)
+            .where(DBVerification.project_id == project_id)
+            .order_by(DBVerification.verified_at.desc())
+            .limit(limit)
+        )
+        result = await db.execute(query)
+        return result.scalars().all()
+
+    async def get_chain_status(
+        self,
+        db: AsyncSession,
+        project_id: UUID,
+    ) -> dict[str, Any]:
+        """
+        Get chain status summary for a project.
+
+        Returns:
+            Dict with total_manifests, latest_sequence, last_verification, etc.
+        """
+        from app.models.evidence_manifest import (
+            EvidenceManifest as DBEvidenceManifest,
+            EvidenceManifestVerification as DBVerification,
+        )
+
+        # Count manifests
+        count_query = (
+            select(func.count(DBEvidenceManifest.id))
+            .where(DBEvidenceManifest.project_id == project_id)
+        )
+        count_result = await db.execute(count_query)
+        total_manifests = count_result.scalar() or 0
+
+        # Get latest manifest
+        latest = await self.get_latest_manifest(db, project_id)
+
+        # Get last verification
+        verif_query = (
+            select(DBVerification)
+            .where(DBVerification.project_id == project_id)
+            .order_by(DBVerification.verified_at.desc())
+            .limit(1)
+        )
+        verif_result = await db.execute(verif_query)
+        last_verification = verif_result.scalar_one_or_none()
+
+        return {
+            "project_id": str(project_id),
+            "total_manifests": total_manifests,
+            "latest_sequence": latest.sequence_number if latest else 0,
+            "latest_manifest_hash": latest.manifest_hash if latest else None,
+            "latest_manifest_at": latest.created_at.isoformat() if latest else None,
+            "last_verification_valid": last_verification.chain_valid if last_verification else None,
+            "last_verified_at": last_verification.verified_at.isoformat() if last_verification else None,
+            "last_verified_by": last_verification.verified_by if last_verification else None,
+        }
+
+
+# ============================================================================
+# Singleton Instances
 # ============================================================================
 
 evidence_manifest_service = EvidenceManifestService()
+evidence_manifest_db_service = EvidenceManifestDBService(evidence_manifest_service)
