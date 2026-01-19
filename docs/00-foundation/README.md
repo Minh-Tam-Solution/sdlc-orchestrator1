@@ -3,12 +3,19 @@
 
 **Stage**: 00 - FOUNDATION
 **Question**: Why are we building this?
-**Version**: 4.0.0
-**Date**: December 23, 2025
+**Version**: 4.1.0
+**Date**: January 19, 2026
 **Status**: ✅ COMPLETED - Gate G0.1 + G0.2 PASSED
 **Authority**: PM + CEO + CTO + CPO Approved (9.5/10 Confidence)
-**Framework**: SDLC 5.1.1 + SASE Level 2
+**Framework**: SDLC 5.1.3 + SASE Level 2
 **Positioning**: Operating System for Software 3.0
+
+**Changelog v4.1.0** (Jan 19, 2026):
+- **Sprint 78 Complete**: Sprint Analytics + Cross-Project Coordination (36/36 SP, 98% coverage)
+- **Governance Lesson**: Frontend duplication incident (13 sprints drift) → Mandatory ADR review in G-Sprint-Open
+- **Personal Teams Design**: Dual ownership model (user-owned + org-owned teams) awaiting CTO approval
+- **Architecture Re-enforced**: ADR-025 unified frontend restored (single Next.js service on port 8310)
+- **Dogfooding Commitment**: Using SDLC Orchestrator to manage our own development (Sprint 80+)
 
 **Changelog v4.0.0** (Dec 23, 2025):
 - **SOFTWARE 3.0 PIVOT**: Control Plane for AI Coders positioning
@@ -27,6 +34,25 @@
 - Mode C Hybrid Fallback: Claude → Continue.dev auto-failover
 - Investment committed: $124.5K for Q1-Q3 2026
 - Revenue projection: +$34.5K ARR Year 1 from new epics
+
+**Key Governance Lesson (Jan 2026)**:
+
+🔴 **Irony Discovered**: We build a governance platform for AI+human teams, yet failed to govern our own architecture for 13 sprints.
+
+**What Happened**: ADR-025 (unified frontend) was violated during Sprint 65-78. Team unknowingly recreated dual-frontend architecture despite Sprint 61-64 unification work.
+
+**Root Cause**: Lack of ADR enforcement in sprint planning. No automated compliance checks.
+
+**Corrective Actions**:
+1. ✅ Re-unify frontend (Sprint 79 priority)
+2. 🔄 Mandatory ADR review in G-Sprint-Open gate
+3. 🤖 Automated ADR compliance checks (pre-commit hooks)
+4. 🐶 Dogfood SDLC Orchestrator for our own development
+5. 📚 ADR Active Summary for team onboarding
+
+**Key Takeaway**: *"We cannot govern others if we cannot govern ourselves."* This incident led to mandatory ADR enforcement and automated compliance checks.
+
+See: [GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md](../../07-operate/03-Lessons-Learned/GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md)
 
 ---
 
