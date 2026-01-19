@@ -4,9 +4,10 @@
 **Status:** 📋 DRAFT - CTO REVIEW REQUIRED
 **Duration:** 10 days (February 17-28, 2026)
 **Goal:** Integrate AGENTS.md with GitHub Check Runs, VS Code Extension, and PR Webhooks
-**Story Points:** 38 SP
+**Story Points:** 42 SP _(+4 SP from design review)_
 **Framework Reference:** SDLC 5.1.3 P5 (SASE Integration)
 **Prerequisite:** Sprint 80 ✅ COMPLETE
+**Design Review:** [SPRINT-81-DESIGN-REVIEW.md](../../02-design/14-Technical-Specs/SPRINT-81-DESIGN-REVIEW.md)
 
 ---
 
@@ -14,15 +15,55 @@
 
 ### Primary Goals (P0)
 
-1. **GitHub Check Run Integration** - Post context overlay as GitHub Check Run annotation
-2. **PR Webhook Handler** - Auto-post context overlay on PR open/update
-3. **VS Code Extension Context Panel** - Display dynamic overlay in IDE sidebar
+1. **GitHub App & Token Management** - Setup GitHub App for Check Runs API _(NEW from design review)_
+2. **GitHub Check Run Integration** - Post context overlay as GitHub Check Run annotation
+3. **PR Webhook Handler** - Auto-post context overlay on PR open/update
+4. **VS Code Extension Context Panel** - Display dynamic overlay in IDE sidebar
 
 ### Secondary Goals (P1)
 
-4. **Multi-repo AGENTS.md Management** - Dashboard UI for managing AGENTS.md across repos
-5. **AGENTS.md Version History** - Track changes and allow rollback
-6. **CLI Context Command** - `sdlcctl agents context` to fetch current overlay
+5. **Multi-repo AGENTS.md Management** - Dashboard UI for managing AGENTS.md across repos
+6. **AGENTS.md Version History** - Track changes and allow rollback
+7. **CLI Context Command** - `sdlcctl agents context` to fetch current overlay
+
+---
+
+## ⚠️ Pre-Sprint Blockers (Design Review Findings)
+
+| Blocker | Owner | Deadline | Status |
+|---------|-------|----------|--------|
+| **GitHub App Registration** | DevOps | Feb 14 | ⏳ NOT STARTED |
+| **VS Code Extension Base** | Frontend | Feb 14 | ⏳ PARTIAL |
+| **Context Panel Wireframe** | UX | Feb 14 | ⏳ NOT STARTED |
+
+### Critical Gap: GitHub App vs OAuth App
+
+**Current State:** OAuth App (Sprint 15) - cannot create Check Runs
+**Required:** GitHub App with `checks:write` permission
+
+```yaml
+GitHub App Permissions Required:
+  - checks: write           # Create/update Check Runs
+  - pull_requests: read     # Read PR metadata
+  - contents: read          # Read repo contents
+  - metadata: read          # Read repo metadata
+
+Webhook Events:
+  - pull_request            # PR opened/synchronized/labeled
+  - check_run               # Re-run requests
+```
+
+### Critical Gap: VS Code Context Panel
+
+**Sprint 53 Design** focuses on App Builder (code generation)
+**Sprint 81 Needs** Context Panel (SDLC governance) - NOT in Sprint 53
+
+**New Design Required:**
+- Stage/Gate status display
+- Active constraints list
+- Strict mode indicator
+- Auto-refresh (30s interval)
+- Offline caching
 
 ---
 
@@ -48,7 +89,123 @@
 
 ## 📋 Sprint 81 Backlog
 
-### Day 1-3: GitHub Check Run Integration (14 SP)
+### Day 1: GitHub App & Token Management (4 SP) - NEW
+
+| Task | Owner | Est | Priority | Status |
+|------|-------|-----|----------|--------|
+| Create `GitHubAppService` class | Backend | 2h | P0 | ⏳ |
+| Implement Installation Token generation | Backend | 2h | P0 | ⏳ |
+| Token caching (1 hour expiry) | Backend | 1h | P0 | ⏳ |
+| Configuration for App ID, Private Key | DevOps | 1h | P0 | ⏳ |
+| Unit tests (6 tests) | Backend | 2h | P0 | ⏳ |
+
+**Technical Design:**
+
+```python
+# backend/app/services/github_app_service.py
+import jwt
+import time
+from datetime import datetime, timedelta
+from typing import Optional
+import requests
+
+from app.core.config import settings
+
+
+class GitHubAppService:
+    """
+    GitHub App service for Installation Access Tokens.
+
+    IMPORTANT: GitHub Check Runs API requires GitHub App, NOT OAuth App.
+
+    Flow:
+    1. Generate JWT from App private key
+    2. Exchange JWT for Installation Access Token
+    3. Use Installation Token for Check Runs API
+    4. Cache token (expires in 1 hour)
+    """
+
+    def __init__(self):
+        self.app_id = settings.GITHUB_APP_ID
+        self.private_key = settings.GITHUB_APP_PRIVATE_KEY
+        self._token_cache: dict[int, tuple[str, datetime]] = {}
+
+    def _generate_jwt(self) -> str:
+        """Generate JWT for GitHub App authentication."""
+        now = int(time.time())
+        payload = {
+            "iat": now - 60,  # Issued 60 seconds ago
+            "exp": now + (10 * 60),  # Expires in 10 minutes
+            "iss": self.app_id,
+        }
+        return jwt.encode(payload, self.private_key, algorithm="RS256")
+
+    async def get_installation_token(self, installation_id: int) -> str:
+        """
+        Get Installation Access Token for a repo.
+
+        Args:
+            installation_id: GitHub App installation ID
+
+        Returns:
+            Installation access token (valid for 1 hour)
+        """
+        # Check cache
+        if installation_id in self._token_cache:
+            token, expires_at = self._token_cache[installation_id]
+            if datetime.utcnow() < expires_at - timedelta(minutes=5):
+                return token
+
+        # Generate new token
+        jwt_token = self._generate_jwt()
+        response = requests.post(
+            f"https://api.github.com/app/installations/{installation_id}/access_tokens",
+            headers={
+                "Authorization": f"Bearer {jwt_token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        token = data["token"]
+        expires_at = datetime.fromisoformat(data["expires_at"].replace("Z", "+00:00"))
+
+        # Cache token
+        self._token_cache[installation_id] = (token, expires_at)
+        return token
+
+    async def get_installation_for_repo(
+        self, repo_owner: str, repo_name: str
+    ) -> Optional[int]:
+        """Find installation ID for a repository."""
+        jwt_token = self._generate_jwt()
+        response = requests.get(
+            f"https://api.github.com/repos/{repo_owner}/{repo_name}/installation",
+            headers={
+                "Authorization": f"Bearer {jwt_token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        if response.status_code == 404:
+            return None  # App not installed
+        response.raise_for_status()
+        return response.json()["id"]
+```
+
+**Configuration Required:**
+
+```yaml
+# .env additions for Sprint 81
+GITHUB_APP_ID=123456
+GITHUB_APP_PRIVATE_KEY_PATH=/secrets/github-app-private-key.pem
+# OR inline (base64 encoded)
+GITHUB_APP_PRIVATE_KEY_BASE64=LS0tLS1CRUdJTi...
+```
+
+---
+
+### Day 2-3: GitHub Check Run Integration (14 SP)
 
 | Task | Owner | Est | Priority | Status |
 |------|-------|-----|----------|--------|
@@ -768,20 +925,21 @@ GET /api/v1/agents-md/context/{project_id}/history:
 
 ---
 
-## 📅 Daily Standup Schedule
+## 📅 Daily Standup Schedule (Updated from Design Review)
 
 | Day | Focus | Deliverable |
 |-----|-------|-------------|
-| Feb 17-18 | GitHub Check Run | `GitHubCheckRunService` complete |
-| Feb 19 | Check Run output | Annotations + summary |
-| Feb 20-21 | PR Webhook | Webhook handler enhanced |
-| Feb 24-25 | VS Code Extension | Context Panel complete |
-| Feb 26-27 | Multi-repo + CLI | Dashboard + `agents context` |
-| Feb 28 | Testing & Docs | Sprint completion |
+| **Feb 17** | GitHub App Setup | `GitHubAppService` + token flow working |
+| **Feb 18-19** | GitHub Check Run | `GitHubCheckRunService` complete |
+| **Feb 20-21** | PR Webhook | Webhook → Check Run trigger |
+| **Feb 24-25** | VS Code Context Panel | Webview + auto-refresh |
+| **Feb 26** | VS Code Status Bar | Stage indicator |
+| **Feb 27** | Multi-repo + CLI | Dashboard + `agents context` |
+| **Feb 28** | Testing & Docs | E2E tests, documentation |
 
 ---
 
-## 🏗️ Architecture Impact
+## 🏗️ Architecture Impact (Updated from Design Review)
 
 ### New Service Dependencies
 
@@ -789,48 +947,92 @@ GET /api/v1/agents-md/context/{project_id}/history:
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         Sprint 81 Services                          │
 │                                                                     │
-│  ┌─────────────────────┐     ┌─────────────────────────────────┐   │
-│  │  GitHubCheckRunSvc  │────▶│  ContextOverlayService (S80)    │   │
-│  │  (NEW)              │     └──────────────┬──────────────────┘   │
-│  └──────────┬──────────┘                    │                       │
-│             │                               │                       │
-│             ▼                               ▼                       │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │                    GitHub App Integration (NEW)               │  │
+│  │                                                               │  │
+│  │  ┌─────────────────┐     ┌─────────────────────────────────┐ │  │
+│  │  │ GitHubAppSvc    │────▶│  Installation Token Cache       │ │  │
+│  │  │ (JWT + Tokens)  │     │  (1 hour expiry)                │ │  │
+│  │  └────────┬────────┘     └─────────────────────────────────┘ │  │
+│  │           │                                                   │  │
+│  │           ▼                                                   │  │
+│  │  ┌─────────────────┐     ┌─────────────────────────────────┐ │  │
+│  │  │GitHubCheckRunSvc│────▶│  ContextOverlayService (S80)    │ │  │
+│  │  │ (NEW)           │     └──────────────┬──────────────────┘ │  │
+│  │  └──────────┬──────┘                    │                    │  │
+│  └─────────────│───────────────────────────│────────────────────┘  │
+│                │                           │                        │
+│                ▼                           ▼                        │
 │  ┌─────────────────────┐     ┌─────────────────────────────────┐   │
 │  │  GitHubService      │     │  GateService                    │   │
-│  │  (Enhanced)         │     │  (Existing)                     │   │
+│  │  (OAuth - Existing) │     │  (Existing)                     │   │
 │  └─────────────────────┘     └─────────────────────────────────┘   │
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                    VS Code Extension                         │   │
-│  │  ┌─────────────────┐   ┌─────────────────┐                   │   │
-│  │  │  ContextPanel   │   │  StatusBarItem  │                   │   │
-│  │  │  (Webview)      │   │  (Stage/Gate)   │                   │   │
-│  │  └────────┬────────┘   └────────┬────────┘                   │   │
-│  │           │                     │                             │   │
-│  │           └─────────┬───────────┘                             │   │
-│  │                     ▼                                         │   │
-│  │           ┌─────────────────┐                                 │   │
-│  │           │  API Client     │───────▶ /api/v1/agents-md/*    │   │
-│  │           └─────────────────┘                                 │   │
+│  │                    VS Code Extension (NEW)                   │   │
+│  │  ┌─────────────────┐   ┌─────────────────┐   ┌───────────┐  │   │
+│  │  │  ContextPanel   │   │  StatusBarItem  │   │ ApiClient │  │   │
+│  │  │  (Webview)      │   │  (Stage/Gate)   │   │ (Cached)  │  │   │
+│  │  └────────┬────────┘   └────────┬────────┘   └─────┬─────┘  │   │
+│  │           │                     │                   │        │   │
+│  │           └─────────────────────┴───────────────────┘        │   │
+│  │                                 │                             │   │
+│  │                                 ▼                             │   │
+│  │                    /api/v1/agents-md/context/*                │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
+
+Key Insight from Design Review:
+  - GitHub App (NEW) required for Check Runs - OAuth cannot create Check Runs
+  - VS Code Context Panel (NEW) - NOT covered in Sprint 53 design
+  - Sprint 53 focused on App Builder, Sprint 81 needs governance context
 ```
 
 ---
 
 ## 📋 CTO Review Checklist
 
-- [ ] Architecture design approved
-- [ ] GitHub Check Run approach validated
-- [ ] VS Code Extension scope confirmed
-- [ ] Security considerations reviewed
-- [ ] Performance budget acceptable
-- [ ] Resource allocation confirmed (Backend: 2 FTE, Frontend: 1 FTE)
+### Design Review Findings (Must Address)
+
+- [ ] **GitHub App Registration** - DevOps must create by Feb 14
+- [ ] **GitHub App vs OAuth** - Confirm App approach for Check Runs
+- [ ] **VS Code Context Panel** - Confirm new design (NOT in Sprint 53)
+- [ ] **Story Point Increase** - Approve 38 SP → 42 SP (+4 SP for GitHub App)
+
+### Architecture Decisions
+
+- [ ] GitHub App ownership: **Organization** (recommended) or Personal?
+- [ ] Check Run behavior: **Advisory** (Sprint 81) or Blocking (Sprint 82)?
+- [ ] VS Code priority: **Context Panel** (governance) or App Builder (codegen)?
+
+### Resource & Timeline
+
+- [ ] Backend: 2 FTE allocated
+- [ ] Frontend: 1 FTE allocated
+- [ ] DevOps: 0.5 FTE for GitHub App setup
+- [ ] Timeline: Feb 17-28 (10 days) confirmed
+
+### Security Review
+
+- [ ] GitHub App private key storage (Vault?)
+- [ ] Installation token caching security
+- [ ] Webhook signature validation (HMAC-SHA256)
+- [ ] VS Code credential storage (SecretStorage API)
 
 ---
 
-**Sprint 81 Plan Version:** 1.0.0
+## 📎 References
+
+- [Sprint 81 Design Review](../../02-design/14-Technical-Specs/SPRINT-81-DESIGN-REVIEW.md) - Detailed gap analysis
+- [VS Code Extension Spec (Sprint 53)](../../02-design/14-Technical-Specs/VSCode-Extension-Specification.md) - App Builder focus
+- [GitHub Service (Sprint 15)](../../../backend/app/services/github_service.py) - Current OAuth implementation
+- [AGENTS.md Technical Design](../../02-design/14-Technical-Specs/AGENTS-MD-Technical-Design.md) - Sprint 80 foundation
+
+---
+
+**Sprint 81 Plan Version:** 1.1.0 _(Updated from Design Review)_
 **Created:** January 19, 2026
+**Updated:** January 19, 2026
 **Author:** Backend Lead
 **Status:** 📋 AWAITING CTO APPROVAL
 
@@ -839,3 +1041,4 @@ GET /api/v1/agents-md/context/{project_id}/history:
 **SDLC 5.1.3 | Sprint 81 | Stage 04 (BUILD)**
 
 *G-Sprint Approval Required Before Sprint Start*
+*Design Review completed - See DRR-081-001*
