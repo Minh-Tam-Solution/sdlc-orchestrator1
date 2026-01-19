@@ -7,10 +7,10 @@
 **Authority**: PM + Product Owner Review (APPROVED)
 **Foundation**: FRD v3.0.0, User Personas 1.1.0, Product Vision 3.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v2.0.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Added E9-E11: AI Safety Layer stories (EP-02)
 - Added E12-E14: SDLC Structure Enforcement stories (EP-04)
 - Added E15-E17: Enterprise Migration stories (EP-05)
@@ -566,7 +566,7 @@ US1.2: Evaluate gate G0.1 (Problem Definition)
 ## Document Control
 
 **Version History**:
-- v2.0.0 (December 21, 2025): SDLC 5.1.1 update, EP-04/05/06 stories added
+- v2.0.0 (December 21, 2025): SDLC 5.1.3 update, EP-04/05/06 stories added
 - v1.1.0 (December 18, 2025): Added E8 User Management stories
 - v1.0.0 (November 13, 2025): Initial user stories (50+ stories, 10 epics)
 
@@ -581,7 +581,7 @@ US1.2: Evaluate gate G0.1 (Problem Definition)
 ---
 
 **Document**: SDLC-Orchestrator-User-Stories-Epics
-**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Framework**: SDLC 5.1.3 Stage 01 (WHAT) - Planning & Analysis
 **Component**: User Stories and Epic Breakdown
 **Review**: Sprint planning sessions
 **Last Updated**: December 21, 2025

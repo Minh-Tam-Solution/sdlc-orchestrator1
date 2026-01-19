@@ -7,10 +7,10 @@
 **Authority**: CPO + PM + Design Lead Approved
 **Foundation**: POV Statement 1.1.0, Problem Statement 2.1.0
 **Stage**: Stage 00 (WHY) - Design Thinking DEFINE → IDEATE Transition
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Updated foundation references
 - Added EP-04/05/06 solution context
 
@@ -602,7 +602,7 @@ Based on:
 ---
 
 **Document**: SDLC-Orchestrator-HMW-Questions
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking DEFINE → IDEATE
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Design Thinking DEFINE → IDEATE
 **Component**: Problem Reframing (47 HMW Questions, Top 10 Prioritized)
 **Review**: Monthly (generate new HMW questions as we learn)
 **Last Updated**: December 21, 2025

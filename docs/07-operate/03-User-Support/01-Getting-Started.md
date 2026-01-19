@@ -6,7 +6,7 @@
 
 ## Welcome to SDLC Orchestrator! 🚀
 
-SDLC Orchestrator is your AI-native platform for implementing **SDLC 5.1.1 Enterprise Framework** - a proven methodology that has delivered:
+SDLC Orchestrator is your AI-native platform for implementing **SDLC 5.1.3 Enterprise Framework** - a proven methodology that has delivered:
 - **BFlow**: $43M revenue, 827:1 ROI
 - **NQH-Bot**: ₫15B+ value
 - **MTEP**: <30 minute PaaS deployment
@@ -52,11 +52,11 @@ Production URL: https://sdlc.nhatquangholding.com
 09 GOVERN      → Are we compliant?
 ```
 
-## Understanding SDLC 5.1.1 Framework
+## Understanding SDLC 5.1.3 Framework
 
 ### The Framework You're Using
 
-SDLC Orchestrator implements **SDLC 5.1.1 Enterprise Framework**, which means:
+SDLC Orchestrator implements **SDLC 5.1.3 Enterprise Framework**, which means:
 
 #### ✅ Quality Gates at Every Stage
 Each stage has specific quality gates that must be passed:
@@ -201,7 +201,7 @@ Manage the platform:
 ├─────────────────────────────────────────────────────────────┤
 │ Login:       https://sdlc.nhatquangholding.com             │
 │ API Docs:    https://sdlc.nhatquangholding.com/api/docs    │
-│ Framework:   SDLC 5.1.1 (10 stages, 4 tiers)               │
+│ Framework:   SDLC 5.1.3 (10 stages, 4 tiers)               │
 │                                                             │
 │ Key Shortcuts:                                              │
 │   - Projects:  P                                            │
@@ -244,6 +244,6 @@ Manage the platform:
 
 ---
 
-**Framework**: SDLC 5.1.1 Complete Lifecycle  
+**Framework**: SDLC 5.1.3 Complete Lifecycle  
 **Platform**: SDLC Orchestrator v1.2.0  
 **Last Updated**: December 20, 2025

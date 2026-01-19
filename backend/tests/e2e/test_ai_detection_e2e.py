@@ -3,7 +3,7 @@ AI Detection E2E Tests - Sprint 42 Day 8
 
 SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Day: 8 - End-to-End Validation
 
 Purpose:

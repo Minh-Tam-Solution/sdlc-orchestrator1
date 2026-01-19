@@ -8,7 +8,7 @@ Date: December 16, 2025
 Status: ACTIVE - Sprint 37 Admin Panel
 Authority: CTO Approved (Dec 16, 2025)
 Foundation: ADR-017 Admin Panel Architecture
-Framework: SDLC 5.1.1 Complete Lifecycle
+Framework: SDLC 5.1.3 Complete Lifecycle
 
 Purpose:
 - Admin user management schemas

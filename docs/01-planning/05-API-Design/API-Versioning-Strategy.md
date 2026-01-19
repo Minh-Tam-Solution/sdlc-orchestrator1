@@ -7,10 +7,10 @@
 **Authority**: Backend Lead + CTO Review (✅ APPROVED)
 **Foundation**: API Specification v3.0.0, NFR v3.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 API versioning strategy
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, EP-04/05/06 API versioning strategy
 - v1.0.0 (Nov 13, 2025): Initial versioning strategy
 
 ---

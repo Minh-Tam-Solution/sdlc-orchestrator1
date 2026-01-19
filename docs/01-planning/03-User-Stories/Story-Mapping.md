@@ -7,10 +7,10 @@
 **Authority**: PM + UX Lead Review (✅ APPROVED)
 **Foundation**: User Stories v2.0.0, Acceptance Criteria v2.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 user journeys added
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, EP-04/05/06 user journeys added
 - v1.0.0 (Jan 13, 2025): Initial story mapping (7 journeys, 50+ stories)
 
 ---
@@ -298,7 +298,7 @@ This document visualizes **user journeys across SDLC 4.8 stages (Stage 00-09)** 
 ---
 
 **Document**: SDLC-Orchestrator-Story-Mapping
-**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Framework**: SDLC 5.1.3 Stage 01 (WHAT) - Planning & Analysis
 **Component**: User Journey Visualization
 **Review**: Sprint planning sessions with PM + UX Lead
 **Last Updated**: December 21, 2025

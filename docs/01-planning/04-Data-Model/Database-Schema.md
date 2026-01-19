@@ -7,7 +7,7 @@
 **Authority**: Backend Lead + CTO Review (APPROVED)
 **Foundation**: Data Model ERD v2.0 (with AI Governance)
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v2.0.0** (Dec 3, 2025):
 - Added Migration 006: AI Governance Tables (stage_requirements, requirement_overrides)

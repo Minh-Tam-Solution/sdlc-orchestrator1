@@ -8,7 +8,7 @@
 **Status**: PROPOSED - Ready for CTO Review
 **Tier**: PROFESSIONAL + ENTERPRISE (NOT for LITE/STANDARD)
 **Sprint Target**: Sprint 47-49 (Q2 2026)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 ---
 

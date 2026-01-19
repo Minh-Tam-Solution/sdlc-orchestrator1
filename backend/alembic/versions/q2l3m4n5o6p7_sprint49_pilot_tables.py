@@ -7,7 +7,7 @@ Create Date: 2025-12-24 07:30:00.000000
 SDLC Stage: 04 - BUILD
 Sprint: 49 - EP-06 Pilot Execution + Metrics Hardening
 Epic: EP-06 IR-Based Codegen Engine
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Create pilot tracking tables for Vietnamese SME pilot program.

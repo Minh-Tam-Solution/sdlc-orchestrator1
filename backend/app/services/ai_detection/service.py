@@ -3,7 +3,7 @@ GitHubAIDetectionService - Combined Detection Orchestrator
 
 SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Epic: EP-02 AI Safety Layer v1
 CTO Review: P0 Overfitting Fix Applied
 

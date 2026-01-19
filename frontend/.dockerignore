@@ -1,0 +1,53 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+htmlcov
+.coverage
+coverage.xml
+
+# Next.js
+.next
+out
+
+# Production
+build
+dist
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Legacy code (Sprint 65-78 violation - archived)
+99-legacy
+
+# Testing artifacts
+test-results
+playwright-report
+e2e
+
+# Documentation
+docs
+*.md
+!README.md

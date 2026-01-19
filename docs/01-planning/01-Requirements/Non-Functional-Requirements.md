@@ -7,7 +7,7 @@
 **Authority**: CTO + DevOps Lead Review (APPROVED)
 **Foundation**: FRD v3.1.0, Product Vision 4.0.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v3.1.0** (Dec 23, 2025):
 - Added NFR29-NFR35: EP-06 Codegen Quality Gates performance requirements
@@ -21,7 +21,7 @@
 - References: [Quality-Gates-Codegen-Specification.md](../../02-design/14-Technical-Specs/Quality-Gates-Codegen-Specification.md)
 
 **Changelog v3.0.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Added NFR22-NFR25: AI Safety Layer performance requirements
 - Added NFR26-NFR28: Migration Engine scalability (1M+ LOC)
 - Updated foundation references
@@ -855,7 +855,7 @@ And audit trail includes reasoning
 
 **Version History**:
 - v3.1.0 (December 23, 2025): Added NFR29-NFR35 for EP-06 Codegen Quality Gates (28 requirements total)
-- v3.0.0 (December 21, 2025): SDLC 5.1.1 update, EP-02/04/05/06 NFRs added
+- v3.0.0 (December 21, 2025): SDLC 5.1.3 update, EP-02/04/05/06 NFRs added
 - v2.0.0 (December 3, 2025): Added NFR18-NFR21 for AI Governance (21 requirements total)
 - v1.0.0 (November 13, 2025): Initial NFR (17 requirements)
 
@@ -876,7 +876,7 @@ And audit trail includes reasoning
 ---
 
 **Document**: SDLC-Orchestrator-Non-Functional-Requirements
-**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Framework**: SDLC 5.1.3 Stage 01 (WHAT) - Planning & Analysis
 **Component**: Quality Attributes and System Constraints
 **Review**: Quarterly with CTO + DevOps Lead
 **Last Updated**: December 23, 2025

@@ -1,8 +1,8 @@
 # Expert Review Pack - SDLC Orchestrator
 ## External Expert Evaluation Request
 
-**Version**: 1.1.0 (Updated per Expert Feedback)
-**Date**: December 23, 2025
+**Version**: 1.2.0 (Updated for SDLC 5.1.3)
+**Date**: January 18, 2026
 **Prepared By**: Nhat Quang Holding (NQH) - Product & Engineering Team
 **Classification**: Confidential - For Expert Review Only
 **Response Deadline**: [TBD by sender]
@@ -43,8 +43,8 @@ Nhat Quang Holding (NQH) is seeking **external expert feedback** on our SDLC Orc
 | Layer | Component | Type | Description |
 |-------|-----------|------|-------------|
 | **Layer 3** | AI Coders | External | Cursor, Copilot, Claude Code - they generate code |
-| **Layer 2** | SDLC Orchestrator | **Proprietary** | Control plane that governs Layer 3 |
-| **Layer 1** | SDLC-Enterprise-Framework | Open | 10-stage methodology foundation |
+| **Layer 2** | SDLC Orchestrator | **Proprietary** | Control plane that governs Layer 3 + Sprint Governance |
+| **Layer 1** | SDLC-Enterprise-Framework | Open | 10-stage methodology, 7-Pillar Architecture (5.1.3) |
 
 **Key Insight**: We sit ABOVE AI coders, not alongside them. They generate, we govern.
 
@@ -66,7 +66,7 @@ This package contains **10 self-contained documents** for your review:
 
 | # | Document | Purpose | Pages | Read Time |
 |---|----------|---------|-------|-----------|
-| 4 | [SDLC-FRAMEWORK-SUMMARY.md](03-SDLC-FRAMEWORK-SUMMARY.md) | **SDLC-Enterprise-Framework** overview - the methodology SDLC Orchestrator implements (10 stages, 4 tiers, quality gates) | ~10 | 12 min |
+| 4 | [SDLC-FRAMEWORK-SUMMARY.md](03-SDLC-FRAMEWORK-SUMMARY.md) | **SDLC-Enterprise-Framework 5.1.3** overview - 10 stages, 4 tiers, 7 pillars, quality gates + sprint governance | ~12 | 15 min |
 | 5 | [SDLC-AGENTIC-PRINCIPLES.md](04-SDLC-AGENTIC-PRINCIPLES.md) | SASE (SE 3.0) - AI+Human collaboration patterns within the Framework | ~6 | 8 min |
 
 ### Supporting Documents (5)

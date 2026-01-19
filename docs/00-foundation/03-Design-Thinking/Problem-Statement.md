@@ -7,7 +7,7 @@
 **Authority**: CEO + CPO + PM + CTO Approved
 **Foundation**: User Personas 1.0.0, User Research (10+ interviews)
 **Stage**: Stage 00 (WHY) - Design Thinking DEFINE Phase
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v3.0.0** (Dec 23, 2025):
 - **SOFTWARE 3.0 PIVOT**: Added Vietnam SME problem segment
@@ -17,7 +17,7 @@
 - Added Dual Wedge Strategy (Vietnam SME + Global EM)
 
 **Changelog v2.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Added EP-04/05/06 as strategic solutions
 - Added .sdlc-config.json innovation
 - Added NQH AI Platform integration
@@ -516,7 +516,7 @@ This results in:
 ---
 
 **Document**: SDLC-Orchestrator-Problem-Statement
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking DEFINE
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Design Thinking DEFINE
 **Component**: Problem Validation (Gate G0.1) + AI Governance Extension (v2.1.0)
 **Review**: Quarterly (validate problem remains relevant)
 **Last Updated**: December 23, 2025

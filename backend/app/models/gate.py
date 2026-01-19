@@ -8,7 +8,7 @@ Date: 2025-12-16
 Status: ACTIVE - STAGE 03 (BUILD)
 Authority: Backend Lead + CTO Approved
 Foundation: Data Model v0.1 (9.8/10 quality), FR1 (Quality Gate Management)
-Framework: SDLC 5.1.1 Complete Lifecycle
+Framework: SDLC 5.1.3 Complete Lifecycle
 
 Purpose:
 - Quality gate creation and lifecycle management
@@ -29,7 +29,7 @@ Gate Status Values (UPPERCASE - Source of Truth):
 - REJECTED: Did not meet criteria
 - ARCHIVED: No longer active
 
-SDLC 5.1.1 Gates:
+SDLC 5.1.3 Gates:
 - G0.1: Foundation Ready (WHY stage)
 - G0.2: Solution Diversity (WHY stage)
 - G1: Design Ready (WHAT stage)

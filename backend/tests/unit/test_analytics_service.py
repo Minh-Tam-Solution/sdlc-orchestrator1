@@ -4,7 +4,7 @@ Unit Tests - Analytics Service
 SDLC Stage: 04 - BUILD
 Sprint: 41 - AI Safety Foundation
 Epic: EP-01/EP-02
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Unit tests for AnalyticsService covering:

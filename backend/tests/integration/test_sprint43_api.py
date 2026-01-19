@@ -3,7 +3,7 @@ Sprint 43 API Integration Tests - AI Safety Layer v1
 
 SDLC Stage: 04 - BUILD
 Sprint: 43 - Policy Guards & Evidence UI
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Epic: EP-02 AI Safety Layer v1
 
 Purpose:

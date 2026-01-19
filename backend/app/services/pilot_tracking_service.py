@@ -5,7 +5,7 @@ Manages pilot program tracking, TTFV measurement, and satisfaction surveys.
 
 SDLC Stage: 04 - BUILD
 Sprint: 49 - EP-06 Pilot Execution + Metrics Hardening
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Key Features:
 1. Participant management (invite, activate, track)

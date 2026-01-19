@@ -3,7 +3,7 @@ Policy Schemas - OPA Policy Library
 
 SDLC Stage: 04 - BUILD
 Sprint: 43 - Policy Guards & Evidence UI
-Framework: SDLC 5.1.1 (10-Stage Lifecycle, 4-Tier Classification)
+Framework: SDLC 5.1.3 (10-Stage Lifecycle, 4-Tier Classification)
 Epic: EP-02 AI Safety Layer v1
 
 Purpose:
@@ -17,7 +17,7 @@ Policy Types:
 - Custom policies: Project-specific policy customizations
 - Policy tests: Test cases for policy validation
 
-SDLC 5.1.1 Stages:
+SDLC 5.1.3 Stages:
 - 00-foundation (WHY?)
 - 01-planning (WHAT?)
 - 02-design (HOW?)

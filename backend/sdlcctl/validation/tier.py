@@ -1,5 +1,5 @@
 """
-SDLC 5.1.1 Tier Detection and Classification.
+SDLC 5.1.3 Tier Detection and Classification.
 
 4-Tier Classification:
 - LITE: 1-2 people, 4 required stages (00, 01, 02, 04)
@@ -54,7 +54,7 @@ class TierRequirements:
             raise ValueError("max_team_size must be >= min_team_size")
 
 
-# SDLC 5.1.1 Stage definitions (10 Stages: 00-09 + Archive folder)
+# SDLC 5.1.3 Stage definitions (10 Stages: 00-09 + Archive folder)
 # Reference: SDLC-Enterprise-Framework/README.md
 # Note: 10-archive is a project-level archive folder, not a formal stage
 STAGE_NAMES = {
@@ -71,7 +71,7 @@ STAGE_NAMES = {
     "10": "10-archive",       # ARCHIVE - Project-level archive (optional, for legacy docs)
 }
 
-# Stage display names and questions (SDLC 5.1.1)
+# Stage display names and questions (SDLC 5.1.3)
 STAGE_QUESTIONS = {
     "00": "FOUNDATION",   # WHY? - Strategic Discovery & Validation
     "01": "PLANNING",     # WHAT? - Requirements & User Stories

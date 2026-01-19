@@ -1,5 +1,5 @@
 # Design Stage Restructure Plan
-## SDLC 5.1.1 Compliance - Stage 02 (DESIGN)
+## SDLC 5.1.3 Compliance - Stage 02 (DESIGN)
 
 **Date**: December 21, 2025
 **Status**: PROPOSED
@@ -30,7 +30,7 @@
 
 ---
 
-## Proposed Structure (SDLC 5.1.1 Compliant)
+## Proposed Structure (SDLC 5.1.3 Compliant)
 
 ```
 docs/02-design/

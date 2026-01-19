@@ -6,7 +6,7 @@
 **Status**: ACTIVE - APPROVED FOR EXECUTION (Updated)
 **Authority**: CEO + CFO Approved
 **Foundation**: BRD v1.2, Product Vision 3.1.0
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v1.1.0** (Dec 21, 2025):
 - Added EP-04/05/06 investment breakdown ($124.5K additional)
@@ -427,7 +427,7 @@
    - Mitigation: Legal review Week 2 (budgeted $75K)
    - **Status**: ✅ RESOLVED (Dec 2025)
 3. **Competitive Response**: Jira/Linear could add similar features
-   - Mitigation: SDLC 5.1.1 IP moat (1-2 years to replicate)
+   - Mitigation: SDLC 5.1.3 IP moat (1-2 years to replicate)
    - **NEW**: AI Safety positioning unique in market
 
 🟡 **MEDIUM RISK**:
@@ -488,7 +488,7 @@
 ---
 
 **Document**: SDLC-Orchestrator-Financial-Model
-**Framework**: SDLC 5.1.1 Stage 00 (WHY)
+**Framework**: SDLC 5.1.3 Stage 00 (WHY)
 **Component**: Business Case - Financial Validation
 **Review**: Monthly financial review with CEO/CFO
 **Session Log**: [SESSION-2025-12-21](../../01-planning/99-Session-Logs/SESSION-2025-12-21-CTO-Strategic-Planning.md)

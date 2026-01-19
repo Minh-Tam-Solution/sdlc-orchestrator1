@@ -7,11 +7,11 @@
 **Authority**: CTO + Backend Lead ✅ APPROVED
 **Foundation**: FRD v3.1.0, Vision v4.0.0, EP-04/05/06 Data Requirements
 **Stage**: Stage 04 (BUILD)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
 - v3.1.0 (Dec 23, 2025): Added EP-06 Codegen tables (codegen_evidence, codegen_attempts, codegen_escalations)
-- v3.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 entities added
+- v3.0.0 (Dec 21, 2025): SDLC 5.1.3 update, EP-04/05/06 entities added
 - v2.0.0 (Nov 29, 2025): ERD updated to reflect implemented 24-table schema
 
 > **UPDATE (Nov 29, 2025)**: ERD updated to reflect implemented 24-table schema.

@@ -1,11 +1,11 @@
 # SDLC Orchestrator - Executive Summary: WHY
 ## Stage 00: Foundation - Problem, Market & Strategic Validation
 
-**Version**: 1.1.0 (Updated per Expert Feedback)
-**Date**: December 23, 2025
+**Version**: 1.2.0 (Updated for SDLC 5.1.3)
+**Date**: January 18, 2026
 **Purpose**: External Expert Review - Product & Market Validation
 **Confidentiality**: For Review Only - Not for Distribution
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 **Company**: Nhat Quang Holding (Vietnam-based software company)
 **New Positioning**: Operating System for Software 3.0
 
@@ -342,11 +342,12 @@ This problem manifests as:
 
 | Moat Type | Description | Time to Replicate |
 |-----------|-------------|-------------------|
-| **Experience Moat** | 10-stage SDLC 5.1.1 nuances learned from 5 real projects | 6-12 months |
+| **Experience Moat** | 10-stage SDLC 5.1.3 nuances learned from 5 real projects | 6-12 months |
 | **Knowledge Moat** | 100+ pre-built policy packs (OPA Rego), battle-tested | 1-2 years |
 | **Trust Moat** | Evidence-based validation with real teams | 3+ years |
 | **AI Pattern Moat** | CEO AI patterns encoded (3-5 years of Claude usage) | 3-5 years |
-| **Framework Moat** | SDLC 5.1.1 is open-source, but deep integration is proprietary | 2-3 years |
+| **Framework Moat** | SDLC 5.1.3 is open-source, but deep integration is proprietary | 2-3 years |
+| **Sprint Governance Moat** | 7-Pillar Architecture with G-Sprint/G-Sprint-Close gates (NEW) | 1-2 years |
 
 ---
 
@@ -359,10 +360,13 @@ This problem manifests as:
 | Capability | Description |
 |------------|-------------|
 | **AI Safety & Governance Layer** | Validates AI-generated code (Cursor, Copilot, Claude Code) before merge |
-| **Quality Gate Orchestrator** | Enforces SDLC 5.1.1 gates (G0.1 → G4) with multi-approval workflow |
+| **Quality Gate Orchestrator** | Enforces SDLC 5.1.3 gates (G0.1 → G4 + G-Sprint/G-Sprint-Close) with multi-approval workflow |
 | **Evidence Vault** | Permanent audit trail for SOC 2, ISO 27001, GDPR compliance |
 | **Policy Engine** | Automated validation using Policy-as-Code (OPA Rego) |
 | **AI Context Engine** | Stage-aware AI assistance across 10 SDLC stages |
+| **Sprint Planning Governance** | G-Sprint/G-Sprint-Close gates with 24h documentation enforcement (NEW) |
+| **Planning Hierarchy** | Roadmap → Phase → Sprint → Backlog management (NEW) |
+| **Team Management** | Personal teams vs Organization teams with role-based access (NEW) |
 
 **What We're NOT**:
 - ❌ NOT a project management tool (we don't replace Jira, Linear)
@@ -516,7 +520,9 @@ This problem manifests as:
 1. **Control Plane Positioning**: We sit above AI coders (Cursor, Copilot, Claude), not alongside them
 2. **Dual Wedge Strategy**: Vietnam SME (EP-06 codegen) + Global EM (AI governance)
 3. **Founder Plan**: $99/team flat pricing for Vietnam SME (unlimited seats)
-4. **3-5 year moat** from SDLC 5.1.1 + 100+ policy packs + EP-06 IR-based codegen
+4. **3-5 year moat** from SDLC 5.1.3 + 100+ policy packs + EP-06 IR-based codegen
+5. **7-Pillar Architecture** with Sprint Planning Governance (G-Sprint/G-Sprint-Close)
+6. **Planning Hierarchy**: Roadmap → Phase → Sprint → Backlog management
 
 **Investment Ask**: Expert feedback on:
 - Software 3.0 positioning (control plane narrative)
@@ -531,8 +537,8 @@ This problem manifests as:
 |-------|-------|
 | Author | PM/PJM Team, Nhat Quang Holding |
 | Reviewed By | CTO, CPO, CEO |
-| Status | Updated per Expert Feedback (Dec 23, 2025) |
-| Version | 1.1.0 |
+| Status | Updated for SDLC 5.1.3 (Jan 18, 2026) |
+| Version | 1.2.0 |
 | Classification | Confidential - For Review Only |
 
 ---

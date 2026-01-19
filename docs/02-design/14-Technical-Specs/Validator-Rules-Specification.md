@@ -6,7 +6,7 @@
 **Version**: 1.0.0
 **Date**: December 22, 2025
 **Status**: APPROVED
-**Framework**: SDLC 5.1.1
+**Framework**: SDLC 5.1.3
 
 ---
 
@@ -117,9 +117,9 @@ docs/
 | **Auto-fixable** | Yes |
 | **Category** | Stage Folder |
 
-**Description**: Stage folders should use the canonical SDLC 5.1.1 names.
+**Description**: Stage folders should use the canonical SDLC 5.1.3 names.
 
-**SDLC 5.1.1 Canonical Names**:
+**SDLC 5.1.3 Canonical Names**:
 | Stage | Canonical Name |
 |-------|---------------|
 | 00 | foundation |

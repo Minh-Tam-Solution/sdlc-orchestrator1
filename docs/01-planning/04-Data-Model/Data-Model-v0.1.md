@@ -5,10 +5,10 @@
 **Status**: IMPLEMENTED - Production Ready
 **Authority**: Backend Lead + CTO + Database Architect (✅ APPROVED)
 **Foundation**: FRD v3.0.0, Vision v3.1.0, Roadmap v4.1.0
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, EP-04/05/06 table schemas added
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, EP-04/05/06 table schemas added
 - v1.0.0 (Nov 29, 2025): Initial schema implemented with 24 tables
 
 > **UPDATE (Nov 29, 2025)**: Schema implemented with 24 tables (down from 25 design).

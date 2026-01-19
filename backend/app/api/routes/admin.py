@@ -8,7 +8,7 @@ Date: December 18, 2025
 Status: ACTIVE - Sprint 40 Part 3 (Bulk Delete)
 Authority: CTO Approved (Dec 18, 2025)
 Foundation: ADR-017 Admin Panel Architecture
-Framework: SDLC 5.1.1 Complete Lifecycle
+Framework: SDLC 5.1.3 Complete Lifecycle
 
 Endpoints:
 - GET  /api/v1/admin/stats           - Dashboard statistics

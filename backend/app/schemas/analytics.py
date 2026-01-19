@@ -5,7 +5,7 @@ SDLC Stage: 04 - BUILD
 Sprint: 41 - AI Safety Foundation
 Epic: EP-01/EP-02
 Status: IMPLEMENTED
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Request/response schemas for analytics API endpoints.

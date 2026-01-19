@@ -1,7 +1,7 @@
 """
 SDLC Structure Validators.
 
-Built-in validators for SDLC 5.1.1 structure compliance.
+Built-in validators for SDLC 5.1.3 structure compliance.
 
 Part of Sprint 44 - SDLC Structure Scanner Engine.
 """

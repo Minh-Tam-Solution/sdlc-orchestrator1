@@ -7,10 +7,10 @@
 **Authority**: CPO + UX Lead + PM Approved
 **Foundation**: User Personas 1.1.0, Empathy Maps 1.1.0
 **Stage**: Stage 00 (WHY) - Design Thinking EMPATHIZE → DEFINE
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Updated foundation references
 
 ---
@@ -356,7 +356,7 @@
 ---
 
 **Document**: SDLC-Orchestrator-User-Journey-Maps
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking EMPATHIZE → DEFINE
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Design Thinking EMPATHIZE → DEFINE
 **Component**: End-to-End Experience Mapping
 **Review**: Quarterly (validate journey remains accurate)
 **Last Updated**: December 21, 2025

@@ -4,7 +4,7 @@
 **Date**: December 16, 2025
 **Approved**: December 16, 2025 (CTO Signed)
 **Deciders**: CTO + Backend Lead + Security Lead
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 **Impact**: Medium - New administrative interface for platform management
 **CTO Condition**: Version field added to system_settings for rollback capability
 

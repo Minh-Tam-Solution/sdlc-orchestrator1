@@ -7,10 +7,10 @@
 **Authority**: CPO + PM Approved
 **Foundation**: User Personas 1.1.0, Problem Statement 2.1.0
 **Stage**: Stage 00 (WHY) - Design Thinking DEFINE Phase
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Updated foundation references
 - Added AI Safety and Codegen context
 
@@ -212,7 +212,7 @@ This bridges EMPATHIZE (user research) and IDEATE (solution generation).
 ---
 
 **Document**: SDLC-Orchestrator-POV-Statement
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking DEFINE
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Design Thinking DEFINE
 **Component**: Point of View (User-Centered Problem Framing)
 **Review**: Quarterly (validate POV remains accurate)
 **Last Updated**: December 21, 2025

@@ -5,7 +5,7 @@ Revision ID: n9i0j1k2l3m4
 Revises: m8h9i0j1k2l3
 Create Date: 2025-12-17
 
-SDLC 5.1.1 Compliance:
+SDLC 5.1.3 Compliance:
 - Sprint 40: Admin Panel Full CRUD Users (CTO Approved Dec 17, 2025)
 - Soft delete pattern: deleted_at timestamp for audit trail
 - deleted_by FK for accountability (who performed the deletion)

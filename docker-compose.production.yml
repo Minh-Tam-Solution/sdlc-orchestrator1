@@ -189,27 +189,31 @@ services:
       - sdlc-prod-network
 
   # ============================================================================
-  # React Frontend (Production - Port 8310)
-  # Public URL: https://sdlc.nqh.vn
+  # Next.js Unified Frontend (Production - Port 8310) - ADR-025
+  # Public URL: https://sdlc.nhatquangholding.com
   # ============================================================================
   frontend:
     build:
-      context: ./frontend/web
+      context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://sdlc-api.nhatquangholding.com
+        NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     container_name: sdlc-prod-frontend
     restart: always
     ports:
-      - "8310:80"
+      - "8310:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
+      start_period: 30s
     networks:
       - sdlc-prod-network
 

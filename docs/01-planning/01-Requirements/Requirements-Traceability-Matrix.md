@@ -7,11 +7,11 @@
 **Authority**: PM + CTO Review (✅ APPROVED)
 **Foundation**: FRD v3.1.0, Vision v4.0.0, Roadmap v5.0.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
 - v2.1.0 (Dec 23, 2025): Added EP-06 Codegen Quality Gates (P8 problem, FR41-FR45, NFR29-NFR35)
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, added EP-04/05/06 requirements tracing
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, added EP-04/05/06 requirements tracing
 - v1.0.0 (Jan 13, 2025): Initial RTM (25 FRs traced to 7 problems)
 
 ---
@@ -469,7 +469,7 @@ This document maps **Stage 01 Requirements (WHAT to build)** back to **Stage 00 
 ---
 
 **Document**: SDLC-Orchestrator-Requirements-Traceability-Matrix
-**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Framework**: SDLC 5.1.3 Stage 01 (WHAT) - Planning & Analysis
 **Component**: Problem-to-Requirement Traceability
 **Review**: Quarterly with PM + CTO
 **Last Updated**: December 23, 2025

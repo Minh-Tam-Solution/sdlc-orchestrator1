@@ -1,0 +1,1997 @@
+/**
+ * =========================================================================
+ * usePlanning - React Query Hooks for Planning Hierarchy API
+ * SDLC Orchestrator - Sprint 75 (Planning API Validation)
+ *
+ * Version: 1.0.0
+ * Date: January 18, 2026
+ * Status: ACTIVE - Sprint 75 Day 4
+ * Authority: Frontend Lead + CTO Approved
+ * Framework: SDLC 5.1.3 Sprint Planning Governance
+ *
+ * Purpose:
+ * - Connect Planning components to backend Planning API
+ * - Fetch roadmaps, phases, sprints, and backlog items
+ * - Mutations for CRUD operations
+ * - Sprint gate evaluation (G-Sprint / G-Sprint-Close)
+ * - Cache invalidation and optimistic updates
+ *
+ * SDLC 5.1.3 Rules Implemented:
+ * - Rule #1: Sprint numbers immutable
+ * - Rule #8: P0/P1/P2 priority classification
+ * - SE4H Coach: Admin/owner can approve gates
+ *
+ * References:
+ * - backend/app/api/routes/planning.py
+ * - backend/app/services/sprint_gate_service.py
+ * - docs/04-build/02-Sprint-Plans/SPRINT-75-PLANNING-API-VALIDATION.md
+ * =========================================================================
+ */
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/api/client";
+import { toast } from "@/hooks/useToast";
+
+// ============================================================================
+// Types (aligned with backend schemas)
+// ============================================================================
+
+/** Sprint status enum */
+export type SprintStatus = "planning" | "in_progress" | "completed" | "closed";
+
+/** Gate status enum */
+export type GateStatus = "pending" | "approved" | "rejected";
+
+/** Gate type enum */
+export type GateType = "g_sprint" | "g_sprint_close";
+
+/** Backlog item type enum */
+export type BacklogItemType = "story" | "task" | "bug" | "spike";
+
+/** Backlog item status enum */
+export type BacklogItemStatus =
+  | "todo"
+  | "in_progress"
+  | "review"
+  | "done"
+  | "blocked";
+
+/** Priority level (SDLC 5.1.3 Rule #8) */
+export type Priority = "P0" | "P1" | "P2";
+
+/** Roadmap from API */
+export interface Roadmap {
+  id: string;
+  project_id: string;
+  name: string;
+  description?: string;
+  vision?: string;
+  start_date?: string;
+  end_date?: string;
+  review_cadence: string;
+  status: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Phase from API */
+export interface Phase {
+  id: string;
+  roadmap_id: string;
+  number: number;
+  name: string;
+  theme?: string;
+  objective?: string;
+  start_date?: string;
+  end_date?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Sprint from API */
+export interface Sprint {
+  id: string;
+  project_id: string;
+  phase_id?: string;
+  number: number;
+  name: string;
+  goal?: string;
+  status: SprintStatus;
+  start_date?: string;
+  end_date?: string;
+  capacity_points?: number;
+  team_size?: number;
+  g_sprint_status: GateStatus;
+  g_sprint_close_status: GateStatus;
+  created_by?: string;
+  approved_by?: string;
+  approved_at?: string;
+  closed_by?: string;
+  closed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Sprint with details */
+export interface SprintWithDetails extends Sprint {
+  phase?: Phase;
+  backlog_items_count: number;
+  completed_items_count: number;
+  total_story_points: number;
+  completed_story_points: number;
+}
+
+/** Sprint Gate Evaluation from API */
+export interface SprintGateEvaluation {
+  id: string;
+  sprint_id: string;
+  gate_type: GateType;
+  status: GateStatus;
+  checklist: Record<string, boolean>;
+  evaluated_by?: string;
+  evaluated_at?: string;
+  notes?: string;
+  created_at: string;
+}
+
+/** Backlog Item from API */
+export interface BacklogItem {
+  id: string;
+  sprint_id?: string;
+  project_id: string;
+  type: BacklogItemType;
+  title: string;
+  description?: string;
+  acceptance_criteria?: string;
+  priority: Priority;
+  story_points?: number;
+  status: BacklogItemStatus;
+  assignee_id?: string;
+  parent_id?: string;
+  labels: string[];
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Backlog Item with assignee details */
+export interface BacklogItemWithDetails extends BacklogItem {
+  assignee?: {
+    id: string;
+    email: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+  children_count: number;
+  completed_children_count: number;
+}
+
+/** Sprint statistics */
+export interface SprintStatistics {
+  sprint_id: string;
+  total_items: number;
+  completed_items: number;
+  in_progress_items: number;
+  blocked_items: number;
+  total_story_points: number;
+  completed_story_points: number;
+  completion_rate: number;
+  by_priority: {
+    P0: { total: number; completed: number };
+    P1: { total: number; completed: number };
+    P2: { total: number; completed: number };
+  };
+  by_type: {
+    story: number;
+    task: number;
+    bug: number;
+    spike: number;
+  };
+}
+
+/** Paginated response */
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+}
+
+// ============================================================================
+// Sprint 77 Analytics Types
+// ============================================================================
+
+/** Burndown data point */
+export interface BurndownDataPoint {
+  date: string;
+  ideal_remaining: number;
+  actual_remaining: number | null;
+  completed_points: number;
+}
+
+/** Sprint burndown response */
+export interface SprintBurndown {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  total_points: number;
+  completed_points: number;
+  remaining_points: number;
+  data_points: BurndownDataPoint[];
+}
+
+/** Forecast risk */
+export interface ForecastRisk {
+  risk_type: string;
+  severity: "low" | "medium" | "high" | "critical";
+  message: string;
+  recommendation: string;
+}
+
+/** Sprint forecast response */
+export interface SprintForecast {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  probability: number;
+  predicted_end_date: string | null;
+  on_track: boolean;
+  remaining_points: number;
+  total_points: number;
+  completed_points: number;
+  current_burn_rate: number;
+  required_burn_rate: number;
+  days_elapsed: number;
+  days_remaining: number;
+  risks: ForecastRisk[];
+  recommendations: string[];
+}
+
+/** Retrospective insight */
+export interface RetroInsight {
+  category: string;
+  insight_type: string;
+  title: string;
+  description: string;
+  impact: "low" | "medium" | "high";
+}
+
+/** Retrospective action item */
+export interface RetroAction {
+  id: string;
+  description: string;
+  owner: string | null;
+  due_date: string | null;
+  status: "pending" | "in_progress" | "done";
+  priority: "low" | "medium" | "high";
+}
+
+/** Retrospective metrics */
+export interface RetroMetrics {
+  committed_points: number;
+  completed_points: number;
+  completion_rate: number;
+  p0_total: number;
+  p0_completed: number;
+  p0_completion_rate: number;
+  items_added_mid_sprint: number;
+  blocked_items: number;
+  velocity_trend: "improving" | "stable" | "declining";
+}
+
+/** Sprint retrospective response */
+export interface SprintRetrospective {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  generated_at: string;
+  metrics: RetroMetrics;
+  went_well: RetroInsight[];
+  needs_improvement: RetroInsight[];
+  action_items: RetroAction[];
+  summary: string;
+}
+
+// ============================================================================
+// Query Keys
+// ============================================================================
+
+export const planningKeys = {
+  all: ["planning"] as const,
+
+  // Roadmaps
+  roadmaps: () => [...planningKeys.all, "roadmaps"] as const,
+  roadmapsList: (projectId: string) =>
+    [...planningKeys.roadmaps(), "list", projectId] as const,
+  roadmapDetail: (id: string) =>
+    [...planningKeys.roadmaps(), "detail", id] as const,
+
+  // Phases
+  phases: () => [...planningKeys.all, "phases"] as const,
+  phasesList: (roadmapId: string) =>
+    [...planningKeys.phases(), "list", roadmapId] as const,
+  phaseDetail: (id: string) => [...planningKeys.phases(), "detail", id] as const,
+
+  // Sprints
+  sprints: () => [...planningKeys.all, "sprints"] as const,
+  sprintsList: (projectId: string) =>
+    [...planningKeys.sprints(), "list", projectId] as const,
+  sprintDetail: (id: string) =>
+    [...planningKeys.sprints(), "detail", id] as const,
+  sprintStatistics: (id: string) =>
+    [...planningKeys.sprintDetail(id), "statistics"] as const,
+  sprintGates: (id: string) =>
+    [...planningKeys.sprintDetail(id), "gates"] as const,
+  sprintBurndown: (id: string) =>
+    [...planningKeys.sprintDetail(id), "burndown"] as const,
+  sprintForecast: (id: string) =>
+    [...planningKeys.sprintDetail(id), "forecast"] as const,
+  sprintRetrospective: (id: string) =>
+    [...planningKeys.sprintDetail(id), "retrospective"] as const,
+
+  // Backlog
+  backlog: () => [...planningKeys.all, "backlog"] as const,
+  backlogList: (filters: { sprintId?: string; projectId?: string }) =>
+    [...planningKeys.backlog(), "list", filters] as const,
+  backlogDetail: (id: string) =>
+    [...planningKeys.backlog(), "detail", id] as const,
+};
+
+// ============================================================================
+// API Functions - Sprints
+// ============================================================================
+
+/** Fetch project sprints list */
+async function fetchProjectSprints(
+  projectId: string
+): Promise<PaginatedResponse<Sprint>> {
+  const response = await apiClient.get<PaginatedResponse<Sprint>>(
+    `/planning/projects/${projectId}/sprints`
+  );
+  return response.data;
+}
+
+/** Fetch single sprint with details */
+async function fetchSprint(sprintId: string): Promise<SprintWithDetails> {
+  const response = await apiClient.get<SprintWithDetails>(
+    `/planning/sprints/${sprintId}`
+  );
+  return response.data;
+}
+
+/** Fetch sprint statistics */
+async function fetchSprintStatistics(
+  sprintId: string
+): Promise<SprintStatistics> {
+  const response = await apiClient.get<SprintStatistics>(
+    `/planning/sprints/${sprintId}/statistics`
+  );
+  return response.data;
+}
+
+/** Create sprint */
+export interface CreateSprintData {
+  project_id: string;
+  phase_id?: string;
+  number?: number;
+  name: string;
+  goal?: string;
+  start_date?: string;
+  end_date?: string;
+  capacity_points?: number;
+  team_size?: number;
+}
+
+async function createSprint(data: CreateSprintData): Promise<Sprint> {
+  const response = await apiClient.post<Sprint>("/planning/sprints", data);
+  return response.data;
+}
+
+/** Update sprint */
+export interface UpdateSprintData {
+  name?: string;
+  goal?: string;
+  status?: SprintStatus;
+  start_date?: string;
+  end_date?: string;
+  capacity_points?: number;
+  team_size?: number;
+}
+
+async function updateSprint(
+  sprintId: string,
+  data: UpdateSprintData
+): Promise<Sprint> {
+  const response = await apiClient.put<Sprint>(
+    `/planning/sprints/${sprintId}`,
+    data
+  );
+  return response.data;
+}
+
+/** Delete sprint */
+async function deleteSprint(sprintId: string): Promise<void> {
+  await apiClient.delete(`/planning/sprints/${sprintId}`);
+}
+
+// ============================================================================
+// API Functions - Sprint Gates
+// ============================================================================
+
+/** Fetch sprint gates */
+async function fetchSprintGates(
+  sprintId: string
+): Promise<PaginatedResponse<SprintGateEvaluation>> {
+  const response = await apiClient.get<PaginatedResponse<SprintGateEvaluation>>(
+    `/planning/sprints/${sprintId}/gates`
+  );
+  return response.data;
+}
+
+/** Create gate evaluation */
+export interface CreateGateEvaluationData {
+  checklist: Record<string, boolean>;
+  notes?: string;
+}
+
+async function createGateEvaluation(
+  sprintId: string,
+  gateType: GateType,
+  data: CreateGateEvaluationData
+): Promise<SprintGateEvaluation> {
+  const gateTypeUrl = gateType === "g_sprint" ? "g-sprint" : "g-sprint-close";
+  const response = await apiClient.post<SprintGateEvaluation>(
+    `/planning/sprints/${sprintId}/gates/${gateTypeUrl}/evaluate`,
+    data
+  );
+  return response.data;
+}
+
+/** Submit gate for approval */
+async function submitGateApproval(
+  gateId: string
+): Promise<SprintGateEvaluation> {
+  const response = await apiClient.post<SprintGateEvaluation>(
+    `/planning/gates/${gateId}/submit`
+  );
+  return response.data;
+}
+
+// ============================================================================
+// API Functions - Backlog Items
+// ============================================================================
+
+/** Fetch backlog items */
+async function fetchBacklogItems(filters: {
+  sprintId?: string;
+  projectId?: string;
+  status?: BacklogItemStatus;
+  priority?: Priority;
+}): Promise<PaginatedResponse<BacklogItemWithDetails>> {
+  const params = new URLSearchParams();
+  if (filters.sprintId) params.set("sprint_id", filters.sprintId);
+  if (filters.projectId) params.set("project_id", filters.projectId);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.priority) params.set("priority", filters.priority);
+
+  const response = await apiClient.get<
+    PaginatedResponse<BacklogItemWithDetails>
+  >(`/planning/backlog?${params}`);
+  return response.data;
+}
+
+/** Fetch single backlog item */
+async function fetchBacklogItem(
+  itemId: string
+): Promise<BacklogItemWithDetails> {
+  const response = await apiClient.get<BacklogItemWithDetails>(
+    `/planning/backlog/${itemId}`
+  );
+  return response.data;
+}
+
+/** Create backlog item */
+export interface CreateBacklogItemData {
+  project_id: string;
+  sprint_id?: string;
+  type: BacklogItemType;
+  title: string;
+  description?: string;
+  acceptance_criteria?: string;
+  priority?: Priority;
+  story_points?: number;
+  assignee_id?: string;
+  parent_id?: string;
+  labels?: string[];
+}
+
+async function createBacklogItem(
+  data: CreateBacklogItemData
+): Promise<BacklogItem> {
+  const response = await apiClient.post<BacklogItem>("/planning/backlog", data);
+  return response.data;
+}
+
+/** Update backlog item */
+export interface UpdateBacklogItemData {
+  title?: string;
+  description?: string;
+  acceptance_criteria?: string;
+  type?: BacklogItemType;
+  priority?: Priority;
+  story_points?: number;
+  status?: BacklogItemStatus;
+  assignee_id?: string | null;
+  sprint_id?: string | null;
+  parent_id?: string | null;
+  labels?: string[];
+}
+
+async function updateBacklogItem(
+  itemId: string,
+  data: UpdateBacklogItemData
+): Promise<BacklogItem> {
+  const response = await apiClient.put<BacklogItem>(
+    `/planning/backlog/${itemId}`,
+    data
+  );
+  return response.data;
+}
+
+/** Delete backlog item */
+async function deleteBacklogItem(itemId: string): Promise<void> {
+  await apiClient.delete(`/planning/backlog/${itemId}`);
+}
+
+/** Bulk update backlog items */
+export interface BulkUpdateBacklogData {
+  item_ids: string[];
+  status?: BacklogItemStatus;
+  priority?: Priority;
+  sprint_id?: string | null;
+  assignee_id?: string | null;
+}
+
+async function bulkUpdateBacklogItems(
+  data: BulkUpdateBacklogData
+): Promise<{ updated_count: number }> {
+  const response = await apiClient.post<{ updated_count: number }>(
+    "/planning/backlog/bulk-update",
+    data
+  );
+  return response.data;
+}
+
+// ============================================================================
+// React Query Hooks - Sprints
+// ============================================================================
+
+/**
+ * Hook to fetch project sprints list
+ */
+export function useProjectSprints(projectId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintsList(projectId || ""),
+    queryFn: () => fetchProjectSprints(projectId!),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+}
+
+/**
+ * Hook to fetch single sprint with details
+ */
+export function useSprint(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintDetail(sprintId || ""),
+    queryFn: () => fetchSprint(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint statistics
+ */
+export function useSprintStatistics(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintStatistics(sprintId || ""),
+    queryFn: () => fetchSprintStatistics(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 2 * 60 * 1000, // 2 minutes (more dynamic)
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create sprint
+ */
+export function useCreateSprint() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createSprint,
+    onSuccess: (newSprint) => {
+      // Invalidate sprints list
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintsList(newSprint.project_id),
+      });
+
+      toast({
+        title: "Sprint created",
+        description: `Sprint "${newSprint.name}" has been created successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create sprint",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update sprint
+ */
+export function useUpdateSprint(sprintId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateSprintData) => updateSprint(sprintId, data),
+    onSuccess: (updatedSprint) => {
+      // Invalidate sprint detail and lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintDetail(sprintId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintsList(updatedSprint.project_id),
+      });
+
+      toast({
+        title: "Sprint updated",
+        description: `Sprint "${updatedSprint.name}" has been updated successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update sprint",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete sprint
+ */
+export function useDeleteSprint() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteSprint,
+    onSuccess: () => {
+      // Invalidate all sprints lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprints(),
+      });
+
+      toast({
+        title: "Sprint deleted",
+        description: "The sprint has been deleted successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete sprint",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// ============================================================================
+// React Query Hooks - Sprint Analytics (Sprint 77)
+// ============================================================================
+
+/** Fetch sprint burndown data */
+async function fetchSprintBurndown(sprintId: string): Promise<SprintBurndown> {
+  const response = await apiClient.get<SprintBurndown>(
+    `/planning/sprints/${sprintId}/burndown`
+  );
+  return response.data;
+}
+
+/** Fetch sprint forecast data */
+async function fetchSprintForecast(sprintId: string): Promise<SprintForecast> {
+  const response = await apiClient.get<SprintForecast>(
+    `/planning/sprints/${sprintId}/forecast`
+  );
+  return response.data;
+}
+
+/** Fetch sprint retrospective data */
+async function fetchSprintRetrospective(
+  sprintId: string
+): Promise<SprintRetrospective> {
+  const response = await apiClient.get<SprintRetrospective>(
+    `/planning/sprints/${sprintId}/retrospective`
+  );
+  return response.data;
+}
+
+/**
+ * Hook to fetch sprint burndown chart data
+ * Sprint 77 Day 2 - Burndown Charts
+ */
+export function useSprintBurndown(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintBurndown(sprintId || ""),
+    queryFn: () => fetchSprintBurndown(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint forecast data
+ * Sprint 77 Day 3 - Sprint Forecasting
+ */
+export function useSprintForecast(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintForecast(sprintId || ""),
+    queryFn: () => fetchSprintForecast(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 2 * 60 * 1000, // 2 minutes (more dynamic)
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint retrospective data
+ * Sprint 77 Day 4 - Retrospective Automation
+ */
+export function useSprintRetrospective(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintRetrospective(sprintId || ""),
+    queryFn: () => fetchSprintRetrospective(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 10 * 60 * 1000, // 10 minutes (less dynamic)
+    gcTime: 60 * 60 * 1000, // 1 hour
+  });
+}
+
+// ============================================================================
+// React Query Hooks - Sprint Gates
+// ============================================================================
+
+/**
+ * Hook to fetch sprint gates
+ */
+export function useSprintGates(sprintId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.sprintGates(sprintId || ""),
+    queryFn: () => fetchSprintGates(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create gate evaluation
+ */
+export function useCreateGateEvaluation(
+  sprintId: string,
+  gateType: GateType
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateGateEvaluationData) =>
+      createGateEvaluation(sprintId, gateType, data),
+    onSuccess: () => {
+      // Invalidate sprint gates and detail
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintGates(sprintId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintDetail(sprintId),
+      });
+
+      const gateLabel = gateType === "g_sprint" ? "G-Sprint" : "G-Sprint-Close";
+      toast({
+        title: "Gate evaluation created",
+        description: `${gateLabel} evaluation has been created.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create gate evaluation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to submit gate for approval
+ * Note: Only team admin/owner can approve (SE4H Coach rule)
+ */
+export function useSubmitGateApproval(sprintId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: submitGateApproval,
+    onSuccess: (result) => {
+      // Invalidate sprint gates and detail
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintGates(sprintId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintDetail(sprintId),
+      });
+
+      if (result.status === "approved") {
+        toast({
+          title: "Gate approved",
+          description: "The sprint gate has been approved successfully.",
+        });
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to submit gate",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// ============================================================================
+// React Query Hooks - Backlog Items
+// ============================================================================
+
+/**
+ * Hook to fetch backlog items
+ */
+export function useBacklogItems(filters: {
+  sprintId?: string;
+  projectId?: string;
+  status?: BacklogItemStatus;
+  priority?: Priority;
+}) {
+  return useQuery({
+    queryKey: planningKeys.backlogList(filters),
+    queryFn: () => fetchBacklogItems(filters),
+    enabled: !!(filters.sprintId || filters.projectId),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch single backlog item
+ */
+export function useBacklogItem(itemId: string | null) {
+  return useQuery({
+    queryKey: planningKeys.backlogDetail(itemId || ""),
+    queryFn: () => fetchBacklogItem(itemId!),
+    enabled: !!itemId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create backlog item
+ */
+export function useCreateBacklogItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createBacklogItem,
+    onSuccess: (newItem) => {
+      // Invalidate backlog lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlog(),
+      });
+
+      // Invalidate sprint statistics if assigned to sprint
+      if (newItem.sprint_id) {
+        queryClient.invalidateQueries({
+          queryKey: planningKeys.sprintStatistics(newItem.sprint_id),
+        });
+      }
+
+      toast({
+        title: "Backlog item created",
+        description: `"${newItem.title}" has been created.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create backlog item",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update backlog item
+ */
+export function useUpdateBacklogItem(itemId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateBacklogItemData) => updateBacklogItem(itemId, data),
+    onSuccess: (updatedItem) => {
+      // Invalidate backlog detail and lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlogDetail(itemId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlog(),
+      });
+
+      // Invalidate sprint statistics
+      if (updatedItem.sprint_id) {
+        queryClient.invalidateQueries({
+          queryKey: planningKeys.sprintStatistics(updatedItem.sprint_id),
+        });
+      }
+
+      toast({
+        title: "Backlog item updated",
+        description: `"${updatedItem.title}" has been updated.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update backlog item",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete backlog item
+ */
+export function useDeleteBacklogItem() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteBacklogItem,
+    onSuccess: () => {
+      // Invalidate backlog lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlog(),
+      });
+
+      toast({
+        title: "Backlog item deleted",
+        description: "The item has been deleted successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete backlog item",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to bulk update backlog items
+ */
+export function useBulkUpdateBacklogItems() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkUpdateBacklogItems,
+    onSuccess: (result) => {
+      // Invalidate backlog lists
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlog(),
+      });
+
+      toast({
+        title: "Backlog items updated",
+        description: `${result.updated_count} items have been updated.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update backlog items",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// ============================================================================
+// Helper Hooks
+// ============================================================================
+
+/**
+ * Hook to get sprint progress percentage
+ */
+export function useSprintProgress(sprintId: string | null) {
+  const { data: stats } = useSprintStatistics(sprintId);
+
+  if (!stats || stats.total_items === 0) {
+    return 0;
+  }
+
+  return Math.round((stats.completed_items / stats.total_items) * 100);
+}
+
+/**
+ * Hook to check if sprint is ready for G-Sprint gate
+ */
+export function useIsSprintReadyForGSprint(sprintId: string | null) {
+  const { data: sprint } = useSprint(sprintId);
+
+  if (!sprint) {
+    return false;
+  }
+
+  return (
+    sprint.status === "planning" &&
+    sprint.g_sprint_status === "pending" &&
+    sprint.goal &&
+    sprint.capacity_points &&
+    sprint.capacity_points > 0
+  );
+}
+
+/**
+ * Hook to check if sprint is ready for G-Sprint-Close gate
+ */
+export function useIsSprintReadyForGSprintClose(sprintId: string | null) {
+  const { data: sprint } = useSprint(sprintId);
+  const { data: stats } = useSprintStatistics(sprintId);
+
+  if (!sprint || !stats) {
+    return false;
+  }
+
+  // Sprint must be completed and have no blocked items
+  return (
+    sprint.status === "completed" &&
+    sprint.g_sprint_status === "approved" &&
+    sprint.g_sprint_close_status === "pending" &&
+    stats.blocked_items === 0
+  );
+}
+
+/**
+ * Hook to invalidate planning cache
+ */
+export function useInvalidatePlanningCache() {
+  const queryClient = useQueryClient();
+
+  return {
+    invalidateSprint: (sprintId: string) => {
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintDetail(sprintId),
+      });
+    },
+    invalidateProjectSprints: (projectId: string) => {
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintsList(projectId),
+      });
+    },
+    invalidateBacklog: () => {
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.backlog(),
+      });
+    },
+    invalidateAllPlanning: () => {
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.all,
+      });
+    },
+  };
+}
+
+// ============================================================================
+// Sprint 78 Types - Dependencies, Resources, Templates
+// ============================================================================
+
+/** Sprint dependency types */
+export type DependencyType = "blocks" | "requires" | "related";
+export type DependencyStatus = "pending" | "active" | "resolved" | "cancelled";
+
+/** Sprint dependency */
+export interface SprintDependency {
+  id: string;
+  source_sprint_id: string;
+  target_sprint_id: string;
+  dependency_type: DependencyType;
+  description?: string;
+  status: DependencyStatus;
+  created_by_id?: string;
+  created_at: string;
+  resolved_at?: string;
+  source_sprint?: Sprint;
+  target_sprint?: Sprint;
+}
+
+/** Dependency graph node */
+export interface DependencyNode {
+  id: string;
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  project_id: string;
+  project_name: string;
+  status: SprintStatus;
+  start_date?: string;
+  end_date?: string;
+}
+
+/** Dependency graph edge */
+export interface DependencyEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: DependencyType;
+  status: DependencyStatus;
+  description?: string;
+}
+
+/** Dependency graph response */
+export interface DependencyGraph {
+  nodes: DependencyNode[];
+  edges: DependencyEdge[];
+  critical_path: string[];
+}
+
+/** Resource allocation */
+export interface ResourceAllocation {
+  id: string;
+  sprint_id: string;
+  user_id: string;
+  allocation_percentage: number;
+  role?: string;
+  start_date: string;
+  end_date: string;
+  notes?: string;
+  created_at: string;
+  sprint?: Sprint;
+  user?: {
+    id: string;
+    email: string;
+    full_name?: string;
+  };
+}
+
+/** Team capacity response */
+export interface TeamCapacity {
+  team_id: string;
+  team_name: string;
+  start_date: string;
+  end_date: string;
+  total_hours: number;
+  allocated_hours: number;
+  available_hours: number;
+  utilization_rate: number;
+  member_capacities: MemberCapacity[];
+}
+
+/** Member capacity */
+export interface MemberCapacity {
+  user_id: string;
+  user_name: string;
+  total_hours: number;
+  allocated_hours: number;
+  available_hours: number;
+  utilization_rate: number;
+  allocations: ResourceAllocation[];
+}
+
+/** Allocation conflict */
+export interface AllocationConflict {
+  user_id: string;
+  user_name: string;
+  sprint_id: string;
+  sprint_name: string;
+  conflict_start: string;
+  conflict_end: string;
+  total_allocation: number;
+  conflicting_sprints: string[];
+}
+
+/** Sprint template */
+export interface SprintTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  template_type: string;
+  duration_days: number;
+  default_capacity_points: number;
+  backlog_structure?: BacklogItemTemplate[];
+  gates_enabled: boolean;
+  goal_template?: string;
+  team_id?: string;
+  is_public: boolean;
+  is_default: boolean;
+  usage_count: number;
+  created_by_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Backlog item template */
+export interface BacklogItemTemplate {
+  title: string;
+  description?: string;
+  type: BacklogItemType;
+  priority: Priority;
+  story_points?: number;
+}
+
+/** Template suggestion */
+export interface TemplateSuggestion {
+  template_id: string;
+  template_name: string;
+  template_type: string;
+  match_score: number;
+  reason: string;
+}
+
+/** Apply template response */
+export interface ApplyTemplateResponse {
+  sprint_id: string;
+  sprint_number: number;
+  sprint_name: string;
+  start_date: string;
+  end_date: string;
+  backlog_items_created: number;
+  template_id: string;
+  template_name: string;
+}
+
+/** Retrospective comparison */
+export interface RetroComparison {
+  current: SprintRetrospective;
+  previous?: SprintRetrospective;
+  metrics_delta?: MetricsDelta;
+  action_items_completed: number;
+  recurring_issues: string[];
+}
+
+/** Metrics delta between sprints */
+export interface MetricsDelta {
+  completion_rate_change: number;
+  velocity_change: number;
+  p0_completion_change: number;
+  blocked_items_change: number;
+}
+
+// ============================================================================
+// Sprint 78 Query Keys
+// ============================================================================
+
+export const sprint78Keys = {
+  // Dependencies
+  dependencies: () => [...planningKeys.all, "dependencies"] as const,
+  dependencyList: (projectId: string) =>
+    [...sprint78Keys.dependencies(), "list", projectId] as const,
+  dependencyGraph: (projectId: string) =>
+    [...sprint78Keys.dependencies(), "graph", projectId] as const,
+  sprintDependencies: (sprintId: string) =>
+    [...sprint78Keys.dependencies(), "sprint", sprintId] as const,
+
+  // Resources
+  resources: () => [...planningKeys.all, "resources"] as const,
+  teamCapacity: (teamId: string, startDate: string, endDate: string) =>
+    [...sprint78Keys.resources(), "capacity", teamId, startDate, endDate] as const,
+  sprintAllocations: (sprintId: string) =>
+    [...sprint78Keys.resources(), "allocations", sprintId] as const,
+  userAllocations: (userId: string) =>
+    [...sprint78Keys.resources(), "user", userId] as const,
+  allocationConflicts: (sprintId: string) =>
+    [...sprint78Keys.resources(), "conflicts", sprintId] as const,
+
+  // Templates
+  templates: () => [...planningKeys.all, "templates"] as const,
+  templateList: (teamId?: string) =>
+    [...sprint78Keys.templates(), "list", teamId || "public"] as const,
+  templateDetail: (templateId: string) =>
+    [...sprint78Keys.templates(), "detail", templateId] as const,
+  templateSuggestions: (projectId: string) =>
+    [...sprint78Keys.templates(), "suggestions", projectId] as const,
+
+  // Retrospective comparison
+  retroComparison: (sprintId: string) =>
+    [...planningKeys.sprintRetrospective(sprintId), "comparison"] as const,
+};
+
+// ============================================================================
+// Sprint 78 API Functions - Dependencies
+// ============================================================================
+
+/** Fetch project dependencies */
+async function fetchProjectDependencies(
+  projectId: string
+): Promise<SprintDependency[]> {
+  const response = await apiClient.get<{ items: SprintDependency[] }>(
+    `/planning/projects/${projectId}/dependencies`
+  );
+  return response.data.items;
+}
+
+/** Fetch dependency graph */
+async function fetchDependencyGraph(projectId: string): Promise<DependencyGraph> {
+  const response = await apiClient.get<DependencyGraph>(
+    `/planning/projects/${projectId}/dependencies/graph`
+  );
+  return response.data;
+}
+
+/** Create dependency */
+export interface CreateDependencyData {
+  source_sprint_id: string;
+  target_sprint_id: string;
+  dependency_type: DependencyType;
+  description?: string;
+}
+
+async function createDependency(
+  data: CreateDependencyData
+): Promise<SprintDependency> {
+  const response = await apiClient.post<SprintDependency>(
+    "/planning/dependencies",
+    data
+  );
+  return response.data;
+}
+
+/** Update dependency */
+async function updateDependency(
+  dependencyId: string,
+  data: Partial<CreateDependencyData & { status: DependencyStatus }>
+): Promise<SprintDependency> {
+  const response = await apiClient.put<SprintDependency>(
+    `/planning/dependencies/${dependencyId}`,
+    data
+  );
+  return response.data;
+}
+
+/** Delete dependency */
+async function deleteDependency(dependencyId: string): Promise<void> {
+  await apiClient.delete(`/planning/dependencies/${dependencyId}`);
+}
+
+// ============================================================================
+// Sprint 78 API Functions - Resources
+// ============================================================================
+
+/** Fetch team capacity */
+async function fetchTeamCapacity(
+  teamId: string,
+  startDate: string,
+  endDate: string
+): Promise<TeamCapacity> {
+  const response = await apiClient.get<TeamCapacity>(
+    `/planning/teams/${teamId}/capacity?start_date=${startDate}&end_date=${endDate}`
+  );
+  return response.data;
+}
+
+/** Fetch sprint allocations */
+async function fetchSprintAllocations(
+  sprintId: string
+): Promise<ResourceAllocation[]> {
+  const response = await apiClient.get<{ items: ResourceAllocation[] }>(
+    `/planning/sprints/${sprintId}/allocations`
+  );
+  return response.data.items;
+}
+
+/** Create allocation */
+export interface CreateAllocationData {
+  sprint_id: string;
+  user_id: string;
+  allocation_percentage: number;
+  role?: string;
+  start_date: string;
+  end_date: string;
+  notes?: string;
+}
+
+async function createAllocation(
+  data: CreateAllocationData
+): Promise<ResourceAllocation> {
+  const response = await apiClient.post<ResourceAllocation>(
+    "/planning/allocations",
+    data
+  );
+  return response.data;
+}
+
+/** Update allocation */
+async function updateAllocation(
+  allocationId: string,
+  data: Partial<CreateAllocationData>
+): Promise<ResourceAllocation> {
+  const response = await apiClient.put<ResourceAllocation>(
+    `/planning/allocations/${allocationId}`,
+    data
+  );
+  return response.data;
+}
+
+/** Delete allocation */
+async function deleteAllocation(allocationId: string): Promise<void> {
+  await apiClient.delete(`/planning/allocations/${allocationId}`);
+}
+
+/** Check allocation conflicts */
+async function checkAllocationConflicts(
+  sprintId: string
+): Promise<AllocationConflict[]> {
+  const response = await apiClient.get<{ conflicts: AllocationConflict[] }>(
+    `/planning/sprints/${sprintId}/allocations/conflicts`
+  );
+  return response.data.conflicts;
+}
+
+// ============================================================================
+// Sprint 78 API Functions - Templates
+// ============================================================================
+
+/** Fetch templates list */
+async function fetchTemplates(teamId?: string): Promise<SprintTemplate[]> {
+  const params = teamId ? `?team_id=${teamId}` : "";
+  const response = await apiClient.get<{ items: SprintTemplate[] }>(
+    `/planning/templates${params}`
+  );
+  return response.data.items;
+}
+
+/** Fetch single template */
+async function fetchTemplate(templateId: string): Promise<SprintTemplate> {
+  const response = await apiClient.get<SprintTemplate>(
+    `/planning/templates/${templateId}`
+  );
+  return response.data;
+}
+
+/** Fetch template suggestions */
+async function fetchTemplateSuggestions(
+  projectId: string
+): Promise<TemplateSuggestion[]> {
+  const response = await apiClient.get<{ suggestions: TemplateSuggestion[] }>(
+    `/planning/projects/${projectId}/template-suggestions`
+  );
+  return response.data.suggestions;
+}
+
+/** Create template */
+export interface CreateTemplateData {
+  name: string;
+  description?: string;
+  template_type: string;
+  duration_days: number;
+  default_capacity_points: number;
+  backlog_structure?: BacklogItemTemplate[];
+  gates_enabled?: boolean;
+  goal_template?: string;
+  team_id?: string;
+  is_public?: boolean;
+  is_default?: boolean;
+}
+
+async function createTemplate(data: CreateTemplateData): Promise<SprintTemplate> {
+  const response = await apiClient.post<SprintTemplate>(
+    "/planning/templates",
+    data
+  );
+  return response.data;
+}
+
+/** Update template */
+async function updateTemplate(
+  templateId: string,
+  data: Partial<CreateTemplateData>
+): Promise<SprintTemplate> {
+  const response = await apiClient.put<SprintTemplate>(
+    `/planning/templates/${templateId}`,
+    data
+  );
+  return response.data;
+}
+
+/** Delete template */
+async function deleteTemplate(templateId: string): Promise<void> {
+  await apiClient.delete(`/planning/templates/${templateId}`);
+}
+
+/** Apply template to create sprint */
+export interface ApplyTemplateData {
+  project_id: string;
+  start_date: string;
+  phase_id?: string;
+  sprint_name?: string;
+  goal?: string;
+  team_size?: number;
+  include_backlog?: boolean;
+}
+
+async function applyTemplate(
+  templateId: string,
+  data: ApplyTemplateData
+): Promise<ApplyTemplateResponse> {
+  const response = await apiClient.post<ApplyTemplateResponse>(
+    `/planning/templates/${templateId}/apply`,
+    data
+  );
+  return response.data;
+}
+
+// ============================================================================
+// Sprint 78 API Functions - Retrospective Comparison
+// ============================================================================
+
+/** Fetch retrospective comparison */
+async function fetchRetroComparison(
+  sprintId: string,
+  previousSprintId?: string
+): Promise<RetroComparison> {
+  const params = previousSprintId
+    ? `?previous_sprint_id=${previousSprintId}`
+    : "";
+  const response = await apiClient.get<RetroComparison>(
+    `/planning/sprints/${sprintId}/retrospective/comparison${params}`
+  );
+  return response.data;
+}
+
+// ============================================================================
+// Sprint 78 React Query Hooks - Dependencies
+// ============================================================================
+
+/**
+ * Hook to fetch project dependencies
+ */
+export function useProjectDependencies(projectId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.dependencyList(projectId || ""),
+    queryFn: () => fetchProjectDependencies(projectId!),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch dependency graph for visualization
+ */
+export function useDependencyGraph(projectId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.dependencyGraph(projectId || ""),
+    queryFn: () => fetchDependencyGraph(projectId!),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create dependency
+ */
+export function useCreateDependency() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createDependency,
+    onSuccess: (newDep) => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.dependencies(),
+      });
+      toast({
+        title: "Dependency created",
+        description: "Sprint dependency has been created successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create dependency",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update dependency
+ */
+export function useUpdateDependency(dependencyId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Partial<CreateDependencyData & { status: DependencyStatus }>) =>
+      updateDependency(dependencyId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.dependencies(),
+      });
+      toast({
+        title: "Dependency updated",
+        description: "Sprint dependency has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update dependency",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete dependency
+ */
+export function useDeleteDependency() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteDependency,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.dependencies(),
+      });
+      toast({
+        title: "Dependency deleted",
+        description: "Sprint dependency has been removed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete dependency",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// ============================================================================
+// Sprint 78 React Query Hooks - Resources
+// ============================================================================
+
+/**
+ * Hook to fetch team capacity
+ */
+export function useTeamCapacity(
+  teamId: string | null,
+  startDate: string,
+  endDate: string
+) {
+  return useQuery({
+    queryKey: sprint78Keys.teamCapacity(teamId || "", startDate, endDate),
+    queryFn: () => fetchTeamCapacity(teamId!, startDate, endDate),
+    enabled: !!teamId && !!startDate && !!endDate,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch sprint allocations
+ */
+export function useSprintAllocations(sprintId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.sprintAllocations(sprintId || ""),
+    queryFn: () => fetchSprintAllocations(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create allocation
+ */
+export function useCreateAllocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createAllocation,
+    onSuccess: (newAlloc) => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.sprintAllocations(newAlloc.sprint_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.resources(),
+      });
+      toast({
+        title: "Allocation created",
+        description: "Resource allocation has been created successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create allocation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update allocation
+ */
+export function useUpdateAllocation(allocationId: string, sprintId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Partial<CreateAllocationData>) =>
+      updateAllocation(allocationId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.sprintAllocations(sprintId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.resources(),
+      });
+      toast({
+        title: "Allocation updated",
+        description: "Resource allocation has been updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update allocation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete allocation
+ */
+export function useDeleteAllocation(sprintId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteAllocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.sprintAllocations(sprintId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.resources(),
+      });
+      toast({
+        title: "Allocation deleted",
+        description: "Resource allocation has been removed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete allocation",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to check allocation conflicts
+ */
+export function useAllocationConflicts(sprintId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.allocationConflicts(sprintId || ""),
+    queryFn: () => checkAllocationConflicts(sprintId!),
+    enabled: !!sprintId,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}
+
+// ============================================================================
+// Sprint 78 React Query Hooks - Templates
+// ============================================================================
+
+/**
+ * Hook to fetch templates list
+ */
+export function useSprintTemplates(teamId?: string) {
+  return useQuery({
+    queryKey: sprint78Keys.templateList(teamId),
+    queryFn: () => fetchTemplates(teamId),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch single template
+ */
+export function useSprintTemplate(templateId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.templateDetail(templateId || ""),
+    queryFn: () => fetchTemplate(templateId!),
+    enabled: !!templateId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch template suggestions
+ */
+export function useTemplateSuggestions(projectId: string | null) {
+  return useQuery({
+    queryKey: sprint78Keys.templateSuggestions(projectId || ""),
+    queryFn: () => fetchTemplateSuggestions(projectId!),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to create template
+ */
+export function useCreateTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTemplate,
+    onSuccess: (newTemplate) => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.templates(),
+      });
+      toast({
+        title: "Template created",
+        description: `"${newTemplate.name}" has been created successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to create template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to update template
+ */
+export function useUpdateTemplate(templateId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: Partial<CreateTemplateData>) =>
+      updateTemplate(templateId, data),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.templateDetail(templateId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.templates(),
+      });
+      toast({
+        title: "Template updated",
+        description: `"${updated.name}" has been updated successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to delete template
+ */
+export function useDeleteTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteTemplate,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.templates(),
+      });
+      toast({
+        title: "Template deleted",
+        description: "Sprint template has been deleted.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to delete template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+/**
+ * Hook to apply template and create sprint
+ */
+export function useApplyTemplate(templateId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ApplyTemplateData) => applyTemplate(templateId, data),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({
+        queryKey: planningKeys.sprintsList(result.sprint_id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: sprint78Keys.templateDetail(templateId),
+      });
+      toast({
+        title: "Sprint created from template",
+        description: `${result.sprint_name} has been created with ${result.backlog_items_created} backlog items.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to apply template",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+// ============================================================================
+// Sprint 78 React Query Hooks - Retrospective Comparison
+// ============================================================================
+
+/**
+ * Hook to fetch retrospective comparison
+ */
+export function useRetroComparison(
+  sprintId: string | null,
+  previousSprintId?: string
+) {
+  return useQuery({
+    queryKey: sprint78Keys.retroComparison(sprintId || ""),
+    queryFn: () => fetchRetroComparison(sprintId!, previousSprintId),
+    enabled: !!sprintId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+  });
+}

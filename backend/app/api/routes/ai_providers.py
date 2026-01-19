@@ -8,7 +8,7 @@ Date: January 16, 2026
 Status: ACTIVE - Sprint 70 AI Provider Admin UI
 Authority: CTO Approved
 Foundation: ADR-007 Multi-Provider AI Integration, ADR-027 Database Settings
-Framework: SDLC 5.1.1 Complete Lifecycle
+Framework: SDLC 5.1.3 Complete Lifecycle
 
 Endpoints:
 - GET  /api/v1/admin/ai-providers/config      - Get full AI config

@@ -5,7 +5,7 @@
 **Epic**: EP-04: SDLC Structure Enforcement
 **Assessment Date**: December 22, 2025
 **Assessor**: PM/PJM
-**Framework**: SDLC 5.1.1
+**Framework**: SDLC 5.1.3
 
 ---
 

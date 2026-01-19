@@ -3,7 +3,7 @@ Lint Validator - Code Style and Formatting
 
 SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Validate code style and formatting using language-specific linters.

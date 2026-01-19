@@ -106,6 +106,18 @@ from app.models.sprint import Sprint
 from app.models.sprint_gate_evaluation import SprintGateEvaluation, G_SPRINT_CHECKLIST_TEMPLATE, G_SPRINT_CLOSE_CHECKLIST_TEMPLATE
 from app.models.backlog_item import BacklogItem
 
+# Retrospective Enhancement (Sprint 78) - 1 model
+from app.models.retro_action_item import RetroActionItem
+
+# Cross-Project Dependencies (Sprint 78) - 1 model
+from app.models.sprint_dependency import SprintDependency
+
+# Resource Allocation (Sprint 78) - 1 model
+from app.models.resource_allocation import ResourceAllocation
+
+# Sprint Templates (Sprint 78) - 1 model
+from app.models.sprint_template import SprintTemplate
+
 __all__ = [
     # Base
     "Base",
@@ -195,4 +207,12 @@ __all__ = [
     "G_SPRINT_CHECKLIST_TEMPLATE",
     "G_SPRINT_CLOSE_CHECKLIST_TEMPLATE",
     "BacklogItem",
+    # Retrospective Enhancement - Sprint 78 (1 model)
+    "RetroActionItem",
+    # Cross-Project Dependencies - Sprint 78 (1 model)
+    "SprintDependency",
+    # Resource Allocation - Sprint 78 (1 model)
+    "ResourceAllocation",
+    # Sprint Templates - Sprint 78 (1 model)
+    "SprintTemplate",
 ]

@@ -24,7 +24,7 @@ Performance Targets (Sprint 49):
 - Generation Latency (p95): <15s (Ollama), <25s (Claude)
 - Satisfaction: 8/10
 
-Framework: SDLC 5.1.1 + SASE Level 2
+Framework: SDLC 5.1.3 + SASE Level 2
 =========================================================================
 """
 

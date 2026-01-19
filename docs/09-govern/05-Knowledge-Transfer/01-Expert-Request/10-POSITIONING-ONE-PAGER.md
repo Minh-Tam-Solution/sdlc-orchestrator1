@@ -1,9 +1,10 @@
 # SDLC Orchestrator - Positioning One-Pager
 ## Operating System for Software 3.0
 
-**Version**: 1.0.0
-**Date**: December 23, 2025
+**Version**: 1.1.0
+**Date**: January 18, 2026
 **Classification**: Internal + Investor Ready
+**Framework**: SDLC 5.1.3 (7-Pillar Architecture)
 
 ---
 
@@ -31,13 +32,16 @@
 │  ★ Evidence Vault: Audit trail for compliance                      │
 │  ★ Policy Guards: OPA-based validation before merge                │
 │  ★ EP-06 Codegen: IR-based generation for Vietnam SME              │
+│  ★ Sprint Governance: G-Sprint/G-Sprint-Close gates (NEW 5.1.3)   │
+│  ★ Planning Hierarchy: Roadmap → Phase → Sprint → Backlog (NEW)   │
+│  ★ Team Management: Personal + Organization teams (NEW)           │
 │                                                                     │
 │  → We sit ABOVE AI coders, not alongside                            │
 │  → They generate, we validate                                       │
 ├─────────────────────────────────────────────────────────────────────┤
 │  LAYER 1: SDLC-ENTERPRISE-FRAMEWORK (Methodology - Foundation)      │
 │  ──────────────────────────────────────────────────────────         │
-│  10 Stages (00-09) | 4 Tiers | Quality Gates (G0.1 → G4)           │
+│  10 Stages | 4 Tiers | 7 Pillars | Gates (G0-G4 + G-Sprint)        │
 │                                                                     │
 │  → Open source, tool-agnostic                                       │
 │  → Works with or without Orchestrator                               │

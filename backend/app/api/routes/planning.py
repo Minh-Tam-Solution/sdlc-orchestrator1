@@ -56,6 +56,7 @@ from app.models.sprint_gate_evaluation import (
     G_SPRINT_CHECKLIST_TEMPLATE,
     G_SPRINT_CLOSE_CHECKLIST_TEMPLATE,
 )
+from app.models.retro_action_item import RetroActionItem
 from app.models.team import Team
 from app.models.team_member import TeamMember
 from app.models.user import User
@@ -134,6 +135,64 @@ from app.schemas.planning import (
     RetroMetricsResponse,
     RetroInsightResponse,
     RetroActionResponse,
+)
+from app.schemas.retro_action_item import (
+    RetroActionItemCreate,
+    RetroActionItemUpdate,
+    RetroActionItemResponse,
+    RetroActionItemListResponse,
+    RetroActionItemStats,
+    RetroActionItemBulkCreate,
+    RetroActionItemBulkStatusUpdate,
+)
+from app.schemas.sprint_dependency import (
+    SprintDependencyCreate,
+    SprintDependencyUpdate,
+    SprintDependencyResponse,
+    SprintDependencyListResponse,
+    SprintDependencyWithDetails,
+    DependencyGraph,
+    DependencyAnalysis,
+    SprintDependencyBulkResolve,
+    SprintDependencyBulkResult,
+)
+from app.models.sprint_dependency import SprintDependency
+from app.services.sprint_dependency_service import (
+    SprintDependencyService,
+    get_sprint_dependency_service,
+)
+from app.schemas.resource_allocation import (
+    ResourceAllocationCreate,
+    ResourceAllocationUpdate,
+    ResourceAllocationResponse,
+    ResourceAllocationListResponse,
+    UserCapacity,
+    TeamCapacity,
+    SprintCapacity,
+    ConflictCheckResult,
+    ResourceHeatmap,
+)
+from app.models.resource_allocation import ResourceAllocation
+from app.services.resource_allocation_service import (
+    ResourceAllocationService,
+    get_resource_allocation_service,
+)
+from app.schemas.sprint_template import (
+    SprintTemplateCreate,
+    SprintTemplateUpdate,
+    SprintTemplateResponse,
+    SprintTemplateListResponse,
+    SprintTemplateWithDetails,
+    ApplyTemplateRequest,
+    ApplyTemplateResponse,
+    TemplateSuggestionsResponse,
+    SprintTemplateBulkDelete,
+    SprintTemplateBulkResult,
+)
+from app.models.sprint_template import SprintTemplate
+from app.services.sprint_template_service import (
+    SprintTemplateService,
+    get_sprint_template_service,
 )
 
 
@@ -2528,4 +2587,2035 @@ async def get_sprint_retrospective(
             for a in retro.action_items
         ],
         summary=retro.summary,
+    )
+
+
+# =========================================================================
+# Retrospective Action Item Endpoints (Sprint 78 Day 1)
+#
+# CRUD operations for persistent action items from sprint retrospectives
+# Supports cross-sprint tracking and assignment
+# =========================================================================
+
+
+def _serialize_retro_action_item(item: RetroActionItem) -> dict:
+    """Serialize RetroActionItem to response dict."""
+    return {
+        "id": item.id,
+        "sprint_id": item.sprint_id,
+        "title": item.title,
+        "description": item.description,
+        "category": item.category,
+        "priority": item.priority,
+        "status": item.status,
+        "assignee_id": item.assignee_id,
+        "due_sprint_id": item.due_sprint_id,
+        "created_at": item.created_at,
+        "updated_at": item.updated_at,
+        "completed_at": item.completed_at,
+    }
+
+
+@router.post(
+    "/sprints/{sprint_id}/action-items",
+    status_code=status.HTTP_201_CREATED,
+    response_model=RetroActionItemResponse,
+    summary="Create action item from retrospective",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def create_retro_action_item(
+    sprint_id: UUID,
+    data: RetroActionItemCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RetroActionItemResponse:
+    """
+    Create a new action item from sprint retrospective.
+
+    **Sprint 78: Retrospective Enhancement - Day 1 Implementation**
+
+    Action items track concrete next steps identified during sprint retrospectives.
+    Supports:
+    - Category classification (delivery, priority, velocity, etc.)
+    - Priority levels (low, medium, high)
+    - Assignment to team members
+    - Cross-sprint tracking via due_sprint_id
+
+    Args:
+        sprint_id: Sprint UUID (source sprint)
+        data: Action item data
+
+    Returns:
+        Created RetroActionItemResponse
+
+    Raises:
+        404: Sprint not found
+        403: No write access to project
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user, require_write=True)
+
+    # Validate due_sprint belongs to same project if provided
+    if data.due_sprint_id:
+        due_sprint_result = await db.execute(
+            select(Sprint).where(Sprint.id == data.due_sprint_id)
+        )
+        due_sprint = due_sprint_result.scalar_one_or_none()
+        if not due_sprint or due_sprint.project_id != sprint.project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Due sprint does not belong to this project",
+            )
+
+    # Create action item
+    item = RetroActionItem(
+        sprint_id=sprint_id,
+        title=data.title,
+        description=data.description,
+        category=data.category,
+        priority=data.priority,
+        status="open",
+        assignee_id=data.assignee_id,
+        due_sprint_id=data.due_sprint_id,
+    )
+    db.add(item)
+    await db.commit()
+    await db.refresh(item)
+
+    return _serialize_retro_action_item(item)
+
+
+@router.get(
+    "/sprints/{sprint_id}/action-items",
+    response_model=RetroActionItemListResponse,
+    summary="List action items for a sprint",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def list_retro_action_items(
+    sprint_id: UUID,
+    status_filter: Optional[str] = Query(None, alias="status", description="Filter by status"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    priority: Optional[str] = Query(None, description="Filter by priority"),
+    assignee_id: Optional[UUID] = Query(None, description="Filter by assignee"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RetroActionItemListResponse:
+    """
+    List action items for a sprint retrospective.
+
+    **Sprint 78: Retrospective Enhancement - Day 1 Implementation**
+
+    Supports filtering by:
+    - status: open, in_progress, completed, cancelled
+    - category: delivery, priority, velocity, planning, scope, blockers, team, general
+    - priority: low, medium, high
+    - assignee_id: User UUID
+
+    Args:
+        sprint_id: Sprint UUID
+        Various filters
+
+    Returns:
+        Paginated list of action items
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user)
+
+    # Build query
+    query = select(RetroActionItem).where(
+        RetroActionItem.sprint_id == sprint_id,
+        RetroActionItem.is_deleted == False,
+    )
+
+    if status_filter:
+        query = query.where(RetroActionItem.status == status_filter)
+    if category:
+        query = query.where(RetroActionItem.category == category)
+    if priority:
+        query = query.where(RetroActionItem.priority == priority)
+    if assignee_id:
+        query = query.where(RetroActionItem.assignee_id == assignee_id)
+
+    # Count total
+    count_query = select(func.count(RetroActionItem.id)).where(
+        RetroActionItem.sprint_id == sprint_id,
+        RetroActionItem.is_deleted == False,
+    )
+    count_result = await db.execute(count_query)
+    total = count_result.scalar() or 0
+
+    # Get paginated results
+    query = query.order_by(RetroActionItem.priority, RetroActionItem.created_at.desc())
+    query = query.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(query)
+    items = result.scalars().all()
+
+    return RetroActionItemListResponse(
+        items=[_serialize_retro_action_item(item) for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/action-items/{item_id}",
+    response_model=RetroActionItemResponse,
+    summary="Get a single action item",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def get_retro_action_item(
+    item_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RetroActionItemResponse:
+    """Get a single action item by ID."""
+    result = await db.execute(
+        select(RetroActionItem)
+        .options(selectinload(RetroActionItem.sprint))
+        .where(
+            RetroActionItem.id == item_id,
+            RetroActionItem.is_deleted == False,
+        )
+    )
+    item = result.scalar_one_or_none()
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Action item not found",
+        )
+
+    # Check project access
+    await check_project_access(db, item.sprint.project_id, current_user)
+
+    return _serialize_retro_action_item(item)
+
+
+@router.put(
+    "/action-items/{item_id}",
+    response_model=RetroActionItemResponse,
+    summary="Update an action item",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def update_retro_action_item(
+    item_id: UUID,
+    data: RetroActionItemUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RetroActionItemResponse:
+    """
+    Update an action item.
+
+    Status transitions:
+    - open -> in_progress (when assigned)
+    - in_progress -> completed (manual)
+    - Any -> cancelled (manual)
+    """
+    result = await db.execute(
+        select(RetroActionItem)
+        .options(selectinload(RetroActionItem.sprint))
+        .where(
+            RetroActionItem.id == item_id,
+            RetroActionItem.is_deleted == False,
+        )
+    )
+    item = result.scalar_one_or_none()
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Action item not found",
+        )
+
+    # Check project access
+    await check_project_access(db, item.sprint.project_id, current_user, require_write=True)
+
+    # Update fields
+    if data.title is not None:
+        item.title = data.title
+    if data.description is not None:
+        item.description = data.description
+    if data.category is not None:
+        item.category = data.category
+    if data.priority is not None:
+        item.priority = data.priority
+    if data.status is not None:
+        item.status = data.status
+        if data.status == "completed":
+            item.completed_at = datetime.utcnow()
+    if data.assignee_id is not None:
+        item.assignee_id = data.assignee_id
+        if item.status == "open":
+            item.status = "in_progress"
+    if data.due_sprint_id is not None:
+        # Validate due_sprint belongs to same project
+        due_sprint_result = await db.execute(
+            select(Sprint).where(Sprint.id == data.due_sprint_id)
+        )
+        due_sprint = due_sprint_result.scalar_one_or_none()
+        if not due_sprint or due_sprint.project_id != item.sprint.project_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Due sprint does not belong to this project",
+            )
+        item.due_sprint_id = data.due_sprint_id
+
+    item.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(item)
+
+    return _serialize_retro_action_item(item)
+
+
+@router.delete(
+    "/action-items/{item_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an action item",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def delete_retro_action_item(
+    item_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Soft delete an action item."""
+    result = await db.execute(
+        select(RetroActionItem)
+        .options(selectinload(RetroActionItem.sprint))
+        .where(
+            RetroActionItem.id == item_id,
+            RetroActionItem.is_deleted == False,
+        )
+    )
+    item = result.scalar_one_or_none()
+
+    if not item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Action item not found",
+        )
+
+    # Check project access
+    await check_project_access(db, item.sprint.project_id, current_user, require_write=True)
+
+    # Soft delete
+    item.is_deleted = True
+    item.updated_at = datetime.utcnow()
+    await db.commit()
+
+
+@router.post(
+    "/sprints/{sprint_id}/action-items/bulk",
+    status_code=status.HTTP_201_CREATED,
+    summary="Bulk create action items",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def bulk_create_retro_action_items(
+    sprint_id: UUID,
+    data: RetroActionItemBulkCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[RetroActionItemResponse]:
+    """
+    Bulk create action items from retrospective.
+
+    Useful for importing action items generated by retrospective automation.
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user, require_write=True)
+
+    created_items = []
+    for item_data in data.items:
+        item = RetroActionItem(
+            sprint_id=sprint_id,
+            title=item_data.title,
+            description=item_data.description,
+            category=item_data.category,
+            priority=item_data.priority,
+            status="open",
+        )
+        db.add(item)
+        created_items.append(item)
+
+    await db.commit()
+    for item in created_items:
+        await db.refresh(item)
+
+    return [_serialize_retro_action_item(item) for item in created_items]
+
+
+@router.post(
+    "/action-items/bulk/status",
+    summary="Bulk update action item status",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def bulk_update_retro_action_item_status(
+    data: RetroActionItemBulkStatusUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Bulk update status for multiple action items."""
+    success_count = 0
+    failure_count = 0
+    errors = []
+
+    for item_id in data.ids:
+        try:
+            result = await db.execute(
+                select(RetroActionItem)
+                .options(selectinload(RetroActionItem.sprint))
+                .where(
+                    RetroActionItem.id == item_id,
+                    RetroActionItem.is_deleted == False,
+                )
+            )
+            item = result.scalar_one_or_none()
+
+            if not item:
+                failure_count += 1
+                errors.append({"item_id": str(item_id), "error": "Item not found"})
+                continue
+
+            await check_project_access(db, item.sprint.project_id, current_user, require_write=True)
+
+            item.status = data.status
+            if data.status == "completed":
+                item.completed_at = datetime.utcnow()
+            item.updated_at = datetime.utcnow()
+            success_count += 1
+
+        except HTTPException as e:
+            failure_count += 1
+            errors.append({"item_id": str(item_id), "error": e.detail})
+
+    await db.commit()
+
+    return {
+        "success_count": success_count,
+        "failure_count": failure_count,
+        "errors": errors,
+    }
+
+
+@router.get(
+    "/sprints/{sprint_id}/action-items/stats",
+    response_model=RetroActionItemStats,
+    summary="Get action items statistics",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def get_retro_action_item_stats(
+    sprint_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> RetroActionItemStats:
+    """
+    Get statistics for action items in a sprint retrospective.
+
+    Returns counts by status, category, and priority.
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    # Check project access
+    await check_project_access(db, sprint.project_id, current_user)
+
+    # Get status counts
+    status_result = await db.execute(
+        select(RetroActionItem.status, func.count(RetroActionItem.id))
+        .where(
+            RetroActionItem.sprint_id == sprint_id,
+            RetroActionItem.is_deleted == False,
+        )
+        .group_by(RetroActionItem.status)
+    )
+    status_counts = {row[0]: row[1] for row in status_result}
+
+    # Get category counts
+    category_result = await db.execute(
+        select(RetroActionItem.category, func.count(RetroActionItem.id))
+        .where(
+            RetroActionItem.sprint_id == sprint_id,
+            RetroActionItem.is_deleted == False,
+        )
+        .group_by(RetroActionItem.category)
+    )
+    by_category = {row[0]: row[1] for row in category_result}
+
+    # Get priority counts
+    priority_result = await db.execute(
+        select(RetroActionItem.priority, func.count(RetroActionItem.id))
+        .where(
+            RetroActionItem.sprint_id == sprint_id,
+            RetroActionItem.is_deleted == False,
+        )
+        .group_by(RetroActionItem.priority)
+    )
+    by_priority = {row[0]: row[1] for row in priority_result}
+
+    total = sum(status_counts.values())
+    completed = status_counts.get("completed", 0)
+
+    return RetroActionItemStats(
+        total_items=total,
+        open_items=status_counts.get("open", 0),
+        in_progress_items=status_counts.get("in_progress", 0),
+        completed_items=completed,
+        cancelled_items=status_counts.get("cancelled", 0),
+        completion_rate=round(completed / total * 100, 1) if total > 0 else 0.0,
+        by_category=by_category,
+        by_priority=by_priority,
+    )
+
+
+# =========================================================================
+# Sprint Retrospective Comparison Endpoint (Sprint 78 Day 1)
+#
+# Compare retrospectives across multiple sprints
+# =========================================================================
+
+
+@router.get(
+    "/projects/{project_id}/retrospective-comparison",
+    summary="Compare retrospectives across sprints",
+    tags=["Planning", "Retrospective", "Sprint 78"],
+)
+async def compare_sprint_retrospectives(
+    project_id: UUID,
+    sprint_ids: str = Query(..., description="Comma-separated sprint UUIDs (2-5 sprints)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(analytics_rate_limit()),
+) -> dict:
+    """
+    Compare retrospectives across multiple sprints.
+
+    **Sprint 78: Retrospective Enhancement - Day 1 Implementation**
+
+    Compares key metrics across selected sprints:
+    - Completion rates
+    - P0 completion rates
+    - Blocked item trends
+    - Velocity trends
+    - Action item completion rates
+
+    Args:
+        project_id: Project UUID
+        sprint_ids: Comma-separated sprint UUIDs (2-5 sprints)
+
+    Returns:
+        Comparison data with metrics for each sprint
+    """
+    # Parse sprint IDs
+    try:
+        sprint_uuid_list = [UUID(sid.strip()) for sid in sprint_ids.split(",")]
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid sprint ID format. Use comma-separated UUIDs.",
+        )
+
+    if len(sprint_uuid_list) < 2 or len(sprint_uuid_list) > 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide 2-5 sprint IDs for comparison",
+        )
+
+    # Check project access
+    await check_project_access(db, project_id, current_user)
+
+    # Verify all sprints belong to the project
+    sprints_result = await db.execute(
+        select(Sprint).where(
+            Sprint.id.in_(sprint_uuid_list),
+            Sprint.project_id == project_id,
+        ).order_by(Sprint.number)
+    )
+    sprints = sprints_result.scalars().all()
+
+    if len(sprints) != len(sprint_uuid_list):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Some sprint IDs do not belong to this project",
+        )
+
+    # Generate comparison data
+    retro_service = get_retrospective_service(db)
+    comparison_data = []
+
+    for sprint in sprints:
+        try:
+            retro = await retro_service.generate_retrospective(sprint.id)
+
+            # Get action item stats
+            action_stats_result = await db.execute(
+                select(
+                    func.count(RetroActionItem.id),
+                    func.sum(sa.case((RetroActionItem.status == "completed", 1), else_=0)),
+                )
+                .where(
+                    RetroActionItem.sprint_id == sprint.id,
+                    RetroActionItem.is_deleted == False,
+                )
+            )
+            action_stats = action_stats_result.one()
+
+            comparison_data.append({
+                "sprint_id": sprint.id,
+                "sprint_number": sprint.number,
+                "sprint_name": sprint.name,
+                "metrics": {
+                    "completion_rate": retro.metrics.completion_rate,
+                    "p0_completion_rate": retro.metrics.p0_completion_rate,
+                    "committed_points": retro.metrics.committed_points,
+                    "completed_points": retro.metrics.completed_points,
+                    "blocked_items": retro.metrics.blocked_items,
+                    "items_added_mid_sprint": retro.metrics.items_added_mid_sprint,
+                    "velocity_trend": retro.metrics.velocity_trend,
+                },
+                "action_items": {
+                    "total": action_stats[0] or 0,
+                    "completed": action_stats[1] or 0,
+                    "completion_rate": round(
+                        (action_stats[1] or 0) / (action_stats[0] or 1) * 100, 1
+                    ) if action_stats[0] else 0.0,
+                },
+                "insights_count": {
+                    "went_well": len(retro.went_well),
+                    "needs_improvement": len(retro.needs_improvement),
+                },
+            })
+        except ValueError:
+            # Sprint may not have enough data
+            comparison_data.append({
+                "sprint_id": sprint.id,
+                "sprint_number": sprint.number,
+                "sprint_name": sprint.name,
+                "error": "Insufficient data for retrospective",
+            })
+
+    # Calculate trends
+    if len(comparison_data) >= 2:
+        first = comparison_data[0]
+        last = comparison_data[-1]
+
+        if "metrics" in first and "metrics" in last:
+            trends = {
+                "completion_rate_change": round(
+                    last["metrics"]["completion_rate"] - first["metrics"]["completion_rate"], 1
+                ),
+                "p0_completion_change": round(
+                    last["metrics"]["p0_completion_rate"] - first["metrics"]["p0_completion_rate"], 1
+                ),
+                "blocked_items_change": (
+                    last["metrics"]["blocked_items"] - first["metrics"]["blocked_items"]
+                ),
+            }
+        else:
+            trends = None
+    else:
+        trends = None
+
+    return {
+        "project_id": project_id,
+        "sprint_count": len(sprints),
+        "sprints": comparison_data,
+        "trends": trends,
+    }
+
+
+# =========================================================================
+# Sprint Dependency Endpoints (Sprint 78 Day 2)
+#
+# Cross-project sprint dependency management
+# Supports circular dependency detection and graph visualization
+# =========================================================================
+
+
+def _serialize_dependency(dep: SprintDependency) -> dict:
+    """Serialize SprintDependency to response dict."""
+    return {
+        "id": dep.id,
+        "source_sprint_id": dep.source_sprint_id,
+        "target_sprint_id": dep.target_sprint_id,
+        "dependency_type": dep.dependency_type,
+        "description": dep.description,
+        "status": dep.status,
+        "created_by_id": dep.created_by_id,
+        "resolved_by_id": dep.resolved_by_id,
+        "created_at": dep.created_at,
+        "resolved_at": dep.resolved_at,
+    }
+
+
+def _serialize_dependency_with_details(dep: SprintDependency) -> dict:
+    """Serialize SprintDependency with sprint and project details."""
+    result = _serialize_dependency(dep)
+
+    # Add source sprint details
+    if dep.source_sprint:
+        result["source_sprint_number"] = dep.source_sprint.number
+        result["source_sprint_name"] = dep.source_sprint.name
+        result["source_project_id"] = dep.source_sprint.project_id
+        if dep.source_sprint.project:
+            result["source_project_name"] = dep.source_sprint.project.name
+        else:
+            result["source_project_name"] = None
+    else:
+        result["source_sprint_number"] = None
+        result["source_sprint_name"] = None
+        result["source_project_id"] = None
+        result["source_project_name"] = None
+
+    # Add target sprint details
+    if dep.target_sprint:
+        result["target_sprint_number"] = dep.target_sprint.number
+        result["target_sprint_name"] = dep.target_sprint.name
+        result["target_project_id"] = dep.target_sprint.project_id
+        if dep.target_sprint.project:
+            result["target_project_name"] = dep.target_sprint.project.name
+        else:
+            result["target_project_name"] = None
+    else:
+        result["target_sprint_number"] = None
+        result["target_sprint_name"] = None
+        result["target_project_id"] = None
+        result["target_project_name"] = None
+
+    # Check if cross-project
+    result["is_cross_project"] = dep.is_cross_project
+
+    return result
+
+
+@router.post(
+    "/dependencies",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SprintDependencyResponse,
+    summary="Create sprint dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def create_sprint_dependency(
+    data: SprintDependencyCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyResponse:
+    """
+    Create a dependency between two sprints.
+
+    **Sprint 78: Cross-Project Sprint Dependencies - Day 2 Implementation**
+
+    Dependency types:
+    - **blocks**: Source sprint is blocked until target completes (critical)
+    - **requires**: Source requires deliverable from target
+    - **related**: Sprints are related but not blocking
+
+    Validation:
+    - Both sprints must exist
+    - No self-reference allowed
+    - Circular dependencies are prevented
+
+    Args:
+        data: Dependency creation data
+
+    Returns:
+        Created SprintDependencyResponse
+
+    Raises:
+        400: Invalid dependency (circular, self-reference, duplicate)
+        404: Sprint not found
+    """
+    service = get_sprint_dependency_service(db)
+
+    try:
+        dependency = await service.create_dependency(
+            source_sprint_id=data.source_sprint_id,
+            target_sprint_id=data.target_sprint_id,
+            dependency_type=data.dependency_type,
+            description=data.description,
+            user_id=current_user.id,
+        )
+        return _serialize_dependency(dependency)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/dependencies/{dependency_id}",
+    response_model=SprintDependencyWithDetails,
+    summary="Get a sprint dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def get_sprint_dependency(
+    dependency_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyWithDetails:
+    """Get a single dependency with sprint details."""
+    service = get_sprint_dependency_service(db)
+    dependency = await service.get_dependency(dependency_id)
+
+    if not dependency:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dependency not found",
+        )
+
+    return _serialize_dependency_with_details(dependency)
+
+
+@router.put(
+    "/dependencies/{dependency_id}",
+    response_model=SprintDependencyResponse,
+    summary="Update a sprint dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def update_sprint_dependency(
+    dependency_id: UUID,
+    data: SprintDependencyUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyResponse:
+    """Update a dependency's type, description, or status."""
+    service = get_sprint_dependency_service(db)
+
+    dependency = await service.update_dependency(
+        dependency_id=dependency_id,
+        dependency_type=data.dependency_type,
+        description=data.description,
+        status=data.status,
+    )
+
+    if not dependency:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dependency not found",
+        )
+
+    return _serialize_dependency(dependency)
+
+
+@router.post(
+    "/dependencies/{dependency_id}/resolve",
+    response_model=SprintDependencyResponse,
+    summary="Resolve a sprint dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def resolve_sprint_dependency(
+    dependency_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyResponse:
+    """Mark a dependency as resolved."""
+    service = get_sprint_dependency_service(db)
+
+    dependency = await service.resolve_dependency(
+        dependency_id=dependency_id,
+        user_id=current_user.id,
+    )
+
+    if not dependency:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dependency not found",
+        )
+
+    return _serialize_dependency(dependency)
+
+
+@router.delete(
+    "/dependencies/{dependency_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a sprint dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def delete_sprint_dependency(
+    dependency_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Soft delete a dependency."""
+    service = get_sprint_dependency_service(db)
+
+    success = await service.delete_dependency(dependency_id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dependency not found",
+        )
+
+
+@router.get(
+    "/sprints/{sprint_id}/dependencies",
+    response_model=SprintDependencyListResponse,
+    summary="List dependencies for a sprint",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def list_sprint_dependencies(
+    sprint_id: UUID,
+    direction: str = Query("both", description="Direction: incoming, outgoing, or both"),
+    include_resolved: bool = Query(False, description="Include resolved/cancelled"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyListResponse:
+    """
+    List dependencies for a specific sprint.
+
+    Direction:
+    - **incoming**: Dependencies where this sprint is the target
+    - **outgoing**: Dependencies where this sprint is the source
+    - **both**: All dependencies involving this sprint
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    service = get_sprint_dependency_service(db)
+    dependencies = await service.get_sprint_dependencies(
+        sprint_id=sprint_id,
+        direction=direction,
+        include_resolved=include_resolved,
+    )
+
+    # Paginate
+    total = len(dependencies)
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated = dependencies[start:end]
+
+    return SprintDependencyListResponse(
+        items=[_serialize_dependency(d) for d in paginated],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/projects/{project_id}/dependency-graph",
+    response_model=DependencyGraph,
+    summary="Get dependency graph for a project",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def get_project_dependency_graph(
+    project_id: UUID,
+    include_cross_project: bool = Query(True, description="Include cross-project deps"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> DependencyGraph:
+    """
+    Get dependency graph for visualization.
+
+    **Sprint 78: Cross-Project Sprint Dependencies - Day 2 Implementation**
+
+    Returns a graph structure with:
+    - **nodes**: Sprints with status and blocking info
+    - **edges**: Dependencies with type and status
+
+    Suitable for rendering with visualization libraries like ReactFlow or D3.
+    """
+    # Check project access
+    await check_project_access(db, project_id, current_user)
+
+    service = get_sprint_dependency_service(db)
+    return await service.get_dependency_graph(
+        project_id=project_id,
+        include_cross_project=include_cross_project,
+    )
+
+
+@router.get(
+    "/projects/{project_id}/dependency-analysis",
+    response_model=DependencyAnalysis,
+    summary="Analyze project dependencies",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def analyze_project_dependencies(
+    project_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> DependencyAnalysis:
+    """
+    Analyze dependency structure for a project.
+
+    Returns:
+    - Dependency counts by type and status
+    - Critical path through dependency chain
+    - Risk indicators (high-dependency sprints)
+    """
+    # Check project access
+    await check_project_access(db, project_id, current_user)
+
+    service = get_sprint_dependency_service(db)
+    return await service.analyze_dependencies(project_id)
+
+
+@router.post(
+    "/dependencies/bulk/resolve",
+    response_model=SprintDependencyBulkResult,
+    summary="Bulk resolve dependencies",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def bulk_resolve_dependencies(
+    data: SprintDependencyBulkResolve,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintDependencyBulkResult:
+    """Bulk resolve multiple dependencies."""
+    service = get_sprint_dependency_service(db)
+
+    success_count = 0
+    failure_count = 0
+    errors = []
+
+    for dep_id in data.ids:
+        try:
+            result = await service.resolve_dependency(dep_id, current_user.id)
+            if result:
+                success_count += 1
+            else:
+                failure_count += 1
+                errors.append({"id": str(dep_id), "error": "Not found"})
+        except Exception as e:
+            failure_count += 1
+            errors.append({"id": str(dep_id), "error": str(e)})
+
+    return SprintDependencyBulkResult(
+        success_count=success_count,
+        failure_count=failure_count,
+        errors=errors,
+    )
+
+
+@router.get(
+    "/dependencies/check-circular",
+    summary="Check for circular dependency",
+    tags=["Planning", "Dependencies", "Sprint 78"],
+)
+async def check_circular_dependency(
+    source_sprint_id: UUID = Query(..., description="Source sprint"),
+    target_sprint_id: UUID = Query(..., description="Target sprint"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Check if adding a dependency would create a cycle.
+
+    Use this endpoint before creating a dependency to validate.
+    """
+    service = get_sprint_dependency_service(db)
+
+    has_cycle = await service.has_circular_dependency(
+        source_id=source_sprint_id,
+        target_id=target_sprint_id,
+    )
+
+    if has_cycle:
+        cycle_path = await service.find_cycle_path(
+            source_id=source_sprint_id,
+            target_id=target_sprint_id,
+        )
+        return {
+            "would_create_cycle": True,
+            "cycle_path": [str(sid) for sid in (cycle_path or [])],
+            "message": "Creating this dependency would form a circular dependency chain",
+        }
+
+    return {
+        "would_create_cycle": False,
+        "cycle_path": [],
+        "message": "No circular dependency would be created",
+    }
+
+
+# =========================================================================
+# Resource Allocation Endpoints (Sprint 78 Day 3)
+#
+# Team member allocation to sprints with capacity calculation,
+# conflict detection, and resource heatmap visualization
+# =========================================================================
+
+
+def _serialize_allocation(alloc: ResourceAllocation) -> dict:
+    """Serialize ResourceAllocation to response dict."""
+    return {
+        "id": alloc.id,
+        "sprint_id": alloc.sprint_id,
+        "user_id": alloc.user_id,
+        "allocation_percentage": alloc.allocation_percentage,
+        "role": alloc.role,
+        "start_date": alloc.start_date,
+        "end_date": alloc.end_date,
+        "notes": alloc.notes,
+        "created_by_id": alloc.created_by_id,
+        "created_at": alloc.created_at,
+        "updated_at": alloc.updated_at,
+    }
+
+
+def _serialize_allocation_with_details(alloc: ResourceAllocation) -> dict:
+    """Serialize ResourceAllocation with user and sprint details."""
+    result = _serialize_allocation(alloc)
+
+    # Add user details
+    if alloc.user:
+        result["user_name"] = alloc.user.full_name or alloc.user.username
+        result["user_email"] = alloc.user.email
+    else:
+        result["user_name"] = None
+        result["user_email"] = None
+
+    # Add sprint details
+    if alloc.sprint:
+        result["sprint_number"] = alloc.sprint.number
+        result["sprint_name"] = alloc.sprint.name
+        result["project_id"] = alloc.sprint.project_id
+    else:
+        result["sprint_number"] = None
+        result["sprint_name"] = None
+        result["project_id"] = None
+
+    return result
+
+
+@router.post(
+    "/allocations",
+    status_code=status.HTTP_201_CREATED,
+    response_model=ResourceAllocationResponse,
+    summary="Create resource allocation",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def create_resource_allocation(
+    data: ResourceAllocationCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceAllocationResponse:
+    """
+    Allocate a team member to a sprint.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Allocation validation:
+    - User must exist
+    - Sprint must exist
+    - No duplicate allocation (user to same sprint)
+    - Allocation percentage between 1-100%
+    - Dates must be within sprint range
+    - Total allocation across sprints cannot exceed 100%
+
+    Args:
+        data: Allocation creation data
+
+    Returns:
+        Created ResourceAllocationResponse
+
+    Raises:
+        400: Validation error or conflict detected
+        404: Sprint or user not found
+    """
+    service = get_resource_allocation_service(db)
+
+    try:
+        allocation = await service.create_allocation(
+            sprint_id=data.sprint_id,
+            user_id=data.user_id,
+            allocation_percentage=data.allocation_percentage,
+            role=data.role,
+            start_date=data.start_date,
+            end_date=data.end_date,
+            notes=data.notes,
+            created_by_id=current_user.id,
+        )
+        return _serialize_allocation(allocation)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/allocations/{allocation_id}",
+    response_model=ResourceAllocationResponse,
+    summary="Get a resource allocation",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def get_resource_allocation(
+    allocation_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceAllocationResponse:
+    """Get a single allocation with user and sprint details."""
+    service = get_resource_allocation_service(db)
+    allocation = await service.get_allocation(allocation_id)
+
+    if not allocation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Allocation not found",
+        )
+
+    return _serialize_allocation_with_details(allocation)
+
+
+@router.put(
+    "/allocations/{allocation_id}",
+    response_model=ResourceAllocationResponse,
+    summary="Update a resource allocation",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def update_resource_allocation(
+    allocation_id: UUID,
+    data: ResourceAllocationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceAllocationResponse:
+    """Update an allocation's percentage, role, or dates."""
+    service = get_resource_allocation_service(db)
+
+    try:
+        allocation = await service.update_allocation(
+            allocation_id=allocation_id,
+            allocation_percentage=data.allocation_percentage,
+            role=data.role,
+            start_date=data.start_date,
+            end_date=data.end_date,
+            notes=data.notes,
+        )
+
+        if not allocation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Allocation not found",
+            )
+
+        return _serialize_allocation(allocation)
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.delete(
+    "/allocations/{allocation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a resource allocation",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def delete_resource_allocation(
+    allocation_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Soft delete an allocation."""
+    service = get_resource_allocation_service(db)
+
+    success = await service.delete_allocation(allocation_id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Allocation not found",
+        )
+
+
+@router.get(
+    "/sprints/{sprint_id}/allocations",
+    response_model=ResourceAllocationListResponse,
+    summary="List allocations for a sprint",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def list_sprint_allocations(
+    sprint_id: UUID,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceAllocationListResponse:
+    """
+    List all team member allocations for a sprint.
+
+    Returns paginated list of allocations with user details.
+    """
+    # Verify sprint exists
+    result = await db.execute(
+        select(Sprint).where(Sprint.id == sprint_id)
+    )
+    sprint = result.scalar_one_or_none()
+
+    if not sprint:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Sprint {sprint_id} not found",
+        )
+
+    service = get_resource_allocation_service(db)
+    allocations = await service.get_sprint_allocations(sprint_id)
+
+    # Paginate
+    total = len(allocations)
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated = allocations[start:end]
+
+    return ResourceAllocationListResponse(
+        items=[_serialize_allocation_with_details(a) for a in paginated],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/users/{user_id}/allocations",
+    response_model=ResourceAllocationListResponse,
+    summary="List allocations for a user",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def list_user_allocations(
+    user_id: UUID,
+    start_date: Optional[str] = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    end_date: Optional[str] = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceAllocationListResponse:
+    """
+    List all sprint allocations for a user.
+
+    Optionally filter by date range.
+    """
+    from datetime import datetime as dt
+
+    # Parse dates
+    parsed_start = None
+    parsed_end = None
+    if start_date:
+        parsed_start = dt.strptime(start_date, "%Y-%m-%d").date()
+    if end_date:
+        parsed_end = dt.strptime(end_date, "%Y-%m-%d").date()
+
+    service = get_resource_allocation_service(db)
+    allocations = await service.get_user_allocations(
+        user_id=user_id,
+        start_date=parsed_start,
+        end_date=parsed_end,
+    )
+
+    # Paginate
+    total = len(allocations)
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated = allocations[start:end]
+
+    return ResourceAllocationListResponse(
+        items=[_serialize_allocation_with_details(a) for a in paginated],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/users/{user_id}/capacity",
+    response_model=UserCapacity,
+    summary="Get user capacity",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def get_user_capacity(
+    user_id: UUID,
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> UserCapacity:
+    """
+    Calculate user capacity for a date range.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Returns:
+    - Total working days in period
+    - Allocated days across sprints
+    - Available days
+    - Utilization rate (%)
+    - List of allocations
+    """
+    from datetime import datetime as dt
+
+    parsed_start = dt.strptime(start_date, "%Y-%m-%d").date()
+    parsed_end = dt.strptime(end_date, "%Y-%m-%d").date()
+
+    service = get_resource_allocation_service(db)
+
+    try:
+        return await service.calculate_user_capacity(
+            user_id=user_id,
+            start_date=parsed_start,
+            end_date=parsed_end,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/teams/{team_id}/capacity",
+    response_model=TeamCapacity,
+    summary="Get team capacity",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def get_team_capacity(
+    team_id: UUID,
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> TeamCapacity:
+    """
+    Calculate team capacity for a date range.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Returns:
+    - Total capacity hours for team
+    - Allocated hours
+    - Available hours
+    - Utilization rate (%)
+    - Breakdown by member
+    - Breakdown by role
+    """
+    from datetime import datetime as dt
+
+    parsed_start = dt.strptime(start_date, "%Y-%m-%d").date()
+    parsed_end = dt.strptime(end_date, "%Y-%m-%d").date()
+
+    service = get_resource_allocation_service(db)
+
+    try:
+        return await service.calculate_team_capacity(
+            team_id=team_id,
+            start_date=parsed_start,
+            end_date=parsed_end,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/sprints/{sprint_id}/capacity",
+    response_model=SprintCapacity,
+    summary="Get sprint capacity",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def get_sprint_capacity(
+    sprint_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintCapacity:
+    """
+    Calculate capacity for a sprint.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Returns:
+    - Team size (allocated members)
+    - Total capacity hours
+    - Allocated hours
+    - Available hours
+    - Utilization rate (%)
+    - Breakdown by role
+    """
+    service = get_resource_allocation_service(db)
+
+    try:
+        return await service.calculate_sprint_capacity(sprint_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/allocations/check-conflicts",
+    response_model=ConflictCheckResult,
+    summary="Check allocation conflicts",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def check_allocation_conflicts(
+    user_id: UUID = Query(..., description="User to check"),
+    start_date: str = Query(..., description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(..., description="End date (YYYY-MM-DD)"),
+    allocation_percentage: int = Query(..., ge=1, le=100, description="Proposed allocation %"),
+    exclude_sprint_id: Optional[UUID] = Query(None, description="Sprint to exclude (for updates)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ConflictCheckResult:
+    """
+    Check if an allocation would create conflicts.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Use this endpoint before creating/updating an allocation to validate.
+
+    Returns:
+    - Whether conflicts exist
+    - List of conflicts with details
+    - Warnings for high utilization
+    """
+    from datetime import datetime as dt
+
+    parsed_start = dt.strptime(start_date, "%Y-%m-%d").date()
+    parsed_end = dt.strptime(end_date, "%Y-%m-%d").date()
+
+    service = get_resource_allocation_service(db)
+
+    return await service.detect_conflicts(
+        user_id=user_id,
+        start_date=parsed_start,
+        end_date=parsed_end,
+        new_percentage=allocation_percentage,
+        exclude_sprint_id=exclude_sprint_id,
+    )
+
+
+@router.get(
+    "/projects/{project_id}/resource-heatmap",
+    response_model=ResourceHeatmap,
+    summary="Get resource allocation heatmap",
+    tags=["Planning", "Resource Allocation", "Sprint 78"],
+)
+async def get_project_resource_heatmap(
+    project_id: UUID,
+    sprint_ids: Optional[str] = Query(None, description="Comma-separated sprint IDs to include"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ResourceHeatmap:
+    """
+    Get resource allocation heatmap for visualization.
+
+    **Sprint 78: Resource Allocation Optimization - Day 3 Implementation**
+
+    Returns a heatmap structure with:
+    - **users**: List of users with allocations
+    - **sprints**: List of sprints
+    - **cells**: Allocation data for each user-sprint combination
+
+    Suitable for rendering with visualization libraries.
+
+    Cell status values:
+    - **available**: No allocation (0%)
+    - **partial**: Partial allocation (1-99%)
+    - **full**: Full allocation (100%)
+    - **over_allocated**: Over-allocated (>100%)
+    """
+    # Check project access
+    await check_project_access(db, project_id, current_user)
+
+    # Parse sprint IDs if provided
+    parsed_sprint_ids = None
+    if sprint_ids:
+        try:
+            parsed_sprint_ids = [UUID(sid.strip()) for sid in sprint_ids.split(",")]
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid sprint ID format",
+            )
+
+    service = get_resource_allocation_service(db)
+    return await service.generate_heatmap(
+        project_id=project_id,
+        sprint_ids=parsed_sprint_ids,
+    )
+
+
+# =========================================================================
+# Sprint Template Endpoints (Sprint 78 Day 4)
+#
+# Reusable sprint configuration templates
+# Standard, feature, bugfix, release template types
+# =========================================================================
+
+
+def _serialize_template(template: SprintTemplate) -> dict:
+    """Serialize SprintTemplate to response dict."""
+    return {
+        "id": template.id,
+        "name": template.name,
+        "description": template.description,
+        "template_type": template.template_type,
+        "duration_days": template.duration_days,
+        "default_capacity_points": template.default_capacity_points,
+        "backlog_structure": template.backlog_structure,
+        "gates_enabled": template.gates_enabled,
+        "goal_template": template.goal_template,
+        "team_id": template.team_id,
+        "is_public": template.is_public,
+        "is_default": template.is_default,
+        "usage_count": template.usage_count,
+        "created_by_id": template.created_by_id,
+        "created_at": template.created_at,
+        "updated_at": template.updated_at,
+    }
+
+
+def _serialize_template_with_details(template: SprintTemplate) -> dict:
+    """Serialize SprintTemplate with additional details."""
+    result = _serialize_template(template)
+
+    # Add team name
+    if template.team:
+        result["team_name"] = template.team.name
+    else:
+        result["team_name"] = None
+
+    # Add creator name
+    if template.created_by:
+        result["created_by_name"] = template.created_by.full_name or template.created_by.username
+    else:
+        result["created_by_name"] = None
+
+    # Add computed fields
+    result["backlog_item_count"] = template.backlog_item_count
+    result["total_story_points"] = template.total_story_points
+
+    return result
+
+
+@router.post(
+    "/templates",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SprintTemplateResponse,
+    summary="Create sprint template",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def create_sprint_template(
+    data: SprintTemplateCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateResponse:
+    """
+    Create a new sprint template.
+
+    **Sprint 78: Sprint Template Library - Day 4 Implementation**
+
+    Template types:
+    - **standard**: Standard 2-week sprint
+    - **feature**: Feature-focused sprint
+    - **bugfix**: Bug-fix focused sprint
+    - **release**: Release preparation sprint
+    - **custom**: Custom configuration
+
+    Templates can include:
+    - Default duration and capacity
+    - Pre-defined backlog structure
+    - Sprint goal template
+    - Gate configuration
+
+    Args:
+        data: Template creation data
+
+    Returns:
+        Created SprintTemplateResponse
+    """
+    service = get_sprint_template_service(db)
+
+    # Convert backlog structure to list of dicts
+    backlog_structure = None
+    if data.backlog_structure:
+        backlog_structure = [item.model_dump() for item in data.backlog_structure]
+
+    template = await service.create_template(
+        name=data.name,
+        description=data.description,
+        template_type=data.template_type,
+        duration_days=data.duration_days,
+        default_capacity_points=data.default_capacity_points,
+        gates_enabled=data.gates_enabled,
+        goal_template=data.goal_template,
+        team_id=data.team_id,
+        is_public=data.is_public,
+        is_default=data.is_default,
+        backlog_structure=backlog_structure,
+        created_by_id=current_user.id,
+    )
+
+    return _serialize_template(template)
+
+
+@router.get(
+    "/templates/{template_id}",
+    response_model=SprintTemplateWithDetails,
+    summary="Get a sprint template",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def get_sprint_template(
+    template_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateWithDetails:
+    """Get a single template with details."""
+    service = get_sprint_template_service(db)
+    template = await service.get_template(template_id)
+
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    return _serialize_template_with_details(template)
+
+
+@router.put(
+    "/templates/{template_id}",
+    response_model=SprintTemplateResponse,
+    summary="Update a sprint template",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def update_sprint_template(
+    template_id: UUID,
+    data: SprintTemplateUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateResponse:
+    """Update a template's configuration."""
+    service = get_sprint_template_service(db)
+
+    # Convert backlog structure if provided
+    backlog_structure = None
+    if data.backlog_structure is not None:
+        backlog_structure = [item.model_dump() for item in data.backlog_structure]
+
+    template = await service.update_template(
+        template_id=template_id,
+        name=data.name,
+        description=data.description,
+        template_type=data.template_type,
+        duration_days=data.duration_days,
+        default_capacity_points=data.default_capacity_points,
+        gates_enabled=data.gates_enabled,
+        goal_template=data.goal_template,
+        is_public=data.is_public,
+        is_default=data.is_default,
+        backlog_structure=backlog_structure,
+    )
+
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+    return _serialize_template(template)
+
+
+@router.delete(
+    "/templates/{template_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a sprint template",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def delete_sprint_template(
+    template_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Soft delete a template."""
+    service = get_sprint_template_service(db)
+
+    success = await service.delete_template(template_id)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Template not found",
+        )
+
+
+@router.get(
+    "/templates",
+    response_model=SprintTemplateListResponse,
+    summary="List sprint templates",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def list_sprint_templates(
+    team_id: Optional[UUID] = Query(None, description="Filter by team"),
+    template_type: Optional[str] = Query(None, description="Filter by type"),
+    include_public: bool = Query(True, description="Include public templates"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateListResponse:
+    """
+    List available sprint templates.
+
+    **Sprint 78: Sprint Template Library - Day 4 Implementation**
+
+    Filters:
+    - **team_id**: Team-specific templates
+    - **template_type**: Filter by type (standard, feature, bugfix, release, custom)
+    - **include_public**: Include public templates (default: true)
+
+    Returns paginated list sorted by:
+    1. Default templates first
+    2. Usage count (popularity)
+    """
+    service = get_sprint_template_service(db)
+    templates, total = await service.list_templates(
+        team_id=team_id,
+        template_type=template_type,
+        include_public=include_public,
+        page=page,
+        page_size=page_size,
+    )
+
+    return SprintTemplateListResponse(
+        items=[_serialize_template(t) for t in templates],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.post(
+    "/templates/{template_id}/apply",
+    response_model=ApplyTemplateResponse,
+    summary="Apply template to create sprint",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def apply_sprint_template(
+    template_id: UUID,
+    data: ApplyTemplateRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ApplyTemplateResponse:
+    """
+    Create a new sprint from a template.
+
+    **Sprint 78: Sprint Template Library - Day 4 Implementation**
+
+    Copies from template:
+    - Duration configuration
+    - Capacity points
+    - Gate settings
+    - Backlog structure (if include_backlog=true)
+
+    Can override:
+    - Sprint name
+    - Goal
+    - Team size
+
+    Args:
+        template_id: Template to apply
+        data: Apply template request
+
+    Returns:
+        ApplyTemplateResponse with created sprint info
+
+    Raises:
+        400: Validation error
+        404: Template or project not found
+    """
+    # Check project access
+    await check_project_access(db, data.project_id, current_user)
+
+    service = get_sprint_template_service(db)
+
+    try:
+        result = await service.apply_template(
+            template_id=template_id,
+            project_id=data.project_id,
+            start_date=data.start_date,
+            phase_id=data.phase_id,
+            sprint_name=data.sprint_name,
+            goal=data.goal,
+            team_size=data.team_size,
+            include_backlog=data.include_backlog,
+            created_by_id=current_user.id,
+        )
+        return result
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/projects/{project_id}/template-suggestions",
+    response_model=TemplateSuggestionsResponse,
+    summary="Get template suggestions for project",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def get_template_suggestions(
+    project_id: UUID,
+    team_id: Optional[UUID] = Query(None, description="Team for filtering"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> TemplateSuggestionsResponse:
+    """
+    Get template suggestions based on project context.
+
+    **Sprint 78: Sprint Template Library - Day 4 Implementation**
+
+    Analyzes:
+    - Recent sprint patterns
+    - Project characteristics
+    - Template popularity
+
+    Returns top 5 suggestions with match scores.
+    """
+    # Check project access
+    await check_project_access(db, project_id, current_user)
+
+    service = get_sprint_template_service(db)
+    suggestions = await service.suggest_templates(
+        project_id=project_id,
+        team_id=team_id,
+    )
+
+    return TemplateSuggestionsResponse(
+        suggestions=suggestions,
+        project_context={"project_id": str(project_id)},
+    )
+
+
+@router.get(
+    "/templates/default",
+    response_model=SprintTemplateResponse,
+    summary="Get default template",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def get_default_template(
+    team_id: Optional[UUID] = Query(None, description="Team for filtering"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateResponse:
+    """
+    Get the default template for a team or organization.
+
+    Returns team-specific default if available, otherwise public default.
+    """
+    service = get_sprint_template_service(db)
+    template = await service.get_default_template(team_id=team_id)
+
+    if not template:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No default template found",
+        )
+
+    return _serialize_template(template)
+
+
+@router.post(
+    "/templates/bulk/delete",
+    response_model=SprintTemplateBulkResult,
+    summary="Bulk delete templates",
+    tags=["Planning", "Templates", "Sprint 78"],
+)
+async def bulk_delete_templates(
+    data: SprintTemplateBulkDelete,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SprintTemplateBulkResult:
+    """Bulk delete multiple templates."""
+    service = get_sprint_template_service(db)
+
+    success_count = 0
+    failure_count = 0
+    errors = []
+
+    for template_id in data.ids:
+        try:
+            result = await service.delete_template(template_id)
+            if result:
+                success_count += 1
+            else:
+                failure_count += 1
+                errors.append({"id": str(template_id), "error": "Not found"})
+        except Exception as e:
+            failure_count += 1
+            errors.append({"id": str(template_id), "error": str(e)})
+
+    return SprintTemplateBulkResult(
+        success_count=success_count,
+        failure_count=failure_count,
+        errors=errors,
     )

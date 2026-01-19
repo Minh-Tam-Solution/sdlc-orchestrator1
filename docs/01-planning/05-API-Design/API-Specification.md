@@ -32,7 +32,7 @@
 - Total endpoints: 52 → 64 endpoints
 
 **Changelog v3.0.0** (Dec 21, 2025):
-- SDLC 5.1.1 update with EP-04/05/06 endpoint specifications
+- SDLC 5.1.3 update with EP-04/05/06 endpoint specifications
 - Added SDLC Structure Validation v2 endpoints
 - Added Codegen Engine endpoints (/codegen, /modes)
 - Total endpoints: 35 → 52 endpoints

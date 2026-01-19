@@ -3,7 +3,7 @@ Background Tasks Package
 
 SDLC Stage: 04 - BUILD
 Sprint: 41 - AI Safety Foundation
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Scheduled tasks for maintenance, cleanup, and monitoring.

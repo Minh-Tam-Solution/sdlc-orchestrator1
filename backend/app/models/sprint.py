@@ -47,6 +47,8 @@ if TYPE_CHECKING:
     from app.models.user import User
     from app.models.sprint_gate_evaluation import SprintGateEvaluation
     from app.models.backlog_item import BacklogItem
+    from app.models.retro_action_item import RetroActionItem
+    from app.models.sprint_dependency import SprintDependency
 
 
 class Sprint(Base):
@@ -225,6 +227,25 @@ class Sprint(Base):
         "BacklogItem",
         back_populates="sprint",
         order_by="BacklogItem.priority"
+    )
+    retro_action_items: Mapped[List["RetroActionItem"]] = relationship(
+        "RetroActionItem",
+        foreign_keys="RetroActionItem.sprint_id",
+        back_populates="sprint",
+        cascade="all, delete-orphan"
+    )
+    # Sprint dependencies (Sprint 78)
+    outgoing_dependencies: Mapped[List["SprintDependency"]] = relationship(
+        "SprintDependency",
+        foreign_keys="SprintDependency.source_sprint_id",
+        back_populates="source_sprint",
+        cascade="all, delete-orphan",
+    )
+    incoming_dependencies: Mapped[List["SprintDependency"]] = relationship(
+        "SprintDependency",
+        foreign_keys="SprintDependency.target_sprint_id",
+        back_populates="target_sprint",
+        cascade="all, delete-orphan",
     )
 
     # Indexes & Constraints

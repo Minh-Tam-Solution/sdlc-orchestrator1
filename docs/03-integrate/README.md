@@ -7,7 +7,7 @@
 **Date**: January 08, 2026
 **Status**: ✅ ACTIVE - EP-06 Codegen Integration Points
 **Authority**: Backend Lead + CTO Approved
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 **Positioning**: Operating System for Software 3.0
 
 **Changelog v2.1.0** (Jan 08, 2026):

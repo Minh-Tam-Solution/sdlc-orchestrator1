@@ -4,7 +4,7 @@
 **Date**: December 16, 2025
 **Status**: ACTIVE - Manual Testing Guide
 **Authority**: QA Lead + Frontend Lead
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 ---
 
@@ -82,7 +82,7 @@ Stage 3: Chairman Synthesis
   • Fixing compliance violations
   • Understanding gate requirements
   • Generating evidence templates
-  • Answering SDLC 5.1.1 questions
+  • Answering SDLC 5.1.3 questions
 
   How can I help you today?
   ```
@@ -243,7 +243,7 @@ After deliberating with multiple AI experts, here's the recommended RBAC impleme
 1. In AI Council Chat (Single or Council Mode)
 2. Send first question:
    ```
-   What are the stages in SDLC 5.1.1?
+   What are the stages in SDLC 5.1.3?
    ```
 3. Wait for response
 4. Send follow-up question (without repeating context):
@@ -325,7 +325,7 @@ After deliberating with multiple AI experts, here's the recommended RBAC impleme
   - "Explain this policy requirement"
 - ✅ AI response specific to that violation
 - ✅ Includes project-aware recommendations
-- ✅ Cites relevant SDLC 5.1.1 policies
+- ✅ Cites relevant SDLC 5.1.3 policies
 
 ---
 

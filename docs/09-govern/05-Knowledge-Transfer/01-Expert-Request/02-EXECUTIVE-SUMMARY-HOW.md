@@ -1,11 +1,11 @@
 # SDLC Orchestrator - Executive Summary: HOW
 ## Stage 02: Design - Architecture, Technology & Security
 
-**Version**: 1.0.0
-**Date**: December 23, 2025
+**Version**: 1.1.0
+**Date**: January 18, 2026
 **Purpose**: External Expert Review - Architecture & Technical Design
 **Confidentiality**: For Review Only - Not for Distribution
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 **Company**: Nhat Quang Holding (NQH) (Vietnam-based software company)
 
 ---
@@ -97,7 +97,38 @@ SDLC Orchestrator follows a **4-Layer Architecture** with a **Bridge-First Patte
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2 Key Architecture Decisions
+### 2.2 Key Architecture Decisions (Updated for SDLC 5.1.3)
+
+#### ADR-015: Sprint Planning Governance (NEW in 5.1.3)
+
+| Aspect | Decision |
+|--------|----------|
+| **Context** | Teams need structured sprint planning with governance |
+| **Decision** | Dual-track gates: Feature (G0-G3) + Sprint (G-Sprint/G-Sprint-Close) |
+| **Consequences** | Clear separation of feature and sprint governance |
+| **Trade-offs** | (+) Prevents sprint confusion, (-) Additional gate overhead |
+
+**Sprint Governance Gates**:
+- **G-Sprint**: Validates sprint plan before execution
+- **G-Sprint-Close**: Ensures proper sprint closure with 24h documentation
+
+#### ADR-016: Planning Hierarchy (NEW in 5.1.3)
+
+| Aspect | Decision |
+|--------|----------|
+| **Context** | Need structured planning from vision to execution |
+| **Decision** | 4-level hierarchy: Roadmap → Phase → Sprint → Backlog |
+| **Consequences** | Consistent planning across SDLC stages |
+| **Trade-offs** | (+) Clear structure, (-) May be complex for small teams |
+
+#### ADR-017: Team Management (NEW in 5.1.3)
+
+| Aspect | Decision |
+|--------|----------|
+| **Context** | Need to support both personal and organization workspaces |
+| **Decision** | Personal teams (auto-created) + Organization teams (shared) |
+| **Consequences** | Flexible workspace for individuals and companies |
+| **Trade-offs** | (+) Scalable, (-) Additional complexity in billing |
 
 #### ADR-001: Bridge-First Pattern (NOT Replacement)
 

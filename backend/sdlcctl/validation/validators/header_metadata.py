@@ -7,7 +7,7 @@ Rules:
 - HDR-001: Missing required header fields (Framework, Sprint, Epic)
 - HDR-002: Invalid header format or values
 
-SDLC 5.1.1 Standard:
+SDLC 5.1.3 Standard:
 - YAML frontmatter preferred (---)
 - Required: Framework, Sprint, Epic
 - Format: "Framework: SDLC X.Y.Z", "Sprint: N", "Epic: EP-N"
@@ -157,7 +157,7 @@ class HeaderMetadataValidator(BaseValidator):
 
         Format:
         ---
-        Framework: SDLC 5.1.1
+        Framework: SDLC 5.1.3
         Sprint: 44
         Epic: EP-04
         ---
@@ -190,7 +190,7 @@ class HeaderMetadataValidator(BaseValidator):
         Parse markdown headers from content.
 
         Format:
-        ## Framework: SDLC 5.1.1
+        ## Framework: SDLC 5.1.3
         ## Sprint: 44
         ## Epic: EP-04
 
@@ -296,7 +296,7 @@ class HeaderMetadataValidator(BaseValidator):
         """
         # Suggest correct format based on field
         suggestions = {
-            "Framework": "SDLC 5.1.1",
+            "Framework": "SDLC 5.1.3",
             "Sprint": "44",
             "Epic": "EP-04",
         }
@@ -336,7 +336,7 @@ class HeaderMetadataValidator(BaseValidator):
 
         for field in missing:
             if field == "Framework":
-                all_headers[field] = "SDLC 5.1.1"
+                all_headers[field] = "SDLC 5.1.3"
             elif field == "Sprint":
                 all_headers[field] = "<sprint-number>"
             elif field == "Epic":

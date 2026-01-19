@@ -8,7 +8,7 @@ Track pilot program participants and TTFV (Time To First Value) metrics:
 
 SDLC Stage: 04 - BUILD
 Sprint: 49 - EP-06 Pilot Execution + Metrics Hardening
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Success Metrics (CEO Approved):
 - 10 Vietnamese SME founders

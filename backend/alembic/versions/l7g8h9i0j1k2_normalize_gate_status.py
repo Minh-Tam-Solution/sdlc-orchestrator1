@@ -5,7 +5,7 @@ Revision ID: l7g8h9i0j1k2
 Revises: k6f7g8h9i0j1
 Create Date: 2025-12-16
 
-SDLC 5.1.1 Compliance:
+SDLC 5.1.3 Compliance:
 - Ensures data consistency with model definition
 - Gate status should be: DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, ARCHIVED
 """

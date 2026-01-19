@@ -3,7 +3,7 @@ Circuit Breaker Pattern - AI Detection Resilience
 
 SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 CTO P2: Circuit Breaker for External Tools
 
 Purpose:

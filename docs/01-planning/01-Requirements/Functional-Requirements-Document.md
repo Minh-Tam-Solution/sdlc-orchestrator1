@@ -5,7 +5,7 @@
 **Status**: ACTIVE - AI Safety + Governance + Codegen Quality Gates
 **Authority**: PM + CTO + CPO + Full Team Approved
 **Foundation**: Product Vision 4.0.0, BRD 1.2.0, Stage 02 Architecture
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v3.1.0** (Dec 23, 2025):
 - Updated FR41-FR45: Codegen Engine with Quality Gates + Validation Loop (CTO 10-point DoD)
@@ -16,7 +16,7 @@
 - References: [Quality-Gates-Codegen-Specification.md](../../02-design/14-Technical-Specs/Quality-Gates-Codegen-Specification.md)
 
 **Changelog v3.0.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Added FR22-FR30: AI Safety Layer requirements (EP-02)
 - Added FR31-FR35: SDLC Structure Enforcement (EP-04)
 - Added FR36-FR40: Enterprise Migration Engine (EP-05)

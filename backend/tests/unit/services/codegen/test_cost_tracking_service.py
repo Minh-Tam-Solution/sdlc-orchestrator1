@@ -10,7 +10,7 @@ Test coverage for codegen cost tracking:
 
 SDLC Stage: 04 - BUILD
 Sprint: 48 - Quality Gates + Ollama Optimization + MVP Hardening
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Author: Backend Lead
 Date: December 23, 2025

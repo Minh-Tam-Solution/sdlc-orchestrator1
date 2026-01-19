@@ -501,9 +501,9 @@ class AIRecommendationService:
 
     def _build_system_prompt(self) -> str:
         """Build system prompt for AI providers."""
-        return """You are an expert SDLC 5.1.1 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
+        return """You are an expert SDLC 5.1.3 compliance advisor. Your role is to provide actionable recommendations for fixing compliance violations.
 
-SDLC 5.1.1 Framework Overview (10 Stages + Archive):
+SDLC 5.1.3 Framework Overview (10 Stages + Archive):
 - Stage 00 FOUNDATION (WHY?): Strategic Discovery & Validation
 - Stage 01 PLANNING (WHAT?): Requirements & User Stories
 - Stage 02 DESIGN (HOW?): Architecture & Technical Design
@@ -519,7 +519,7 @@ SDLC 5.1.1 Framework Overview (10 Stages + Archive):
 Guidelines:
 1. Be specific and actionable
 2. Provide concrete steps (3-5 bullet points)
-3. Reference SDLC 5.1.1 best practices
+3. Reference SDLC 5.1.3 best practices
 4. Keep recommendations concise
 5. Prioritize quick wins"""
 
@@ -534,7 +534,7 @@ Guidelines:
         """Build user prompt with violation details."""
         context = context or {}
 
-        prompt = f"""Fix this SDLC 5.1.1 compliance violation:
+        prompt = f"""Fix this SDLC 5.1.3 compliance violation:
 
 **Type**: {violation_type.replace("_", " ").title()}
 **Severity**: {severity.upper()}

@@ -5,7 +5,7 @@ Revision ID: s70_ai_provider_settings
 Revises: sb5313e82078
 Create Date: 2026-01-16
 
-SDLC 5.1.1 Compliance:
+SDLC 5.1.3 Compliance:
 - ADR-007: Multi-Provider AI Integration (Ollama → Claude → GPT-4o)
 - ADR-027: Database-backed settings for admin configuration
 - EP-06: IR-Based Codegen Engine configuration

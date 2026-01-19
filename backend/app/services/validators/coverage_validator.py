@@ -3,7 +3,7 @@ Coverage Validator - Test Coverage Analysis
 
 SDLC Stage: 04 - BUILD
 Sprint: 42 - AI Detection & Validation Pipeline
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Validate test coverage meets configured thresholds.

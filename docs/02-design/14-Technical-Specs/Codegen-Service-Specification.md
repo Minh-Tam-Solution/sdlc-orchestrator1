@@ -6,7 +6,7 @@
 **Date**: December 23, 2025
 **Author**: Backend Lead + Architect
 **Sprint**: Sprint 45 (Jan 6-17, 2026)
-**Framework**: SDLC 5.1.1 + SASE Level 2
+**Framework**: SDLC 5.1.3 + SASE Level 2
 **ADR Reference**: [ADR-022-Multi-Provider-Codegen-Architecture](../01-ADRs/ADR-022-Multi-Provider-Codegen-Architecture.md)
 
 ---

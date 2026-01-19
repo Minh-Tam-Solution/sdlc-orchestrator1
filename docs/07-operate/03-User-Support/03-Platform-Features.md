@@ -6,7 +6,7 @@
 
 ## Overview
 
-SDLC Orchestrator provides comprehensive features to implement SDLC 5.1.1 Framework governance. This guide covers all major capabilities and how to use them.
+SDLC Orchestrator provides comprehensive features to implement SDLC 5.1.3 Framework governance. This guide covers all major capabilities and how to use them.
 
 ---
 
@@ -513,6 +513,6 @@ Records every action:
 
 ---
 
-**Framework**: SDLC 5.1.1 Complete Lifecycle  
+**Framework**: SDLC 5.1.3 Complete Lifecycle  
 **Platform**: SDLC Orchestrator v1.2.0  
 **Last Updated**: December 20, 2025

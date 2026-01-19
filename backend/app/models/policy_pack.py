@@ -3,7 +3,7 @@ Policy Pack Models - Project Policy Configuration
 
 SDLC Stage: 04 - BUILD
 Sprint: 43 - Policy Guards & Evidence UI
-Framework: SDLC 5.1.1 (10-Stage Lifecycle, 4-Tier Classification)
+Framework: SDLC 5.1.3 (10-Stage Lifecycle, 4-Tier Classification)
 Epic: EP-02 AI Safety Layer v1
 
 Purpose:
@@ -67,7 +67,7 @@ class PolicyPack(Base):
     description = Column(Text, nullable=False)
     version = Column(String(20), nullable=False, default="1.0.0")
 
-    # SDLC 5.1.1 4-Tier Classification
+    # SDLC 5.1.3 4-Tier Classification
     tier = Column(
         String(20),
         nullable=False,

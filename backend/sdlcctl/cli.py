@@ -150,7 +150,7 @@ def show_stages() -> None:
     table.add_column("Purpose", width=50)
     table.add_column("Type", width=12)
 
-    # SDLC 5.1.1 Stage Definitions (10 Stages: 00-09 + Archive folder)
+    # SDLC 5.1.3 Stage Definitions (10 Stages: 00-09 + Archive folder)
     # Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
     questions = {
         "00": ("FOUNDATION - Strategic Discovery & Validation (WHY?)", "LINEAR"),

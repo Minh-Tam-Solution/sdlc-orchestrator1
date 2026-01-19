@@ -7,7 +7,7 @@ Create Date: 2025-12-21 22:00:00.000000
 SDLC Stage: 04 - BUILD
 Sprint: 41 - AI Safety Foundation
 Epic: EP-01/EP-02
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Create analytics_events and ai_code_events tables for product telemetry.

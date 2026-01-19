@@ -7,10 +7,10 @@
 **Authority**: Backend Lead + Security Lead + CTO Review (✅ APPROVED)
 **Foundation**: NFR v3.0.0, Data Model ERD v3.0.0, ADR-021 Analytics
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, FR-21 BYOK API key integration
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, FR-21 BYOK API key integration
 - v1.0.0 (Nov 13, 2025): Initial auth specification
 
 ---

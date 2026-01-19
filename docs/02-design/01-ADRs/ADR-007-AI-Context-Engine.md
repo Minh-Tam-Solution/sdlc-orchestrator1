@@ -207,7 +207,7 @@ from enum import Enum
 from typing import List, Dict, Any
 
 class SDLCStage(Enum):
-    """SDLC 5.1.1 stages (10 stages: 00-09 + Archive folder)"""
+    """SDLC 5.1.3 stages (10 stages: 00-09 + Archive folder)"""
     STAGE_00 = "FOUNDATION - Strategic Discovery & Validation (WHY?)"
     STAGE_01 = "PLANNING - Requirements & User Stories (WHAT?)"
     STAGE_02 = "DESIGN - Architecture & Technical Design (HOW?)"

@@ -7,10 +7,10 @@
 **Authority**: QA Lead + PM Review (✅ APPROVED)
 **Foundation**: User Stories v2.0.0, FRD v3.0.0, Roadmap v4.1.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v2.0.0 (Dec 21, 2025): SDLC 5.1.1 update, added E9-E20 acceptance criteria
+- v2.0.0 (Dec 21, 2025): SDLC 5.1.3 update, added E9-E20 acceptance criteria
 - v1.0.0 (Jan 13, 2025): Initial acceptance criteria (46 stories, 100+ scenarios)
 
 ---
@@ -817,7 +817,7 @@ Scenario: Dev Lead bypasses gate check (force push)
 ---
 
 **Document**: SDLC-Orchestrator-Acceptance-Criteria
-**Framework**: SDLC 5.1.1 Stage 01 (WHAT) - Planning & Analysis
+**Framework**: SDLC 5.1.3 Stage 01 (WHAT) - Planning & Analysis
 **Component**: Test Scenarios and Acceptance Criteria
 **Review**: Sprint planning sessions with QA Lead
 **Last Updated**: December 21, 2025

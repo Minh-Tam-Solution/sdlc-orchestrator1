@@ -17,7 +17,7 @@ class TestHeaderMetadataValidator:
         docs = tmp_path / "docs"
         docs.mkdir()
         (docs / "test.md").write_text("""---
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Sprint: 44
 Epic: EP-04
 ---
@@ -56,20 +56,20 @@ Epic: EP-04
         docs.mkdir()
         validator = HeaderMetadataValidator(docs)
         content = """---
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Sprint: 44
 ---
 # Content"""
         headers = validator._parse_yaml_frontmatter(content)
-        assert headers["Framework"] == "SDLC 5.1.1"
+        assert headers["Framework"] == "SDLC 5.1.3"
         assert headers["Sprint"] == "44"
     
     def test_parse_markdown_headers(self, tmp_path):
         docs = tmp_path / "docs"
         docs.mkdir()
         validator = HeaderMetadataValidator(docs)
-        content = """## Framework: SDLC 5.1.1
+        content = """## Framework: SDLC 5.1.3
 ## Sprint: 44
 # Content"""
         headers = validator._parse_markdown_headers(content)
-        assert headers["Framework"] == "SDLC 5.1.1"
+        assert headers["Framework"] == "SDLC 5.1.3"

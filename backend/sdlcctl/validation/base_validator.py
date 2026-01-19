@@ -6,7 +6,7 @@ Implements plugin pattern for extensibility.
 
 Part of Sprint 44 - SDLC Structure Scanner Engine.
 
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Epic: EP-04 - SDLC Structure Enforcement
 """
 

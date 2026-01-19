@@ -151,32 +151,33 @@ services:
       - sdlc-network
 
   # ============================================================================
-  # Next.js Frontend - SDLC Orchestrator (Consolidated)
-  # Sprint 64: Unified frontend - Landing + Dashboard + Admin
+  # Next.js Unified Frontend - Landing + Web App (ADR-025 Migration Complete)
+  # Sprint 62-64: Frontend Platform Consolidation
   # IT Admin Port: 8310 (PORT_ALLOCATION_MANAGEMENT.md)
+  # Routes: All routes (/, /login, /app/*, /admin/*, /docs, etc.)
   # ============================================================================
-  frontend-landing:
+  frontend:
     build:
-      context: ./frontend/landing
+      context: ./frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
-    container_name: sdlc-frontend-landing
+    container_name: sdlc-frontend
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     ports:
       - "8310:3000"  # IT Admin: SDLC Frontend on 8310
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://sdlc.nhatquangholding.com/api/v1
     depends_on:
       backend:
         condition: service_healthy
     healthcheck:
-      # Use node-based healthcheck since alpine image doesn't have curl/wget
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     networks:
       - sdlc-network
 

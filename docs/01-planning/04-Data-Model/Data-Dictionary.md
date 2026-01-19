@@ -7,7 +7,7 @@
 **Authority**: Backend Lead + CTO Review (APPROVED)
 **Foundation**: Data Model ERD v2.0, Database Schema v2.1
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog**:
 - v2.1.0 (Dec 16, 2025): Gate status normalized to UPPERCASE, added Source of Truth references

@@ -5,7 +5,7 @@
 **Date**: December 23, 2025
 **Decision Makers**: CTO, CEO (joint review)
 **Stage**: Stage 02 (HOW - Design & Architecture)
-**Framework**: SDLC 5.1.1 + SASE Level 2
+**Framework**: SDLC 5.1.3 + SASE Level 2
 **Sprint**: Sprint 45 (Jan 6-17, 2026)
 
 ---

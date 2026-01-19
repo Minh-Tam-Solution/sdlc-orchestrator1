@@ -1,11 +1,11 @@
 # SDLC Orchestrator - Executive Summary: WHAT
 ## Stage 01: Planning - Requirements, Features & Specifications
 
-**Version**: 1.0.0
-**Date**: December 23, 2025
+**Version**: 1.1.0
+**Date**: January 18, 2026
 **Purpose**: External Expert Review - Product Specification & Feature Scope
 **Confidentiality**: For Review Only - Not for Distribution
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 **Company**: Nhat Quang Holding (NQH) (Vietnam-based software company)
 
 ---
@@ -87,7 +87,7 @@ This is a **self-contained executive summary** designed for external experts to 
 
 ### 3.1 Requirements Overview
 
-We have defined **20 Functional Requirements (FR1-FR20)** organized into 6 capability groups:
+We have defined **25 Functional Requirements (FR1-FR25)** organized into 8 capability groups:
 
 | Group | Requirements | Status | Priority |
 |-------|--------------|--------|----------|
@@ -96,7 +96,9 @@ We have defined **20 Functional Requirements (FR1-FR20)** organized into 6 capab
 | **Evidence Vault** | FR7-FR9 | ✅ Implemented | P0 (Must-have) |
 | **Policy Engine** | FR10-FR12 | ✅ Implemented | P0 (Must-have) |
 | **AI Engine** | FR13-FR15 | ✅ Implemented | P1 (Should-have) |
-| **AI Governance** | FR16-FR20 | 🔄 In Progress | P1 (Should-have) |
+| **AI Governance** | FR16-FR20 | ✅ Implemented | P1 (Should-have) |
+| **Sprint Planning Governance** | FR21-FR23 | ✅ Implemented | P0 (Must-have) (NEW) |
+| **Team Management** | FR24-FR25 | ✅ Implemented | P0 (Must-have) (NEW) |
 
 ### 3.2 FR1-FR3: Authentication & Authorization
 
@@ -157,7 +159,7 @@ We have defined **20 Functional Requirements (FR1-FR20)** organized into 6 capab
 
 #### FR4: Gate Definition & Configuration
 
-**10 Quality Gates** (aligned with SDLC 5.1.1):
+**10 Quality Gates** (aligned with SDLC 5.1.3):
 
 | Gate | Stage | Name | Required Evidence | Approvers |
 |------|-------|------|-------------------|-----------|
@@ -344,7 +346,7 @@ Request → Ollama (try) → Claude (try) → GPT-4 (try) → Rule-based (guaran
 - Tabnine
 - Other/Unknown
 
-### 3.7 FR16-FR20: AI Governance (In Progress)
+### 3.7 FR16-FR20: AI Governance
 
 #### FR16: AI Task Decomposition
 
@@ -399,6 +401,77 @@ Request → Ollama (try) → Claude (try) → GPT-4 (try) → Rule-based (guaran
 | **Filtering** | By validator, status, date range, AI tool |
 | **Override Workflow** | Request, approve, reject override with comments |
 | **Export** | CSV and JSON export for auditors |
+
+### 3.8 FR21-FR23: Sprint Planning Governance (NEW in SDLC 5.1.3)
+
+#### FR21: G-Sprint Gate (Sprint Planning)
+
+| Feature | Specification |
+|---------|---------------|
+| **Purpose** | Validates sprint plan before execution begins |
+| **Entry Criteria** | Previous sprint closed, roadmap aligned, capacity verified |
+| **Exit Criteria** | Sprint goal approved, backlog committed, team assigned |
+| **Approval Matrix** | Tier-based (PROFESSIONAL+ mandatory) |
+| **Blocking Behavior** | Blocks sprint start until approved |
+
+#### FR22: G-Sprint-Close Gate (Sprint Completion)
+
+| Feature | Specification |
+|---------|---------------|
+| **Purpose** | Ensures proper sprint closure and documentation |
+| **Entry Criteria** | Sprint end date reached, work completed or carried over |
+| **Exit Criteria** | Sprint retrospective done, metrics captured, docs updated |
+| **24h Enforcement** | Documentation must be completed within 24 hours |
+| **Escalation** | Auto-escalate if not closed within deadline |
+
+#### FR23: Planning Hierarchy Management
+
+| Feature | Specification |
+|---------|---------------|
+| **Roadmap CRUD** | Create/Read/Update/Delete roadmaps with vision and goals |
+| **Phase CRUD** | Manage phases within roadmaps with themes |
+| **Sprint CRUD** | Full sprint lifecycle management with gate integration |
+| **Backlog CRUD** | Task/story management with sprint assignment |
+| **Hierarchy View** | Dashboard showing Roadmap → Phase → Sprint → Backlog |
+
+**Sprint Governance Gates (Separate Track)**:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  DUAL-TRACK QUALITY GATES (SDLC 5.1.3)                          │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Feature Gates (G0-G3):    G0.1 → G0.2 → G1 → G2 → G3 → G4     │
+│  ────────────────────                                           │
+│  Govern feature development lifecycle                           │
+│                                                                 │
+│  Sprint Gates (Separate):  G-Sprint ───────→ G-Sprint-Close    │
+│  ───────────────────────        │                    │          │
+│  Govern sprint planning         │                    │          │
+│  and completion                 │                    │          │
+│                            Sprint Start        Sprint End       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 3.9 FR24-FR25: Team Management (NEW in SDLC 5.1.3)
+
+#### FR24: Personal Teams vs Organization Teams
+
+| Feature | Specification |
+|---------|---------------|
+| **Personal Teams** | Individual developer workspace, auto-created on signup |
+| **Organization Teams** | Shared workspace for companies with multiple members |
+| **Team Switching** | Switch between personal and organization context |
+| **Billing Scope** | Personal = individual, Organization = company billing |
+
+#### FR25: Team Role-Based Access
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full access, billing, delete team |
+| **Admin** | Manage members, projects, settings |
+| **Member** | Access projects, submit evidence |
+| **Viewer** | Read-only access to projects and dashboards |
 
 ---
 
@@ -737,7 +810,11 @@ Request → Ollama (try) → Claude (try) → GPT-4 (try) → Rule-based (guaran
 | SAST Integration | ✅ Complete | Sprint 43 | ~4,400 |
 | AI Detection | ✅ Complete | Sprint 42 | ~2,300 |
 | Evidence Timeline UI | ✅ Complete | Sprint 43 | ~4,500 |
-| AI Governance | 🔄 In Progress | Sprint 44+ | ~TBD |
+| AI Governance | ✅ Complete | Sprint 44-60 | ~8,500 |
+| Sprint Planning Governance | ✅ Complete | Sprint 74-77 | ~6,200 |
+| Team Management | ✅ Complete | Sprint 78-79 | ~4,800 |
+
+**Current Sprint**: Sprint 79 (January 2026)
 
 ---
 

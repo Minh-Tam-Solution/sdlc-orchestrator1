@@ -4,12 +4,12 @@
 **Date**: December 21, 2025  
 **Status**: ✅ **APPROVED** (CTO + CPO)  
 **Authority**: CTO + CPO Approved  
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)  
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)  
 **Priority**: Medium-High (Sprint 32)
 **Foundation**: Vision v3.1.0, Roadmap v4.1.0, EP-06 Codegen Engine
 
 **Changelog**:
-- v1.1.0 (Dec 21, 2025): SDLC 5.1.1 update, aligned with EP-06 AI Provider Strategy
+- v1.1.0 (Dec 21, 2025): SDLC 5.1.3 update, aligned with EP-06 AI Provider Strategy
 - v1.0.0 (Dec 13, 2025): Initial FR-21 BYOK specification
 
 ---

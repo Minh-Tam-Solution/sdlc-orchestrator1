@@ -7,10 +7,10 @@
 **Authority**: CPO + PM Approved
 **Foundation**: Product Vision 3.1.0, BRD 1.2.0
 **Stage**: Stage 00 (WHY) - Design Thinking EMPATHIZE Phase
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Updated foundation references
 - Added EP-04/05/06 strategic context to persona needs
 - Added NQH AI Platform as technology context
@@ -708,7 +708,7 @@ This document defines **WHO** our users are through evidence-based personas deve
 ---
 
 **Document**: SDLC-Orchestrator-User-Personas
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Design Thinking EMPATHIZE
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Design Thinking EMPATHIZE
 **Component**: User Research & Persona Development
 **Review**: Monthly with CPO (validate personas remain accurate)
 **Last Updated**: December 21, 2025

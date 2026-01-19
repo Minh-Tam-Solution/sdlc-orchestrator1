@@ -7,7 +7,7 @@
 **Authority**: CPO Approval (Dec 23, 2025), CTO Review (9.0/10), Legal Review (PENDING)
 **Foundation**: Product Vision 4.0.0, Competitive Landscape 3.0.0
 **Stage**: Stage 00 (WHY - Project Foundation)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v3.0.0** (Dec 23, 2025) - Software 3.0 Pivot:
 - **EP-06 IR-BASED CODEGEN**: Multi-provider architecture (Ollama → Claude → DeepCode)
@@ -25,7 +25,7 @@
 - Updated OSS components with AI infrastructure
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Added NQH AI Platform as infrastructure component
 - Added Mixpanel for analytics (ADR-021 approved)
 - Updated foundation references
@@ -838,7 +838,7 @@ export function MetricsDashboard() {
 **Version History**:
 - v3.0.0 (December 23, 2025): Software 3.0 Pivot - EP-06 Multi-Provider, DeepCode deferred
 - v2.0.0 (December 21, 2025): CPO Strategic Review - NQH AI Platform, Mode C Hybrid
-- v1.1.0 (December 21, 2025): SDLC 5.1.1 update, NQH AI Platform, Mixpanel
+- v1.1.0 (December 21, 2025): SDLC 5.1.3 update, NQH AI Platform, Mixpanel
 - v1.0.0 (November 13, 2025): Initial OSS landscape (Stage 00 WHY focus)
 
 **Review Schedule**:
@@ -862,7 +862,7 @@ export function MetricsDashboard() {
 ---
 
 **Document**: SDLC-Orchestrator-OSS-Landscape-Research
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Market Analysis
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Market Analysis
 **Component**: Open Source Strategy and License Analysis
 **Review**: Monthly (security), Quarterly (license)
 **Last Updated**: December 23, 2025

@@ -9,7 +9,7 @@ Track AI code generation usage for cost management and analytics:
 
 SDLC Stage: 04 - BUILD
 Sprint: 48 - Quality Gates + Ollama Optimization + MVP Hardening
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 Epic: EP-06 IR-Based Vietnamese SME Codegen
 
 Target: <$50/month infrastructure cost per project

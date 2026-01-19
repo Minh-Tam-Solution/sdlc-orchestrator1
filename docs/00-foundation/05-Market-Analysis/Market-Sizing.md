@@ -7,7 +7,7 @@
 **Authority**: CPO Approval (Dec 23, 2025), CFO Review
 **Foundation**: Product Vision 4.0.0, Financial Model 1.1.0
 **Stage**: Stage 00 (WHY - Project Foundation)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 
 **Changelog v3.0.0** (Dec 23, 2025) - Software 3.0 Pivot:
 - **SOFTWARE 3.0 POSITIONING**: "Operating System for Software 3.0" market category
@@ -26,7 +26,7 @@
 - Updated pricing tiers for AI Safety modules
 
 **Changelog v1.1.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1
+- Updated framework to SDLC 5.1.3
 - Updated foundation references
 - Added EP-04/05/06 market expansion opportunity
 
@@ -939,7 +939,7 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 **Version History**:
 - v3.0.0 (December 23, 2025): Software 3.0 Pivot - Dual Wedge, Founder Plan, Vietnam SME
 - v2.0.0 (December 21, 2025): CPO Strategic Review - AI Safety market $560M TAM
-- v1.1.0 (December 21, 2025): SDLC 5.1.1 update, EP-04/05/06 market opportunity
+- v1.1.0 (December 21, 2025): SDLC 5.1.3 update, EP-04/05/06 market opportunity
 - v1.0.0 (November 13, 2025): Initial market sizing (Stage 00 WHY focus)
 
 **Review Schedule**:
@@ -959,7 +959,7 @@ YoY Growth = (Year 2 ARR - Year 1 ARR) ÷ Year 1 ARR
 ---
 
 **Document**: SDLC-Orchestrator-Market-Sizing
-**Framework**: SDLC 5.1.1 Stage 00 (WHY) - Market Analysis
+**Framework**: SDLC 5.1.3 Stage 00 (WHY) - Market Analysis
 **Component**: TAM/SAM/SOM Market Opportunity
 **Review**: Quarterly with CEO + CFO
 **Last Updated**: December 23, 2025

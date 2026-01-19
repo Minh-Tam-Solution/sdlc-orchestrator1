@@ -5,7 +5,7 @@ Endpoints for pilot program management, TTFV tracking, and satisfaction surveys.
 
 SDLC Stage: 04 - BUILD
 Sprint: 49 - EP-06 Pilot Execution + Metrics Hardening
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Endpoints:
 - POST /pilot/participants - Register participant

@@ -178,7 +178,7 @@ def _tier_matches(required_for: str, current_tier: str) -> bool:
     # Exact tier match
     return current_tier == required_for
 
-# Policy Pack Definitions (SDLC 5.1.1 4-Tier Classification)
+# Policy Pack Definitions (SDLC 5.1.3 4-Tier Classification)
 # Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 POLICY_PACKS = {
     "lite": {
@@ -208,14 +208,14 @@ POLICY_PACKS = {
     "enterprise": {
         "name": "Enterprise",
         "gates": ["G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"],  # All stages + Archive
-        "description": "Full SDLC 5.1.1 compliance for large organizations (50+ people)",
+        "description": "Full SDLC 5.1.3 compliance for large organizations (50+ people)",
         "team_size_range": (50, 10000),
         "requirements": ["Everything in Professional", "OWASP ASVS L2+", "95%+ coverage", "Quarterly audits"],
         "required_stages": ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"],
     },
 }
 
-# Gate Definitions with Exit Criteria (SDLC 5.1.1)
+# Gate Definitions with Exit Criteria (SDLC 5.1.3)
 # Reference: SDLC-Enterprise-Framework/README.md (v5.1.1)
 GATE_DEFINITIONS = {
     "G0": {

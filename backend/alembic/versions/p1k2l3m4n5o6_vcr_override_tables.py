@@ -7,7 +7,7 @@ Create Date: 2025-12-22 14:00:00.000000
 SDLC Stage: 04 - BUILD
 Sprint: 43 - Policy Guards & Evidence UI
 Epic: EP-02 AI Safety Layer v1
-Framework: SDLC 5.1.1
+Framework: SDLC 5.1.3
 
 Purpose:
 Create VCR (Version Controlled Resolution) Override tables.

@@ -5,7 +5,7 @@ Revision ID: m8h9i0j1k2l3
 Revises: l7g8h9i0j1k2
 Create Date: 2025-12-16
 
-SDLC 5.1.1 Compliance:
+SDLC 5.1.3 Compliance:
 - ADR-017: Admin Panel Architecture (APPROVED Dec 16, 2025)
 - CTO Condition: Version field for rollback capability
 - SOC 2 Type II: Append-only audit logs (CC7.1)

@@ -7,7 +7,7 @@
 **Authority**: CEO + CPO Approved
 **Foundation**: Product Vision 4.0.0
 **Stage**: Stage 00 (WHY) - Project Foundation
-**Framework**: SDLC 5.1.1 Complete Lifecycle (10 Stages)
+**Framework**: SDLC 5.1.3 Complete Lifecycle (10 Stages)
 
 **Changelog v2.0.0** (Dec 23, 2025):
 - **SOFTWARE 3.0 PIVOT**: Operating System for Software 3.0 positioning
@@ -18,7 +18,7 @@
 - **3-Layer Architecture**: Framework → Orchestrator → AI Coders
 
 **Changelog v1.2.0** (Dec 21, 2025):
-- Updated framework to SDLC 5.1.1 (from 4.9)
+- Updated framework to SDLC 5.1.3 (from 4.9)
 - Added EP-04/05/06 strategic extensions
 - Added NQH AI Platform integration (qwen2.5-coder:32b)
 - Added .sdlc-config.json innovation
@@ -89,17 +89,17 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 - AI-native tools becoming standard (Copilot, Cursor, Claude Code)
 - Compliance requirements increasing (SOC 2, ISO 27001 now table stakes)
 - Vietnam SME digitalization government push (8% → 30% target by 2030)
-- **SDLC 5.1.1 framework** validated (Bflow Platform proof of concept)
+- **SDLC 5.1.3 framework** validated (Bflow Platform proof of concept)
 
-### What is SDLC 5.1.1? (Framework Foundation)
+### What is SDLC 5.1.3? (Framework Foundation)
 
-**SDLC 5.1.1** is a complete 10-stage software development lifecycle framework that guides teams from problem discovery to production operations.
+**SDLC 5.1.3** is a complete 10-stage software development lifecycle framework that guides teams from problem discovery to production operations.
 
-**Evolution**: SDLC 4.8 → SDLC 5.1.3 → SDLC 5.1.3 → **SDLC 5.1.1** (December 2025)
+**Evolution**: SDLC 4.8 → SDLC 5.1.3 → SDLC 5.1.3 → **SDLC 5.1.3** (December 2025)
 - **SDLC 4.8**: 4 stages (WHY, WHAT, HOW, BUILD) - Foundation validated
 - **SDLC 5.1.3**: 10 stages - Complete lifecycle including TEST, DEPLOY, OPERATE
 - **SDLC 5.1.3**: Added AI Safety, SASE integration
-- **SDLC 5.1.1**: Current - AI-Native Governance + Codegen Engine (Dec 2025)
+- **SDLC 5.1.3**: Current - AI-Native Governance + Codegen Engine (Dec 2025)
 
 **10 Stages**:
 1. **Stage 00 (WHY - Foundation)**: Problem validation, business case, design thinking
@@ -128,7 +128,7 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 4. **Compliance Ready**: Automatic evidence vault for audits
 
 **Competitive Moat**:
-- **SDLC 5.1.1 methodology** (proprietary framework, 1-2 years to replicate, complete 10-stage lifecycle)
+- **SDLC 5.1.3 methodology** (proprietary framework, 1-2 years to replicate, complete 10-stage lifecycle)
 - 100+ pre-built policy packs (Lite, Standard, Enterprise)
 - AI stage-aware prompts (unique differentiator, context-aware across 10 stages)
 - Hybrid architecture (OSS infrastructure + custom IP)
@@ -343,7 +343,7 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 
 **Competitive Moat** (1-2 years to replicate):
 1. **3-Layer Architecture**: Framework → Orchestrator → AI Coders (unique positioning)
-2. **SDLC 5.1.1 Framework**: Proprietary methodology, 5+ years development
+2. **SDLC 5.1.3 Framework**: Proprietary methodology, 5+ years development
 3. **IR-Based Codegen**: Domain-specific code generation for Vietnam SME
 4. **Policy Packs**: 100+ pre-built gates (Lite, Standard, Enterprise)
 5. **AI Stage-Aware Prompts**: 50+ prompts aligned to SDLC stages
@@ -560,7 +560,7 @@ This Business Requirements Document (BRD) answers **WHY** we are building SDLC O
 ---
 
 **Document**: SDLC-Orchestrator-Business-Requirements-Document
-**Framework**: SDLC 5.1.1 Stage 00 (WHY)
+**Framework**: SDLC 5.1.3 Stage 00 (WHY)
 **Component**: Business Case - Problem & Opportunity Validation
 **Review**: Weekly with CPO (Tuesday 2 PM)
 **Last Updated**: December 23, 2025

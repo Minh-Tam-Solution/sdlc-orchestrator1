@@ -712,7 +712,7 @@ GateDetailPage
 └─────────────────────────────────────────────────────┘
 ```
 
-**Gate Type Options** (SDLC 5.1.1):
+**Gate Type Options** (SDLC 5.1.3):
 | Value | Display Label |
 |-------|---------------|
 | FOUNDATION_READY | Foundation Ready (G0) |
@@ -727,7 +727,7 @@ GateDetailPage
 | GOVERN_COMPLETE | Govern Complete (G9) |
 | ARCHIVE_COMPLETE | Archive Complete (G10) |
 
-**SDLC Stage Options** (SDLC 5.1.1):
+**SDLC Stage Options** (SDLC 5.1.3):
 | Code | Name | Description | Question |
 |------|------|-------------|----------|
 | 00 | FOUNDATION | Strategic Discovery & Validation | WHY? |

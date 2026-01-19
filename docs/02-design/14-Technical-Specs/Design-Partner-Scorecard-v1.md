@@ -6,7 +6,7 @@
 **Status**: ✅ DESIGN APPROVED
 **Created**: December 20, 2025
 **Sprint**: Sprint 41 - AI Safety Foundation (Week 2)
-**Framework**: SDLC 5.1.1 Complete Lifecycle
+**Framework**: SDLC 5.1.3 Complete Lifecycle
 **Owner**: Product Team + Customer Success
 
 ---
