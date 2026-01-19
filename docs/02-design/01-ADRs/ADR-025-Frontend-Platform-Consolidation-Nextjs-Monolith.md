@@ -1,11 +1,25 @@
 # ADR-025: Frontend Platform Consolidation - Next.js Monolith (Pre-GoLive)
 ## Decision: MOVE TO SINGLE FRONTEND PLATFORM (Next.js)
 
-**Status**: ✅ APPROVED  
-**Date**: January 03, 2026  
+**Status**: ✅ APPROVED → ⚠️ VIOLATED (Sprint 65-78) → ✅ RE-ENFORCED (Jan 19, 2026)  
+**Date**: January 03, 2026 (Original) | January 19, 2026 (Re-enforced)  
 **Decision Makers**: CEO (directive) + CTO (implementation approval)  
 **Stage**: Stage 02 (HOW - Design & Architecture)  
-**Framework**: SDLC 5.1.2 Universal Framework
+**Framework**: SDLC 5.1.3 Universal Framework
+
+---
+
+## ⚠️ GOVERNANCE ALERT (Jan 19, 2026)
+
+**Incident:** This ADR was violated for 13 sprints (Sprint 65-78). Team unknowingly reverted to dual-frontend architecture (`frontend-landing` + `frontend-web`), contradicting the unified architecture decided in Sprint 61-64.
+
+**Root Cause:** Lack of ADR enforcement in sprint planning. No automated compliance checks.
+
+**Corrective Action:** Re-unifying frontend to single Next.js service (Sprint 79 priority).
+
+**Lessons Learned:** [GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md](../../07-operate/03-Lessons-Learned/GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md)
+
+**Key Takeaway:** We cannot govern others if we cannot govern ourselves. This incident led to mandatory ADR review in G-Sprint-Open and automated ADR compliance checks.
 
 ---
 
@@ -87,6 +101,66 @@ ADR-024 was a valid technical decision at the time, given risk/ROI assumptions. 
 
 ---
 
+## Current Architecture (Post-Re-Unification - Jan 19, 2026)
+
+### ✅ Correct State (ADR-025 Compliant)
+
+```yaml
+# docker-compose.yml
+services:
+  frontend:
+    build: ./frontend
+    container_name: sdlc-frontend
+    ports:
+      - "8310:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:8300
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      backend:
+        condition: service_healthy
+```
+
+**Container Status:**
+```
+NAME              PORT          STATUS
+sdlc-frontend    8310:3000     healthy
+sdlc-backend     8300:8300     healthy
+```
+
+**Routes (All handled by Next.js App Router):**
+- `/` - Landing page (SSR)
+- `/login`, `/register`, `/auth/*` - Authentication (SSR + Client)
+- `/app/*` - Authenticated dashboard (Client Components for SPA feel)
+- `/admin/*` - Admin panel (superuser only, Client Components)
+- `/docs/*` - Documentation (SSR for SEO)
+- `/checkout/*` - Payment flows (SSR + Client)
+
+### ❌ Incorrect State (Violated During Sprint 65-78)
+
+```yaml
+# docker-compose.yml (WRONG - DO NOT USE)
+services:
+  frontend-landing:  # ❌ Duplicate service
+    build: ./frontend-landing
+    ports:
+      - "8311:3000"
+  
+  frontend-web:      # ❌ Duplicate service
+    build: ./frontend-web
+    ports:
+      - "8310:3000"
+```
+
+**This violated ADR-025 for 13 sprints.** See: [Lessons Learned](../../07-operate/03-Lessons-Learned/GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md)
+
+---
+
 ## Design Artifacts (Sprint 61-64)
 
 **Sprint Plan**:
@@ -96,6 +170,9 @@ ADR-024 was a valid technical decision at the time, given risk/ROI assumptions. 
 - [Frontend-Migration-Route-Map.md](../14-Technical-Specs/Frontend-Migration-Route-Map.md)
 - [Dashboard-Migration-Technical-Spec.md](../14-Technical-Specs/Dashboard-Migration-Technical-Spec.md)
 - [Frontend-Performance-Budget.md](../14-Technical-Specs/Frontend-Performance-Budget.md)
+
+**Governance Artifacts (Post-Violation)**:
+- [GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md](../../07-operate/03-Lessons-Learned/GOVERNANCE-FAILURE-FRONTEND-DUPLICATION.md)
 
 ---
 
