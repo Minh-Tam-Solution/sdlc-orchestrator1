@@ -2,10 +2,11 @@
 
 ## 📍 Where We Are Now (Jan 20, 2026)
 
-- **Latest completed milestone**: **Sprint 83** (Dynamic Context & Analytics - TRUE MOAT) ✅
+- **Latest completed milestone**: **Sprint 85** (AGENTS.md + CLI Auth - TRUE MOAT) ✅
 - **Sprint 86 Phase 1**: **COMPLETE** (System Settings Backend) ✅
+- **Sprint 87 P0 Blocker 1/2**: **COMPLETE** (GitHub Check Run UI) ✅
 - **SDLC Framework**: **SDLC 5.1.3** (7-Pillar Architecture)
-- **Current focus**: Sprint 84-87 Implementation (Teams, AGENTS.md UI, Sprint Governance)
+- **Current focus**: Sprint 86 Phase 2 + Sprint 87 P0 Blockers
 - **Soft Launch Target**: **March 15, 2026**
 - **Public Launch Target**: **March 15, 2026**
 
@@ -21,6 +22,14 @@
 | Sprint 82 | Evidence + Blocking | ~4,300 | ✅ |
 | Sprint 83 | Dynamic Context (MOAT) | ~4,300 | ✅ |
 
+**Sprint 84-85: Frontend Implementation Complete**
+
+| Sprint | Focus | LOC | Status |
+|--------|-------|-----|--------|
+| Sprint 84 | Teams & Organizations UI | ~3,300 | ✅ |
+| Sprint 85 | AGENTS.md + CLI Auth | ~4,981 | ✅ |
+| **Sprint 87 P0** | **GitHub Check Run UI** | **~2,043** | ✅ |
+
 **Sprint 86 Phase 1: System Settings Backend**
 
 | Component | LOC | Tests | Status |
@@ -29,7 +38,12 @@
 | User Lockout/MFA fields | - | - | ✅ |
 | Migrations (2) | - | - | ✅ |
 
-**Total Implementation:** ~25,000+ LOC in 2 days
+**Total Implementation:** ~31,600+ LOC in 2 days
+
+- Sprint 79-83: ~21,300 LOC
+- Sprint 84: ~3,300 LOC
+- Sprint 85: ~4,981 LOC
+- Sprint 87 P0 #1: ~2,043 LOC
 
 See: 
 - [SPRINT-83-IMPLEMENTATION-SUMMARY.md](SPRINT-83-IMPLEMENTATION-SUMMARY.md)
@@ -43,10 +57,10 @@ See:
 
 | Sprint | Focus | Dates | SP/Hours | Status |
 |--------|-------|-------|----------|--------|
-| **Sprint 84** | Teams & Organizations UI | Jan 21-31 | 34 SP | ✅ **APPROVED** |
-| **Sprint 85** | AGENTS.md Frontend + CLI Auth | Feb 1-11 | 55 SP | ✅ **APPROVED** |
+| **Sprint 84** | Teams & Organizations UI | Jan 21-31 | 34 SP | ✅ **COMPLETE** |
+| **Sprint 85** | AGENTS.md Frontend + CLI Auth | Feb 1-11 | 55 SP | ✅ **COMPLETE** |
 | **Sprint 86** | System Settings Phase 2 | Feb 12-22 | 40h | ✅ **APPROVED** |
-| **Sprint 87** | Sprint Governance (Pillar 2) | Feb 23 - Mar 5 | 42 SP | ✅ **APPROVED** |
+| **Sprint 87** | Sprint Governance UI + P0 Blockers | Feb 23 - Mar 5 | 58 SP | ✅ **APPROVED** |
 
 ### Go/No-Go Criteria (Feb 28, 2026)
 
@@ -98,19 +112,44 @@ See: [SPRINT-85-AGENTSMD-CLI-AUTH.md](SPRINT-85-AGENTSMD-CLI-AUTH.md)
 
 See: [SPRINT-86-ADR-027-SYSTEM-SETTINGS.md](SPRINT-86-ADR-027-SYSTEM-SETTINGS.md)
 
-### Sprint 87: Sprint Governance - SDLC 5.1.3 Pillar 2 (Feb 23 - Mar 5)
+### Sprint 87: Sprint Governance UI + P0 Blockers (Feb 23 - Mar 5)
 
 **CTO APPROVED:** ✅ January 20, 2026  
-**PRIORITY:** ⭐ CRITICAL - Core SDLC 5.1.3 Feature
+**PRIORITY:** ⭐ CRITICAL - Core SDLC 5.1.3 Feature + P0 Launch Blockers
 
-**Scope (42 SP):**
+**Scope (58 SP = 42 SP Governance + 16 SP P0 Blockers):**
+
+**Sprint Governance UI (42 SP):**
 - Sprint Creation Wizard
 - Gate Stage Transitions UI
 - Milestone Tracking
 - Timeline Visualization
 - Sprint Dashboard
 
-**CTO Note:** This is the CORE product feature that differentiates us from competitors.
+**P0 Blockers (16 SP):**
+
+| Component | Status | Priority | Deadline |
+|-----------|--------|----------|----------|
+| GitHub Check Run UI | ✅ DONE (Jan 20) | P0 | - |
+| Evidence Hash Chain v1 UI | ⏳ PENDING | P0 | Feb 10, 2026 |
+
+**P0 Blocker Details:**
+
+1. **GitHub Check Run UI** ✅ (Commit 676fea9)
+   - Check run dashboard with stats
+   - Detail page with annotations
+   - Repository integration
+   - Real-time status updates
+   - **LOC:** ~2,043 lines
+
+2. **Evidence Hash Chain v1 UI** ⏳
+   - Evidence manifest viewer
+   - Hash chain visualization
+   - Signature verification UI
+   - Tamper detection alerts
+   - **Deadline:** Feb 10, 2026
+
+**CTO Note:** Sprint Governance is the CORE product feature. P0 Blockers must be resolved before launch.
 
 See: [SPRINT-87-SPRINT-GOVERNANCE.md](SPRINT-87-SPRINT-GOVERNANCE.md)
 
