@@ -1,16 +1,17 @@
 /**
  * Dashboard Header - SDLC Orchestrator
  *
- * @module frontend/landing/src/components/dashboard/Header
- * @description Top navigation header for dashboard
- * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 61 - Frontend Platform Consolidation
+ * @module frontend/src/components/dashboard/Header
+ * @description Top navigation header for dashboard with dynamic breadcrumbs
+ * @sdlc SDLC 5.1.3 Framework - Sprint 84 (Teams & Organizations UI)
+ * @status Sprint 84 - Navigation Integration
  */
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 
 function BellIcon({ className }: { className?: string }) {
@@ -54,9 +55,70 @@ function CogIcon({ className }: { className?: string }) {
   );
 }
 
+function ChevronRightSmallIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+    </svg>
+  );
+}
+
+// Route name mappings for breadcrumbs
+const routeNameMap: Record<string, string> = {
+  app: "Dashboard",
+  projects: "Projects",
+  teams: "Teams",
+  organizations: "Organizations",
+  gates: "Gates",
+  evidence: "Evidence",
+  policies: "Policies",
+  codegen: "App Builder",
+  "sop-generator": "SOP Generator",
+  settings: "Settings",
+  admin: "Admin",
+};
+
+// Build breadcrumbs from pathname
+function useBreadcrumbs() {
+  const pathname = usePathname();
+
+  return useMemo(() => {
+    const segments = pathname.split("/").filter(Boolean);
+    const breadcrumbs: { name: string; href: string; isLast: boolean }[] = [];
+
+    let currentPath = "";
+    segments.forEach((segment, index) => {
+      currentPath += `/${segment}`;
+      const isLast = index === segments.length - 1;
+
+      // Check if this is a UUID (detail page)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
+
+      if (isUUID) {
+        // For detail pages, show "Detail" or skip
+        breadcrumbs.push({
+          name: "Detail",
+          href: currentPath,
+          isLast,
+        });
+      } else {
+        const name = routeNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+        breadcrumbs.push({
+          name,
+          href: currentPath,
+          isLast,
+        });
+      }
+    });
+
+    return breadcrumbs;
+  }, [pathname]);
+}
+
 export function Header() {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const breadcrumbs = useBreadcrumbs();
 
   const handleLogout = async () => {
     await logout();
@@ -65,9 +127,31 @@ export function Header() {
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
-      {/* Left side - Breadcrumb / Search */}
-      <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
+      {/* Left side - Breadcrumbs */}
+      <div className="flex items-center gap-2">
+        <nav className="flex items-center" aria-label="Breadcrumb">
+          <ol className="flex items-center gap-1">
+            {breadcrumbs.map((crumb, index) => (
+              <li key={crumb.href} className="flex items-center">
+                {index > 0 && (
+                  <ChevronRightSmallIcon className="mx-1 h-4 w-4 flex-shrink-0 text-gray-400" />
+                )}
+                {crumb.isLast ? (
+                  <span className="text-sm font-semibold text-gray-900">
+                    {crumb.name}
+                  </span>
+                ) : (
+                  <Link
+                    href={crumb.href}
+                    className="text-sm font-medium text-gray-500 hover:text-gray-700"
+                  >
+                    {crumb.name}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
       </div>
 
       {/* Right side - Actions */}
