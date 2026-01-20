@@ -1815,3 +1815,195 @@ export async function exportAnalytics(
 export async function getProjectAnalytics(projectId: string): Promise<ProjectAnalytics> {
   return apiRequest<ProjectAnalytics>(`/analytics/projects/${projectId}`);
 }
+
+// =============================================================================
+// CLI Token API (Sprint 85 - CLI Authentication)
+// =============================================================================
+
+import type {
+  CliToken,
+  CliTokenListParams,
+  CliTokensResponse,
+  CliTokenCreatedResponse,
+  CreateCliTokenRequest,
+  RefreshCliTokenResponse,
+  CliTokenStats,
+  CliSession,
+  CliLoginRequest,
+  CliLoginVerification,
+  CliDevice,
+} from "./types/cli-token";
+
+/**
+ * Get list of CLI tokens
+ * Sprint 85: GET /cli/tokens
+ */
+export async function getCliTokens(
+  params?: CliTokenListParams
+): Promise<CliTokensResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", params.page.toString());
+  if (params?.page_size) searchParams.set("page_size", params.page_size.toString());
+  if (params?.is_active !== undefined)
+    searchParams.set("is_active", params.is_active.toString());
+  if (params?.include_expired !== undefined)
+    searchParams.set("include_expired", params.include_expired.toString());
+
+  const query = searchParams.toString();
+  return apiRequest<CliTokensResponse>(`/cli/tokens${query ? `?${query}` : ""}`);
+}
+
+/**
+ * Get single CLI token details
+ * Sprint 85: GET /cli/tokens/{token_id}
+ */
+export async function getCliToken(tokenId: string): Promise<CliToken> {
+  return apiRequest<CliToken>(`/cli/tokens/${tokenId}`);
+}
+
+/**
+ * Create a new CLI token
+ * Sprint 85: POST /cli/tokens
+ */
+export async function createCliToken(
+  data: CreateCliTokenRequest
+): Promise<CliTokenCreatedResponse> {
+  return apiRequest<CliTokenCreatedResponse>("/cli/tokens", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Revoke a CLI token
+ * Sprint 85: DELETE /cli/tokens/{token_id}
+ */
+export async function revokeCliToken(tokenId: string): Promise<void> {
+  return apiRequest<void>(`/cli/tokens/${tokenId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Refresh/rotate a CLI token
+ * Sprint 85: POST /cli/tokens/{token_id}/refresh
+ */
+export async function refreshCliToken(
+  tokenId: string,
+  extendDays?: number
+): Promise<RefreshCliTokenResponse> {
+  return apiRequest<RefreshCliTokenResponse>(`/cli/tokens/${tokenId}/refresh`, {
+    method: "POST",
+    body: JSON.stringify({ extend_days: extendDays }),
+  });
+}
+
+/**
+ * Get CLI token statistics
+ * Sprint 85: GET /cli/tokens/stats
+ */
+export async function getCliTokenStats(): Promise<CliTokenStats> {
+  return apiRequest<CliTokenStats>("/cli/tokens/stats");
+}
+
+/**
+ * Get active CLI sessions
+ * Sprint 85: GET /cli/sessions
+ */
+export async function getCliSessions(): Promise<CliSession[]> {
+  return apiRequest<CliSession[]>("/cli/sessions");
+}
+
+/**
+ * Revoke a CLI session
+ * Sprint 85: DELETE /cli/sessions/{session_id}
+ */
+export async function revokeCliSession(sessionId: string): Promise<void> {
+  return apiRequest<void>(`/cli/sessions/${sessionId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Initiate CLI login (device flow)
+ * Sprint 85: POST /cli/login/initiate
+ */
+export async function initiateCliLogin(): Promise<CliLoginRequest> {
+  return apiRequest<CliLoginRequest>("/cli/login/initiate", {
+    method: "POST",
+  });
+}
+
+/**
+ * Verify CLI login status
+ * Sprint 85: GET /cli/login/verify/{device_code}
+ */
+export async function verifyCliLogin(
+  deviceCode: string
+): Promise<CliLoginVerification> {
+  return apiRequest<CliLoginVerification>(`/cli/login/verify/${deviceCode}`);
+}
+
+/**
+ * Approve CLI login from web
+ * Sprint 85: POST /cli/login/approve/{device_code}
+ */
+export async function approveCliLogin(
+  deviceCode: string,
+  userCode: string
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/cli/login/approve/${deviceCode}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ user_code: userCode }),
+    }
+  );
+}
+
+/**
+ * Deny CLI login from web
+ * Sprint 85: POST /cli/login/deny/{device_code}
+ */
+export async function denyCliLogin(
+  deviceCode: string
+): Promise<{ success: boolean; message: string }> {
+  return apiRequest<{ success: boolean; message: string }>(
+    `/cli/login/deny/${deviceCode}`,
+    {
+      method: "POST",
+    }
+  );
+}
+
+/**
+ * Get registered CLI devices
+ * Sprint 85: GET /cli/devices
+ */
+export async function getCliDevices(): Promise<CliDevice[]> {
+  return apiRequest<CliDevice[]>("/cli/devices");
+}
+
+/**
+ * Remove a CLI device
+ * Sprint 85: DELETE /cli/devices/{device_id}
+ */
+export async function removeCliDevice(deviceId: string): Promise<void> {
+  return apiRequest<void>(`/cli/devices/${deviceId}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Trust/untrust a CLI device
+ * Sprint 85: PATCH /cli/devices/{device_id}
+ */
+export async function updateCliDevice(
+  deviceId: string,
+  data: { is_trusted: boolean }
+): Promise<CliDevice> {
+  return apiRequest<CliDevice>(`/cli/devices/${deviceId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
