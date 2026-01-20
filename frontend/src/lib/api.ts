@@ -2284,3 +2284,512 @@ export async function rollbackSystemSetting(
     method: "POST",
   });
 }
+
+// =============================================================================
+// Planning Hierarchy API (Sprint 87 - SDLC 5.1.3 Pillar 2)
+// =============================================================================
+
+import type {
+  Roadmap,
+  RoadmapInput,
+  RoadmapsListResponse,
+  Phase,
+  PhaseInput,
+  PhasesListResponse,
+  Sprint,
+  SprintInput,
+  SprintUpdateInput,
+  SprintsListResponse,
+  BacklogItem,
+  BacklogItemInput,
+  BacklogItemUpdateInput,
+  BacklogItemsListResponse,
+  BulkMoveItemsInput,
+  PlanningHierarchyResponse,
+  ActiveSprintDashboard,
+} from "./types/planning";
+
+import type {
+  SprintGate,
+  SprintGateType,
+  ChecklistItem,
+  GateEvaluationRequest,
+  GateEvaluationResponse,
+  SprintGateApprovalRequest,
+  UpdateChecklistItemRequest,
+  DocumentationDeadline,
+  SprintGovernanceMetrics,
+  SprintComparison,
+  SprintGovernanceDashboard,
+} from "./types/sprint-governance";
+
+// -----------------------------------------------------------------------------
+// Roadmaps API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get roadmaps for a project
+ * Sprint 87: GET /projects/{id}/roadmaps
+ */
+export async function getRoadmaps(projectId: string): Promise<RoadmapsListResponse> {
+  return apiRequest<RoadmapsListResponse>(`/projects/${projectId}/roadmaps`);
+}
+
+/**
+ * Get a specific roadmap by ID
+ * Sprint 87: GET /roadmaps/{id}
+ */
+export async function getRoadmap(id: string): Promise<Roadmap> {
+  return apiRequest<Roadmap>(`/roadmaps/${id}`);
+}
+
+/**
+ * Create a new roadmap
+ * Sprint 87: POST /roadmaps
+ */
+export async function createRoadmap(data: RoadmapInput): Promise<Roadmap> {
+  return apiRequest<Roadmap>("/roadmaps", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Update a roadmap
+ * Sprint 87: PATCH /roadmaps/{id}
+ */
+export async function updateRoadmap(
+  id: string,
+  data: Partial<RoadmapInput>
+): Promise<Roadmap> {
+  return apiRequest<Roadmap>(`/roadmaps/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete a roadmap
+ * Sprint 87: DELETE /roadmaps/{id}
+ */
+export async function deleteRoadmap(id: string): Promise<void> {
+  return apiRequest<void>(`/roadmaps/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Phases API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get phases for a roadmap
+ * Sprint 87: GET /roadmaps/{id}/phases
+ */
+export async function getPhases(roadmapId: string): Promise<PhasesListResponse> {
+  return apiRequest<PhasesListResponse>(`/roadmaps/${roadmapId}/phases`);
+}
+
+/**
+ * Get a specific phase by ID
+ * Sprint 87: GET /phases/{id}
+ */
+export async function getPhase(id: string): Promise<Phase> {
+  return apiRequest<Phase>(`/phases/${id}`);
+}
+
+/**
+ * Create a new phase
+ * Sprint 87: POST /phases
+ */
+export async function createPhase(data: PhaseInput): Promise<Phase> {
+  return apiRequest<Phase>("/phases", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Update a phase
+ * Sprint 87: PATCH /phases/{id}
+ */
+export async function updatePhase(id: string, data: Partial<PhaseInput>): Promise<Phase> {
+  return apiRequest<Phase>(`/phases/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete a phase
+ * Sprint 87: DELETE /phases/{id}
+ */
+export async function deletePhase(id: string): Promise<void> {
+  return apiRequest<void>(`/phases/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Sprints API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get sprints with optional filters
+ * Sprint 87: GET /projects/{id}/sprints or GET /phases/{id}/sprints
+ */
+export async function getSprints(params: {
+  projectId?: string;
+  phaseId?: string;
+  status?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<SprintsListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.status) searchParams.set("status", params.status);
+  if (params.page) searchParams.set("page", params.page.toString());
+  if (params.page_size) searchParams.set("page_size", params.page_size.toString());
+
+  const query = searchParams.toString();
+
+  if (params.phaseId) {
+    return apiRequest<SprintsListResponse>(
+      `/phases/${params.phaseId}/sprints${query ? `?${query}` : ""}`
+    );
+  }
+
+  return apiRequest<SprintsListResponse>(
+    `/projects/${params.projectId}/sprints${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get a specific sprint by ID
+ * Sprint 87: GET /sprints/{id}
+ */
+export async function getSprint(id: string): Promise<Sprint> {
+  return apiRequest<Sprint>(`/sprints/${id}`);
+}
+
+/**
+ * Get the active sprint for a project
+ * Sprint 87: GET /projects/{id}/sprints/active
+ */
+export async function getActiveSprint(projectId: string): Promise<Sprint | null> {
+  try {
+    return await apiRequest<Sprint>(`/projects/${projectId}/sprints/active`);
+  } catch (error) {
+    // Return null if no active sprint (404)
+    if ((error as { status?: number }).status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create a new sprint
+ * Sprint 87: POST /sprints
+ */
+export async function createSprint(data: SprintInput): Promise<Sprint> {
+  return apiRequest<Sprint>("/sprints", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Update a sprint
+ * Sprint 87: PATCH /sprints/{id}
+ */
+export async function updateSprint(
+  id: string,
+  data: SprintUpdateInput
+): Promise<Sprint> {
+  return apiRequest<Sprint>(`/sprints/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete a sprint
+ * Sprint 87: DELETE /sprints/{id}
+ */
+export async function deleteSprint(id: string): Promise<void> {
+  return apiRequest<void>(`/sprints/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Backlog Items API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get backlog items with optional filters
+ * Sprint 87: GET /sprints/{id}/items or GET /projects/{id}/backlog
+ */
+export async function getBacklogItems(params: {
+  sprintId?: string;
+  projectId?: string;
+  status?: string;
+  priority?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<BacklogItemsListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params.status) searchParams.set("status", params.status);
+  if (params.priority) searchParams.set("priority", params.priority);
+  if (params.page) searchParams.set("page", params.page.toString());
+  if (params.page_size) searchParams.set("page_size", params.page_size.toString());
+
+  const query = searchParams.toString();
+
+  if (params.sprintId) {
+    return apiRequest<BacklogItemsListResponse>(
+      `/sprints/${params.sprintId}/items${query ? `?${query}` : ""}`
+    );
+  }
+
+  return apiRequest<BacklogItemsListResponse>(
+    `/projects/${params.projectId}/backlog${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get a specific backlog item by ID
+ * Sprint 87: GET /backlog-items/{id}
+ */
+export async function getBacklogItem(id: string): Promise<BacklogItem> {
+  return apiRequest<BacklogItem>(`/backlog-items/${id}`);
+}
+
+/**
+ * Create a new backlog item
+ * Sprint 87: POST /backlog-items
+ */
+export async function createBacklogItem(data: BacklogItemInput): Promise<BacklogItem> {
+  return apiRequest<BacklogItem>("/backlog-items", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Update a backlog item
+ * Sprint 87: PATCH /backlog-items/{id}
+ */
+export async function updateBacklogItem(
+  id: string,
+  data: BacklogItemUpdateInput
+): Promise<BacklogItem> {
+  return apiRequest<BacklogItem>(`/backlog-items/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Delete a backlog item
+ * Sprint 87: DELETE /backlog-items/{id}
+ */
+export async function deleteBacklogItem(id: string): Promise<void> {
+  return apiRequest<void>(`/backlog-items/${id}`, {
+    method: "DELETE",
+  });
+}
+
+/**
+ * Bulk move backlog items (drag and drop)
+ * Sprint 87: POST /projects/{id}/backlog/bulk-move
+ */
+export async function bulkMoveBacklogItems(
+  projectId: string,
+  data: BulkMoveItemsInput
+): Promise<BacklogItem[]> {
+  return apiRequest<BacklogItem[]>(`/projects/${projectId}/backlog/bulk-move`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Planning Hierarchy API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get full planning hierarchy for a project
+ * Sprint 87: GET /projects/{id}/planning-hierarchy
+ */
+export async function getPlanningHierarchy(
+  projectId: string
+): Promise<PlanningHierarchyResponse> {
+  return apiRequest<PlanningHierarchyResponse>(
+    `/projects/${projectId}/planning-hierarchy`
+  );
+}
+
+/**
+ * Get active sprint dashboard data
+ * Sprint 87: GET /projects/{id}/sprints/dashboard
+ */
+export async function getActiveSprintDashboard(
+  projectId: string
+): Promise<ActiveSprintDashboard | null> {
+  try {
+    return await apiRequest<ActiveSprintDashboard>(
+      `/projects/${projectId}/sprints/dashboard`
+    );
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+// =============================================================================
+// Sprint Governance API (Sprint 87 - SDLC 5.1.3 Pillar 2)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Sprint Gates API (G-Sprint, G-Sprint-Close)
+// -----------------------------------------------------------------------------
+
+/**
+ * Get sprint gate (G-Sprint or G-Sprint-Close)
+ * Sprint 87: GET /sprints/{id}/gates/{type}
+ */
+export async function getSprintGate(
+  sprintId: string,
+  gateType: SprintGateType
+): Promise<SprintGate> {
+  return apiRequest<SprintGate>(`/sprints/${sprintId}/gates/${gateType}`);
+}
+
+/**
+ * Get gate checklist items
+ * Sprint 87: GET /sprints/{id}/gates/{type}/checklist
+ */
+export async function getSprintGateChecklist(
+  sprintId: string,
+  gateType: SprintGateType
+): Promise<ChecklistItem[]> {
+  return apiRequest<ChecklistItem[]>(
+    `/sprints/${sprintId}/gates/${gateType}/checklist`
+  );
+}
+
+/**
+ * Evaluate sprint gate
+ * Sprint 87: POST /sprints/{id}/gates/{type}/evaluate
+ */
+export async function evaluateSprintGate(
+  sprintId: string,
+  gateType: SprintGateType,
+  data?: GateEvaluationRequest
+): Promise<GateEvaluationResponse> {
+  return apiRequest<GateEvaluationResponse>(
+    `/sprints/${sprintId}/gates/${gateType}/evaluate`,
+    {
+      method: "POST",
+      body: JSON.stringify(data || {}),
+    }
+  );
+}
+
+/**
+ * Approve sprint gate
+ * Sprint 87: POST /sprints/{id}/gates/{type}/approve
+ */
+export async function approveSprintGate(
+  sprintId: string,
+  gateType: SprintGateType,
+  data?: SprintGateApprovalRequest
+): Promise<SprintGate> {
+  return apiRequest<SprintGate>(`/sprints/${sprintId}/gates/${gateType}/approve`, {
+    method: "POST",
+    body: JSON.stringify(data || {}),
+  });
+}
+
+/**
+ * Update a checklist item
+ * Sprint 87: PATCH /sprints/{id}/gates/{type}/checklist/{itemId}
+ */
+export async function updateChecklistItem(
+  sprintId: string,
+  gateType: SprintGateType,
+  itemId: string,
+  data: UpdateChecklistItemRequest
+): Promise<ChecklistItem> {
+  return apiRequest<ChecklistItem>(
+    `/sprints/${sprintId}/gates/${gateType}/checklist/${itemId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Documentation Deadline API (24h Rule)
+// -----------------------------------------------------------------------------
+
+/**
+ * Get documentation deadline for sprint close
+ * Sprint 87: GET /sprints/{id}/documentation-deadline
+ */
+export async function getDocumentationDeadline(
+  sprintId: string
+): Promise<DocumentationDeadline> {
+  return apiRequest<DocumentationDeadline>(
+    `/sprints/${sprintId}/documentation-deadline`
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Sprint Governance Metrics API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get sprint governance metrics
+ * Sprint 87: GET /sprints/{id}/governance-metrics
+ */
+export async function getSprintGovernanceMetrics(
+  sprintId: string
+): Promise<SprintGovernanceMetrics> {
+  return apiRequest<SprintGovernanceMetrics>(
+    `/sprints/${sprintId}/governance-metrics`
+  );
+}
+
+/**
+ * Get sprint comparison data
+ * Sprint 87: POST /sprints/compare
+ */
+export async function getSprintComparison(
+  sprintIds: string[]
+): Promise<SprintComparison> {
+  return apiRequest<SprintComparison>("/sprints/compare", {
+    method: "POST",
+    body: JSON.stringify({ sprint_ids: sprintIds }),
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Sprint Governance Dashboard API
+// -----------------------------------------------------------------------------
+
+/**
+ * Get sprint governance dashboard data
+ * Sprint 87: GET /projects/{id}/sprint-governance/dashboard
+ */
+export async function getSprintGovernanceDashboard(
+  projectId: string
+): Promise<SprintGovernanceDashboard> {
+  return apiRequest<SprintGovernanceDashboard>(
+    `/projects/${projectId}/sprint-governance/dashboard`
+  );
+}
