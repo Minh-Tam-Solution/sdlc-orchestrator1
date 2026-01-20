@@ -10,6 +10,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getSprint,
   getSprintGate,
   getSprintGateChecklist,
   evaluateSprintGate,
@@ -32,6 +33,9 @@ import type {
 
 export const sprintGovernanceKeys = {
   all: ["sprint-governance"] as const,
+  // Sprint detail
+  sprint: (sprintId: string) =>
+    [...sprintGovernanceKeys.all, "sprint", sprintId] as const,
   // Gates
   gates: () => [...sprintGovernanceKeys.all, "gates"] as const,
   gate: (sprintId: string, gateType: SprintGateType) =>
@@ -52,6 +56,22 @@ export const sprintGovernanceKeys = {
   dashboard: (projectId: string) =>
     [...sprintGovernanceKeys.all, "dashboard", projectId] as const,
 };
+
+// =============================================================================
+// SPRINT HOOKS
+// =============================================================================
+
+/**
+ * Fetch sprint detail by ID
+ */
+export function useSprint(sprintId: string) {
+  return useQuery({
+    queryKey: sprintGovernanceKeys.sprint(sprintId),
+    queryFn: () => getSprint(sprintId),
+    enabled: !!sprintId,
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+}
 
 // =============================================================================
 // GATE HOOKS
