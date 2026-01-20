@@ -2,11 +2,11 @@
 
 ## 📍 Where We Are Now (Jan 20, 2026)
 
-- **Latest completed milestone**: **Sprint 85** (AGENTS.md + CLI Auth - TRUE MOAT) ✅
-- **Sprint 86 Phase 1**: **COMPLETE** (System Settings Backend) ✅
+- **Latest completed milestone**: **Sprint 86** (System Settings - ADR-027 Complete) ✅
+- **Sprint 85**: **COMPLETE** (AGENTS.md + CLI Auth - TRUE MOAT) ✅
 - **Sprint 87 P0 Blockers**: **ALL COMPLETE** ✅ (GitHub Check Run + Evidence Hash Chain)
 - **SDLC Framework**: **SDLC 5.1.3** (7-Pillar Architecture)
-- **Current focus**: Sprint 86 Phase 2 (Feb 12-22) + Sprint 87 Core (Feb 23 - Mar 5)
+- **Current focus**: Sprint 87 Core (Sprint Governance UI - Feb 23 - Mar 5)
 - **Soft Launch Target**: **March 15, 2026**
 - **Public Launch Target**: **March 15, 2026**
 
@@ -22,12 +22,13 @@
 | Sprint 82 | Evidence + Blocking | ~4,300 | ✅ |
 | Sprint 83 | Dynamic Context (MOAT) | ~4,300 | ✅ |
 
-**Sprint 84-85: Frontend Implementation Complete**
+**Sprint 84-86: Frontend Implementation Complete**
 
 | Sprint | Focus | LOC | Status |
 |--------|-------|-----|--------|
 | Sprint 84 | Teams & Organizations UI | ~3,300 | ✅ |
 | Sprint 85 | AGENTS.md + CLI Auth | ~4,981 | ✅ |
+| Sprint 86 | System Settings (ADR-027) | ~1,427 | ✅ |
 
 **Sprint 87: P0 Blockers Complete**
 
@@ -36,19 +37,20 @@
 | GitHub Check Run UI | ~2,043 | ✅ | Jan 20 |
 | Evidence Hash Chain v1 UI | ~1,604 | ✅ | Jan 20 |
 
-**Sprint 86 Phase 1: System Settings Backend**
+**Sprint 86: System Settings Complete (ADR-027)**
 
-| Component | LOC | Tests | Status |
-|-----------|-----|-------|--------|
-| SettingsService | 765 | 40+ | ✅ |
-| User Lockout/MFA fields | - | - | ✅ |
-| Migrations (2) | - | - | ✅ |
+| Phase | Component | LOC | Tests | Status |
+|-------|-----------|-----|-------|--------|
+| Phase 1 | Backend (SettingsService) | 765 | 40+ | ✅ |
+| Phase 2 | Admin UI | ~1,427 | - | ✅ |
+| **Total** | **Full Stack** | **~2,192** | **40+** | ✅ |
 
-**Total Implementation:** ~33,200+ LOC in 2 days
+**Total Implementation:** ~34,600+ LOC in 2 days
 
 - Sprint 79-83: ~21,300 LOC
 - Sprint 84: ~3,300 LOC
 - Sprint 85: ~4,981 LOC
+- Sprint 86: ~1,427 LOC (Phase 2 UI)
 - Sprint 87 P0 Blockers: ~3,647 LOC
   - GitHub Check Run UI: ~2,043 LOC
   - Evidence Hash Chain v1 UI: ~1,604 LOC
@@ -67,15 +69,15 @@ See:
 |--------|-------|-------|----------|--------|
 | **Sprint 84** | Teams & Organizations UI | Jan 21-31 | 34 SP | ✅ **COMPLETE** |
 | **Sprint 85** | AGENTS.md Frontend + CLI Auth | Feb 1-11 | 55 SP | ✅ **COMPLETE** |
-| **Sprint 86** | System Settings Phase 2 | Feb 12-22 | 40h | ✅ **APPROVED** |
+| **Sprint 86** | System Settings (ADR-027) | Feb 12-22 | 40h | ✅ **COMPLETE** |
 | **Sprint 87** | Sprint Governance UI + P0 Blockers | Feb 23 - Mar 5 | 58 SP | ✅ **APPROVED** |
 
 ### Go/No-Go Criteria (Feb 28, 2026)
 
 | Metric | Target | Current Status |
 |--------|--------|----------------|
-| P0 blockers | 0 open | ✅ All Sprint 79-83 blockers resolved |
-| Evidence hash chain | Tamper-evident test pass | ✅ Sprint 82 Complete |
+| P0 blockers | 0 open | ✅ All blockers resolved (Sprint 87 P0 complete) |
+| Evidence hash chain | Tamper-evident test pass | ✅ Backend + UI Complete |
 | GitHub Check Run | Blocking mode ready | ✅ Sprint 82 Complete |
 | AGENTS.md Generator | Dynamic updates on gate changes | ✅ Sprint 83 Complete |
 | First customers | ≥2 committed (signed LOI) | ⏳ Business track |
