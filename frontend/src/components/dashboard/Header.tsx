@@ -63,7 +63,7 @@ function ChevronRightSmallIcon({ className }: { className?: string }) {
   );
 }
 
-// Route name mappings for breadcrumbs (Sprint 87 - added Evidence Manifests)
+// Route name mappings for breadcrumbs (Sprint 87 - added Evidence Manifests, Sprint 86 - System Settings)
 const routeNameMap: Record<string, string> = {
   app: "Dashboard",
   projects: "Projects",
@@ -83,6 +83,11 @@ const routeNameMap: Record<string, string> = {
   admin: "Admin",
 };
 
+// Special route mappings for nested admin routes (Sprint 86)
+const adminRouteNameMap: Record<string, string> = {
+  settings: "System Settings",
+};
+
 // Build breadcrumbs from pathname
 function useBreadcrumbs() {
   const pathname = usePathname();
@@ -92,9 +97,16 @@ function useBreadcrumbs() {
     const breadcrumbs: { name: string; href: string; isLast: boolean }[] = [];
 
     let currentPath = "";
+    let isInAdminSection = false;
+
     segments.forEach((segment, index) => {
       currentPath += `/${segment}`;
       const isLast = index === segments.length - 1;
+
+      // Track if we're in admin section for special naming
+      if (segment === "admin") {
+        isInAdminSection = true;
+      }
 
       // Check if this is a UUID (detail page)
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segment);
@@ -107,7 +119,13 @@ function useBreadcrumbs() {
           isLast,
         });
       } else {
-        const name = routeNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+        // Use admin-specific naming for nested admin routes
+        let name: string;
+        if (isInAdminSection && segment !== "admin" && adminRouteNameMap[segment]) {
+          name = adminRouteNameMap[segment];
+        } else {
+          name = routeNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+        }
         breadcrumbs.push({
           name,
           href: currentPath,

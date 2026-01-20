@@ -202,6 +202,15 @@ function LinkIcon({ className }: { className?: string }) {
   );
 }
 
+// Sprint 86: System Settings icon (adjustments)
+function AdjustmentsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+    </svg>
+  );
+}
+
 function UsersIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -334,28 +343,52 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           {!isCollapsed && <span>Settings</span>}
         </Link>
 
-        {/* Admin Panel - only for superusers */}
+        {/* Admin Section - only for superusers (Sprint 86: System Settings) */}
         {isSuperuser && (
-          <Link
-            href="/admin"
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              pathname === "/admin" || pathname.startsWith("/admin/")
-                ? "bg-red-50 text-red-700"
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-            )}
-            title={isCollapsed ? "Admin Panel" : undefined}
-          >
-            <UsersIcon
+          <>
+            {/* Admin Panel - User Management */}
+            <Link
+              href="/admin"
               className={cn(
-                "h-5 w-5 flex-shrink-0",
-                pathname === "/admin" || pathname.startsWith("/admin/")
-                  ? "text-red-700"
-                  : "text-gray-400"
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname === "/admin" && !pathname.includes("/app/admin")
+                  ? "bg-red-50 text-red-700"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
               )}
-            />
-            {!isCollapsed && <span>Admin Panel</span>}
-          </Link>
+              title={isCollapsed ? "Admin Panel" : undefined}
+            >
+              <UsersIcon
+                className={cn(
+                  "h-5 w-5 flex-shrink-0",
+                  pathname === "/admin" && !pathname.includes("/app/admin")
+                    ? "text-red-700"
+                    : "text-gray-400"
+                )}
+              />
+              {!isCollapsed && <span>Admin Panel</span>}
+            </Link>
+            {/* System Settings - Sprint 86 Phase 2 */}
+            <Link
+              href="/app/admin/settings"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                pathname === "/app/admin/settings" || pathname.startsWith("/app/admin/settings/")
+                  ? "bg-amber-50 text-amber-700"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              )}
+              title={isCollapsed ? "System Settings" : undefined}
+            >
+              <AdjustmentsIcon
+                className={cn(
+                  "h-5 w-5 flex-shrink-0",
+                  pathname === "/app/admin/settings" || pathname.startsWith("/app/admin/settings/")
+                    ? "text-amber-700"
+                    : "text-gray-400"
+                )}
+              />
+              {!isCollapsed && <span>System Settings</span>}
+            </Link>
+          </>
         )}
       </nav>
 

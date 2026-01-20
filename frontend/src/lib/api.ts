@@ -2227,3 +2227,60 @@ export async function getVerificationHistory(
     `/evidence-manifests/verification-history/${projectId}${query ? `?${query}` : ""}`
   );
 }
+
+// =============================================================================
+// System Settings API (Sprint 86 Phase 2 - ADR-027)
+// =============================================================================
+
+import type {
+  SystemSettingsListResponse,
+  SystemSettingItem,
+  SystemSettingUpdate,
+} from "./types/system-settings";
+
+/**
+ * Get all system settings grouped by category
+ * Sprint 86: GET /admin/settings
+ * Requires: superuser access
+ */
+export async function getSystemSettings(): Promise<SystemSettingsListResponse> {
+  return apiRequest<SystemSettingsListResponse>("/admin/settings");
+}
+
+/**
+ * Get a specific system setting by key
+ * Sprint 86: GET /admin/settings/{key}
+ * Requires: superuser access
+ */
+export async function getSystemSetting(key: string): Promise<SystemSettingItem> {
+  return apiRequest<SystemSettingItem>(`/admin/settings/${key}`);
+}
+
+/**
+ * Update a system setting value
+ * Sprint 86: PATCH /admin/settings/{key}
+ * Requires: superuser access
+ * Note: Change propagates within 5 minutes (Redis cache TTL)
+ */
+export async function updateSystemSetting(
+  key: string,
+  data: SystemSettingUpdate
+): Promise<SystemSettingItem> {
+  return apiRequest<SystemSettingItem>(`/admin/settings/${key}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * Rollback a system setting to previous value
+ * Sprint 86: POST /admin/settings/{key}/rollback
+ * Requires: superuser access
+ */
+export async function rollbackSystemSetting(
+  key: string
+): Promise<SystemSettingItem> {
+  return apiRequest<SystemSettingItem>(`/admin/settings/${key}/rollback`, {
+    method: "POST",
+  });
+}
