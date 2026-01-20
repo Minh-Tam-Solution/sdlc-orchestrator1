@@ -4,9 +4,9 @@
 
 - **Latest completed milestone**: **Sprint 85** (AGENTS.md + CLI Auth - TRUE MOAT) ✅
 - **Sprint 86 Phase 1**: **COMPLETE** (System Settings Backend) ✅
-- **Sprint 87 P0 Blocker 1/2**: **COMPLETE** (GitHub Check Run UI) ✅
+- **Sprint 87 P0 Blockers**: **ALL COMPLETE** ✅ (GitHub Check Run + Evidence Hash Chain)
 - **SDLC Framework**: **SDLC 5.1.3** (7-Pillar Architecture)
-- **Current focus**: Sprint 86 Phase 2 + Sprint 87 P0 Blockers
+- **Current focus**: Sprint 86 Phase 2 (Feb 12-22) + Sprint 87 Core (Feb 23 - Mar 5)
 - **Soft Launch Target**: **March 15, 2026**
 - **Public Launch Target**: **March 15, 2026**
 
@@ -28,7 +28,13 @@
 |--------|-------|-----|--------|
 | Sprint 84 | Teams & Organizations UI | ~3,300 | ✅ |
 | Sprint 85 | AGENTS.md + CLI Auth | ~4,981 | ✅ |
-| **Sprint 87 P0** | **GitHub Check Run UI** | **~2,043** | ✅ |
+
+**Sprint 87: P0 Blockers Complete**
+
+| Component | LOC | Status | Date |
+|-----------|-----|--------|------|
+| GitHub Check Run UI | ~2,043 | ✅ | Jan 20 |
+| Evidence Hash Chain v1 UI | ~1,604 | ✅ | Jan 20 |
 
 **Sprint 86 Phase 1: System Settings Backend**
 
@@ -38,12 +44,14 @@
 | User Lockout/MFA fields | - | - | ✅ |
 | Migrations (2) | - | - | ✅ |
 
-**Total Implementation:** ~31,600+ LOC in 2 days
+**Total Implementation:** ~33,200+ LOC in 2 days
 
 - Sprint 79-83: ~21,300 LOC
 - Sprint 84: ~3,300 LOC
 - Sprint 85: ~4,981 LOC
-- Sprint 87 P0 #1: ~2,043 LOC
+- Sprint 87 P0 Blockers: ~3,647 LOC
+  - GitHub Check Run UI: ~2,043 LOC
+  - Evidence Hash Chain v1 UI: ~1,604 LOC
 
 See: 
 - [SPRINT-83-IMPLEMENTATION-SUMMARY.md](SPRINT-83-IMPLEMENTATION-SUMMARY.md)
@@ -126,12 +134,12 @@ See: [SPRINT-86-ADR-027-SYSTEM-SETTINGS.md](SPRINT-86-ADR-027-SYSTEM-SETTINGS.md
 - Timeline Visualization
 - Sprint Dashboard
 
-**P0 Blockers (16 SP):**
+**P0 Blockers (16 SP):** ✅ ALL COMPLETE
 
-| Component | Status | Priority | Deadline |
-|-----------|--------|----------|----------|
-| GitHub Check Run UI | ✅ DONE (Jan 20) | P0 | - |
-| Evidence Hash Chain v1 UI | ⏳ PENDING | P0 | Feb 10, 2026 |
+| Component | Status | Priority | Completed |
+|-----------|--------|----------|-----------|
+| GitHub Check Run UI | ✅ DONE | P0 | Jan 20, 2026 |
+| Evidence Hash Chain v1 UI | ✅ DONE | P0 | Jan 20, 2026 |
 
 **P0 Blocker Details:**
 
@@ -142,14 +150,14 @@ See: [SPRINT-86-ADR-027-SYSTEM-SETTINGS.md](SPRINT-86-ADR-027-SYSTEM-SETTINGS.md
    - Real-time status updates
    - **LOC:** ~2,043 lines
 
-2. **Evidence Hash Chain v1 UI** ⏳
-   - Evidence manifest viewer
-   - Hash chain visualization
-   - Signature verification UI
-   - Tamper detection alerts
-   - **Deadline:** Feb 10, 2026
+2. **Evidence Hash Chain v1 UI** ✅ (Commit d6e04e5)
+   - Evidence manifest viewer with chain status
+   - Hash chain visualization with sequence numbers
+   - Ed25519 signature verification UI
+   - Tamper detection & verification history
+   - **LOC:** ~1,604 lines
 
-**CTO Note:** Sprint Governance is the CORE product feature. P0 Blockers must be resolved before launch.
+**CTO Note:** Sprint Governance is the CORE product feature. All P0 Blockers resolved ahead of deadline! ✅
 
 See: [SPRINT-87-SPRINT-GOVERNANCE.md](SPRINT-87-SPRINT-GOVERNANCE.md)
 
