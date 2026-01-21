@@ -178,7 +178,7 @@ class OrganizationsService:
         limit: int = 20
     ) -> list[Organization]:
         """
-        List organizations.
+        List organizations with eager-loaded relationships.
 
         Args:
             user_id: Optional filter by user membership
@@ -186,17 +186,25 @@ class OrganizationsService:
             limit: Max results (default 20, max 100)
 
         Returns:
-            List of Organization objects
+            List of Organization objects with teams/users loaded
 
         Note:
             If user_id provided, only returns orgs user belongs to.
             Otherwise returns all organizations (superuser only).
+            Uses selectinload to avoid N+1 query issues.
         """
-        query = select(Organization).where(Organization.deleted_at.is_(None))
+        query = (
+            select(Organization)
+            .options(
+                selectinload(Organization.teams),
+                selectinload(Organization.users)
+            )
+            .where(Organization.deleted_at.is_(None))
+        )
 
         if user_id:
             # Filter by user's organization
-            query = query.join(User).where(User.id == user_id)
+            query = query.join(User, Organization.id == User.organization_id).where(User.id == user_id)
 
         query = query.offset(skip).limit(min(limit, 100))
         result = await self.db.scalars(query)

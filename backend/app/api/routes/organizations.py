@@ -56,21 +56,40 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
 # Helper Functions
 # =========================================================================
 
-def org_to_response(org, teams_count: int = 0, users_count: int = 0) -> OrganizationResponse:
+def org_to_response(
+    org,
+    teams_count: int | None = None,
+    users_count: int | None = None
+) -> OrganizationResponse:
     """
     Convert Organization model to OrganizationResponse schema.
 
-    Note: This function avoids accessing lazy-loaded relationships directly
-    to prevent async SQLAlchemy errors. Pass counts explicitly when available.
+    Args:
+        org: Organization model instance
+        teams_count: Explicit teams count. If None, tries to get from loaded relationship.
+        users_count: Explicit users count. If None, tries to get from loaded relationship.
+
+    Note:
+        When relationships are eager-loaded via selectinload, we can safely access them.
+        Only pass explicit counts when relationships are NOT loaded (e.g., after create).
     """
+    # Use explicit counts if provided, otherwise try to get from loaded relationships
+    # For newly created orgs, relationships may not be loaded yet - default to 0
+    actual_teams_count = teams_count if teams_count is not None else (
+        len(org.teams) if hasattr(org, 'teams') and org.teams is not None else 0
+    )
+    actual_users_count = users_count if users_count is not None else (
+        len(org.users) if hasattr(org, 'users') and org.users is not None else 0
+    )
+
     return OrganizationResponse(
         id=org.id,
         name=org.name,
         slug=org.slug,
         plan=org.plan,
         settings=org.settings or {},
-        teams_count=teams_count,
-        users_count=users_count,
+        teams_count=actual_teams_count,
+        users_count=actual_users_count,
         created_at=org.created_at,
         updated_at=org.updated_at
     )
