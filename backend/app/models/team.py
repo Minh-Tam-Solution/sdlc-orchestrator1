@@ -28,7 +28,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
-from sqlalchemy import String, Text, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Text, ForeignKey, UniqueConstraint, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -132,6 +132,28 @@ class Team(Base):
         nullable=False,
         default=dict,
         doc="Team-specific settings including SASE config"
+    )
+
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        index=True,
+        doc="Record creation timestamp"
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        doc="Last update timestamp"
+    )
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime,
+        nullable=True,
+        index=True,
+        doc="Soft delete timestamp (NULL = active)"
     )
 
     # Relationships

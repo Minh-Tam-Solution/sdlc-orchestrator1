@@ -171,7 +171,7 @@ async def register(
     new_user = User(
         email=email,
         password_hash=password_hash,
-        name=register_data.full_name,
+        full_name=register_data.full_name,
         is_active=True,  # No email verification in V1
     )
     db.add(new_user)
@@ -195,7 +195,8 @@ async def register(
     return RegisterResponse(
         id=new_user.id,
         email=new_user.email,
-        name=new_user.full_name,
+        full_name=new_user.full_name,
+        role=new_user.role,
         is_active=new_user.is_active,
         created_at=new_user.created_at,
         message="Registration successful. You can now login.",
@@ -885,7 +886,7 @@ async def oauth_callback(
         # Create new user
         user = User(
             email=email,
-            name=user_info.name,
+            full_name=user_info.name,
             avatar_url=user_info.avatar_url,
             is_active=True,
             password_hash=None,  # OAuth-only user, no password

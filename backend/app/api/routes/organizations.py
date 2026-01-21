@@ -57,13 +57,12 @@ router = APIRouter(prefix="/organizations", tags=["organizations"])
 # =========================================================================
 
 def org_to_response(org, teams_count: int = 0, users_count: int = 0) -> OrganizationResponse:
-    """Convert Organization model to OrganizationResponse schema."""
-    # Count teams and users from relationships if loaded
-    if hasattr(org, 'teams') and org.teams:
-        teams_count = sum(1 for t in org.teams if t.deleted_at is None)
-    if hasattr(org, 'users') and org.users:
-        users_count = sum(1 for u in org.users if u.deleted_at is None)
+    """
+    Convert Organization model to OrganizationResponse schema.
 
+    Note: This function avoids accessing lazy-loaded relationships directly
+    to prevent async SQLAlchemy errors. Pass counts explicitly when available.
+    """
     return OrganizationResponse(
         id=org.id,
         name=org.name,

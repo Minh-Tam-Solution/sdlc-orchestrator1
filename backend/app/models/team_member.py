@@ -28,7 +28,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
-from sqlalchemy import String, ForeignKey, UniqueConstraint, CheckConstraint
+from sqlalchemy import String, ForeignKey, UniqueConstraint, CheckConstraint, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -131,9 +131,29 @@ class TeamMember(Base):
 
     # Timestamps
     joined_at: Mapped[datetime] = mapped_column(
+        DateTime,
         nullable=False,
         default=datetime.utcnow,
         doc="When the user joined the team"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        doc="Record creation timestamp"
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        doc="Last update timestamp"
+    )
+    deleted_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime,
+        nullable=True,
+        index=True,
+        doc="Soft delete timestamp (NULL = active)"
     )
 
     # Relationships
