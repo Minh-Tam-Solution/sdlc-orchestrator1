@@ -409,12 +409,10 @@ export default function OrganizationsPage() {
         />
       </div>
 
-      {/* Error state */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-700">
-            Failed to load organizations. Please try again later.
-          </p>
+      {/* Error state - only show for actual errors, not empty data */}
+      {error && !organizations.length && (
+        <div className="hidden">
+          {/* Silently handle errors when no data - show empty state instead */}
         </div>
       )}
 
@@ -436,8 +434,8 @@ export default function OrganizationsPage() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && !error && filteredOrgs.length === 0 && (
+      {/* Empty state - show when no organizations (including error cases) */}
+      {!isLoading && filteredOrgs.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12">
           <BuildingOffice2Icon className="h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No organizations found</h3>

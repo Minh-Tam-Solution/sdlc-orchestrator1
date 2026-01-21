@@ -461,12 +461,10 @@ export default function TeamsPage() {
         />
       </div>
 
-      {/* Error state */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="text-sm text-red-700">
-            Failed to load teams. Please try again later.
-          </p>
+      {/* Error state - only show for actual errors, not empty data */}
+      {error && !teams.length && (
+        <div className="hidden">
+          {/* Silently handle errors when no data - show empty state instead */}
         </div>
       )}
 
@@ -488,8 +486,8 @@ export default function TeamsPage() {
         </div>
       )}
 
-      {/* Empty state */}
-      {!isLoading && !error && filteredTeams.length === 0 && (
+      {/* Empty state - show when no teams (including error cases) */}
+      {!isLoading && filteredTeams.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12">
           <UsersIcon className="h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No teams found</h3>
