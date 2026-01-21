@@ -5,10 +5,11 @@
 - **Latest completed milestone**: **Sprint 87** (Sprint Governance UI - SDLC 5.1.3 Pillar 2) ✅
 - **Sprint 86**: **COMPLETE** (System Settings - ADR-027) ✅
 - **Sprint 87 P0 Blockers**: **ALL COMPLETE** ✅ (GitHub Check Run + Evidence Hash Chain)
+- **Sprint 88**: **PLANNED** 🔒 Platform Admin Privacy Fix (P0 Security - Feb 1-13)
 - **E2E Test Status**: **100% PASS** (114/114 tests) ✅
 - **Bug Fixes**: **All Critical Issues Resolved** ✅ (Organization counts, Auth, Models)
 - **SDLC Framework**: **SDLC 5.1.3** (7-Pillar Architecture)
-- **Current focus**: Pre-Launch Polish & Testing (Mar 1-14)
+- **Current focus**: Sprint 88 Quick Wins + Pre-Launch Polish
 - **Soft Launch Target**: **March 15, 2026**
 - **Public Launch Target**: **March 15, 2026**
 
@@ -120,6 +121,7 @@ See:
 | **Sprint 85** | AGENTS.md Frontend + CLI Auth | Feb 1-11 | 55 SP | ✅ **COMPLETE** |
 | **Sprint 86** | System Settings (ADR-027) | Feb 12-22 | 40h | ✅ **COMPLETE** |
 | **Sprint 87** | Sprint Governance UI + P0 Blockers | Feb 23 - Mar 5 | 58 SP | ✅ **COMPLETE** |
+| **Sprint 88** | Platform Admin Privacy Fix (ADR-030) | Feb 1-13 | 50h | 🔒 **PLANNED** |
 
 ### Go/No-Go Criteria (Feb 28, 2026)
 
@@ -130,11 +132,58 @@ See:
 | GitHub Check Run | Blocking mode ready | ✅ Sprint 82 Complete |
 | AGENTS.md Generator | Dynamic updates on gate changes | ✅ Sprint 83 Complete |
 | Sprint Governance | SDLC 5.1.3 Pillar 2 implementation | ✅ Sprint 87 Complete |
+| Platform Admin Privacy | Role separation, no customer data access | 🔒 Sprint 88 Planned |
 | First customers | ≥2 committed (signed LOI) | ⏳ Business track |
 
 ---
 
 ## 📋 Upcoming Sprint Details
+
+### Sprint 88: Platform Admin Privacy Fix (Feb 1-13, 2026)
+
+**PRIORITY:** 🔴 P0 - Critical Security Fix  
+**STATUS:** 🔒 Planned - Quick wins can start today
+
+**Problem Statement:**
+- ❌ Platform admins can access `/app/*` routes via "Back to App" button
+- ❌ Platform admins can view ALL customer projects, gates, evidence
+- ❌ Privacy violation - admin should manage system, not access customer data
+- 🔴 CRITICAL: Must fix before soft launch (March 15, 2026)
+
+**Solution (ADR-030):**
+
+**Phase 1: Frontend (Days 1-3) - Quick Wins** ⚡
+- Remove "Back to App" link from AdminSidebar.tsx
+- Add route guard to block `/app/*` for platform admins
+- Auto-redirect on login (admin→`/admin`, user→`/app`)
+
+**Phase 2: Backend (Days 4-7) - Complete Isolation**
+- Add `is_platform_admin: bool` to User model
+- Create `require_customer_user()` dependency
+- Apply to ALL customer endpoints (12 routes)
+
+**Phase 3: Testing & Deploy (Days 8-13)**
+- E2E tests for role separation
+- Integration testing
+- Staging deploy + 24h monitoring
+- Production deploy
+
+**Effort:** 50 hours over 10 days
+
+**Quick Win Today (Jan 21):**
+- Remove "Back to App" link (30 min)
+- Add basic route guard (1 hour)
+- Manual testing (30 min)
+- **Result:** 70% of security fix in 2 hours! ✅
+
+See: 
+- [ADR-030-Platform-Admin-Role-Redesign.md](../../02-design/01-ADRs/ADR-030-Platform-Admin-Role-Redesign.md)
+- [ADMIN-ROLE-REFACTOR-PLAN.md](../../02-design/10-Admin-Panel-Design/ADMIN-ROLE-REFACTOR-PLAN.md)
+- [SPRINT-88-PLATFORM-ADMIN-PRIVACY-FIX.md](SPRINT-88-PLATFORM-ADMIN-PRIVACY-FIX.md)
+
+---
+
+## 📋 Previous Sprint Details
 
 ### Sprint 84: Teams & Organizations UI (Jan 21-31)
 
