@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Header, Footer } from "@/components/landing";
-import { login, getOAuthAuthorizeUrl, APIError } from "@/lib/api";
+import { login, getOAuthAuthorizeUrl, getCurrentUser, APIError } from "@/lib/api";
 import Link from "next/link";
 
 interface FormErrors {
@@ -84,7 +84,28 @@ function LoginForm() {
         }
       }
 
-      router.push(redirectTo);
+      // Sprint 88 Day 2: Check user role and redirect accordingly
+      // Platform admins (is_superuser) → /admin
+      // Regular users → /app (or redirectTo)
+      try {
+        const userProfile = await getCurrentUser();
+
+        if (userProfile.is_superuser) {
+          // Platform admin: redirect to admin panel
+          console.log("[Login] Platform admin detected - redirecting to /admin", {
+            user_id: userProfile.id,
+            email: userProfile.email,
+          });
+          router.push("/admin");
+        } else {
+          // Regular user: redirect to customer dashboard
+          router.push(redirectTo);
+        }
+      } catch (profileError) {
+        // If profile fetch fails, fallback to default redirect
+        console.error("[Login] Failed to fetch user profile, using default redirect", profileError);
+        router.push(redirectTo);
+      }
     } catch (error) {
       const apiErr = error as APIError;
 
