@@ -13,6 +13,8 @@
 import Link from "next/link";
 import { useProjects } from "@/hooks/useProjects";
 import { useSprintGovernanceDashboard } from "@/hooks/useSprintGovernance";
+import { usePlanningHierarchy } from "@/hooks/usePlanningHierarchy";
+import { PlanningHierarchyTree } from "./components";
 import {
   getSprintStatusColor,
   getGateStatusColor,
@@ -407,6 +409,9 @@ export default function SprintGovernanceDashboard() {
     error,
   } = useSprintGovernanceDashboard(firstProject?.id || "");
 
+  // Get planning hierarchy for tree view
+  const { data: hierarchy } = usePlanningHierarchy(firstProject?.id || "");
+
   const isLoading = isLoadingProjects || isLoadingDashboard;
 
   if (isLoading) {
@@ -515,6 +520,27 @@ export default function SprintGovernanceDashboard() {
       {dashboard?.metrics && (
         <div className="mt-8">
           <MetricsSummary metrics={dashboard.metrics} />
+        </div>
+      )}
+
+      {/* Planning Hierarchy Preview */}
+      {hierarchy?.hierarchy && hierarchy.hierarchy.length > 0 && (
+        <div className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Planning Hierarchy</h2>
+            <Link
+              href="/app/planning"
+              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              View Full Hierarchy →
+            </Link>
+          </div>
+          <PlanningHierarchyTree
+            hierarchy={hierarchy.hierarchy}
+            activeSprintId={hierarchy.active_sprint_id}
+            projectName={firstProject?.name}
+            defaultExpanded={false}
+          />
         </div>
       )}
     </div>

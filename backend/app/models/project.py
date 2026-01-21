@@ -153,6 +153,18 @@ class Project(Base):
     sast_scans = relationship(
         "SASTScan", back_populates="project", cascade="all, delete-orphan"
     )
+    # AGENTS.md Integration (Sprint 80)
+    agents_md_files = relationship(
+        "AgentsMdFile", back_populates="project", cascade="all, delete-orphan"
+    )
+    # Dynamic Context Overlays (Sprint 83)
+    context_overlays = relationship(
+        "ContextOverlay", back_populates="project", cascade="all, delete-orphan"
+    )
+    # Evidence Manifests (Sprint 83)
+    evidence_manifests = relationship(
+        "EvidenceManifest", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Project(id={self.id}, name={self.name}, slug={self.slug})>"

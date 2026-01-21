@@ -264,5 +264,49 @@ export declare class ApiClient {
             content: string;
         }[];
     }>;
+    /**
+     * Gets SDLC context overlay for a project
+     *
+     * Returns current stage, gate status, sprint info, and active constraints.
+     * This is the same data posted to GitHub Check Runs.
+     *
+     * @param projectId - Project ID to get context for
+     * @returns Context overlay with stage, gate, sprint, and constraints
+     */
+    getContextOverlay(projectId: string): Promise<{
+        project_id: string;
+        stage_name: string;
+        gate_status: string;
+        strict_mode: boolean;
+        sprint?: {
+            number: number;
+            goal: string;
+            days_remaining: number;
+            start_date?: string;
+            end_date?: string;
+        };
+        constraints: Array<{
+            type: string;
+            severity: 'info' | 'warning' | 'error';
+            message: string;
+            affected_files?: string[];
+        }>;
+        generated_at: string;
+        formatted?: {
+            pr_comment?: string;
+            cli?: string;
+        };
+    }>;
+    /**
+     * Triggers context refresh for a project
+     *
+     * Forces re-evaluation of gate status and constraints.
+     *
+     * @param projectId - Project ID to refresh context for
+     */
+    refreshContextOverlay(projectId: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }
 //# sourceMappingURL=apiClient.d.ts.map

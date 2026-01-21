@@ -407,6 +407,31 @@ class ApiClient {
     async getSDLCTemplate(tier) {
         return this.get(`/api/v1/templates/sdlc-structure?tier=${tier}&version=5.1.2`);
     }
+    // ============================================
+    // AGENTS.md Context Overlay APIs (Sprint 81)
+    // ============================================
+    /**
+     * Gets SDLC context overlay for a project
+     *
+     * Returns current stage, gate status, sprint info, and active constraints.
+     * This is the same data posted to GitHub Check Runs.
+     *
+     * @param projectId - Project ID to get context for
+     * @returns Context overlay with stage, gate, sprint, and constraints
+     */
+    async getContextOverlay(projectId) {
+        return this.get(`/api/v1/agents-md/context/${projectId}`);
+    }
+    /**
+     * Triggers context refresh for a project
+     *
+     * Forces re-evaluation of gate status and constraints.
+     *
+     * @param projectId - Project ID to refresh context for
+     */
+    async refreshContextOverlay(projectId) {
+        return this.post(`/api/v1/agents-md/context/${projectId}/refresh`, {});
+    }
 }
 exports.ApiClient = ApiClient;
 //# sourceMappingURL=apiClient.js.map

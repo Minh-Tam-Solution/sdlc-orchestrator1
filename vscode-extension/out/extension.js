@@ -57,6 +57,7 @@ const gateStatusView_1 = require("./views/gateStatusView");
 const violationsView_1 = require("./views/violationsView");
 const projectsView_1 = require("./views/projectsView");
 const complianceChat_1 = require("./views/complianceChat");
+const contextPanel_1 = require("./views/contextPanel");
 const logger_1 = require("./utils/logger");
 const config_1 = require("./utils/config");
 const errors_1 = require("./utils/errors");
@@ -79,6 +80,8 @@ const state = {
     violationsProvider: undefined,
     projectsProvider: undefined,
     blueprintProvider: undefined,
+    contextPanelProvider: undefined,
+    contextStatusBar: undefined,
     chatParticipant: undefined,
     refreshInterval: undefined,
 };
@@ -109,8 +112,13 @@ async function activate(context) {
         state.projectsProvider = new projectsView_1.ProjectsProvider(state.apiClient, state.cacheService);
         // Initialize Blueprint Provider (Sprint 53 Day 2)
         state.blueprintProvider = new blueprintProvider_1.BlueprintProvider();
+        // Initialize Context Panel Provider (Sprint 81)
+        state.contextPanelProvider = new contextPanel_1.ContextPanelProvider(state.apiClient, state.cacheService);
+        state.contextStatusBar = new contextPanel_1.ContextStatusBarItem();
         // Register tree data providers
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('sdlc-gate-status', state.gateStatusProvider), vscode.window.registerTreeDataProvider('sdlc-violations', state.violationsProvider), vscode.window.registerTreeDataProvider('sdlc-projects', state.projectsProvider), vscode.window.registerTreeDataProvider('sdlc-blueprint', state.blueprintProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('sdlc-context', state.contextPanelProvider), vscode.window.registerTreeDataProvider('sdlc-gate-status', state.gateStatusProvider), vscode.window.registerTreeDataProvider('sdlc-violations', state.violationsProvider), vscode.window.registerTreeDataProvider('sdlc-projects', state.projectsProvider), vscode.window.registerTreeDataProvider('sdlc-blueprint', state.blueprintProvider));
+        // Register Context Panel commands (Sprint 81)
+        (0, contextPanel_1.registerContextCommands)(context, state.contextPanelProvider, state.contextStatusBar);
         // Register chat participant for Copilot-style @gate commands
         state.chatParticipant = new complianceChat_1.ComplianceChatParticipant(state.apiClient);
         const chatParticipantDisposable = vscode.chat.createChatParticipant('sdlc-orchestrator.gate', state.chatParticipant.handleChatRequest.bind(state.chatParticipant));
@@ -187,6 +195,15 @@ function deactivate() {
     state.violationsProvider = undefined;
     state.projectsProvider = undefined;
     state.chatParticipant = undefined;
+    // Cleanup Context Panel (Sprint 81)
+    if (state.contextPanelProvider) {
+        state.contextPanelProvider.dispose();
+        state.contextPanelProvider = undefined;
+    }
+    if (state.contextStatusBar) {
+        state.contextStatusBar.dispose();
+        state.contextStatusBar = undefined;
+    }
     logger_1.Logger.info('SDLC Orchestrator extension deactivated');
 }
 /**
@@ -267,6 +284,10 @@ async function refreshAllViews() {
     }
     try {
         const promises = [];
+        // Refresh Context Panel first (Sprint 81)
+        if (state.contextPanelProvider) {
+            promises.push(state.contextPanelProvider.refresh());
+        }
         if (state.gateStatusProvider) {
             promises.push(state.gateStatusProvider.refresh());
         }
@@ -277,6 +298,19 @@ async function refreshAllViews() {
             promises.push(state.projectsProvider.refresh());
         }
         await Promise.all(promises);
+        // Update status bar after refresh (Sprint 81)
+        if (state.contextStatusBar && state.apiClient) {
+            const projectId = state.apiClient.getCurrentProjectId();
+            if (projectId) {
+                try {
+                    const overlay = await state.apiClient.getContextOverlay(projectId);
+                    state.contextStatusBar.update(overlay);
+                }
+                catch {
+                    // Status bar will show error state via contextPanelProvider
+                }
+            }
+        }
     }
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
