@@ -35,6 +35,10 @@ interface BacklogListProps {
   showActions?: boolean;
   emptyMessage?: string;
   className?: string;
+  // Multi-select props
+  selectable?: boolean;
+  selectedIds?: string[];
+  onSelectionChange?: (selectedIds: string[]) => void;
 }
 
 type SortField = "priority" | "status" | "story_points" | "created_at" | "title";
@@ -202,9 +206,12 @@ interface BacklogItemRowProps {
   onClick?: (item: BacklogItem) => void;
   onStatusChange?: (itemId: string, newStatus: BacklogItemStatus) => void;
   showActions?: boolean;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onSelect?: (itemId: string, selected: boolean) => void;
 }
 
-function BacklogItemRow({ item, onClick, onStatusChange, showActions }: BacklogItemRowProps) {
+function BacklogItemRow({ item, onClick, onStatusChange, showActions, selectable, isSelected, onSelect }: BacklogItemRowProps) {
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
 
   const handleStatusChange = (newStatus: BacklogItemStatus) => {
@@ -214,15 +221,31 @@ function BacklogItemRow({ item, onClick, onStatusChange, showActions }: BacklogI
     setIsStatusMenuOpen(false);
   };
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onSelect?.(item.id, e.target.checked);
+  };
+
   return (
     <div
       className={`
         group flex items-center gap-3 border-b border-gray-100 px-4 py-3
         hover:bg-gray-50 transition-colors
         ${onClick ? "cursor-pointer" : ""}
+        ${isSelected ? "bg-blue-50" : ""}
       `}
       onClick={() => onClick?.(item)}
     >
+      {/* Checkbox for selection */}
+      {selectable && (
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={handleCheckboxChange}
+          onClick={(e) => e.stopPropagation()}
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+      )}
       {/* Type Icon */}
       <span className="text-lg" title={item.type}>
         {getBacklogItemTypeIcon(item.type)}
@@ -339,6 +362,9 @@ export function BacklogList({
   showActions = true,
   emptyMessage = "No backlog items found",
   className = "",
+  selectable = false,
+  selectedIds = [],
+  onSelectionChange,
 }: BacklogListProps) {
   // Filter state
   const [typeFilter, setTypeFilter] = useState<BacklogItemType | "all">("all");
@@ -428,15 +454,64 @@ export function BacklogList({
     }
   };
 
+  // Selection handlers
+  const handleItemSelect = (itemId: string, selected: boolean) => {
+    if (!onSelectionChange) return;
+    if (selected) {
+      onSelectionChange([...selectedIds, itemId]);
+    } else {
+      onSelectionChange(selectedIds.filter((id) => id !== itemId));
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (!onSelectionChange) return;
+    const allFilteredIds = filteredItems.map((item) => item.id);
+    const allSelected = allFilteredIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      // Deselect all filtered items
+      onSelectionChange(selectedIds.filter((id) => !allFilteredIds.includes(id)));
+    } else {
+      // Select all filtered items
+      const combinedIds = [...selectedIds, ...allFilteredIds];
+      const newSelection = Array.from(new Set(combinedIds));
+      onSelectionChange(newSelection);
+    }
+  };
+
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every((item) => selectedIds.includes(item.id));
+  const someFilteredSelected = filteredItems.some((item) => selectedIds.includes(item.id));
+
   return (
     <div className={`rounded-xl border border-gray-200 bg-white ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900">Backlog Items</h3>
-          <p className="text-xs text-gray-500">
-            {summary.filtered} of {summary.total} items | {summary.completedPoints}/{summary.totalPoints} SP
-          </p>
+        <div className="flex items-center gap-3">
+          {selectable && (
+            <input
+              type="checkbox"
+              checked={allFilteredSelected}
+              ref={(el) => {
+                if (el) el.indeterminate = someFilteredSelected && !allFilteredSelected;
+              }}
+              onChange={handleSelectAll}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              title="Select all visible items"
+            />
+          )}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Backlog Items
+              {selectable && selectedIds.length > 0 && (
+                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  {selectedIds.length} selected
+                </span>
+              )}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {summary.filtered} of {summary.total} items | {summary.completedPoints}/{summary.totalPoints} SP
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {/* Sort dropdown */}
@@ -544,6 +619,9 @@ export function BacklogList({
               onClick={onItemClick}
               onStatusChange={onStatusChange}
               showActions={showActions}
+              selectable={selectable}
+              isSelected={selectedIds.includes(item.id)}
+              onSelect={handleItemSelect}
             />
           ))
         )}

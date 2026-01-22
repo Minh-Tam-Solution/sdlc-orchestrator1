@@ -161,16 +161,22 @@ export function SprintModal({
     setFormData((prev) => {
       const newData = { ...prev };
 
-      if (name === "number" || name === "team_capacity") {
-        const numValue = value === "" ? null : parseInt(value, 10);
-        newData[name] = numValue as number;
-      } else {
-        (newData as Record<string, string>)[name] = value;
-      }
-
-      // Auto-update end date when start date changes
-      if (name === "start_date" && value) {
-        newData.end_date = getDefaultEndDate(value);
+      if (name === "number") {
+        newData.number = value === "" ? 0 : parseInt(value, 10);
+      } else if (name === "team_capacity") {
+        newData.team_capacity = value === "" ? null : parseInt(value, 10);
+      } else if (name === "name") {
+        newData.name = value;
+      } else if (name === "goal") {
+        newData.goal = value;
+      } else if (name === "start_date") {
+        newData.start_date = value;
+        // Auto-update end date when start date changes
+        if (value) {
+          newData.end_date = getDefaultEndDate(value);
+        }
+      } else if (name === "end_date") {
+        newData.end_date = value;
       }
 
       return newData;

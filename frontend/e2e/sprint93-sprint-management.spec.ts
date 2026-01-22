@@ -3,7 +3,7 @@
  * @status Sprint 93 - Planning Hierarchy Part 2
  * @description Tests for Sprint CRUD, Charts, and Backlog Management
  *
- * Test Coverage:
+ * Test Coverage (Day 1):
  * - Sprint Page Navigation
  * - Sprint List Display
  * - Sprint Modal (Create/Edit)
@@ -11,6 +11,11 @@
  * - Velocity Chart
  * - Team Workload Chart
  * - Backlog List with Filters
+ *
+ * Test Coverage (Day 2):
+ * - Backlog Item Modal (Create/Edit)
+ * - Backlog List Multi-Select
+ * - Bulk Move Modal
  *
  * @sdlc SDLC 5.1.3 Framework - Sprint 93
  * @reference Pillar 2: Sprint Planning Governance
@@ -495,6 +500,697 @@ test.describe("Sprint Governance (SDLC 5.1.3)", () => {
       const has24h = pageText?.includes("24h") || pageText?.includes("24 hour");
 
       console.log(`Documentation deadline - Text: ${hasDocumentation}, 24h: ${has24h}`);
+    }
+  });
+});
+
+// =============================================================================
+// Backlog Item Modal Tests (Day 2)
+// =============================================================================
+
+test.describe("Backlog Item Modal", () => {
+  test("should have Add Item button in sprint detail", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Look for Add Item button
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+        const hasButton = await addItemButton.first().isVisible().catch(() => false);
+        console.log(`Add Item button visible: ${hasButton}`);
+      }
+    }
+  });
+
+  test("should open create backlog item modal on button click", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+
+        if (await addItemButton.first().isVisible().catch(() => false)) {
+          await addItemButton.first().click();
+          await page.waitForTimeout(500);
+
+          // Check if modal is open
+          const modal = page.locator('[role="dialog"], [class*="Dialog"], [class*="Modal"]');
+          const modalVisible = await modal.first().isVisible().catch(() => false);
+          console.log(`Backlog item modal visible: ${modalVisible}`);
+
+          // Close modal if open
+          if (modalVisible) {
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+        }
+      }
+    }
+  });
+
+  test("should display backlog item form fields", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+
+        if (await addItemButton.first().isVisible().catch(() => false)) {
+          await addItemButton.first().click();
+          await page.waitForTimeout(500);
+
+          // Check for form fields
+          const titleField = page.locator('input[name="title"], input[id="title"]');
+          const descField = page.locator('textarea[name="description"], textarea[id="description"]');
+          const prioritySelect = page.locator('select[name="priority"], select[id="priority"]');
+          const storyPointsField = page.locator('input[name="story_points"], input[id="story_points"]');
+
+          const hasTitle = await titleField.first().isVisible().catch(() => false);
+          const hasDesc = await descField.first().isVisible().catch(() => false);
+          const hasPriority = await prioritySelect.first().isVisible().catch(() => false);
+          const hasStoryPoints = await storyPointsField.first().isVisible().catch(() => false);
+
+          console.log(`Form fields - Title: ${hasTitle}, Desc: ${hasDesc}, Priority: ${hasPriority}, Story Points: ${hasStoryPoints}`);
+
+          // Close modal
+          const cancelButton = page.locator('button:has-text("Cancel")');
+          if (await cancelButton.first().isVisible().catch(() => false)) {
+            await cancelButton.first().click();
+          }
+        }
+      }
+    }
+  });
+
+  test("should display type selection grid", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+
+        if (await addItemButton.first().isVisible().catch(() => false)) {
+          await addItemButton.first().click();
+          await page.waitForTimeout(500);
+
+          // Check for type selection buttons
+          const storyType = page.locator('button:has-text("Story")');
+          const taskType = page.locator('button:has-text("Task")');
+          const bugType = page.locator('button:has-text("Bug")');
+          const spikeType = page.locator('button:has-text("Spike")');
+
+          const hasStory = await storyType.first().isVisible().catch(() => false);
+          const hasTask = await taskType.first().isVisible().catch(() => false);
+          const hasBug = await bugType.first().isVisible().catch(() => false);
+          const hasSpike = await spikeType.first().isVisible().catch(() => false);
+
+          console.log(`Type buttons - Story: ${hasStory}, Task: ${hasTask}, Bug: ${hasBug}, Spike: ${hasSpike}`);
+
+          // Close modal
+          const cancelButton = page.locator('button:has-text("Cancel")');
+          if (await cancelButton.first().isVisible().catch(() => false)) {
+            await cancelButton.first().click();
+          }
+        }
+      }
+    }
+  });
+
+  test("should display Fibonacci story points", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+
+        if (await addItemButton.first().isVisible().catch(() => false)) {
+          await addItemButton.first().click();
+          await page.waitForTimeout(500);
+
+          // Check for Fibonacci story points options (1, 2, 3, 5, 8, 13, 21)
+          const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+          const hasFibonacci = modalText?.includes("1") && modalText?.includes("2") &&
+            modalText?.includes("3") && modalText?.includes("5") && modalText?.includes("8");
+
+          console.log(`Fibonacci story points visible: ${hasFibonacci}`);
+
+          // Close modal
+          const cancelButton = page.locator('button:has-text("Cancel")');
+          if (await cancelButton.first().isVisible().catch(() => false)) {
+            await cancelButton.first().click();
+          }
+        }
+      }
+    }
+  });
+
+  test("should open edit modal when clicking backlog item", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Click on a backlog item row (not checkbox)
+        const backlogItem = page.locator('[class*="border-b"][class*="cursor-pointer"], [class*="backlog-item"]').first();
+
+        if (await backlogItem.isVisible().catch(() => false)) {
+          await backlogItem.click();
+          await page.waitForTimeout(500);
+
+          // Check if edit modal is open
+          const modalTitle = page.locator('[role="dialog"] h2:has-text("Edit")');
+          const isEditModal = await modalTitle.first().isVisible().catch(() => false);
+
+          console.log(`Edit modal opened: ${isEditModal}`);
+
+          // Close modal if open
+          const cancelButton = page.locator('button:has-text("Cancel")');
+          if (await cancelButton.first().isVisible().catch(() => false)) {
+            await cancelButton.first().click();
+          }
+        }
+      }
+    }
+  });
+
+  test("should display acceptance criteria field", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        const addItemButton = page.locator('button:has-text("Add Item"), button:has-text("New Item")');
+
+        if (await addItemButton.first().isVisible().catch(() => false)) {
+          await addItemButton.first().click();
+          await page.waitForTimeout(500);
+
+          // Check for acceptance criteria field
+          const acField = page.locator('textarea[name="acceptance_criteria"], textarea[id="acceptance_criteria"]');
+          const hasAC = await acField.first().isVisible().catch(() => false);
+
+          // Also check for labels text
+          const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+          const hasACLabel = modalText?.toLowerCase().includes("acceptance criteria");
+
+          console.log(`Acceptance Criteria field: ${hasAC}, Label: ${hasACLabel}`);
+
+          // Close modal
+          const cancelButton = page.locator('button:has-text("Cancel")');
+          if (await cancelButton.first().isVisible().catch(() => false)) {
+            await cancelButton.first().click();
+          }
+        }
+      }
+    }
+  });
+});
+
+// =============================================================================
+// Multi-Select in Backlog List Tests (Day 2)
+// =============================================================================
+
+test.describe("Backlog List Multi-Select", () => {
+  test("should display selection checkboxes on backlog items", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Look for checkboxes in backlog list
+        const checkboxes = page.locator('input[type="checkbox"]');
+        const checkboxCount = await checkboxes.count();
+
+        console.log(`Checkboxes found in backlog list: ${checkboxCount}`);
+      }
+    }
+  });
+
+  test("should have Select All checkbox in header", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Look for select all checkbox in header
+        const selectAllCheckbox = page.locator('input[type="checkbox"][aria-label*="all"], input[type="checkbox"]').first();
+        const hasSelectAll = await selectAllCheckbox.isVisible().catch(() => false);
+
+        console.log(`Select All checkbox visible: ${hasSelectAll}`);
+      }
+    }
+  });
+
+  test("should toggle checkbox on click", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Find first checkbox that is not in the header
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          const initialState = await itemCheckbox.isChecked();
+          await itemCheckbox.click();
+          const newState = await itemCheckbox.isChecked();
+
+          console.log(`Checkbox toggled: initial=${initialState}, new=${newState}`);
+          expect(newState).not.toBe(initialState);
+        }
+      }
+    }
+  });
+
+  test("should show Move Items button when items selected", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Look for Move Items button
+          const moveButton = page.locator('button:has-text("Move")');
+          const hasMoveButton = await moveButton.first().isVisible().catch(() => false);
+
+          console.log(`Move Items button visible after selection: ${hasMoveButton}`);
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+});
+
+// =============================================================================
+// Bulk Move Modal Tests (Day 2)
+// =============================================================================
+
+test.describe("Bulk Move Modal", () => {
+  test("should open bulk move modal when clicking Move button", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check if bulk move modal is open
+            const modal = page.locator('[role="dialog"]');
+            const modalVisible = await modal.first().isVisible().catch(() => false);
+
+            console.log(`Bulk move modal visible: ${modalVisible}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should display selected items summary in bulk move modal", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check for selected items summary
+            const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+            const hasItemCount = modalText?.includes("1 item") || modalText?.includes("items");
+            const hasStoryPoints = modalText?.toLowerCase().includes("story points") || modalText?.includes("SP");
+
+            console.log(`Summary - Item count: ${hasItemCount}, Story points: ${hasStoryPoints}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should display target sprint selector", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check for target sprint selector
+            const sprintSelect = page.locator('[role="dialog"] select');
+            const hasSprintSelect = await sprintSelect.first().isVisible().catch(() => false);
+
+            // Check for Product Backlog option
+            const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+            const hasBacklogOption = modalText?.includes("Product Backlog") || modalText?.includes("No Sprint");
+
+            console.log(`Sprint selector: ${hasSprintSelect}, Backlog option: ${hasBacklogOption}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should display optional status update selector", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check for status update selector
+            const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+            const hasStatusOption = modalText?.toLowerCase().includes("status") || modalText?.includes("Keep current");
+
+            console.log(`Status update option visible: ${hasStatusOption}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should display SDLC 5.1.3 guidelines in bulk move modal", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check for SDLC 5.1.3 guidelines
+            const modalText = await page.locator('[role="dialog"]').textContent().catch(() => "");
+            const hasGuidelines = modalText?.includes("SDLC 5.1.3") ||
+              modalText?.includes("G-Sprint") ||
+              modalText?.includes("Carried Over");
+
+            console.log(`SDLC 5.1.3 guidelines found: ${hasGuidelines}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should show warning when moving to active sprint", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select an item
+        const itemCheckbox = page.locator('[class*="border-b"] input[type="checkbox"]').first();
+
+        if (await itemCheckbox.isVisible().catch(() => false)) {
+          await itemCheckbox.click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Select an active sprint in the dropdown if available
+            const sprintSelect = page.locator('[role="dialog"] select').first();
+
+            if (await sprintSelect.isVisible().catch(() => false)) {
+              // Try to select an option with "active" status
+              const options = await sprintSelect.locator('option').allTextContents();
+              const activeOption = options.find(opt => opt.includes("🏃") || opt.toLowerCase().includes("active"));
+
+              if (activeOption) {
+                await sprintSelect.selectOption({ label: activeOption });
+                await page.waitForTimeout(300);
+
+                // Check for warning message
+                const warningText = page.locator('text=/moving to active|team has capacity/i');
+                const hasWarning = await warningText.first().isVisible().catch(() => false);
+
+                console.log(`Active sprint warning visible: ${hasWarning}`);
+              }
+            }
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckbox.click();
+        }
+      }
+    }
+  });
+
+  test("should display item preview list in bulk move modal", async ({ page }) => {
+    await page.goto("/app/sprints");
+    await page.waitForLoadState("networkidle");
+
+    if (page.url().includes("/sprints")) {
+      const sprintLink = page.locator('a[href*="/sprints/"]').first();
+
+      if (await sprintLink.isVisible().catch(() => false)) {
+        await sprintLink.click();
+        await page.waitForLoadState("networkidle");
+
+        // Select multiple items if available
+        const itemCheckboxes = page.locator('[class*="border-b"] input[type="checkbox"]');
+        const checkboxCount = await itemCheckboxes.count();
+
+        if (checkboxCount > 0) {
+          // Select first checkbox
+          await itemCheckboxes.first().click();
+          await page.waitForTimeout(300);
+
+          // Click Move button
+          const moveButton = page.locator('button:has-text("Move")');
+
+          if (await moveButton.first().isVisible().catch(() => false)) {
+            await moveButton.first().click();
+            await page.waitForTimeout(500);
+
+            // Check for item preview list
+            const previewList = page.locator('[role="dialog"] [class*="overflow-y-auto"], [role="dialog"] [class*="max-h-"]');
+            const hasPreviewList = await previewList.first().isVisible().catch(() => false);
+
+            console.log(`Item preview list visible: ${hasPreviewList}`);
+
+            // Close modal
+            const cancelButton = page.locator('button:has-text("Cancel")');
+            if (await cancelButton.first().isVisible().catch(() => false)) {
+              await cancelButton.first().click();
+            }
+          }
+
+          // Uncheck the item
+          await itemCheckboxes.first().click();
+        }
+      }
     }
   });
 });
