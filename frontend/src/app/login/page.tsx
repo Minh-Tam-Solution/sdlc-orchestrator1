@@ -84,13 +84,13 @@ function LoginForm() {
         }
       }
 
-      // Sprint 88 Day 2: Check user role and redirect accordingly
-      // Platform admins (is_superuser) → /admin
+      // Sprint 88 Day 4-5: Check user role and redirect accordingly
+      // Platform admins (is_platform_admin) → /admin
       // Regular users → /app (or redirectTo)
       try {
         const userProfile = await getCurrentUser();
 
-        if (userProfile.is_superuser) {
+        if (userProfile.is_platform_admin) {
           // Platform admin: redirect to admin panel
           console.log("[Login] Platform admin detected - redirecting to /admin", {
             user_id: userProfile.id,

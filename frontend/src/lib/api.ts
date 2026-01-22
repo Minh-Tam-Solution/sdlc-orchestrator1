@@ -91,7 +91,8 @@ export interface UserProfile {
   email: string;
   name: string;
   is_active: boolean;
-  is_superuser: boolean;
+  is_superuser: boolean; // DEPRECATED - use is_platform_admin (Sprint 88)
+  is_platform_admin: boolean; // Sprint 88: Platform admin flag
   roles: string[];
   oauth_providers: string[];
   created_at: string;

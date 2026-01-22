@@ -27,10 +27,9 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   useEffect(() => {
-    // Sprint 88 Day 1 Task 2: Redirect platform admins to /admin
-    // Temporary: Use is_superuser until Day 4-5 adds is_platform_admin field
-    // Platform admins should NOT access customer data (/app routes)
-    if (!isLoading && user?.is_superuser) {
+    // Sprint 88 Day 4-5: Redirect platform admins to /admin
+    // Platform admins (is_platform_admin) should NOT access customer data (/app routes)
+    if (!isLoading && user?.is_platform_admin) {
       console.warn(
         "[AppLayout] Platform admin detected - redirecting to /admin",
         { user_id: user.id, email: user.email }
@@ -45,7 +44,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   }
 
   // Block render if platform admin (will redirect)
-  if (user?.is_superuser) {
+  if (user?.is_platform_admin) {
     return <PageLoadingSkeleton />;
   }
 
