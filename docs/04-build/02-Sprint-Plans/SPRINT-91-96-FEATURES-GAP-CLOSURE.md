@@ -1,9 +1,9 @@
-# Sprint 91-96: Features Matrix Gap Closure Plan
+# Sprint 91-100: Features Matrix Gap Closure + Expert Workflow Enhancements
 
 **Planning Date:** January 22, 2026  
-**Status:** 📋 PLANNED  
+**Status:** 📋 PLANNED (91-96) + CTO APPROVED (97-100)  
 **Framework:** SDLC 5.1.3 (7-Pillar Architecture)  
-**CTO Approval:** Pending
+**CTO Approval:** ✅ Approved (Jan 22, 2026)
 
 ---
 
@@ -799,6 +799,417 @@ Enhanced analytics for Go/No-Go review showcase.
 
 ---
 
+## Sprint 97-100: Expert Workflow Enhancements (Mar 1 - Mar 28, 2026)
+
+> **CTO Approved:** January 22, 2026  
+> **Source:** Expert AI Coding Workflow Analysis (2026)  
+> **Status:** 📋 PLANNED (Post Go/No-Go)
+
+### Background
+
+Based on comprehensive analysis of expert AI coding workflow (Jan 22, 2026), identified key enhancements to further improve SDLC Orchestrator's agentic capabilities. Current alignment: **92%** with expert workflow. These sprints close the remaining **8% gap**.
+
+### Priority Matrix (CTO Approved)
+
+| Enhancement | Priority | Sprint | Status |
+|-------------|----------|--------|--------|
+| EP-10: Planning Sub-agents | P1 | 97-99 | 📋 APPROVED |
+| EP-11: Feedback Loop Closure | P1 | 100 | 📋 APPROVED |
+| EP-09: Spec Generation | P2 | Q3 2026 | ⏸️ DEFERRED |
+| EP-12: Model Routing | P3 | Q4 2026 | ⏸️ DEFERRED |
+
+---
+
+## Sprint 97: ADR-034 + Planning Sub-agent Architecture (Mar 1-7, 2026)
+
+**Duration:** 5 days  
+**Priority:** P1 - Expert Workflow Core  
+**Story Points:** 21 SP  
+**Prerequisite:** Framework-First compliance (ADR-034)
+
+### 97.1 Objectives
+
+Create framework documentation and design architecture for Planning Sub-agent Orchestration.
+
+### 97.2 Features
+
+| Feature | Priority | SP | Status |
+|---------|----------|----|----|
+| ADR-034: Planning Sub-agent Orchestration | P1 | 5 | 📋 |
+| `sdlcctl plan` Command Design | P1 | 8 | 📋 |
+| AI Council Service Refactor Evaluation | P1 | 5 | 📋 |
+| CLAUDE.md Update (AI Best Practices 2026) | P1 | 3 | 📋 |
+
+### 97.3 Implementation Plan
+
+#### Day 1-2: Framework Documentation (16h)
+
+**ADR-034: Planning Sub-agent Orchestration**
+```markdown
+# ADR-034: Planning Sub-agent Orchestration
+
+## Context
+Expert AI workflow analysis (Jan 2026) identified that pre-planning
+pattern extraction via sub-agents prevents architectural drift.
+Key insight: "Agentic grep > RAG for context retrieval"
+
+## Decision
+1. Add `sdlcctl plan <task>` command
+2. Spawns explore sub-agents for:
+   - Similar implementations (agentic grep)
+   - Related ADRs and patterns
+   - Existing test patterns
+3. Synthesizes findings into implementation plan
+4. Human approval gate before execution
+
+## Consequences
+- Prevents architectural drift (15+ LOC changes)
+- Builds on established patterns
+- Maintains codebase consistency
+```
+
+**CLAUDE.md Update:**
+```yaml
+## AI Agent Best Practices (2026)
+
+### Planning Mode (CRITICAL for >15 LOC changes)
+- ALWAYS use planning mode for changes >15 LOC
+- Planning spawns explore sub-agents → extract patterns
+- Agentic grep > RAG for context retrieval
+
+### Model Selection Matrix
+- Opus 4.5 (70%): Large features, multi-file changes
+- Sonnet 4.5: Small fixes, reviews, changelog
+- GPT 5.2: Architecture, debugging when stuck
+- Gemini 3 Pro: Design, creativity, large context
+- Haiku 4.5: Quick answers, micro-edits
+
+### Sub-agents Usage
+- ✅ Use for: Research, thinking, pattern exploration
+- ❌ Avoid: Parallel editing in same project
+- Fork sessions to learn without polluting context
+
+### Developer Role Evolution
+- Design feedback loops, NOT write code
+- Monitor agent, identify patterns, update context
+- Make high-level architecture decisions
+```
+
+#### Day 3-4: Architecture Design (16h)
+
+**`sdlcctl plan` Command Architecture:**
+```python
+# backend/sdlcctl/commands/plan.py
+
+@app.command()
+def plan(
+    task: str = typer.Argument(..., help="Task description"),
+    project_path: Path = typer.Option(".", help="Project root"),
+    depth: int = typer.Option(3, help="Search depth for patterns"),
+    auto_approve: bool = typer.Option(False, help="Skip approval gate"),
+):
+    """
+    Planning mode with sub-agent orchestration.
+    
+    Spawns explore sub-agents to:
+    1. Search similar implementations (agentic grep)
+    2. Extract patterns from ADRs
+    3. Identify test patterns
+    4. Synthesize implementation plan
+    
+    Example:
+        sdlcctl plan "Add user authentication with OAuth2"
+        sdlcctl plan "Refactor payment service" --depth 5
+    """
+```
+
+#### Day 5: AI Council Evaluation (8h)
+
+**Evaluate Refactor vs New Service:**
+```yaml
+Option A: Refactor AI Council Service (Sprint 26)
+  Pros:
+    - Existing task decomposition logic
+    - Multi-provider integration ready
+    - Tested in production
+  Cons:
+    - Current focus is decomposition, not exploration
+    - May require significant refactoring
+    
+Option B: New Planning Sub-agent Service
+  Pros:
+    - Clean architecture for exploration
+    - Isolated context windows
+    - Purpose-built for pattern extraction
+  Cons:
+    - New service to maintain
+    - Potential duplication with AI Council
+
+Recommendation: Hybrid approach
+  - Extend AI Council with exploration capability
+  - New PlanningOrchestrator class that uses AI Council
+  - Shared multi-provider infrastructure
+```
+
+### 97.4 Success Criteria
+
+- ✅ ADR-034 created and CTO approved
+- ✅ CLAUDE.md updated with AI Best Practices 2026
+- ✅ `sdlcctl plan` command architecture documented
+- ✅ AI Council refactor decision made
+- ✅ Sprint 98-99 backlog refined
+
+---
+
+## Sprint 98: Planning Sub-agent Implementation Part 1 (Mar 8-14, 2026)
+
+**Duration:** 5 days  
+**Priority:** P1 - Expert Workflow Core  
+**Story Points:** 26 SP
+
+### 98.1 Objectives
+
+Implement core planning sub-agent service with pattern extraction.
+
+### 98.2 Features
+
+| Feature | Priority | SP | Status |
+|---------|----------|----|----|
+| PlanningOrchestrator Service | P1 | 8 | 📋 |
+| Pattern Extraction (Agentic Grep) | P1 | 8 | 📋 |
+| ADR Pattern Scanner | P1 | 5 | 📋 |
+| Test Pattern Scanner | P1 | 5 | 📋 |
+
+### 98.3 Implementation Plan
+
+**Files to Create:**
+```
+backend/app/services/planning_orchestrator_service.py
+backend/app/services/pattern_extraction_service.py
+backend/sdlcctl/commands/plan.py
+tests/unit/services/test_planning_orchestrator.py
+tests/integration/test_plan_command.py
+```
+
+**Core Service:**
+```python
+# backend/app/services/planning_orchestrator_service.py
+
+class PlanningOrchestratorService:
+    """
+    Orchestrates planning sub-agents for pre-implementation analysis.
+    Key insight: Agentic grep > RAG for context retrieval.
+    """
+    
+    async def plan(self, task: str, project_path: Path) -> PlanningResult:
+        """
+        Execute planning mode with sub-agent orchestration.
+        
+        Steps:
+        1. Spawn explore sub-agents (parallel)
+        2. Extract patterns from codebase
+        3. Extract patterns from ADRs
+        4. Identify test patterns
+        5. Synthesize implementation plan
+        6. Return for human approval
+        """
+        
+    async def _spawn_explore_agents(self, task: str) -> list[ExploreResult]:
+        """Spawn 3-5 explore sub-agents with isolated contexts."""
+        
+    async def _extract_patterns(self, results: list[ExploreResult]) -> PatternSummary:
+        """Synthesize exploration results into pattern summary."""
+        
+    async def _generate_plan(self, patterns: PatternSummary) -> ImplementationPlan:
+        """Generate implementation plan building on existing patterns."""
+```
+
+### 98.4 Success Criteria
+
+- ✅ PlanningOrchestratorService implemented
+- ✅ Pattern extraction working (agentic grep)
+- ✅ ADR scanner finding relevant patterns
+- ✅ Unit tests: 80% coverage
+- ✅ Integration test: `sdlcctl plan` basic flow
+
+---
+
+## Sprint 99: Planning Sub-agent Implementation Part 2 (Mar 15-21, 2026)
+
+**Duration:** 5 days  
+**Priority:** P1 - Expert Workflow Core  
+**Story Points:** 24 SP
+
+### 99.1 Objectives
+
+Complete planning sub-agent with UI integration and conformance checking.
+
+### 99.2 Features
+
+| Feature | Priority | SP | Status |
+|---------|----------|----|----|
+| Conformance Check Service | P1 | 8 | 📋 |
+| Plan Approval UI | P1 | 8 | 📋 |
+| GitHub Check Integration | P2 | 5 | 📋 |
+| E2E Tests | P1 | 3 | 📋 |
+
+### 99.3 Implementation Plan
+
+**Conformance Check:**
+```python
+# backend/app/services/conformance_check_service.py
+
+class ConformanceCheckService:
+    """
+    Compare proposed changes against established patterns.
+    Prevents architectural drift.
+    """
+    
+    async def check(self, proposed_diff: str, patterns: PatternSummary) -> ConformanceResult:
+        """
+        Returns:
+        - conformance_score: 0-100
+        - deviations: list of pattern violations
+        - recommendations: list of suggested changes
+        - requires_adr: bool (if new pattern introduced)
+        """
+```
+
+**Plan Approval UI:**
+```typescript
+// frontend/src/app/app/planning/plan-review/page.tsx
+
+// Features:
+// - Display extracted patterns
+// - Show implementation plan
+// - Conformance score visualization
+// - Approve/Reject/Request Changes buttons
+// - ADR creation trigger (if new pattern)
+```
+
+**GitHub Check Integration:**
+```yaml
+# .github/workflows/pattern-conformance.yml
+
+name: Pattern Conformance Check
+on: [pull_request]
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Conformance Check
+        run: sdlcctl plan --check --diff ${{ github.event.pull_request.diff_url }}
+      - name: Post Results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Post conformance score as PR comment
+```
+
+### 99.4 Success Criteria
+
+- ✅ Conformance check working
+- ✅ Plan approval UI functional
+- ✅ GitHub Check integration (optional)
+- ✅ E2E tests: 5 scenarios
+- ✅ Documentation complete
+
+---
+
+## Sprint 100: Feedback Loop Closure - EP-11 (Mar 22-28, 2026)
+
+**Duration:** 5 days  
+**Priority:** P1 - Expert Workflow Core  
+**Story Points:** 21 SP
+
+### 100.1 Objectives
+
+Close the feedback loop from PR review → specification refinement.
+
+### 100.2 Features
+
+| Feature | Priority | SP | Status |
+|---------|----------|----|----|
+| `pr_learnings` Table Migration | P1 | 3 | 📋 |
+| FeedbackLearningService | P1 | 8 | 📋 |
+| PR Comment Analyzer | P1 | 5 | 📋 |
+| Monthly Aggregation Job | P2 | 3 | 📋 |
+| CLAUDE.md Auto-Update (Quarterly) | P2 | 2 | 📋 |
+
+### 100.3 Implementation Plan
+
+**Database Migration:**
+```python
+# backend/alembic/versions/xxx_add_pr_learnings.py
+
+def upgrade():
+    op.create_table(
+        'pr_learnings',
+        sa.Column('id', UUID, primary_key=True),
+        sa.Column('project_id', UUID, sa.ForeignKey('projects.id')),
+        sa.Column('pr_id', sa.String(100)),
+        sa.Column('pr_url', sa.String(500)),
+        sa.Column('feedback_type', sa.Enum(
+            'pattern_violation',
+            'missing_requirement', 
+            'edge_case',
+            'performance',
+            'security',
+            'naming_convention'
+        )),
+        sa.Column('original_spec_section', sa.Text),
+        sa.Column('corrected_approach', sa.Text),
+        sa.Column('pattern_extracted', sa.Text),
+        sa.Column('applied_to_decomposition', sa.Boolean, default=False),
+        sa.Column('created_at', sa.DateTime, server_default=sa.func.now()),
+    )
+```
+
+**FeedbackLearningService:**
+```python
+# backend/app/services/feedback_learning_service.py
+
+class FeedbackLearningService:
+    """
+    Extracts learnings from PR reviews to improve future decompositions.
+    Closes the feedback loop: PR → Learning → Better Specs.
+    """
+    
+    async def extract_learnings_from_pr(self, pr_id: str) -> list[PRLearning]:
+        """
+        Analyze PR review comments for:
+        - Pattern violations
+        - Missing requirements
+        - Edge cases discovered
+        - Performance issues
+        - Security concerns
+        """
+        
+    async def update_decomposition_hints(self, project_id: str):
+        """
+        Monthly job: Aggregate learnings → Improve decomposition templates.
+        """
+        
+    async def generate_claude_md_update(self, learnings: list) -> str:
+        """
+        Quarterly: Synthesize learnings into CLAUDE.md sections.
+        Returns suggested additions for human review.
+        """
+```
+
+### 100.4 Success Criteria
+
+- ✅ `pr_learnings` table created
+- ✅ FeedbackLearningService implemented
+- ✅ PR comment analysis working
+- ✅ Monthly aggregation job scheduled
+- ✅ Unit tests: 80% coverage
+- ✅ Integration test: Full feedback loop
+
+---
+
 ## Summary Timeline
 
 ```
@@ -806,17 +1217,29 @@ Sprint  Dates           Focus                      SP    Coverage Gain  Status
 ════════════════════════════════════════════════════════════════════════════════
 90      Jan 22-24       Project Creation (Quick)   16    +2%   ✅ COMPLETE
 91      Jan 22          Teams & Organizations      34    +15%  ✅ COMPLETE (8 days early!)
-92      Jan 22-24       Planning Part 1 (Roadmap)  26    +10%  🔄 IN PROGRESS (80% done)
+92      Jan 22-24       Planning Part 1 (Roadmap)  26    +10%  ✅ COMPLETE (1 day early!)
 93      Jan 25-28       Planning Part 2 (Sprint)   29    +10%  📋 Next
 94      Jan 29-Feb 2    AGENTS.md Web UI           21    +8%   📋
 95      Feb 3-6         Evidence Manifest UI       18    +7%   📋
 96      Feb 7-10        Advanced Analytics         13    +3%   📋
 ────────────────────────────────────────────────────────────────────────────────
-Total:                  6 sprints (3 weeks!)       157   +55%  🔄 Accelerated!
+Sub-total:              6 sprints (3 weeks!)       157   +55%  🔄 Accelerated!
+════════════════════════════════════════════════════════════════════════════════
+
+--- POST GO/NO-GO: EXPERT WORKFLOW ENHANCEMENTS (CTO Approved Jan 22, 2026) ---
+
+97      Mar 1-7         ADR-034 + Plan Architecture 21   -     📋 EP-10 Part 1
+98      Mar 8-14        Planning Sub-agents Part 1  26   -     📋 EP-10 Part 2
+99      Mar 15-21       Planning Sub-agents Part 2  24   -     📋 EP-10 Part 3
+100     Mar 22-28       Feedback Loop (EP-11)       21   -     📋 EP-11
+────────────────────────────────────────────────────────────────────────────────
+Sub-total:              4 sprints (4 weeks)         92   -     📋 PLANNED
+════════════════════════════════════════════════════════════════════════════════
+GRAND TOTAL:            10 sprints (7 weeks)       249   +55%  
 ```
 
-**Timeline Acceleration:** Original 5 weeks → 3 weeks (40% faster!)
-**Reason:** Pre-existing infrastructure from Sprint 87 significantly reduced implementation effort.
+**Phase 1 (Sprint 91-96):** Features Gap Closure → 95% Web Coverage  
+**Phase 2 (Sprint 97-100):** Expert Workflow Enhancements → 100% Agentic Alignment
 
 **Web Coverage:** 53% → 95% (+42%)  
 **Timeline:** Jan 22 → Feb 28 (Go/No-Go Review)  
@@ -925,9 +1348,29 @@ Total:                  6 sprints (3 weeks!)       157   +55%  🔄 Accelerated!
 
 ---
 
-## Post-Launch Roadmap (Q2 2026)
+## Post-Launch Roadmap (Q2-Q3 2026)
 
-### CLI Enhancement (Sprint 97-99)
+### Expert Workflow Enhancements (Sprint 97-100) ✅ CTO APPROVED
+
+> **Source:** Expert AI Coding Workflow Analysis (Jan 22, 2026)  
+> **Alignment:** 92% → 100% with expert workflow
+
+| Sprint | Focus | SP | Key Deliverable |
+|--------|-------|----|-----------------|
+| 97 | ADR-034 + Architecture | 21 | Framework documentation, `sdlcctl plan` design |
+| 98 | Planning Sub-agents Part 1 | 26 | PlanningOrchestratorService, Pattern Extraction |
+| 99 | Planning Sub-agents Part 2 | 24 | Conformance Check, Plan Approval UI |
+| 100 | Feedback Loop (EP-11) | 21 | `pr_learnings` table, FeedbackLearningService |
+
+**Key Enhancements:**
+- **EP-10:** Planning Sub-agent Orchestration (prevents architectural drift)
+- **EP-11:** Feedback Loop Closure (PR → Learning → Better Specs)
+
+**Deferred (CTO Decision):**
+- EP-09: Spec Generation from Recording → Q3 2026
+- EP-12: Intelligent Model Routing → Q4 2026
+
+### CLI Enhancement (Sprint 101-103)
 
 - Authentication + Projects (Sprint 97)
 - Gates + Evidence Upload (Sprint 98)
