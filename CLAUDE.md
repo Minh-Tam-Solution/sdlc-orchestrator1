@@ -1,10 +1,10 @@
 # CLAUDE AI PROJECT CONTEXT - SDLC ORCHESTRATOR
 ## AI Assistant Configuration for Software 3.0 Operating System
 
-**Version**: 3.0.0
+**Version**: 3.1.0
 **Status**: Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 74 - Planning Hierarchy Implementation
-**Effective Date**: January 18, 2026
+**Current Sprint**: Sprint 93 - Planning Hierarchy Part 2
+**Effective Date**: January 22, 2026
 **Project**: SDLC Orchestrator - Operating System for Software 3.0
 **Authority**: CTO + CPO + CEO Approved
 **Framework**: SDLC 5.1.3 (7-Pillar Architecture)
@@ -1064,6 +1064,169 @@ As Claude AI working on SDLC Orchestrator, you MUST:
 
 ---
 
+## 🤖 **AI AGENT BEST PRACTICES (2026)**
+
+Based on expert workflow analysis (Jan 2026), these practices maximize AI-assisted development effectiveness.
+
+### **1. Planning Mode (CRITICAL for >15 LOC Changes)**
+
+```yaml
+When to Use Planning Mode:
+  - Changes affecting >15 lines of code
+  - Multi-file modifications
+  - New feature implementations
+  - Architectural changes
+
+Planning Mode Workflow:
+  1. Spawn explore sub-agents → Extract patterns from codebase
+  2. Search for similar implementations (agentic grep > RAG)
+  3. Review existing ADRs and conventions
+  4. Build implementation plan based on extracted patterns
+  5. Get human approval before execution
+
+Key Insight:
+  "Agentic grep (AI-powered code search) > RAG indexing"
+  - Direct codebase exploration finds real patterns
+  - RAG can miss context and produce stale results
+```
+
+### **2. Model Selection Matrix**
+
+```yaml
+Task-Type Model Routing (2026):
+
+  Large Features (>50 LOC, multi-file):
+    Primary: Claude Opus 4.5 (70% of work)
+    Reason: Best at complex reasoning, multi-file refactoring
+
+  Small Fixes (<15 LOC, single file):
+    Primary: Claude Sonnet 4.5
+    Reason: Fast, accurate for targeted changes
+
+  Architecture & Debugging:
+    Primary: GPT 5.2 (when stuck)
+    Reason: Strong reasoning, different perspective helps
+
+  Design & Creativity:
+    Primary: Gemini 3 Pro
+    Reason: Large context, creative solutions
+
+  Quick Answers & Micro-edits:
+    Primary: Claude Haiku 4.5
+    Reason: Fastest response time
+
+Expert Rule:
+  "Switch models when stuck - different model = different perspective"
+```
+
+### **3. Sub-agents Usage Guidelines**
+
+```yaml
+When to Use Sub-agents:
+  ✅ Research and exploration (isolated context)
+  ✅ Pattern extraction before implementation
+  ✅ Parallel information gathering
+  ✅ ADR and convention review
+
+When to AVOID Sub-agents:
+  ❌ Parallel editing in same project (coordination issues)
+  ❌ Tightly coupled operations
+  ❌ Sequential dependencies
+
+Session Management:
+  - Fork sessions to learn without polluting main context
+  - Use Explore sub-agents for pattern discovery
+  - Keep main session clean for implementation
+```
+
+### **4. Developer Role Evolution (Software 3.0)**
+
+```yaml
+2026 Developer Responsibilities:
+  ✅ Design feedback loops (not write code)
+  ✅ Monitor agent work quality
+  ✅ Identify patterns and update context files
+  ✅ Make high-level architecture decisions
+  ✅ Update AGENTS.md/CLAUDE.md with learnings
+  ✅ Configure tools/skills/MCP servers
+
+Key Shift:
+  "Developer role = Design feedback loops, NOT write code"
+  - Review AI output for patterns and anti-patterns
+  - Update context files to improve future generations
+  - Make architectural decisions AI cannot make alone
+```
+
+### **5. Specification Generation Workflow**
+
+```yaml
+Expert Specification Process:
+  1. Reference Collection
+     - Screenshot/record similar features
+     - Gather existing code patterns
+     - Review related ADRs
+
+  2. PRD Synthesis (Gemini 3 Pro)
+     - Large context for synthesis
+     - Input reference materials
+     - Output structured PRD draft
+
+  3. Interactive Refinement (Claude)
+     - "Interview mode" with ask_user_question
+     - Clarify ambiguities iteratively
+     - Produce refined specification
+
+  4. Dependency Discovery (ChatGPT + Search)
+     - Find recommended packages
+     - Check compatibility with tech stack
+     - Validate library choices
+```
+
+### **6. SDLC Orchestrator TRUE MOAT**
+
+```yaml
+What Differentiates SDLC Orchestrator:
+
+  Industry Standard (60K+ repos):
+    - Static AGENTS.md (manual updates)
+    - Guidance only, no enforcement
+
+  SDLC Orchestrator (Dynamic + Enforcement):
+    - Gate-aware AGENTS.md updates (Dynamic Context Overlay)
+    - OPA Policy Guards (Hard enforcement)
+    - Evidence Vault (Audit trail)
+    - Quality Gates (Block merge)
+
+Dynamic Context Updates:
+  When Gate G0.2 Pass → "Design approved. Architecture in /docs/arch.md."
+  When Gate G1 Pass → "Stage: Build. Unit tests required."
+  When Gate G2 Pass → "Integration tests mandatory. No new features."
+  When Gate G3 Pass → "STRICT MODE. Only bug fixes allowed."
+  When Bug Detected → "Known issue in auth_service.py. Do not modify."
+  When Security Scan Fails → "BLOCKED: CVE-XXX. Fix before proceeding."
+
+Key Insight:
+  "Static AGENTS.md is guidance. Dynamic AGENTS.md is governance."
+```
+
+### **7. Feedback Loop Closure**
+
+```yaml
+Learning from Code Reviews:
+  1. Extract patterns from PR review comments
+  2. Categorize: pattern_violation | missing_requirement | edge_case | performance
+  3. Store learnings in pr_learnings table
+  4. Monthly: Aggregate → Update decomposition hints
+  5. Quarterly: Synthesize → Update CLAUDE.md patterns
+
+Continuous Improvement:
+  - Track recurring review comments
+  - Update context files with lessons learned
+  - Improve future AI generations automatically
+```
+
+---
+
 ## 🎯 **WHEN IN DOUBT**
 
 ```yaml
@@ -1120,15 +1283,26 @@ You are successful if:
 
 ---
 
-**Last Updated**: January 18, 2026
+**Last Updated**: January 22, 2026
 **Owner**: CTO + CPO + CEO
 **Status**: ✅ Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 74 - Planning Hierarchy Implementation
+**Current Sprint**: Sprint 93 - Planning Hierarchy Part 2
 **Next Review**: Weekly CEO Review (Every Friday 3pm)
 
 ---
 
 ## 📋 **CHANGELOG**
+
+### v3.1.0 (January 22, 2026)
+- **AI Agent Best Practices (2026)** - New section with expert workflow insights
+- **Planning Mode Guidelines** - CRITICAL for >15 LOC changes
+- **Model Selection Matrix** - Task-type aware model routing (Opus, Sonnet, GPT, Gemini, Haiku)
+- **Sub-agents Usage Guidelines** - When to use and avoid sub-agents
+- **Developer Role Evolution** - Design feedback loops, not write code
+- **Specification Generation Workflow** - Expert 4-step process
+- **TRUE MOAT Documentation** - Dynamic AGENTS.md vs static industry standard
+- **Feedback Loop Closure** - Learning from PR reviews
+- **Sprint 93 Active** - Planning Hierarchy Part 2
 
 ### v3.0.0 (January 18, 2026)
 - **SDLC 5.1.3 Upgrade** - 7-Pillar Architecture framework
