@@ -196,7 +196,7 @@ PUT    /api/v1/organizations/{id}       - Update org
 **Duration:** 2 days (accelerated)
 **Priority:** P1 - Core Feature
 **Story Points:** 26 SP
-**Status:** 🔄 **~60% COMPLETE** (Day 1 progress excellent)
+**Status:** 🔄 **~80% COMPLETE** (Day 2 progress - Edit/Delete done)
 
 ### 92.0 Framework-First Alignment
 
@@ -220,10 +220,10 @@ Implement Roadmap and Phase management - **STATUS: 🚧 ~60% COMPLETE (Jan 22 Da
 | Create/Edit Phase | P1 | 5 | ✅ PhaseModal complete (Jan 22) |
 | Roadmap Timeline View | P1 | 5 | ✅ Timeline view exists |
 | Phase Gantt Chart | P2 | 3 | 📋 Deferred to Sprint 93 |
-| Edit/Delete Actions | P1 | 2 | 📋 Day 2 (Jan 23) |
-| E2E Tests | P1 | 4 | 📋 Day 2 (Jan 23) |
+| Edit/Delete Actions | P1 | 2 | ✅ Day 2 (Jan 22) |
+| E2E Tests | P1 | 4 | 📋 Remaining |
 
-**Sprint 92 Day 1 Result:** 5/8 tasks complete (~60%)
+**Sprint 92 Day 1-2 Result:** 7/8 tasks complete (~80%)
 
 ### 92.3 Day 1 Progress (Jan 22, 2026):
 
@@ -243,10 +243,15 @@ Implement Roadmap and Phase management - **STATUS: 🚧 ~60% COMPLETE (Jan 22 Da
 4. Bug fix: WorkspaceContext type errors (orgsData.items, teamsData.items)
 5. Build status: PASSING ✅
 
-**Remaining for Day 2:**
-1. Edit/Delete actions in PlanningHierarchyTree (context menu) - 4h
-2. PhaseModal tree integration ("Add Phase" button) - 2h
-3. E2E tests (5 scenarios) - 4h
+**Day 2 Completed (Jan 22, 2026):**
+1. ✅ Edit/Delete actions in PlanningHierarchyTree (action menu ⋮)
+2. ✅ "Add Phase" from roadmap action menu
+3. ✅ "Add Sprint" navigation from phase action menu
+4. ✅ Delete confirmation dialogs for roadmap/phase
+5. ✅ Full TypeScript type safety (Roadmap/Phase types)
+
+**Remaining:**
+1. E2E tests (5 scenarios) - 4h
 
 Implement Roadmap and Phase management - first half of Planning Hierarchy (Sprint 74-77 scope).
 
@@ -260,7 +265,7 @@ Implement Roadmap and Phase management - first half of Planning Hierarchy (Sprin
 | Create/Edit Phase | P1 | 5 | ✅ Sprint 92 (Jan 22) |
 | Roadmap Timeline View | P1 | 5 | ✅ Pre-existing (Sprint 87) |
 | Phase Gantt Chart | P2 | 3 | 📋 Deferred to Sprint 93 |
-| Edit/Delete in Tree View | P2 | 3 | 📋 Remaining |
+| Edit/Delete in Tree View | P1 | 3 | ✅ Day 2 (Jan 22) |
 
 ### 92.3 Completed Work (Jan 22, 2026)
 
@@ -284,28 +289,37 @@ Implement Roadmap and Phase management - first half of Planning Hierarchy (Sprin
 - ✅ TypeScript: No errors in Planning components
 - ✅ Modals: Create Roadmap and Create Phase functional
 
-### 92.4 Remaining Work
+### 92.4 Day 2 Completed Work (Jan 22, 2026)
 
-#### Edit/Delete Actions in Tree View (4h)
+**Files Modified:**
+- `frontend/src/app/app/sprints/components/PlanningHierarchyTree.tsx` - Added action menu
+- `frontend/src/app/app/planning/page.tsx` - Added delete confirmation, action handlers
 
-**Approach Options:**
-1. **Context Menu**: Right-click on tree node → Edit/Delete/Add Child
-2. **Inline Actions**: Hover reveals action buttons
-3. **Selection Mode**: Select node → toolbar shows actions
+**Features Implemented:**
+1. **Action Menu (⋮)**: Dropdown on hover for Roadmap/Phase nodes
+   - Edit Roadmap/Phase: Opens modal with existing data
+   - Delete: Opens confirmation dialog
+   - Add Phase: Quick create child phase
+   - Add Sprint: Navigate to sprint creation page
+2. **Delete Confirmation Dialog**: Reusable component with warning
+3. **TreeNodeActions Interface**: Callbacks for all CRUD operations
+4. **Full TypeScript Type Safety**: Proper Roadmap/Phase object construction
 
-**Implementation:**
-- Add `onEditRoadmap`, `onDeleteRoadmap`, `onAddPhase` callbacks to PlanningHierarchyTree
-- Pass handlers from page.tsx to connect to modals
-- Add confirmation dialog for delete
+**Technical Details:**
+- ActionMenu/ActionMenuItem components with click-outside close
+- useDeleteRoadmap/useDeletePhase hooks with cache invalidation
+- roadmapId passed through delete flow for proper query invalidation
 
-#### E2E Tests (2h)
+### 92.5 Remaining Work
+
+#### E2E Tests (4h)
 
 **Scenarios:**
 1. Create new roadmap via modal
-2. Edit existing roadmap
-3. Create phase within roadmap
-4. View planning hierarchy tree
-5. Switch between Tree and Timeline views
+2. Edit existing roadmap via action menu
+3. Delete roadmap with confirmation
+4. Create phase within roadmap via "Add Phase"
+5. View planning hierarchy tree
 
 ### 92.4 API Endpoints
 
@@ -323,13 +337,15 @@ PUT    /api/v1/planning/phases/{id}
 DELETE /api/v1/planning/phases/{id}
 ```
 
-### 92.5 Success Criteria
+### 92.6 Success Criteria
 
-- ✅ Roadmap CRUD functional
-- ✅ Phase CRUD functional
+- ✅ Roadmap CRUD functional (Create/Edit/Delete)
+- ✅ Phase CRUD functional (Create/Edit/Delete)
 - ✅ Timeline visualization working
 - ✅ Roadmap-Phase hierarchy enforced
-- ✅ E2E tests: 6 scenarios
+- ✅ Action menu for tree node operations
+- ✅ Delete confirmation with warning
+- 📋 E2E tests: 5 scenarios (pending)
 
 ---
 
