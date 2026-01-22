@@ -15,10 +15,11 @@ Purpose:
 - Contains teams and users
 - Organization-wide settings and policy defaults
 
-SDLC 5.1.2 Alignment:
+SDLC 5.1.3 Alignment (ADR-029):
 - Organizations coordinate AI+Human teams
-- Settings support SASE artifacts (BriefingScript, MentorScript)
+- Settings support AGENTS.md and SASE artifacts (CRP, MRP, VCR)
 - Plan tiers map to SDLC 4-Tier Classification
+- Note: BRS/MTS/LPS deprecated in favor of industry-standard AGENTS.md
 
 Zero Mock Policy: Production-ready SQLAlchemy 2.0 model
 =========================================================================

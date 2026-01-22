@@ -3,12 +3,12 @@
 SOP Generator Service - AI-Assisted Standard Operating Procedure Generation
 SDLC Orchestrator - Phase 2-Pilot (SE 3.0 Track 1)
 
-Version: 1.0.0
-Date: December 23, 2025
-Status: ACTIVE - Phase 2-Pilot Week 1
+Version: 1.1.0
+Date: January 22, 2026
+Status: ACTIVE - Sprint 78 Pilot Complete
 Authority: CTO Approved (BRS-PILOT-001)
 Foundation: SE 3.0 SASE Integration, Phase 1-Spec (v5.1.0-agentic-spec-alpha)
-Framework: SDLC 5.1.0 Complete Lifecycle
+Framework: SDLC 5.1.3 (7-Pillar Architecture)
 
 Purpose:
 - Generate SOPs from workflow descriptions using AI
@@ -16,7 +16,7 @@ Purpose:
 - Produce MRP evidence for each generation
 - Enable VCR approval workflow
 
-BRS Reference: BRS-PILOT-001-NQH-Bot-SOP-Generator.yaml
+BRS Reference: BRS-PILOT-001-NQH-Bot-SOP-Generator.yaml (historical)
 Functional Requirements:
 - FR1: Generate SOP from workflow description
 - FR2: Include 5 mandatory sections
@@ -32,6 +32,12 @@ Non-Functional Requirements:
 - NFR3: Cost <$50/month (Ollama)
 - NFR4: Success rate ≥95%
 - NFR5: No sensitive data leakage
+
+ADR-029 Note (AGENTS.md Transition):
+- This service remains active for SOP document generation
+- SASE artifacts (CRP, MRP, VCR) workflow unchanged
+- New AI coding instructions should use AGENTS.md format
+- BRS artifacts deprecated for new projects
 
 Zero Mock Policy: 100% real implementation
 =========================================================================

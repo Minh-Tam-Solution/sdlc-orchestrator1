@@ -15,10 +15,11 @@ Purpose:
 - Groups users and projects for team governance
 - Supports SASE workflow configuration
 
-SDLC 5.1.2 Alignment:
+SDLC 5.1.3 Alignment (ADR-029):
 - Teams coordinate SE4H (Agent Coach) and SE4A (Agent Executor)
-- Settings store MentorScript references and BriefingScript templates
+- Settings store AGENTS.md configuration and SASE artifacts (CRP, MRP, VCR)
 - Agentic maturity level (L0-L3) for team autonomy
+- Note: BRS/MTS/LPS deprecated in favor of industry-standard AGENTS.md
 
 Zero Mock Policy: Production-ready SQLAlchemy 2.0 model
 =========================================================================
@@ -239,13 +240,30 @@ class Team(Base):
         return self.settings.get("auto_approve_mrp", False)
 
     @property
+    def agents_md_config(self) -> dict:
+        """Get AGENTS.md configuration for this team.
+
+        Note: Replaces deprecated MentorScript/BriefingScript per ADR-029.
+        AGENTS.md is the industry-standard format for AI coding agents.
+        """
+        return self.settings.get("agents_md", {})
+
+    @property
     def mentor_scripts(self) -> list[str]:
-        """Get list of MentorScript references."""
+        """Get list of MentorScript references.
+
+        DEPRECATED: Use agents_md_config instead per ADR-029.
+        Retained for backwards compatibility with Sprint 78 pilot data.
+        """
         return self.settings.get("mentor_scripts", [])
 
     @property
     def briefing_templates(self) -> list[str]:
-        """Get list of BriefingScript template references."""
+        """Get list of BriefingScript template references.
+
+        DEPRECATED: Use agents_md_config instead per ADR-029.
+        Retained for backwards compatibility with Sprint 78 pilot data.
+        """
         return self.settings.get("briefing_templates", [])
 
     # ==================== Query Methods ====================

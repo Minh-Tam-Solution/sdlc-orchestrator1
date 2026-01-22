@@ -3,12 +3,12 @@
 SOP Generator API Routes - Phase 2-Pilot (SE 3.0 Track 1)
 SDLC Orchestrator - SASE Level 1 Integration
 
-Version: 1.0.0
-Date: December 23, 2025
-Status: ACTIVE - Phase 2-Pilot Week 1
+Version: 1.1.0
+Date: January 22, 2026
+Status: ACTIVE - Sprint 78 Pilot Complete
 Authority: CTO Approved (BRS-PILOT-001)
 Foundation: SE 3.0 SASE Integration, Phase 1-Spec (v5.1.0-agentic-spec-alpha)
-Framework: SDLC 5.1.0 Complete Lifecycle
+Framework: SDLC 5.1.3 (7-Pillar Architecture)
 
 Endpoints:
 - POST /api/sop/generate - Generate SOP from workflow description (FR1)
@@ -17,7 +17,11 @@ Endpoints:
 - GET /api/sop/{sop_id}/mrp - Get MRP evidence (FR6)
 - POST /api/sop/{sop_id}/vcr - Submit VCR decision (FR7)
 
-BRS Reference: BRS-PILOT-001-NQH-Bot-SOP-Generator.yaml
+ADR-029 Note (AGENTS.md Transition):
+- BRS-PILOT-001 remains active as historical pilot reference
+- New projects should use AGENTS.md for AI coding instructions
+- SASE artifacts (CRP, MRP, VCR) remain unchanged
+- BRS/MTS/LPS deprecated for new implementations
 =========================================================================
 """
 
