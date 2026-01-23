@@ -1,13 +1,13 @@
 # CLAUDE AI PROJECT CONTEXT - SDLC ORCHESTRATOR
 ## AI Assistant Configuration for Software 3.0 Operating System
 
-**Version**: 3.1.0
+**Version**: 3.2.0
 **Status**: Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 93 - Planning Hierarchy Part 2
-**Effective Date**: January 22, 2026
+**Current Sprint**: Sprint 100 - Feedback Learning Service
+**Effective Date**: January 23, 2026
 **Project**: SDLC Orchestrator - Operating System for Software 3.0
 **Authority**: CTO + CPO + CEO Approved
-**Framework**: SDLC 5.1.3 (7-Pillar Architecture)
+**Framework**: SDLC 5.2.0 (7-Pillar + AI Governance Principles)
 **SE 3.0 Status**: Track 1 APPROVED - SASE Integration Complete
 **EP-06 Status**: IR-Based Codegen Engine - Sprint 45-50 (~$50K investment)
 
@@ -35,19 +35,22 @@ SDLC Orchestrator is the **Operating System for Software 3.0** - a control plane
 
 ```yaml
 Current Stage: Stage 04 (BUILD - Development & Implementation)
-Current Sprint: Sprint 74 - Planning Hierarchy Implementation
+Current Sprint: Sprint 100 - Feedback Learning Service
 Gate G3 Readiness: 98.2% (EXCEEDS 95% threshold)
 Timeline: 90 days MVP + 6 sprints EP-06 extension
 Budget: $564K (8.5 FTE team) + $50K EP-06 investment
 Target: Vietnam SME Pilot (5 founding customers)
-Framework: SDLC 5.1.3 (7-Pillar Architecture)
+Framework: SDLC 5.2.0 (7-Pillar + AI Governance Principles)
 
-SDLC 5.1.3 Key Features:
+SDLC 5.2.0 Key Features:
   ✅ 7-Pillar Architecture (Design Thinking → Documentation Permanence)
+  ✅ AI Governance Principles (7 principles for AI-Human collaboration)
+  ✅ Risk-Based Planning Mode (replaces LOC-based triggers)
+  ✅ AI Tools Landscape (tool profiles, best practices 2026)
+  ✅ Concentric Circles Model (Core → Governance → Outer Ring)
+  ✅ SASE Artifacts Simplified (CRP, MRP, VCR + AGENTS.md standard)
   ✅ Sprint Planning Governance (Pillar 2) - G-Sprint/G-Sprint-Close Gates
-  ✅ Planning Hierarchy: ROADMAP → PHASE → SPRINT → BACKLOG
   ✅ Dual-Track Quality Gates (Feature + Sprint)
-  ✅ 24h Documentation Enforcement
 
 EP-06 IR-Based Codegen Engine (Sprint 45-50):
   Sprint 45: Multi-Provider Architecture (Ollama → Claude → DeepCode)
@@ -89,13 +92,13 @@ Next Gate:
 
 ## 🤖 **YOUR ROLE AS AI ASSISTANT**
 
-You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 5.0.0. Your primary responsibilities:
+You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 5.2.0. Your primary responsibilities:
 
 ### **1. Code Generation & Implementation**
 - Generate **production-ready code** (Python FastAPI, React TypeScript, PostgreSQL)
 - Follow **Zero Mock Policy** (no `// TODO`, no placeholders, real implementations only)
 - Integrate with **OSS components** (OPA, MinIO, Grafana, Redis) via adapter pattern
-- Apply **SDLC 5.1.3 patterns** with 7-Pillar Architecture and Sprint Governance
+- Apply **SDLC 5.2.0 patterns** with 7-Pillar Architecture, AI Governance Principles, and Risk-Based Planning
 - Follow **Code File Naming Standards** (snake_case for Python ≤50 chars, camelCase/PascalCase for TypeScript)
 
 ### **2. Architecture & Design Review**
@@ -152,7 +155,7 @@ Framework Submodule:
   URL: https://github.com/Minh-Tam-Solution/SDLC-Enterprise-Framework
   Location: /home/nqh/shared/SDLC-Orchestrator/SDLC-Enterprise-Framework/
   Type: Git submodule
-  Version: SDLC 5.1.3 (7-Pillar Architecture)
+  Version: SDLC 5.2.0 (7-Pillar + AI Governance Principles)
   Purpose: Methodology layer, templates, best practices
 ```
 
@@ -184,7 +187,7 @@ mkdir -p 03-Templates-Tools/SASE-Artifacts
 
 # Commit to Framework repo
 git add .
-git commit -m "feat(SDLC 5.1.0): Add SASE artifact templates"
+git commit -m "feat(SDLC 5.2.0): Add SASE artifact templates"
 git push origin main
 
 # Update Orchestrator submodule pointer
@@ -400,7 +403,7 @@ Core Capabilities (ADR-011 to ADR-014):
      - CLI tool: sdlcctl validate/fix/init/report
      - Pre-commit hook (block non-compliant commits)
      - CI/CD gate (GitHub Actions integration)
-     - 100% SDLC 4.9.1 folder structure enforcement
+     - 100% SDLC 5.2.0 folder structure enforcement
 ```
 
 ---
@@ -548,7 +551,7 @@ Frontend:
   Component render: <100ms
 ```
 
-### **4. Code File Naming Standards (SDLC 5.0.0 - MANDATORY)**
+### **4. Code File Naming Standards (SDLC 5.2.0 - MANDATORY)**
 
 ```yaml
 Python Files:
@@ -774,7 +777,7 @@ Code Quality:
   - Pre-commit: Linting (ruff, ESLint) + formatting (black, Prettier)
   - CI/CD: Tests (95%+ coverage), security scan (Semgrep), SBOM (Syft)
   - Code review: 2+ approvers required (Tech Lead + Backend Lead)
-  - File naming: SDLC 5.0.0 Code File Naming Standards enforced
+  - File naming: SDLC 5.2.0 Code File Naming Standards enforced
 
 Performance:
   - Load test: 100K concurrent users (Locust)
@@ -906,7 +909,7 @@ PHASE-04: SDLC Validator (Sprint 29-30 - Jan 2026)
     - Web UI compliance report
   Success Criteria:
     - Validation <10s (1000+ files)
-    - 100% accuracy on SDLC 5.0.0
+    - 100% accuracy on SDLC 5.2.0
     - Pre-commit <2s
   Reference: docs/03-Development-Implementation/04-Phase-Plans/PHASE-04-SDLC-VALIDATOR.md
 ```
@@ -952,7 +955,7 @@ ADR-013: 4-Level Planning Hierarchy
 ADR-014: SDLC Structure Validator
   - Problem: 5 NQH projects have inconsistent folder structures
   - Decision: CLI + pre-commit + CI/CD enforcement
-  - Consequences: 100% SDLC 5.0.0 compliance across portfolio
+  - Consequences: 100% SDLC 5.2.0 compliance across portfolio
 ```
 
 ---
@@ -1051,7 +1054,7 @@ As Claude AI working on SDLC Orchestrator, you MUST:
 - Understand **4-Phase implementation** (Sprint 26-30)
 - Apply **Context-Aware Requirements** (MANDATORY/RECOMMENDED/OPTIONAL)
 - Follow **4-Level Planning Hierarchy** (Roadmap → Phase → Sprint → Backlog)
-- Enforce **SDLC 5.0.0 folder structure** (10 stages: 00-10, 4-Tier Classification)
+- Enforce **SDLC 5.2.0 folder structure** (10 stages: 00-10, 4-Tier Classification)
 - Reference **ADR-011 to ADR-014** for AI Governance decisions
 
 ### **7. EP-06 Codegen Awareness (Sprint 45-50 - NEW)**
@@ -1068,26 +1071,35 @@ As Claude AI working on SDLC Orchestrator, you MUST:
 
 Based on expert workflow analysis (Jan 2026), these practices maximize AI-assisted development effectiveness.
 
-### **1. Planning Mode (CRITICAL for >15 LOC Changes)**
+### **1. Planning Mode (SDLC 5.2.0 - RISK-BASED TRIGGERS)**
 
 ```yaml
-When to Use Planning Mode:
-  - Changes affecting >15 lines of code
-  - Multi-file modifications
-  - New feature implementations
-  - Architectural changes
+When to Use Planning Mode (MANDATORY - Risk-Based):
+  - Data schema / API contracts (breaking changes)
+  - Authentication / Authorization (security-critical)
+  - Cross-service boundaries (coordination complexity)
+  - Concurrency / Race conditions (hard to test)
+  - Security-sensitive code (vulnerabilities)
+  - Public API interfaces (external impact)
+  - Payment / Financial logic (money involved)
 
-Planning Mode Workflow:
-  1. Spawn explore sub-agents → Extract patterns from codebase
-  2. Search for similar implementations (agentic grep > RAG)
-  3. Review existing ADRs and conventions
-  4. Build implementation plan based on extracted patterns
-  5. Get human approval before execution
+When to Use Planning Mode (RECOMMENDED):
+  - >50 LOC changes (not hard rule, use judgment)
+  - >3 files affected
+  - Unfamiliar code area
+  - Complex business logic
 
-Key Insight:
-  "Agentic grep (AI-powered code search) > RAG indexing"
-  - Direct codebase exploration finds real patterns
-  - RAG can miss context and produce stale results
+Planning Mode 4-Phase Workflow:
+  1. EXPLORE → Search similar implementations (agentic grep > RAG)
+  2. SYNTHESIZE → Build implementation plan from extracted patterns
+  3. APPROVE → Present to human for validation
+  4. EXECUTE → Generate code following approved plan
+
+Key Insight (5.2.0):
+  "Planning is RISK-BASED, not LOC-based"
+  - Simple rename across 50 files? Maybe skip planning.
+  - Touches auth even 5 lines? PLAN.
+  - Intent-based, not size-based.
 ```
 
 ### **2. Model Selection Matrix**
@@ -1267,35 +1279,45 @@ You are successful if:
 - ✅ **Test Coverage**: 95%+ (unit + integration)
 - ✅ **CTO Approval**: Code review pass (2+ approvers)
 - ✅ **Gate G3 Pass**: Ship Ready APPROVED (Dec 12, 2025, 98.2%)
-- ✅ **SDLC 5.0.0 Compliance**: Code File Naming Standards + 4-Tier Classification enforced
+- ✅ **SDLC 5.2.0 Compliance**: Code File Naming Standards + 4-Tier Classification + Risk-Based Planning enforced
 
 ---
 
 **Template Status**: ✅ **SDLC ORCHESTRATOR AI CONTEXT COMPLETE**
-**Framework**: ✅ **SDLC 5.1.3 (7-PILLAR ARCHITECTURE)**
+**Framework**: ✅ **SDLC 5.2.0 (7-PILLAR + AI GOVERNANCE PRINCIPLES)**
 **Authorization**: ✅ **CTO + CPO + CEO APPROVED**
 
 ---
 
-*SDLC Orchestrator - First Governance-First Platform on SDLC 5.1.3. Zero facade tolerance. Battle-tested patterns. Production excellence.*
+*SDLC Orchestrator - First Governance-First Platform on SDLC 5.2.0. Zero facade tolerance. Battle-tested patterns. Production excellence.*
 
 **"Quality over quantity. Real implementations over mocks. Let's build with discipline."** - CTO
 
 ---
 
-**Last Updated**: January 22, 2026
+**Last Updated**: January 23, 2026
 **Owner**: CTO + CPO + CEO
 **Status**: ✅ Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 93 - Planning Hierarchy Part 2
+**Current Sprint**: Sprint 100 - Feedback Learning Service
 **Next Review**: Weekly CEO Review (Every Friday 3pm)
 
 ---
 
 ## 📋 **CHANGELOG**
 
+### v3.2.0 (January 23, 2026)
+- **SDLC 5.2.0 Framework Upgrade** - Major methodology update
+- **AI Governance Principles** - 7 new principles for AI-Human collaboration
+- **Risk-Based Planning Mode** - Replaces LOC-based triggers (auth, API, payments trigger planning)
+- **Concentric Circles Model** - Core (timeless) → Governance (stable) → Outer Ring (changing)
+- **AI Tools Landscape** - New section for tool profiles and best practices 2026
+- **SASE Artifacts Simplified** - BRS/MTS/LPS deprecated, AGENTS.md adopted (industry standard)
+- **CONTENT-MAP.md + DEPRECATION-POLICY.md** - New governance documents in Framework
+- **Sprint 100 Active** - Feedback Learning Service
+
 ### v3.1.0 (January 22, 2026)
 - **AI Agent Best Practices (2026)** - New section with expert workflow insights
-- **Planning Mode Guidelines** - CRITICAL for >15 LOC changes
+- **Planning Mode Guidelines** - CRITICAL for >15 LOC changes (updated in v3.2.0)
 - **Model Selection Matrix** - Task-type aware model routing (Opus, Sonnet, GPT, Gemini, Haiku)
 - **Sub-agents Usage Guidelines** - When to use and avoid sub-agents
 - **Developer Role Evolution** - Design feedback loops, not write code
@@ -1305,7 +1327,7 @@ You are successful if:
 - **Sprint 93 Active** - Planning Hierarchy Part 2
 
 ### v3.0.0 (January 18, 2026)
-- **SDLC 5.1.3 Upgrade** - 7-Pillar Architecture framework
+- **SDLC 5.1.3 Upgrade** - 7-Pillar Architecture framework (superseded by 5.2.0)
 - **Sprint Planning Governance** - Pillar 2 with G-Sprint/G-Sprint-Close gates
 - **Sprint 74 Active** - Planning Hierarchy Implementation
 - **Planning Hierarchy** - ROADMAP → PHASE → SPRINT → BACKLOG
