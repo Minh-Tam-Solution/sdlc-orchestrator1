@@ -129,6 +129,16 @@ class Project(Base):
         comment="SDLC Framework version (e.g., 5.2.0) for compliance audits"
     )
 
+    # Policy Pack Tier (Sprint 102 - 4-Tier Enforcement)
+    # Determines policy enforcement level for the project
+    policy_pack_tier = Column(
+        String(20),
+        nullable=False,
+        default="PROFESSIONAL",
+        server_default="PROFESSIONAL",
+        comment="Policy tier: LITE, STANDARD, PROFESSIONAL, ENTERPRISE"
+    )
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     updated_at = Column(
