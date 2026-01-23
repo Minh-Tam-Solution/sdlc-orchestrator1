@@ -3,9 +3,9 @@
 AGENTS.md Validator - Structure and Content Validation
 SDLC Orchestrator - Sprint 80 (AGENTS.md Integration)
 
-Version: 1.0.0
-Date: January 19, 2026
-Status: ACTIVE - Sprint 80 Implementation
+Version: 1.1.0
+Date: January 23, 2026
+Status: ACTIVE - Sprint 101 (60-line enforcement)
 Authority: Backend Lead + CTO Approved
 Reference: ADR-029-AGENTS-MD-Integration-Strategy
 Reference: TDS-080-001 AGENTS.md Technical Design
@@ -13,7 +13,7 @@ Reference: TDS-080-001 AGENTS.md Technical Design
 Purpose:
 - Validate AGENTS.md structure (sections, markdown)
 - Detect forbidden content (secrets, credentials)
-- Enforce line limits (≤150 recommended, ≤200 max)
+- Enforce line limits (≤60 optimal per SDLC 5.2.0, ≤150 recommended, ≤200 max)
 - Lint and auto-fix common issues
 
 Security:
@@ -64,7 +64,7 @@ class AgentsMdValidator:
     Validate AGENTS.md structure and content.
 
     Implements ADR-029 validation requirements:
-    - Line limit enforcement (≤150 recommended, ≤200 max)
+    - Line limit enforcement (≤60 optimal per SDLC 5.2.0, ≤150 recommended, ≤200 max)
     - Forbidden content detection (secrets, credentials)
     - Required section recommendations
     - Markdown structure validation
@@ -130,15 +130,18 @@ class AgentsMdValidator:
         "Environment",
     ]
 
-    MAX_RECOMMENDED_LINES = 150
-    MAX_ALLOWED_LINES = 200
+    # SDLC 5.2.0 Context Management Principle: <60 lines for optimal AI effectiveness
+    # See: 03-AI-GOVERNANCE/05-Context-Management.md
+    MAX_OPTIMAL_LINES = 60  # SDLC 5.2.0 recommended optimal
+    MAX_RECOMMENDED_LINES = 150  # Warning threshold (still acceptable)
+    MAX_ALLOWED_LINES = 200  # Error threshold (too long)
 
     def validate(self, content: str) -> ValidationResult:
         """
         Validate AGENTS.md content.
 
         Performs the following checks:
-        1. Line count limits (warning at 150, error at 200)
+        1. Line count limits (optimal at 60, warning at 150, error at 200)
         2. Secret/credential detection
         3. Recommended section presence
         4. Markdown structure validation
@@ -189,7 +192,15 @@ class AgentsMdValidator:
         self,
         line_count: int,
     ) -> Tuple[List[ValidationError], List[ValidationError]]:
-        """Check line count against limits."""
+        """
+        Check line count against SDLC 5.2.0 Context Management limits.
+
+        Thresholds:
+        - OPTIMAL (≤60): Best AI effectiveness (Framework 5.2.0 recommendation)
+        - ACCEPTABLE (61-150): Works but may reduce AI focus
+        - WARNING (151-200): AI context window pressure
+        - ERROR (>200): Likely truncation, degraded performance
+        """
         errors = []
         warnings = []
 
@@ -204,6 +215,15 @@ class AgentsMdValidator:
                 severity="warning",
                 message=f"File exceeds recommended {self.MAX_RECOMMENDED_LINES} lines ({line_count} lines). "
                         f"Consider trimming for optimal AI context window usage.",
+            ))
+        elif line_count > self.MAX_OPTIMAL_LINES:
+            # SDLC 5.2.0: Warning-level enforcement for optimal (<60 lines)
+            # Updated Sprint 101: Escalated from "info" to "warning" for stricter enforcement
+            warnings.append(ValidationError(
+                severity="warning",
+                message=f"File exceeds SDLC 5.2.0 optimal limit of {self.MAX_OPTIMAL_LINES} lines ({line_count} lines). "
+                        f"Context files >60 lines reduce AI effectiveness and may cause token bloat. "
+                        f"Consider: 1) Progressive disclosure pattern 2) Split into sub-files 3) Link to external docs.",
             ))
 
         return errors, warnings

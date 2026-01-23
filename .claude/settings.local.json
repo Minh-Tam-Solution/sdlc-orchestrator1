@@ -343,7 +343,8 @@
       "Bash(head:*)",
       "Bash(npx eslint:*)",
       "Bash(xargs sed -i 's|07-Continuous-Improvement|09-Continuous-Improvement|g' echo \"Path references updated \\(excluding 99-Legacy\\)\")",
-      "Bash(# Verify the path updates worked grep -l \"\"03-Templates-Tools\"\" *.md)"
+      "Bash(# Verify the path updates worked grep -l \"\"03-Templates-Tools\"\" *.md)",
+      "Bash(15 LOC\" rule was gameable, replaced with intent-based triggers\n\nFRAMEWORK RESTRUCTURE:\n- Moved best-practices-2026 from 05-Templates-Tools/ to 04-AI-TOOLS-LANDSCAPE/\n- Reason: Concentric Circles Model - best practices are OUTER RING \\(strategic intel\\)\n- Updated CONTENT-MAP.md with new locations and SASE renumbering\n\nFILES UPDATED:\n- 04-AI-TOOLS-LANDSCAPE/best-practices-2026/01-planning-mode.md \\(risk-based\\)\n- CHANGELOG.md \\(risk-based planning documentation\\)\n- CONTENT-MAP.md \\(SASE renumbering: 01-CRP, 02-MRP, 03-VCR\\)\n- Various README.md files with redirect stubs\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

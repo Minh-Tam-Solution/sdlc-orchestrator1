@@ -179,7 +179,7 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings  # Sprint 42-100: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings, risk_analysis, consultations  # Sprint 42-101: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning + Risk Analysis + CRP
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -298,6 +298,8 @@ app.include_router(evidence_manifest.router, prefix="/api/v1", tags=["Evidence M
 app.include_router(check_runs.router, prefix="/api/v1", tags=["Check Runs"])  # Sprint 86 - GitHub Check Run UI (P0 Blocker)
 app.include_router(planning_subagent.router, prefix="/api/v1", tags=["Planning Sub-agent"])  # Sprint 99 - Planning Sub-agent Orchestration (ADR-034)
 app.include_router(learnings.router, prefix="/api/v1", tags=["Feedback Learning"])  # Sprint 100 - EP-11 Feedback Loop Closure
+app.include_router(risk_analysis.router, prefix="/api/v1", tags=["Risk Analysis"])  # Sprint 101 - Risk-Based Planning Trigger (GAP-001)
+app.include_router(consultations.router, prefix="/api/v1", tags=["CRP - Consultations"])  # Sprint 101 - Consultation Request Protocol (GAP-002)
 
 # ============================================================================
 # Health Check Endpoints
