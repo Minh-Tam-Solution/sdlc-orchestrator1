@@ -1,11 +1,11 @@
 """
 =========================================================================
-SDLC 5.1.3 AGENTS.md Commands
-SDLC Orchestrator - Sprint 80/81
+SDLC 5.2.0 AGENTS.md Commands
+SDLC Orchestrator - Sprint 80/81/103
 
-Version: 1.1.0
-Date: January 19, 2026
-Status: ACTIVE - Sprint 81 Implementation
+Version: 1.2.0
+Date: January 23, 2026
+Status: ACTIVE - Sprint 103 Implementation
 Authority: Backend Lead + CTO Approved
 Reference: ADR-029-AGENTS-MD-Integration-Strategy
 
@@ -14,12 +14,14 @@ Purpose:
 - Validate AGENTS.md content
 - Lint and auto-fix AGENTS.md
 - Fetch dynamic context overlay (Sprint 81)
+- Validate per-file context limits <60 lines (Sprint 103)
 
 Commands:
-    sdlcctl agents init     - Generate AGENTS.md
-    sdlcctl agents validate - Validate existing AGENTS.md
-    sdlcctl agents lint     - Lint and auto-fix
-    sdlcctl agents context  - Fetch current SDLC context overlay (Sprint 81)
+    sdlcctl agents init             - Generate AGENTS.md
+    sdlcctl agents validate         - Validate existing AGENTS.md
+    sdlcctl agents lint             - Lint and auto-fix
+    sdlcctl agents context          - Fetch current SDLC context overlay (Sprint 81)
+    sdlcctl agents validate-context - Validate per-file context <60 lines (Sprint 103)
 =========================================================================
 """
 
@@ -928,3 +930,300 @@ def agents_context_command(
         console.print(f"[dim]Project ID: {project_id}[/dim]")
 
     console.print()
+
+
+# ============================================================================
+# Sprint 103: Validate Context Command (<60 Lines per File)
+# ============================================================================
+
+
+def agents_validate_context_command(
+    path: Path = typer.Argument(
+        ...,
+        help="Path to AGENTS.md file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    max_lines: int = typer.Option(
+        60,
+        "--max-lines",
+        "-m",
+        help="Maximum lines per file context (default: 60)",
+        min=10,
+        max=200,
+    ),
+    format: str = typer.Option(
+        "cli",
+        "--format",
+        "-f",
+        help="Output format: cli, json, github",
+    ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        "-s",
+        help="Exit with error code on any violation",
+    ),
+) -> None:
+    """
+    Validate per-file context limits in AGENTS.md.
+
+    SDLC 5.2.0 requires that each file's context in AGENTS.md be concise
+    (default: 60 lines max per file). This command parses AGENTS.md,
+    extracts file-specific code blocks, and validates each against the limit.
+
+    Context blocks are identified by headers like:
+    - ### File: path/to/file.py
+    - ## path/to/file.py
+    - ### `path/to/file.ts`
+
+    Followed by code blocks (```...```) containing the file's context.
+
+    Examples:
+
+        sdlcctl agents validate-context AGENTS.md
+
+        sdlcctl agents validate-context AGENTS.md --max-lines 80
+
+        sdlcctl agents validate-context AGENTS.md --format json
+
+        sdlcctl agents validate-context AGENTS.md --format github --strict
+    """
+    console.print()
+    console.print(
+        Panel(
+            "[bold]Per-File Context Validator[/bold]\n\n"
+            f"Validates that each file's context in AGENTS.md is ≤{max_lines} lines.\n"
+            "SDLC 5.2.0: Concise context for better AI comprehension.",
+            title="[bold blue]sdlcctl agents validate-context[/bold blue]",
+            border_style="blue",
+        )
+    )
+
+    # Read content
+    content = path.read_text(encoding="utf-8")
+
+    # Parse file contexts
+    file_contexts = _parse_file_contexts(content)
+
+    # Find violations
+    violations = [ctx for ctx in file_contexts if ctx["line_count"] > max_lines]
+
+    # Output based on format
+    if format == "json":
+        result = {
+            "valid": len(violations) == 0,
+            "max_lines_allowed": max_lines,
+            "total_files": len(file_contexts),
+            "files_exceeding_limit": len(violations),
+            "file_contexts": [
+                {
+                    "file_path": ctx["file_path"],
+                    "line_count": ctx["line_count"],
+                    "start_line": ctx["start_line"],
+                    "end_line": ctx["end_line"],
+                    "exceeds_limit": ctx["line_count"] > max_lines,
+                }
+                for ctx in file_contexts
+            ],
+            "violations": [
+                {
+                    "file_path": ctx["file_path"],
+                    "line_count": ctx["line_count"],
+                    "over_by": ctx["line_count"] - max_lines,
+                }
+                for ctx in violations
+            ],
+        }
+        console.print_json(json.dumps(result, indent=2))
+
+    elif format == "github":
+        # GitHub Check Run / Actions format
+        if violations:
+            console.print()
+            console.print("::group::Context Validation Violations")
+            for ctx in violations:
+                # GitHub annotation format
+                console.print(
+                    f"::error file=AGENTS.md,line={ctx['start_line']}::"
+                    f"File '{ctx['file_path']}' context exceeds {max_lines}-line limit "
+                    f"({ctx['line_count']} lines, {ctx['line_count'] - max_lines} over)"
+                )
+            console.print("::endgroup::")
+            console.print()
+            console.print(
+                f"::error::Context validation failed: {len(violations)} file(s) exceed "
+                f"{max_lines}-line limit"
+            )
+        else:
+            console.print(
+                f"::notice::Context validation passed: {len(file_contexts)} file(s) "
+                f"within {max_lines}-line limit"
+            )
+
+    else:
+        # CLI format (default)
+        console.print()
+
+        if file_contexts:
+            table = Table(title="File Contexts in AGENTS.md", show_header=True)
+            table.add_column("File", style="cyan", width=40)
+            table.add_column("Lines", justify="right", width=8)
+            table.add_column("Limit", justify="right", width=8)
+            table.add_column("Status", justify="center", width=12)
+
+            for ctx in file_contexts:
+                line_count = ctx["line_count"]
+                exceeds = line_count > max_lines
+
+                if exceeds:
+                    status = f"[bold red]❌ +{line_count - max_lines}[/bold red]"
+                elif line_count > max_lines * 0.8:
+                    status = "[yellow]⚠️ near limit[/yellow]"
+                else:
+                    status = "[green]✓[/green]"
+
+                table.add_row(
+                    ctx["file_path"][:38] + "..." if len(ctx["file_path"]) > 40 else ctx["file_path"],
+                    str(line_count),
+                    str(max_lines),
+                    status,
+                )
+
+            console.print(table)
+        else:
+            console.print("[dim]No file-specific contexts found in AGENTS.md.[/dim]")
+            console.print("[dim]File contexts are identified by headers like '### File: path/to/file.py'[/dim]")
+
+        # Summary
+        console.print()
+        console.print("[bold]Summary:[/bold]")
+        console.print(f"  📁 Total file contexts: {len(file_contexts)}")
+        console.print(f"  📏 Max lines allowed: {max_lines}")
+        console.print(f"  ❌ Violations: {len(violations)}")
+
+        if violations:
+            console.print()
+            console.print("[bold red]Violations:[/bold red]")
+            for ctx in violations:
+                console.print(
+                    f"  • {ctx['file_path']}: {ctx['line_count']} lines "
+                    f"(+{ctx['line_count'] - max_lines} over limit)"
+                )
+
+    # Exit code
+    console.print()
+    if violations:
+        console.print("[bold red]✗ Context validation FAILED[/bold red]")
+        console.print(f"  {len(violations)} file(s) exceed the {max_lines}-line limit")
+        console.print()
+        console.print("[bold]Recommendations:[/bold]")
+        console.print("  1. Focus each file context on the most critical information")
+        console.print("  2. Extract reusable patterns to a 'Conventions' section")
+        console.print("  3. Move detailed docs to separate files and reference them")
+        console.print("  4. Use PR comments for dynamic context (Sprint 81)")
+        if strict:
+            raise typer.Exit(code=1)
+    else:
+        console.print("[bold green]✓ Context validation PASSED[/bold green]")
+        console.print(f"  All {len(file_contexts)} file contexts are within the {max_lines}-line limit")
+
+    console.print()
+
+
+def _parse_file_contexts(content: str) -> List[dict]:
+    """
+    Parse AGENTS.md to extract file-specific code blocks.
+
+    Identifies file contexts by looking for headers that reference file paths,
+    followed by code blocks containing the file's context.
+
+    Supported header formats:
+    - ### File: path/to/file.py
+    - ## path/to/file.py
+    - ### `path/to/file.ts`
+    - #### src/components/Button.tsx
+
+    Returns:
+        List of dicts with file_path, line_count, start_line, end_line
+    """
+    file_contexts = []
+    lines = content.split('\n')
+
+    # Patterns to match file headers
+    file_header_patterns = [
+        # ### File: path/to/file.py
+        re.compile(r'^#{2,4}\s+[Ff]ile:\s*`?([^\s`]+)`?\s*$'),
+        # ### path/to/file.py (with extension)
+        re.compile(r'^#{2,4}\s+`?([a-zA-Z0-9_./-]+\.[a-zA-Z0-9]+)`?\s*$'),
+        # ### `path/to/file.py`
+        re.compile(r'^#{2,4}\s+`([^`]+)`\s*$'),
+    ]
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+
+        # Check if this line matches any file header pattern
+        file_path = None
+        for pattern in file_header_patterns:
+            match = pattern.match(line)
+            if match:
+                file_path = match.group(1)
+                break
+
+        if file_path:
+            header_line = i + 1  # 1-indexed
+
+            # Look for code block(s) following this header
+            j = i + 1
+            code_block_lines = 0
+            code_block_start = None
+            code_block_end = None
+            in_code_block = False
+
+            while j < len(lines):
+                current = lines[j]
+
+                # Check for code block start/end
+                if current.startswith('```'):
+                    if not in_code_block:
+                        # Start of code block
+                        in_code_block = True
+                        if code_block_start is None:
+                            code_block_start = j + 1  # 1-indexed
+                    else:
+                        # End of code block
+                        in_code_block = False
+                        code_block_end = j + 1  # 1-indexed
+                elif in_code_block:
+                    code_block_lines += 1
+
+                # Stop if we hit another file header or major section
+                if not in_code_block and j > i + 1:
+                    if re.match(r'^#{1,4}\s+', current):
+                        # Check if it's a new file header
+                        is_new_file = any(p.match(current) for p in file_header_patterns)
+                        if is_new_file:
+                            break
+                        # Check if it's a major section (not a sub-header under this file)
+                        if re.match(r'^#{1,2}\s+', current):
+                            break
+
+                j += 1
+
+            if code_block_lines > 0:
+                file_contexts.append({
+                    "file_path": file_path,
+                    "line_count": code_block_lines,
+                    "start_line": code_block_start or header_line,
+                    "end_line": code_block_end or j,
+                })
+
+            i = j
+        else:
+            i += 1
+
+    return file_contexts

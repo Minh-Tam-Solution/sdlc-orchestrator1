@@ -186,6 +186,10 @@ class Project(Base):
     evidence_manifests = relationship(
         "EvidenceManifest", back_populates="project", cascade="all, delete-orphan"
     )
+    # Framework Version History (Sprint 103)
+    framework_versions = relationship(
+        "FrameworkVersion", back_populates="project", cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return f"<Project(id={self.id}, name={self.name}, slug={self.slug})>"

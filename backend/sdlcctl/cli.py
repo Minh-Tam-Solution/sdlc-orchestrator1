@@ -44,6 +44,7 @@ from .commands.agents import (
     agents_validate_command,
     agents_lint_command,
     agents_context_command,
+    agents_validate_context_command,
 )
 
 console = Console()
@@ -152,6 +153,9 @@ agents_app.command(name="lint", help="Lint and auto-fix AGENTS.md")(
 )
 agents_app.command(name="context", help="Fetch current SDLC context overlay (Sprint 81)")(
     agents_context_command
+)
+agents_app.command(name="validate-context", help="Validate per-file context limits (<60 lines) (Sprint 103)")(
+    agents_validate_context_command
 )
 
 # Register agents sub-app
