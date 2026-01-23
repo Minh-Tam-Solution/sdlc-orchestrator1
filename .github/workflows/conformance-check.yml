@@ -1,0 +1,245 @@
+# =============================================================================
+# Conformance Check Workflow - SDLC Orchestrator
+# Sprint 99: Planning Sub-agent Part 2 (ADR-034)
+#
+# Purpose:
+# - Check PR conformance against established codebase patterns
+# - Enforce SDLC 5.2.0 architectural drift prevention
+# - Block merge for low conformance scores
+#
+# Score Levels:
+# - EXCELLENT (>=90): Auto-approve eligible
+# - GOOD (>=70): Review recommended
+# - FAIR (>=50): Review required
+# - POOR (<50): Changes required
+#
+# Reference: ADR-034-Planning-Subagent-Orchestration
+# =============================================================================
+
+name: Conformance Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - develop
+      - 'release/*'
+
+jobs:
+  conformance-check:
+    name: Pattern Conformance
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install sdlcctl CLI
+        working-directory: backend
+        run: |
+          pip install -e .
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          # Fetch base branch
+          git fetch origin ${{ github.base_ref }}
+
+          # Generate diff
+          git diff origin/${{ github.base_ref }}...HEAD > pr_changes.diff
+
+          # Count lines changed
+          lines_added=$(git diff origin/${{ github.base_ref }}...HEAD --numstat | awk '{sum+=$1} END {print sum}')
+          lines_deleted=$(git diff origin/${{ github.base_ref }}...HEAD --numstat | awk '{sum+=$2} END {print sum}')
+
+          echo "lines_added=$lines_added" >> $GITHUB_OUTPUT
+          echo "lines_deleted=$lines_deleted" >> $GITHUB_OUTPUT
+
+      - name: Check if planning mode required
+        id: planning-check
+        run: |
+          lines=${{ steps.diff.outputs.lines_added }}
+          if [ "$lines" -gt 15 ]; then
+            echo "planning_required=true" >> $GITHUB_OUTPUT
+            echo "::notice::Changes exceed 15 LOC threshold. Planning mode recommended."
+          else
+            echo "planning_required=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run conformance check
+        id: conformance
+        working-directory: backend
+        run: |
+          # Run conformance check with JSON output
+          sdlcctl plan check --diff ../pr_changes.diff --format json > ../conformance_result.json || true
+
+          # Parse results
+          score=$(cat ../conformance_result.json | jq -r '.score')
+          level=$(cat ../conformance_result.json | jq -r '.level')
+          passed=$(cat ../conformance_result.json | jq -r '.passed')
+          deviations=$(cat ../conformance_result.json | jq -r '.deviations_count')
+
+          echo "score=$score" >> $GITHUB_OUTPUT
+          echo "level=$level" >> $GITHUB_OUTPUT
+          echo "passed=$passed" >> $GITHUB_OUTPUT
+          echo "deviations=$deviations" >> $GITHUB_OUTPUT
+
+      - name: Generate conformance report
+        id: report
+        run: |
+          score=${{ steps.conformance.outputs.score }}
+          level=${{ steps.conformance.outputs.level }}
+          deviations=${{ steps.conformance.outputs.deviations }}
+          lines=${{ steps.diff.outputs.lines_added }}
+          planning=${{ steps.planning-check.outputs.planning_required }}
+
+          # Determine emoji and status
+          if [ "$score" -ge 90 ]; then
+            emoji="✅"
+            status="EXCELLENT"
+          elif [ "$score" -ge 70 ]; then
+            emoji="🟡"
+            status="GOOD"
+          elif [ "$score" -ge 50 ]; then
+            emoji="🟠"
+            status="FAIR"
+          else
+            emoji="🔴"
+            status="POOR"
+          fi
+
+          # Build report
+          cat << EOF > conformance_report.md
+          ## $emoji Conformance Check: $status
+
+          | Metric | Value |
+          |--------|-------|
+          | **Score** | $score/100 |
+          | **Level** | $level |
+          | **Deviations** | $deviations |
+          | **Lines Changed** | +$lines |
+          | **Planning Mode** | $( [ "$planning" = "true" ] && echo "Recommended" || echo "Not required" ) |
+
+          EOF
+
+          # Add deviations if any
+          if [ "$deviations" -gt 0 ]; then
+            echo "### Pattern Deviations" >> conformance_report.md
+            echo "" >> conformance_report.md
+            cat ../conformance_result.json | jq -r '.deviations[] | "- **\(.pattern_name)** (\(.severity)): \(.description)"' >> conformance_report.md
+            echo "" >> conformance_report.md
+          fi
+
+          # Add recommendations if any
+          recommendations=$(cat ../conformance_result.json | jq -r '.recommendations | length')
+          if [ "$recommendations" -gt 0 ]; then
+            echo "### Recommendations" >> conformance_report.md
+            echo "" >> conformance_report.md
+            cat ../conformance_result.json | jq -r '.recommendations[] | "- \(.)"' >> conformance_report.md
+            echo "" >> conformance_report.md
+          fi
+
+          # Add planning mode notice
+          if [ "$planning" = "true" ]; then
+            cat << 'PLANNING' >> conformance_report.md
+
+          ---
+
+          > 📋 **Planning Mode Recommended**
+          >
+          > This PR changes >15 lines of code. Per ADR-034, planning mode is recommended
+          > to prevent architectural drift.
+          >
+          > Run: `sdlcctl plan new "your task description"`
+          PLANNING
+          fi
+
+          # Footer
+          echo "" >> conformance_report.md
+          echo "---" >> conformance_report.md
+          echo "_Generated by SDLC Orchestrator Conformance Check | Sprint 99 | ADR-034_" >> conformance_report.md
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('conformance_report.md', 'utf8');
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Conformance Check:')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report,
+              });
+            }
+
+      - name: Create Check Run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const score = ${{ steps.conformance.outputs.score }};
+            const level = '${{ steps.conformance.outputs.level }}';
+            const passed = '${{ steps.conformance.outputs.passed }}' === 'true';
+            const deviations = ${{ steps.conformance.outputs.deviations }};
+
+            // Determine conclusion
+            const conclusion = score >= 50 ? 'success' : 'failure';
+
+            // Create check run
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Pattern Conformance',
+              head_sha: context.sha,
+              status: 'completed',
+              conclusion: conclusion,
+              output: {
+                title: `Conformance Score: ${score}/100 (${level})`,
+                summary: `**Score**: ${score}/100\n**Level**: ${level}\n**Deviations**: ${deviations}`,
+                text: passed
+                  ? 'PR conforms to established patterns.'
+                  : 'PR has pattern deviations that should be reviewed.',
+              },
+            });
+
+      - name: Fail if score below threshold
+        if: steps.conformance.outputs.score < 50
+        run: |
+          echo "::error::Conformance score (${{ steps.conformance.outputs.score }}/100) is below the minimum threshold (50)."
+          echo "::error::Please review pattern deviations and update your code to follow established patterns."
+          exit 1

@@ -2809,3 +2809,105 @@ export async function getSprintGovernanceDashboard(
     `/projects/${projectId}/sprint-governance/dashboard`
   );
 }
+
+// =============================================================================
+// Planning Sub-agent API (Sprint 99 - ADR-034)
+// =============================================================================
+
+import type {
+  PlanningRequest,
+  PlanningResult,
+  PlanApprovalRequest,
+  ConformanceCheckRequest,
+  ConformanceResult,
+  PlanningSessionListResponse,
+  PlanningStatus,
+} from "@/lib/types/planning-subagent";
+
+/**
+ * Create a new planning session with sub-agent orchestration
+ * Sprint 99: POST /planning/subagent/plan
+ */
+export async function createPlanningSession(
+  request: PlanningRequest
+): Promise<PlanningResult> {
+  return apiRequest<PlanningResult>("/planning/subagent/plan", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Get planning session by ID
+ * Sprint 99: GET /planning/subagent/{id}
+ */
+export async function getPlanningSession(
+  planningId: string
+): Promise<PlanningResult> {
+  return apiRequest<PlanningResult>(`/planning/subagent/${planningId}`);
+}
+
+/**
+ * Approve or reject a planning session
+ * Sprint 99: POST /planning/subagent/{id}/approve
+ */
+export async function approvePlanningSession(
+  planningId: string,
+  request: PlanApprovalRequest
+): Promise<PlanningResult> {
+  return apiRequest<PlanningResult>(`/planning/subagent/${planningId}/approve`, {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Check PR/diff conformance against established patterns
+ * Sprint 99: POST /planning/subagent/conformance
+ */
+export async function checkConformance(
+  request: ConformanceCheckRequest
+): Promise<ConformanceResult> {
+  return apiRequest<ConformanceResult>("/planning/subagent/conformance", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * List planning sessions with optional filters
+ * Sprint 99: GET /planning/subagent/sessions
+ */
+export async function listPlanningSessions(params?: {
+  status?: PlanningStatus;
+  limit?: number;
+}): Promise<PlanningSessionListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.status) {
+    searchParams.set("status_filter", params.status);
+  }
+  if (params?.limit) {
+    searchParams.set("limit", params.limit.toString());
+  }
+
+  const queryString = searchParams.toString();
+  const endpoint = queryString
+    ? `/planning/subagent/sessions?${queryString}`
+    : "/planning/subagent/sessions";
+
+  return apiRequest<PlanningSessionListResponse>(endpoint);
+}
+
+/**
+ * Check planning sub-agent service health
+ * Sprint 99: GET /planning/subagent/health
+ */
+export async function getPlanningSubagentHealth(): Promise<{
+  status: string;
+  service: string;
+  version: string;
+}> {
+  return apiRequest<{ status: string; service: string; version: string }>(
+    "/planning/subagent/health"
+  );
+}

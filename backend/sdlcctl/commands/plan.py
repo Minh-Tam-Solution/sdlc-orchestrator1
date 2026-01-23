@@ -1,20 +1,22 @@
 """
 =========================================================================
 SDLC 5.2.0 Planning Mode CLI Command
-SDLC Orchestrator - Sprint 98 (Planning Sub-agent Implementation Part 1)
+SDLC Orchestrator - Sprint 98-99 (Planning Sub-agent Implementation)
 
-Version: 1.0.0
-Date: January 22, 2026
-Status: ACTIVE - Sprint 98 Implementation
+Version: 2.0.0
+Date: January 23, 2026
+Status: ACTIVE - Sprint 99 Implementation
 Authority: Backend Lead + CTO Approved
 Reference: ADR-034-Planning-Subagent-Orchestration
 Reference: SDLC 5.2.0 AI Agent Best Practices (Planning Mode)
+Design: Conformance-Check-Service-Design.md
 
 Purpose:
 - Execute planning mode with sub-agent orchestration
 - Extract patterns from codebase, ADRs, tests before implementation
 - Generate implementation plans for human approval
 - Prevent architectural drift (MANDATORY for >15 LOC changes)
+- Check PR conformance against established patterns (Sprint 99)
 
 Key Insight (Expert Workflow):
 - "Agentic grep > RAG for context retrieval"
@@ -24,7 +26,8 @@ Key Insight (Expert Workflow):
 Commands:
     sdlcctl plan "Add OAuth2 authentication"
     sdlcctl plan "Refactor user service" --depth 5
-    sdlcctl plan "Add unit tests" --no-adrs
+    sdlcctl plan check --diff <file>
+    sdlcctl plan check --pr 123 --repo owner/repo
 
 Zero Mock Policy: 100% real implementation
 =========================================================================
@@ -562,3 +565,387 @@ def _result_to_dict(result) -> dict:
         "execution_time_ms": result.execution_time_ms,
         "requires_approval": result.requires_approval,
     }
+
+
+# =============================================================================
+# Plan Check Command (Sprint 99)
+# =============================================================================
+
+
+def check_command(
+    diff_file: Optional[Path] = typer.Option(
+        None,
+        "--diff",
+        "-d",
+        help="Path to unified diff file",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        resolve_path=True,
+    ),
+    pr_number: Optional[int] = typer.Option(
+        None,
+        "--pr",
+        help="GitHub PR number to check",
+    ),
+    repo: Optional[str] = typer.Option(
+        None,
+        "--repo",
+        "-r",
+        help="GitHub repository (owner/repo format)",
+    ),
+    path: Path = typer.Option(
+        Path.cwd(),
+        "--path",
+        "-p",
+        help="Project root path for pattern extraction",
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+    threshold: int = typer.Option(
+        70,
+        "--threshold",
+        "-t",
+        help="Minimum conformance score to pass (0-100)",
+        min=0,
+        max=100,
+    ),
+    format: str = typer.Option(
+        "cli",
+        "--format",
+        "-f",
+        help="Output format: cli, json, github",
+    ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        "-s",
+        help="Fail on any deviation (regardless of score)",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Minimal output (useful for CI/CD)",
+    ),
+) -> None:
+    """
+    Check PR or diff conformance against established patterns.
+
+    This command analyzes a PR diff to ensure it follows existing codebase
+    patterns, conventions, and ADR decisions. Use this in CI/CD pipelines
+    to enforce pattern conformance.
+
+    Examples:
+
+        # Check a local diff file
+        sdlcctl plan check --diff changes.diff
+
+        # Check a GitHub PR
+        sdlcctl plan check --pr 123 --repo owner/repo
+
+        # Get machine-readable output
+        sdlcctl plan check --diff changes.diff --format json
+
+        # Strict mode for CI/CD
+        sdlcctl plan check --pr 123 --repo myorg/myrepo --strict --threshold 80
+
+        # GitHub Actions output
+        sdlcctl plan check --diff changes.diff --format github
+    """
+    # Validate inputs
+    if diff_file is None and pr_number is None:
+        console.print("[bold red]Error:[/bold red] Either --diff or --pr is required")
+        raise typer.Exit(code=1)
+
+    if pr_number is not None and repo is None:
+        console.print("[bold red]Error:[/bold red] --repo is required when using --pr")
+        raise typer.Exit(code=1)
+
+    # Run the async check
+    try:
+        asyncio.run(
+            _execute_check(
+                diff_file=diff_file,
+                pr_number=pr_number,
+                repo=repo,
+                project_path=path,
+                threshold=threshold,
+                format=format,
+                strict=strict,
+                quiet=quiet,
+            )
+        )
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Check cancelled by user.[/yellow]")
+        raise typer.Exit(code=130)
+    except Exception as e:
+        console.print(f"\n[bold red]Check failed:[/bold red] {str(e)}")
+        raise typer.Exit(code=1)
+
+
+async def _execute_check(
+    diff_file: Optional[Path],
+    pr_number: Optional[int],
+    repo: Optional[str],
+    project_path: Path,
+    threshold: int,
+    format: str,
+    strict: bool,
+    quiet: bool,
+) -> None:
+    """
+    Execute the conformance check workflow.
+
+    Args:
+        diff_file: Path to unified diff file
+        pr_number: GitHub PR number
+        repo: GitHub repository (owner/repo)
+        project_path: Project root path
+        threshold: Minimum score to pass
+        format: Output format
+        strict: Fail on any deviation
+        quiet: Minimal output
+    """
+    from app.services.conformance_check_service import (
+        ConformanceCheckService,
+        create_conformance_check_service,
+    )
+
+    # Get diff content
+    diff_content = ""
+    source_description = ""
+
+    if diff_file:
+        diff_content = diff_file.read_text()
+        source_description = f"file: {diff_file.name}"
+    elif pr_number and repo:
+        # Fetch from GitHub API
+        diff_content = await _fetch_github_pr_diff(repo, pr_number)
+        source_description = f"PR #{pr_number} in {repo}"
+
+    if not diff_content.strip():
+        if not quiet:
+            console.print("[yellow]No changes to check (empty diff).[/yellow]")
+        raise typer.Exit(code=0)
+
+    # Show header (unless quiet)
+    if not quiet and format == "cli":
+        console.print()
+        console.print(
+            Panel(
+                f"[bold]Conformance Check - Pattern Validation[/bold]\n\n"
+                f"Checking {source_description}...\n"
+                f"[dim]Threshold: {threshold}% | Strict: {strict}[/dim]",
+                title="[bold blue]sdlcctl plan check[/bold blue]",
+                border_style="blue",
+            )
+        )
+
+    # Execute check
+    service = create_conformance_check_service()
+    result = await service.check_pr_diff(
+        diff_content=diff_content,
+        project_path=project_path,
+    )
+
+    # Determine pass/fail
+    passed = result.score >= threshold
+    if strict and result.deviations:
+        passed = False
+
+    # Output based on format
+    if format == "json":
+        _output_check_json(result, passed, threshold, quiet)
+    elif format == "github":
+        _output_check_github(result, passed, threshold)
+    else:
+        _output_check_cli(result, passed, threshold, strict, quiet)
+
+    # Exit code based on result
+    if not passed:
+        raise typer.Exit(code=1)
+
+
+async def _fetch_github_pr_diff(repo: str, pr_number: int) -> str:
+    """
+    Fetch PR diff from GitHub API.
+
+    Args:
+        repo: Repository in owner/repo format
+        pr_number: PR number
+
+    Returns:
+        Unified diff content
+    """
+    import os
+    import aiohttp
+
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if not github_token:
+        raise ValueError("GITHUB_TOKEN environment variable required for --pr option")
+
+    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3.diff",
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 404:
+                raise ValueError(f"PR #{pr_number} not found in {repo}")
+            if response.status == 401:
+                raise ValueError("Invalid GITHUB_TOKEN")
+            if response.status != 200:
+                raise ValueError(f"GitHub API error: {response.status}")
+
+            return await response.text()
+
+
+def _output_check_cli(
+    result,
+    passed: bool,
+    threshold: int,
+    strict: bool,
+    quiet: bool,
+) -> None:
+    """Output check result in CLI format."""
+    if quiet:
+        # Minimal output for scripts
+        print(f"score:{result.score}")
+        print(f"level:{result.level.value}")
+        print(f"passed:{'true' if passed else 'false'}")
+        print(f"deviations:{len(result.deviations)}")
+        return
+
+    console.print()
+
+    # Score display
+    score = result.score
+    level = result.level.value
+
+    if score >= 90:
+        score_color = "green"
+        score_icon = "✓"
+    elif score >= 70:
+        score_color = "yellow"
+        score_icon = "○"
+    else:
+        score_color = "red"
+        score_icon = "✗"
+
+    # Result panel
+    status_text = f"[bold green]PASSED[/bold green]" if passed else f"[bold red]FAILED[/bold red]"
+    strict_note = " [dim](strict mode)[/dim]" if strict and result.deviations else ""
+
+    console.print(
+        Panel(
+            f"[bold {score_color}]{score_icon} Score: {score}/100 ({level})[/bold {score_color}]\n\n"
+            f"Status: {status_text}{strict_note}\n"
+            f"Threshold: {threshold}%\n"
+            f"Deviations: {len(result.deviations)}",
+            title="[bold]Conformance Result[/bold]",
+            border_style=score_color,
+        )
+    )
+
+    # Deviations table
+    if result.deviations:
+        console.print()
+        from rich.table import Table
+
+        table = Table(title="Pattern Deviations", show_header=True)
+        table.add_column("ID", style="cyan", width=12)
+        table.add_column("Severity", width=10)
+        table.add_column("Pattern", width=25)
+        table.add_column("Description", width=50)
+
+        for dev in result.deviations:
+            severity_style = {
+                "CRITICAL": "bold red",
+                "HIGH": "red",
+                "MEDIUM": "yellow",
+                "LOW": "dim",
+            }.get(dev.severity.value if hasattr(dev.severity, 'value') else str(dev.severity), "dim")
+
+            table.add_row(
+                dev.rule_id if hasattr(dev, 'rule_id') else "",
+                f"[{severity_style}]{dev.severity.value if hasattr(dev.severity, 'value') else dev.severity}[/{severity_style}]",
+                dev.pattern_name,
+                dev.description[:47] + "..." if len(dev.description) > 50 else dev.description,
+            )
+
+        console.print(table)
+
+    # Recommendations
+    if result.recommendations:
+        console.print()
+        console.print("[bold]Recommendations:[/bold]")
+        for rec in result.recommendations[:5]:
+            console.print(f"  • {rec}")
+
+    console.print()
+
+
+def _output_check_json(result, passed: bool, threshold: int, quiet: bool) -> None:
+    """Output check result in JSON format."""
+    data = {
+        "score": result.score,
+        "level": result.level.value,
+        "passed": passed,
+        "threshold": threshold,
+        "deviations_count": len(result.deviations),
+        "deviations": [
+            {
+                "rule_id": getattr(d, 'rule_id', ''),
+                "pattern_name": d.pattern_name,
+                "severity": d.severity.value if hasattr(d.severity, 'value') else str(d.severity),
+                "description": d.description,
+                "file": getattr(d, 'file_path', ''),
+                "line": getattr(d, 'line_number', 0),
+                "suggestion": d.suggestion,
+            }
+            for d in result.deviations
+        ],
+        "recommendations": result.recommendations,
+        "patterns_checked": getattr(result, 'patterns_checked', []),
+        "requires_adr": result.requires_adr,
+    }
+    print(json.dumps(data, indent=2))
+
+
+def _output_check_github(result, passed: bool, threshold: int) -> None:
+    """
+    Output check result in GitHub Actions format.
+
+    Uses GitHub Actions workflow commands for annotations and summaries.
+    """
+    # Set output variables
+    print(f"::set-output name=score::{result.score}")
+    print(f"::set-output name=level::{result.level.value}")
+    print(f"::set-output name=passed::{'true' if passed else 'false'}")
+    print(f"::set-output name=deviations::{len(result.deviations)}")
+
+    # Create annotations for deviations
+    for dev in result.deviations:
+        severity = dev.severity.value if hasattr(dev.severity, 'value') else str(dev.severity)
+        file_path = getattr(dev, 'file_path', '')
+        line = getattr(dev, 'line_number', 1)
+
+        level = "error" if severity in ("CRITICAL", "HIGH") else "warning"
+        print(f"::{level} file={file_path},line={line}::{dev.pattern_name}: {dev.description}")
+
+    # Job summary
+    status_emoji = "✅" if passed else "❌"
+    print("::group::Conformance Check Summary")
+    print(f"## {status_emoji} Conformance Check")
+    print(f"- **Score**: {result.score}/100 ({result.level.value})")
+    print(f"- **Threshold**: {threshold}%")
+    print(f"- **Deviations**: {len(result.deviations)}")
+    if result.recommendations:
+        print("\n### Recommendations")
+        for rec in result.recommendations[:3]:
+            print(f"- {rec}")
+    print("::endgroup::")

@@ -1,12 +1,14 @@
 """
 =========================================================================
 SDLC 5.2.0 Structure Validator CLI.
-SDLC Orchestrator - Sprint 98
+SDLC Orchestrator - Sprint 99
 
-Version: 3.0.0
-Date: January 22, 2026
-Status: ACTIVE - Sprint 98 Planning Sub-agent
+Version: 3.1.0
+Date: January 23, 2026
+Status: ACTIVE - Sprint 99 Planning Sub-agent Part 2
 Authority: Backend Team + CTO Approved
+Reference: ADR-034-Planning-Subagent-Orchestration
+Design: Conformance-Check-Service-Design.md
 
 Purpose:
 - Main entry point for the sdlcctl command-line tool
@@ -14,12 +16,14 @@ Purpose:
 - Code generation from AppBlueprint (Sprint 46)
 - Magic Mode - Natural language to code (Sprint 52)
 - Planning Mode - Sub-agent orchestration (Sprint 98)
+- Conformance Check - PR pattern validation (Sprint 99)
 
 Usage:
     sdlcctl validate ./my-project
     sdlcctl generate blueprint.json -o ./output
     sdlcctl magic "Nhà hàng Phở 24" -o ./pho24
-    sdlcctl plan "Add OAuth2 authentication"
+    sdlcctl plan new "Add OAuth2 authentication"
+    sdlcctl plan check --diff changes.diff
 =========================================================================
 """
 
@@ -34,7 +38,7 @@ from .commands.report import report_command
 from .commands.migrate import migrate_command
 from .commands.generate import generate_command
 from .commands.magic import magic_command
-from .commands.plan import plan_command
+from .commands.plan import plan_command, check_command
 from .commands.agents import (
     agents_init_command,
     agents_validate_command,
@@ -108,7 +112,25 @@ app.command(name="generate", help="Generate backend scaffold from AppBlueprint")
 app.command(name="magic", help="Generate app from natural language (Vietnamese/English)")(
     magic_command
 )
-app.command(name="plan", help="Execute planning mode with sub-agent orchestration (Sprint 98)")(
+# Create plan sub-app for planning mode commands (Sprint 98-99)
+plan_app = typer.Typer(
+    name="plan",
+    help="Planning mode with sub-agent orchestration (ADR-034)",
+    no_args_is_help=True,
+)
+
+plan_app.command(name="new", help="Create new planning session with pattern extraction")(
+    plan_command
+)
+plan_app.command(name="check", help="Check PR/diff conformance against established patterns")(
+    check_command
+)
+
+# Register plan sub-app
+app.add_typer(plan_app, name="plan")
+
+# Keep standalone plan command for backward compatibility
+app.command(name="plan-legacy", help="[Deprecated] Use 'plan new' instead", hidden=True)(
     plan_command
 )
 
