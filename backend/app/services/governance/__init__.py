@@ -1,18 +1,18 @@
 """
 =========================================================================
-Governance Services - Auto-Generation Layer, Mode Management & Signals
-SDLC Orchestrator - Sprint 108 (Governance Foundation)
+Governance Services - Auto-Generation, Mode Management & Signals Engine
+SDLC Orchestrator - Sprint 109 (Vibecoding Index & Stage-Aware Gating)
 
-Version: 1.1.0
+Version: 1.2.0
 Date: January 27, 2026
-Status: ACTIVE - Sprint 108 Day 3
+Status: ACTIVE - Sprint 109 Day 1
 Authority: CTO + Backend Lead Approved
 Framework: SDLC 5.3.0 Quality Assurance System
 
 Services:
 - AutoGenerationService: 4 generators for compliance artifacts
 - GovernanceModeService: Enforcement mode management (OFF/WARNING/SOFT/FULL)
-- SignalsEngine: Vibecoding Index calculation (planned)
+- GovernanceSignalsEngine: Vibecoding Index calculation (5 signals)
 - FeedbackService: Actionable error messages (planned)
 
 Zero Mock Policy: Real implementations only
@@ -44,6 +44,20 @@ from app.services.governance.mode_service import (
     initialize_governance_mode_service,
 )
 
+from app.services.governance.signals_engine import (
+    GovernanceSignalsEngine,
+    CodeSubmission,
+    ProjectContext,
+    VibecodingIndex,
+    SignalScore,
+    SignalType,
+    IndexCategory,
+    RoutingDecision,
+    CriticalPathMatch,
+    create_signals_engine,
+    get_signals_engine,
+)
+
 __all__ = [
     # Auto-Generation Service
     "AutoGenerationService",
@@ -70,4 +84,17 @@ __all__ = [
     "create_governance_mode_service",
     "get_governance_mode_service",
     "initialize_governance_mode_service",
+    # Signals Engine
+    "GovernanceSignalsEngine",
+    "CodeSubmission",
+    "ProjectContext",
+    "VibecodingIndex",
+    "SignalScore",
+    "SignalType",
+    "IndexCategory",
+    "RoutingDecision",
+    "CriticalPathMatch",
+    # Signals Engine Factory Functions
+    "create_signals_engine",
+    "get_signals_engine",
 ]
