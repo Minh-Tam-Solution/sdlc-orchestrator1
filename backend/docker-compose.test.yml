@@ -1,0 +1,123 @@
+# Docker Compose Test Environment - Sprint 111
+# Infrastructure Services Integration Testing
+#
+# Usage:
+#   docker-compose -f docker-compose.test.yml up -d
+#   pytest tests/integration/ -v
+#   docker-compose -f docker-compose.test.yml down
+#
+# Services:
+#   - postgres-test: PostgreSQL 15.5 (port 5433)
+#   - redis-test: Redis 7.2 (port 6380)
+#   - minio-test: MinIO S3 (port 9100/9101)
+#   - opa-test: OPA Policy Agent (port 8182)
+
+version: '3.9'
+
+services:
+  # PostgreSQL for metadata storage
+  postgres-test:
+    image: postgres:15.5-alpine
+    container_name: sdlc-postgres-test
+    environment:
+      POSTGRES_DB: sdlc_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test_password_123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d sdlc_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sdlc-test-network
+
+  # Redis for caching and sessions
+  redis-test:
+    image: redis:7.2-alpine
+    container_name: sdlc-redis-test
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-test-network
+
+  # MinIO for Evidence Vault storage (AGPL - network-only access)
+  minio-test:
+    image: minio/minio:latest
+    container_name: sdlc-minio-test
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    ports:
+      - "9100:9000"  # S3 API
+      - "9101:9001"  # Console
+    volumes:
+      - minio_test_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sdlc-test-network
+
+  # OPA for Policy Engine (Apache-2.0 - safe to use)
+  opa-test:
+    image: openpolicyagent/opa:0.58.0
+    container_name: sdlc-opa-test
+    ports:
+      - "8182:8181"
+    command: run --server --addr :8181 --log-level debug
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8181/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sdlc-test-network
+
+  # MinIO setup - create default buckets
+  minio-setup:
+    image: minio/mc:latest
+    container_name: sdlc-minio-setup
+    depends_on:
+      minio-test:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio-test:9000 minioadmin minioadmin123;
+      mc mb myminio/evidence-bucket --ignore-existing;
+      mc mb myminio/codegen-outputs --ignore-existing;
+      mc mb myminio/artifacts --ignore-existing;
+      mc mb myminio/test-bucket --ignore-existing;
+      echo 'Buckets created successfully';
+      exit 0;
+      "
+    networks:
+      - sdlc-test-network
+
+networks:
+  sdlc-test-network:
+    driver: bridge
+    name: sdlc-test-network
+
+volumes:
+  postgres_test_data:
+    name: sdlc_postgres_test_data
+  redis_test_data:
+    name: sdlc_redis_test_data
+  minio_test_data:
+    name: sdlc_minio_test_data
