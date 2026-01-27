@@ -1,0 +1,314 @@
+# ============================================================================
+# DOGFOODING CONFIGURATION - Apply Governance to SDLC Orchestrator
+# Sprint 108 Day 3 - Governance Foundation
+#
+# Version: 1.0.0
+# Date: January 27, 2026
+# Status: ACTIVE - Sprint 108 Day 3
+# Authority: CTO + CEO Approved
+# Framework: SDLC 5.3.0 Quality Assurance System
+#
+# Principle:
+#   "Nếu team Orchestrator không tuân thủ được luật của mình,
+#    đừng mong bán cho ai."
+#
+#   "If the Orchestrator team can't follow their own rules,
+#    don't expect to sell to anyone."
+#
+# Zero Mock Policy: Real governance applied to real codebase
+# ============================================================================
+
+dogfooding:
+  # ========================================================================
+  # Repository Configuration
+  # ========================================================================
+  repository:
+    name: "SDLC-Orchestrator"
+    organization: "Minh-Tam-Solution"
+    default_branch: "main"
+    governance_branch: "main"  # Apply governance to all commits on main
+
+  # ========================================================================
+  # Team Configuration
+  # ========================================================================
+  teams:
+    backend:
+      lead: "@backend-lead"
+      members: ["@dev1", "@dev2", "@dev3"]
+      ownership_paths:
+        - "backend/app/services/**"
+        - "backend/app/api/**"
+        - "backend/app/models/**"
+        - "backend/tests/**"
+
+    frontend:
+      lead: "@frontend-lead"
+      members: ["@dev4", "@dev5"]
+      ownership_paths:
+        - "frontend/src/**"
+        - "frontend/public/**"
+        - "frontend/tests/**"
+
+    governance:
+      lead: "@backend-lead"
+      members: ["@governance-dev"]
+      ownership_paths:
+        - "backend/app/services/governance/**"
+        - "backend/app/config/governance*.yaml"
+        - "backend/app/config/auto_generation.yaml"
+
+    devops:
+      lead: "@devops-lead"
+      members: ["@devops1"]
+      ownership_paths:
+        - "docker/**"
+        - ".github/**"
+        - "k8s/**"
+        - "scripts/**"
+
+    docs:
+      lead: "@tech-lead"
+      members: ["@doc-writer"]
+      ownership_paths:
+        - "docs/**"
+        - "*.md"
+
+  # ========================================================================
+  # ADR Mapping (Component → ADR)
+  # ========================================================================
+  adr_mapping:
+    governance_engine:
+      adr: "ADR-042"
+      title: "Governance System Architecture"
+      components:
+        - "backend/app/services/governance/**"
+        - "backend/app/models/governance/**"
+
+    auto_generation:
+      adr: "ADR-045"
+      title: "Auto-Generation Layer Design"
+      components:
+        - "backend/app/services/governance/auto_generator.py"
+        - "backend/app/api/routes/auto_generation.py"
+
+    vibecoding_index:
+      adr: "ADR-044"
+      title: "Vibecoding Index Signals Engine"
+      components:
+        - "backend/app/services/governance/signals_engine.py"
+        - "backend/app/config/governance_signals.yaml"
+
+    context_authority:
+      adr: "ADR-043"
+      title: "Context Authority MVP"
+      components:
+        - "backend/app/services/governance/context_authority.py"
+
+    stage_gating:
+      adr: "ADR-046"
+      title: "Stage-Aware PR Gating"
+      components:
+        - "backend/app/services/governance/stage_gating.py"
+
+  # ========================================================================
+  # Week 1: Preparation (WARNING Mode)
+  # ========================================================================
+  week_1_preparation:
+    goal: "Prepare Orchestrator repo for governance"
+    mode: "WARNING"
+    start_date: "2026-01-27"
+    end_date: "2026-02-02"
+
+    tasks:
+      add_ownership_headers:
+        description: "Add @owner annotations to all files"
+        target_paths:
+          - "backend/app/**/*.py"
+          - "frontend/src/**/*.tsx"
+          - "frontend/src/**/*.ts"
+        success_criteria: "100% files have @owner annotation"
+        auto_fix_enabled: true
+
+      create_component_adrs:
+        description: "Create ADRs for all major components"
+        target_components:
+          - "Governance Engine → ADR-042"
+          - "Context Authority → ADR-043"
+          - "Governance Signals → ADR-044"
+          - "Auto-Generation Layer → ADR-045"
+        success_criteria: "All components have linked ADR"
+
+      link_prs_to_tasks:
+        description: "Link all existing PRs to tasks"
+        method: "Retroactive task creation"
+        location: "docs/04-build/tasks/"
+        success_criteria: "0 orphan PRs"
+
+      enable_warning_mode:
+        description: "Enable WARNING mode"
+        config_key: "GOVERNANCE_MODE"
+        value: "WARNING"
+        monitoring: "Track violations for 3 days"
+        success_criteria: "Baseline metrics established"
+
+  # ========================================================================
+  # Week 2: Soft Enforcement
+  # ========================================================================
+  week_2_soft_enforcement:
+    goal: "Enable soft enforcement on Orchestrator"
+    mode: "SOFT"
+    start_date: "2026-02-03"
+    end_date: "2026-02-09"
+
+    rules_enabled:
+      critical:
+        - rule: "missing_ownership"
+          action: "BLOCK"
+          message: "PR missing @owner annotation"
+        - rule: "missing_intent"
+          action: "BLOCK"
+          message: "PR missing intent statement"
+        - rule: "vibecoding_index_red"
+          action: "BLOCK"
+          threshold: 80
+          message: "Vibecoding Index > 80 requires CEO review"
+
+      warning:
+        - rule: "vibecoding_index_orange"
+          action: "WARN"
+          threshold: 60
+          message: "Vibecoding Index 61-80, CEO should review"
+        - rule: "stale_agents_md"
+          action: "WARN"
+          threshold_days: 7
+          message: "AGENTS.md older than 7 days"
+
+    metrics_tracking:
+      - name: "time_to_comply_per_pr"
+        target: "<5 minutes"
+        alert_threshold: ">10 minutes"
+
+      - name: "false_positive_rate"
+        target: "<10%"
+        alert_threshold: ">20%"
+
+      - name: "developer_complaints_per_day"
+        target: "<1"
+        alert_threshold: ">3"
+
+    vibecoding_index_baseline:
+      description: "Measure current average index"
+      target: "Reduce by 30% in Week 2"
+
+  # ========================================================================
+  # Week 3: Full Enforcement
+  # ========================================================================
+  week_3_full_enforcement:
+    goal: "Full enforcement on Orchestrator"
+    mode: "FULL"
+    start_date: "2026-02-10"
+    end_date: "2026-02-16"
+
+    rules_enabled:
+      all_governance_rules: true
+      no_exceptions_without_cto: true
+
+    validation:
+      ceo_time_saved:
+        description: "Validate CEO time reduction"
+        measurement:
+          - "CEO PR review time: Before vs After"
+          - "Auto-approved PRs: %"
+          - "CEO attention required: # per day"
+        target: "CEO time saved ≥50%"
+
+      team_feedback:
+        method: "Anonymous survey"
+        questions:
+          - "Is governance helpful or annoying?"
+          - "Does it slow you down or speed you up?"
+          - "Would you recommend to other teams?"
+        success_criteria: "NPS >50"
+
+  # ========================================================================
+  # Success Criteria
+  # ========================================================================
+  success_criteria:
+    compliance:
+      orchestrator_team_compliance: "100%"
+      bypass_attempts: "0"
+      first_submission_pass_rate: "≥70%"
+
+    performance:
+      developer_friction_per_pr: "<5 minutes"
+      auto_generation_usage: ">80%"
+
+    impact:
+      ceo_time_saved: "≥50%"
+      vibecoding_index_reduction: "≥30%"
+      team_satisfaction_nps: ">50"
+
+  # ========================================================================
+  # Failure Criteria (Triggers Rollback)
+  # ========================================================================
+  failure_criteria:
+    - condition: "Team bypasses governance without approval"
+      action: "Investigate, re-train"
+
+    - condition: "Developer friction >10 min per PR"
+      action: "Auto-rollback to SOFT"
+
+    - condition: "CEO time NOT reduced"
+      action: "Review governance rules, iterate"
+
+    - condition: "Team feedback: 'Annoying, doesn't help'"
+      action: "Pause enforcement, gather feedback"
+
+  # ========================================================================
+  # Decision Points
+  # ========================================================================
+  decisions:
+    pass:
+      description: "If all success criteria met"
+      action: "Roll out to customer teams"
+      timeline: "Week 4+"
+
+    fail:
+      description: "If any failure criteria triggered"
+      action: "Iterate on design, re-dogfood"
+      timeline: "Additional 1-2 weeks"
+
+  # ========================================================================
+  # Metrics Dashboard
+  # ========================================================================
+  metrics_dashboard:
+    url: "/governance/dogfooding/metrics"
+
+    widgets:
+      - name: "Governance Mode"
+        type: "status"
+        data_source: "governance_mode_state"
+
+      - name: "Violations Today"
+        type: "counter"
+        data_source: "daily_violations"
+
+      - name: "First Pass Rate"
+        type: "percentage"
+        data_source: "first_pass_rate"
+        target: 70
+
+      - name: "Auto-Generation Usage"
+        type: "percentage"
+        data_source: "auto_gen_usage"
+        target: 80
+
+      - name: "Time to Comply"
+        type: "duration"
+        data_source: "avg_time_to_comply"
+        target_seconds: 300
+
+      - name: "Vibecoding Index Trend"
+        type: "line_chart"
+        data_source: "vibecoding_index_history"
+        period: "7_days"
