@@ -1,11 +1,11 @@
 """
 =========================================================================
-Governance Services - Auto-Generation, Mode Management & Signals Engine
+Governance Services - Complete Governance System
 SDLC Orchestrator - Sprint 109 (Vibecoding Index & Stage-Aware Gating)
 
-Version: 1.2.0
+Version: 1.3.0
 Date: January 27, 2026
-Status: ACTIVE - Sprint 109 Day 1
+Status: ACTIVE - Sprint 109 Day 2
 Authority: CTO + Backend Lead Approved
 Framework: SDLC 5.3.0 Quality Assurance System
 
@@ -13,6 +13,7 @@ Services:
 - AutoGenerationService: 4 generators for compliance artifacts
 - GovernanceModeService: Enforcement mode management (OFF/WARNING/SOFT/FULL)
 - GovernanceSignalsEngine: Vibecoding Index calculation (5 signals)
+- StageGatingService: Stage-aware PR validation (11 SDLC stages)
 - FeedbackService: Actionable error messages (planned)
 
 Zero Mock Policy: Real implementations only
@@ -58,6 +59,21 @@ from app.services.governance.signals_engine import (
     get_signals_engine,
 )
 
+from app.services.governance.stage_gating import (
+    StageGatingService,
+    SDLCStage,
+    StageViolationType,
+    PRRequirement,
+    StageRules,
+    StageViolation,
+    StageGatingResult,
+    PullRequest,
+    Project,
+    DEFAULT_STAGE_RULES,
+    create_stage_gating_service,
+    get_stage_gating_service,
+)
+
 __all__ = [
     # Auto-Generation Service
     "AutoGenerationService",
@@ -97,4 +113,18 @@ __all__ = [
     # Signals Engine Factory Functions
     "create_signals_engine",
     "get_signals_engine",
+    # Stage Gating Service
+    "StageGatingService",
+    "SDLCStage",
+    "StageViolationType",
+    "PRRequirement",
+    "StageRules",
+    "StageViolation",
+    "StageGatingResult",
+    "PullRequest",
+    "Project",
+    "DEFAULT_STAGE_RULES",
+    # Stage Gating Factory Functions
+    "create_stage_gating_service",
+    "get_stage_gating_service",
 ]
