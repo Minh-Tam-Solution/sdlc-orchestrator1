@@ -178,19 +178,19 @@ I, **Tai (CEO)**, commit to:
 3. Participating in weekly calibration
 4. Tracking my governance time
 
-**Signature:** _________________
-**Date:** _________________
+**Signature:** ✅ **APPROVED**
+**Date:** January 28, 2026
 
 ### CTO Commitment
 
-I, **[CTO Name]**, commit to:
+I, **Nhat Quang (CTO)**, commit to:
 1. Ensuring system meets SLAs
 2. Maintaining kill switch readiness
 3. Supporting CEO calibration sessions
 4. Escalating system issues immediately
 
-**Signature:** _________________
-**Date:** _________________
+**Signature:** ✅ **APPROVED**
+**Date:** January 28, 2026
 
 ---
 
