@@ -3655,3 +3655,541 @@ export async function rejectAggregation(
     }
   );
 }
+
+// =============================================================================
+// CEO Dashboard API (Sprint 110)
+// =============================================================================
+
+import type {
+  CEODashboardSummary,
+  TimeSavedMetrics,
+  RoutingBreakdown,
+  PendingDecision,
+  WeeklySummary,
+  TimeSavedTrendPoint,
+  VibecodingTrendPoint,
+  TopRejection,
+  CEOOverride,
+  SystemHealth,
+  TimeRange,
+  ResolveDecisionRequest,
+  RecordOverrideRequest,
+  CEODashboardHealth,
+} from "./types/ceo-dashboard";
+
+export type {
+  CEODashboardSummary,
+  TimeSavedMetrics,
+  RoutingBreakdown,
+  PendingDecision,
+  WeeklySummary,
+  TimeSavedTrendPoint,
+  VibecodingTrendPoint,
+  TopRejection,
+  CEOOverride,
+  SystemHealth,
+  TimeRange,
+  ResolveDecisionRequest,
+  RecordOverrideRequest,
+  CEODashboardHealth,
+};
+
+/**
+ * Get complete CEO dashboard summary
+ * Sprint 110: GET /ceo-dashboard/summary
+ */
+export async function getCEODashboardSummary(options?: {
+  projectId?: string;
+  timeRange?: TimeRange;
+}): Promise<CEODashboardSummary> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.set("project_id", options.projectId);
+  if (options?.timeRange) params.set("time_range", options.timeRange);
+  const query = params.toString();
+  return apiRequest<CEODashboardSummary>(
+    `/ceo-dashboard/summary${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get CEO time saved metrics
+ * Sprint 110: GET /ceo-dashboard/time-saved
+ */
+export async function getCEOTimeSaved(
+  timeRange: TimeRange = "this_week"
+): Promise<TimeSavedMetrics> {
+  return apiRequest<TimeSavedMetrics>(
+    `/ceo-dashboard/time-saved?time_range=${timeRange}`
+  );
+}
+
+/**
+ * Get PR routing breakdown
+ * Sprint 110: GET /ceo-dashboard/routing-breakdown
+ */
+export async function getCEORoutingBreakdown(options?: {
+  projectId?: string;
+  timeRange?: TimeRange;
+}): Promise<RoutingBreakdown> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.set("project_id", options.projectId);
+  if (options?.timeRange) params.set("time_range", options.timeRange);
+  const query = params.toString();
+  return apiRequest<RoutingBreakdown>(
+    `/ceo-dashboard/routing-breakdown${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get pending CEO decisions queue
+ * Sprint 110: GET /ceo-dashboard/pending-decisions
+ */
+export async function getCEOPendingDecisions(options?: {
+  projectId?: string;
+  limit?: number;
+}): Promise<PendingDecision[]> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.set("project_id", options.projectId);
+  if (options?.limit) params.set("limit", options.limit.toString());
+  const query = params.toString();
+  return apiRequest<PendingDecision[]>(
+    `/ceo-dashboard/pending-decisions${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get weekly governance summary
+ * Sprint 110: GET /ceo-dashboard/weekly-summary
+ */
+export async function getCEOWeeklySummary(): Promise<WeeklySummary> {
+  return apiRequest<WeeklySummary>("/ceo-dashboard/weekly-summary");
+}
+
+/**
+ * Get time saved trend (8 weeks)
+ * Sprint 110: GET /ceo-dashboard/trends/time-saved
+ */
+export async function getCEOTimeSavedTrend(): Promise<TimeSavedTrendPoint[]> {
+  return apiRequest<TimeSavedTrendPoint[]>("/ceo-dashboard/trends/time-saved");
+}
+
+/**
+ * Get vibecoding index trend (7 days)
+ * Sprint 110: GET /ceo-dashboard/trends/vibecoding-index
+ */
+export async function getCEOVibecodingTrend(
+  projectId?: string
+): Promise<VibecodingTrendPoint[]> {
+  const query = projectId ? `?project_id=${projectId}` : "";
+  return apiRequest<VibecodingTrendPoint[]>(
+    `/ceo-dashboard/trends/vibecoding-index${query}`
+  );
+}
+
+/**
+ * Get top rejection reasons
+ * Sprint 110: GET /ceo-dashboard/top-rejections
+ */
+export async function getCEOTopRejections(options?: {
+  projectId?: string;
+  timeRange?: TimeRange;
+}): Promise<TopRejection[]> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.set("project_id", options.projectId);
+  if (options?.timeRange) params.set("time_range", options.timeRange);
+  const query = params.toString();
+  return apiRequest<TopRejection[]>(
+    `/ceo-dashboard/top-rejections${query ? `?${query}` : ""}`
+  );
+}
+
+/**
+ * Get CEO overrides this week
+ * Sprint 110: GET /ceo-dashboard/overrides
+ */
+export async function getCEOOverrides(): Promise<CEOOverride[]> {
+  return apiRequest<CEOOverride[]>("/ceo-dashboard/overrides");
+}
+
+/**
+ * Get system health snapshot
+ * Sprint 110: GET /ceo-dashboard/system-health
+ */
+export async function getCEOSystemHealth(): Promise<SystemHealth> {
+  return apiRequest<SystemHealth>("/ceo-dashboard/system-health");
+}
+
+/**
+ * Resolve pending CEO decision
+ * Sprint 110: POST /ceo-dashboard/decisions/{submission_id}/resolve
+ */
+export async function resolveCEODecision(
+  submissionId: string,
+  request: ResolveDecisionRequest
+): Promise<{ status: string; submission_id: string; decision: string }> {
+  return apiRequest(
+    `/ceo-dashboard/decisions/${submissionId}/resolve`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Record CEO override for calibration
+ * Sprint 110: POST /ceo-dashboard/decisions/{submission_id}/override
+ */
+export async function recordCEOOverride(
+  submissionId: string,
+  request: RecordOverrideRequest
+): Promise<{ status: string; submission_id: string; override_type: string }> {
+  return apiRequest(
+    `/ceo-dashboard/decisions/${submissionId}/override`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * CEO Dashboard health check
+ * Sprint 110: GET /ceo-dashboard/health
+ */
+export async function getCEODashboardHealth(): Promise<CEODashboardHealth> {
+  return apiRequest<CEODashboardHealth>("/ceo-dashboard/health");
+}
+
+// =============================================================================
+// Auto-Generation API (Sprint 113)
+// =============================================================================
+
+import type {
+  GenerateIntentRequest,
+  GenerateIntentResponse,
+  SuggestOwnershipRequest,
+  OwnershipSuggestionResponse,
+  BatchOwnershipRequest,
+  BatchOwnershipResponse,
+  AttachContextRequest,
+  AttachContextResponse,
+  PreFillAttestationRequest,
+  PreFillAttestationResponse,
+  SubmitAttestationRequest,
+  AttestationForm,
+  AutoGenerationMetrics,
+  RecentAutoGeneration,
+  AutoGenerationHealth,
+} from "@/lib/types/auto-generation";
+
+/**
+ * Generate intent skeleton from task
+ * Sprint 113: POST /governance/auto-generate/intent
+ *
+ * Goal: Reduce intent document creation from ~15 min to <1 min
+ */
+export async function generateIntentSkeleton(
+  request: GenerateIntentRequest
+): Promise<GenerateIntentResponse> {
+  return apiRequest<GenerateIntentResponse>(
+    "/governance/auto-generate/intent",
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    },
+    30000 // 30s timeout for LLM operations
+  );
+}
+
+/**
+ * Suggest ownership for a file
+ * Sprint 113: POST /governance/auto-generate/ownership
+ *
+ * Goal: Reduce ownership annotation from ~2 min to <30 sec
+ */
+export async function suggestOwnership(
+  request: SuggestOwnershipRequest
+): Promise<OwnershipSuggestionResponse> {
+  return apiRequest<OwnershipSuggestionResponse>(
+    "/governance/auto-generate/ownership",
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Suggest ownership for multiple files
+ * Sprint 113: POST /governance/auto-generate/ownership/batch
+ */
+export async function suggestOwnershipBatch(
+  request: BatchOwnershipRequest
+): Promise<BatchOwnershipResponse> {
+  return apiRequest<BatchOwnershipResponse>(
+    "/governance/auto-generate/ownership/batch",
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    },
+    15000 // 15s timeout for batch
+  );
+}
+
+/**
+ * Auto-attach context (ADRs, specs) to PR
+ * Sprint 113: POST /governance/auto-generate/context
+ *
+ * Goal: Reduce context attachment from ~5 min to automatic
+ */
+export async function attachContext(
+  request: AttachContextRequest
+): Promise<AttachContextResponse> {
+  return apiRequest<AttachContextResponse>(
+    "/governance/auto-generate/context",
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Pre-fill AI attestation form
+ * Sprint 113: POST /governance/auto-generate/attestation
+ *
+ * Goal: Reduce attestation from ~8 min to ~2 min (human confirmation only)
+ */
+export async function preFillAttestation(
+  request: PreFillAttestationRequest
+): Promise<PreFillAttestationResponse> {
+  return apiRequest<PreFillAttestationResponse>(
+    "/governance/auto-generate/attestation",
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Submit completed attestation
+ * Sprint 113: POST /governance/attestations/{id}/submit
+ */
+export async function submitAttestation(
+  request: SubmitAttestationRequest
+): Promise<AttestationForm> {
+  return apiRequest<AttestationForm>(
+    `/governance/attestations/${request.attestation_id}/submit`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Get attestation by ID
+ * Sprint 113: GET /governance/attestations/{id}
+ */
+export async function getAttestation(
+  attestationId: string
+): Promise<AttestationForm> {
+  return apiRequest<AttestationForm>(
+    `/governance/attestations/${attestationId}`
+  );
+}
+
+/**
+ * Get auto-generation usage metrics
+ * Sprint 113: GET /governance/auto-generate/metrics
+ */
+export async function getAutoGenerationMetrics(options?: {
+  projectId?: string;
+  timeRange?: string;
+}): Promise<AutoGenerationMetrics> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.append("project_id", options.projectId);
+  if (options?.timeRange) params.append("time_range", options.timeRange);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest<AutoGenerationMetrics>(
+    `/governance/auto-generate/metrics${query}`
+  );
+}
+
+/**
+ * Get recent auto-generation activity
+ * Sprint 113: GET /governance/auto-generate/recent
+ */
+export async function getRecentAutoGenerations(options?: {
+  projectId?: string;
+  limit?: number;
+}): Promise<RecentAutoGeneration[]> {
+  const params = new URLSearchParams();
+  if (options?.projectId) params.append("project_id", options.projectId);
+  if (options?.limit) params.append("limit", options.limit.toString());
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest<RecentAutoGeneration[]>(
+    `/governance/auto-generate/recent${query}`
+  );
+}
+
+/**
+ * Get auto-generation health status
+ * Sprint 113: GET /governance/auto-generate/health
+ */
+export async function getAutoGenerationHealth(): Promise<AutoGenerationHealth> {
+  return apiRequest<AutoGenerationHealth>("/governance/auto-generate/health");
+}
+
+// =============================================================================
+// Kill Switch & Governance Mode API (Sprint 113)
+// =============================================================================
+
+import type {
+  GovernanceModeStatus,
+  SetGovernanceModeRequest,
+  SetGovernanceModeResponse,
+  KillSwitchResult,
+  TriggerRollbackRequest,
+  TriggerRollbackResponse,
+  BreakGlassRequest,
+  CreateBreakGlassRequest,
+  CreateBreakGlassResponse,
+  ResolveBreakGlassRequest,
+  GetAuditLogRequest,
+  AuditLogResponse,
+  ModeHistoryResponse,
+  KillSwitchDashboard,
+} from "@/lib/types/kill-switch";
+
+/**
+ * Get current governance mode
+ * Sprint 113: GET /governance/mode
+ */
+export async function getGovernanceMode(): Promise<GovernanceModeStatus> {
+  return apiRequest<GovernanceModeStatus>("/governance/mode");
+}
+
+/**
+ * Set governance mode
+ * Sprint 113: POST /governance/mode
+ *
+ * Requires: CTO or CEO role
+ */
+export async function setGovernanceMode(
+  request: SetGovernanceModeRequest
+): Promise<SetGovernanceModeResponse> {
+  return apiRequest<SetGovernanceModeResponse>("/governance/mode", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Check kill switch criteria
+ * Sprint 113: GET /governance/kill-switch/check
+ */
+export async function checkKillSwitch(): Promise<KillSwitchResult> {
+  return apiRequest<KillSwitchResult>("/governance/kill-switch/check");
+}
+
+/**
+ * Trigger governance rollback
+ * Sprint 113: POST /governance/kill-switch/rollback
+ *
+ * Requires: CTO or CEO role
+ */
+export async function triggerRollback(
+  request: TriggerRollbackRequest
+): Promise<TriggerRollbackResponse> {
+  return apiRequest<TriggerRollbackResponse>("/governance/kill-switch/rollback", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Get break glass requests
+ * Sprint 113: GET /governance/break-glass
+ */
+export async function getBreakGlassRequests(options?: {
+  status?: string;
+  limit?: number;
+}): Promise<BreakGlassRequest[]> {
+  const params = new URLSearchParams();
+  if (options?.status) params.append("status", options.status);
+  if (options?.limit) params.append("limit", options.limit.toString());
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest<BreakGlassRequest[]>(`/governance/break-glass${query}`);
+}
+
+/**
+ * Create break glass request
+ * Sprint 113: POST /governance/break-glass
+ */
+export async function createBreakGlass(
+  request: CreateBreakGlassRequest
+): Promise<CreateBreakGlassResponse> {
+  return apiRequest<CreateBreakGlassResponse>("/governance/break-glass", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+/**
+ * Approve or reject break glass request
+ * Sprint 113: POST /governance/break-glass/{id}/resolve
+ */
+export async function resolveBreakGlass(
+  requestId: string,
+  request: ResolveBreakGlassRequest
+): Promise<BreakGlassRequest> {
+  return apiRequest<BreakGlassRequest>(
+    `/governance/break-glass/${requestId}/resolve`,
+    {
+      method: "POST",
+      body: JSON.stringify(request),
+    }
+  );
+}
+
+/**
+ * Get governance mode history
+ * Sprint 113: GET /governance/mode/history
+ */
+export async function getModeHistory(options?: {
+  limit?: number;
+}): Promise<ModeHistoryResponse> {
+  const params = new URLSearchParams();
+  if (options?.limit) params.append("limit", options.limit.toString());
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest<ModeHistoryResponse>(`/governance/mode/history${query}`);
+}
+
+/**
+ * Get governance audit log
+ * Sprint 113: GET /governance/audit-log
+ */
+export async function getGovernanceAuditLog(
+  request?: GetAuditLogRequest
+): Promise<AuditLogResponse> {
+  const params = new URLSearchParams();
+  if (request?.type) params.append("type", request.type);
+  if (request?.actor) params.append("actor", request.actor);
+  if (request?.from_date) params.append("from_date", request.from_date);
+  if (request?.to_date) params.append("to_date", request.to_date);
+  if (request?.limit) params.append("limit", request.limit.toString());
+  if (request?.offset) params.append("offset", request.offset.toString());
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest<AuditLogResponse>(`/governance/audit-log${query}`);
+}
+
+/**
+ * Get kill switch admin dashboard data
+ * Sprint 113: GET /governance/kill-switch/dashboard
+ */
+export async function getKillSwitchDashboard(): Promise<KillSwitchDashboard> {
+  return apiRequest<KillSwitchDashboard>("/governance/kill-switch/dashboard");
+}
