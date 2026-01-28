@@ -311,6 +311,11 @@ class GovernanceModeService:
     # Mode Management
     # ========================================================================
 
+    @property
+    def current_mode(self) -> GovernanceMode:
+        """Property accessor for current governance mode."""
+        return self._state.current_mode
+
     def get_mode(self, project_id: Optional[UUID] = None) -> GovernanceMode:
         """
         Get current governance mode.
@@ -421,6 +426,70 @@ class GovernanceModeService:
         )
 
         return self._state
+
+    async def manual_rollback(
+        self,
+        triggered_by: str,
+        reason: str,
+        target_mode: Optional[GovernanceMode] = None,
+    ) -> GovernanceModeState:
+        """
+        Manual rollback by CTO/CEO.
+
+        Args:
+            triggered_by: Who triggered the rollback
+            reason: Reason for rollback
+            target_mode: Target mode (defaults to WARNING)
+
+        Returns:
+            Updated governance mode state
+        """
+        target = target_mode or GovernanceMode.WARNING
+
+        # Cannot escalate via rollback - only de-escalate
+        current = self._state.current_mode
+        if self._mode_severity(target) > self._mode_severity(current):
+            logger.warning(
+                f"Manual rollback cannot escalate: {current.value} → {target.value}"
+            )
+            return self._state
+
+        return await self.set_mode(target, triggered_by, f"MANUAL_ROLLBACK: {reason}")
+
+    def _mode_severity(self, mode: GovernanceMode) -> int:
+        """Get severity level of mode (higher = stricter)."""
+        severity_map = {
+            GovernanceMode.OFF: 0,
+            GovernanceMode.WARNING: 1,
+            GovernanceMode.SOFT: 2,
+            GovernanceMode.FULL: 3,
+        }
+        return severity_map.get(mode, 0)
+
+    async def check_and_rollback_if_needed(
+        self,
+        metrics: Optional[Dict[str, Any]] = None,
+    ) -> Optional[GovernanceModeState]:
+        """
+        Check if auto-rollback should trigger and execute if needed.
+
+        Args:
+            metrics: Optional metrics dict. If not provided, uses internal state.
+
+        Returns:
+            Updated state if rollback occurred, None otherwise
+        """
+        # Check state's should_auto_rollback
+        should_rollback, reason = self._state.should_auto_rollback()
+
+        if should_rollback and reason:
+            logger.warning(f"Auto-rollback triggered: {reason}")
+            return await self.rollback_to_warning(
+                triggered_by="auto_rollback",
+                reason=reason,
+            )
+
+        return None
 
     async def _notify_mode_change(
         self,
@@ -653,6 +722,78 @@ class GovernanceModeService:
     # ========================================================================
     # Kill Switch
     # ========================================================================
+
+    def _evaluate_rollback_triggers(
+        self,
+        metrics: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """
+        Evaluate metrics against kill switch thresholds.
+
+        Kill Switch Triggers (per MONITORING-PLAN.md):
+        1. rejection_rate >80%
+        2. latency_p95 >500ms
+        3. false_positive_rate >20%
+        4. developer_complaints >5/day
+
+        Args:
+            metrics: System metrics dict containing:
+                - rejection_rate: float (0.0 to 1.0)
+                - latency_p95_ms: float (milliseconds)
+                - false_positive_rate: float (0.0 to 1.0)
+                - developer_complaints_today: int
+
+        Returns:
+            List of triggered conditions with reason and message
+        """
+        triggers: List[Dict[str, Any]] = []
+        criteria = self._state.rollback_criteria
+
+        # Check rejection rate (>80%)
+        rejection_rate = metrics.get("rejection_rate", 0.0)
+        if rejection_rate > criteria.max_rejection_rate:
+            triggers.append({
+                "reason": "rejection_rate_high",
+                "message": f"Rejection rate {rejection_rate:.1%} > {criteria.max_rejection_rate:.1%}",
+                "metric": "rejection_rate",
+                "value": rejection_rate,
+                "threshold": criteria.max_rejection_rate,
+            })
+
+        # Check latency P95 (>500ms)
+        latency_p95 = metrics.get("latency_p95_ms", 0)
+        if latency_p95 > criteria.max_latency_p95_ms:
+            triggers.append({
+                "reason": "latency_high",
+                "message": f"Latency P95 {latency_p95:.0f}ms > {criteria.max_latency_p95_ms:.0f}ms",
+                "metric": "latency_p95_ms",
+                "value": latency_p95,
+                "threshold": criteria.max_latency_p95_ms,
+            })
+
+        # Check false positive rate (>20%)
+        fp_rate = metrics.get("false_positive_rate", 0.0)
+        if fp_rate > criteria.max_false_positive_rate:
+            triggers.append({
+                "reason": "false_positive_rate_high",
+                "message": f"False positive rate {fp_rate:.1%} > {criteria.max_false_positive_rate:.1%}",
+                "metric": "false_positive_rate",
+                "value": fp_rate,
+                "threshold": criteria.max_false_positive_rate,
+            })
+
+        # Check developer complaints (>5/day)
+        complaints = metrics.get("developer_complaints_today", 0)
+        if complaints > criteria.max_developer_complaints_per_day:
+            triggers.append({
+                "reason": "developer_complaints_high",
+                "message": f"Developer complaints {complaints} > {criteria.max_developer_complaints_per_day}/day",
+                "metric": "developer_complaints_today",
+                "value": complaints,
+                "threshold": criteria.max_developer_complaints_per_day,
+            })
+
+        return triggers
 
     async def kill_switch(
         self,

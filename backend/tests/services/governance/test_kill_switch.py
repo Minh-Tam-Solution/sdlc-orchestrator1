@@ -212,13 +212,13 @@ class TestKillSwitchTriggerConditions:
         Scenario:
         - False positive rate: 25% (ABOVE 20%)
 
-        Expected: Trigger with reason "false_positive_high"
+        Expected: Trigger with reason "false_positive_rate_high"
         """
         triggers = mode_service._evaluate_rollback_triggers(unhealthy_false_positive)
 
         assert len(triggers) >= 1
-        assert any(t["reason"] == "false_positive_high" for t in triggers), \
-            f"Expected false_positive_high trigger, got: {triggers}"
+        assert any(t["reason"] == "false_positive_rate_high" for t in triggers), \
+            f"Expected false_positive_rate_high trigger, got: {triggers}"
 
     def test_high_complaints_should_trigger(
         self,
@@ -259,7 +259,7 @@ class TestKillSwitchTriggerConditions:
         expected_reasons = {
             "rejection_rate_high",
             "latency_high",
-            "false_positive_high",
+            "false_positive_rate_high",
             "developer_complaints_high",
         }
         actual_reasons = {t["reason"] for t in triggers}
@@ -291,7 +291,7 @@ class TestKillSwitchAutomaticRollback:
         - Notifications are sent (mocked)
         """
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.FULL
 
         # Simulate metrics collection triggering rollback
@@ -316,7 +316,7 @@ class TestKillSwitchAutomaticRollback:
         - Rollback event is logged
         """
         # Set initial mode to SOFT
-        await mode_service.set_mode(GovernanceMode.SOFT)
+        await mode_service.set_mode(GovernanceMode.SOFT, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.SOFT
 
         # Simulate metrics collection
@@ -341,7 +341,7 @@ class TestKillSwitchAutomaticRollback:
         - No rollback event
         """
         # Set initial mode to WARNING
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.WARNING
 
         # Simulate metrics collection
@@ -365,7 +365,7 @@ class TestKillSwitchAutomaticRollback:
         - No rollback event (governance is disabled)
         """
         # Set initial mode to OFF
-        await mode_service.set_mode(GovernanceMode.OFF)
+        await mode_service.set_mode(GovernanceMode.OFF, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.OFF
 
         # Simulate metrics collection
@@ -398,7 +398,7 @@ class TestKillSwitchManualOverride:
         - Reason is "manual_cto_override"
         """
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # CTO manually triggers rollback
         result = await mode_service.manual_rollback(
@@ -425,7 +425,7 @@ class TestKillSwitchManualOverride:
         - Manual trigger is logged
         """
         # Set initial mode to SOFT
-        await mode_service.set_mode(GovernanceMode.SOFT)
+        await mode_service.set_mode(GovernanceMode.SOFT, "test_user", "Test setup")
 
         # CEO manually triggers rollback
         result = await mode_service.manual_rollback(
@@ -450,7 +450,7 @@ class TestKillSwitchManualOverride:
         - Mode changes to specified level (SOFT)
         """
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # CTO manually rolls back to SOFT (not WARNING)
         result = await mode_service.manual_rollback(
@@ -476,7 +476,7 @@ class TestKillSwitchManualOverride:
         - Mode stays at WARNING
         """
         # Set initial mode to WARNING
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
 
         # Attempt to "rollback" to FULL (invalid - escalation, not rollback)
         with pytest.raises(ValueError, match="cannot escalate"):
@@ -514,7 +514,7 @@ class TestKillSwitchNotifications:
         mode_service._notification_service = mock_notifier
 
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # Trigger rollback
         result = await mode_service.check_and_rollback_if_needed(unhealthy_rejection_rate)
@@ -537,7 +537,7 @@ class TestKillSwitchNotifications:
         - Entry includes: timestamp, old_mode, new_mode, trigger_reasons
         """
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # Trigger rollback
         result = await mode_service.check_and_rollback_if_needed(unhealthy_latency)
@@ -574,7 +574,7 @@ class TestKillSwitchRecovery:
         3. Manual escalation is required (no auto-escalation)
         """
         # Set initial mode to FULL
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # Trigger rollback
         result1 = await mode_service.check_and_rollback_if_needed(unhealthy_rejection_rate)
@@ -601,7 +601,7 @@ class TestKillSwitchRecovery:
         - Mode changes from WARNING to SOFT
         """
         # Start at WARNING (post-rollback state)
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
 
         # CTO manually escalates back to SOFT
         result = await mode_service.escalate_mode(
@@ -753,26 +753,26 @@ class TestKillSwitchStateMachine:
         - FULL -> SOFT -> WARNING -> OFF (rollback)
         """
         # Escalation path
-        await mode_service.set_mode(GovernanceMode.OFF)
+        await mode_service.set_mode(GovernanceMode.OFF, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.OFF
 
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.WARNING
 
-        await mode_service.set_mode(GovernanceMode.SOFT)
+        await mode_service.set_mode(GovernanceMode.SOFT, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.SOFT
 
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.FULL
 
         # Rollback path
-        await mode_service.set_mode(GovernanceMode.SOFT)
+        await mode_service.set_mode(GovernanceMode.SOFT, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.SOFT
 
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.WARNING
 
-        await mode_service.set_mode(GovernanceMode.OFF)
+        await mode_service.set_mode(GovernanceMode.OFF, "test_user", "Test setup")
         assert mode_service.current_mode == GovernanceMode.OFF
 
     @pytest.mark.asyncio
@@ -786,10 +786,10 @@ class TestKillSwitchStateMachine:
         Expected: History contains all state changes with timestamps
         """
         # Perform several state changes
-        await mode_service.set_mode(GovernanceMode.WARNING)
-        await mode_service.set_mode(GovernanceMode.SOFT)
-        await mode_service.set_mode(GovernanceMode.FULL)
-        await mode_service.set_mode(GovernanceMode.WARNING)
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
+        await mode_service.set_mode(GovernanceMode.SOFT, "test_user", "Test setup")
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
+        await mode_service.set_mode(GovernanceMode.WARNING, "test_user", "Test setup")
 
         # Get history
         history = mode_service.get_state_history()
@@ -825,7 +825,7 @@ class TestKillSwitchIntegration:
         metrics_collector = get_metrics_collector()
 
         # Set initial mode
-        await mode_service.set_mode(GovernanceMode.FULL)
+        await mode_service.set_mode(GovernanceMode.FULL, "test_user", "Test setup")
 
         # Trigger rollback
         unhealthy = {

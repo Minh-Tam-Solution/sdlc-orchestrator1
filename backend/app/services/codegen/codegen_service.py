@@ -35,8 +35,16 @@ from .base_provider import (
 from .ollama_provider import OllamaCodegenProvider
 from .claude_provider import ClaudeCodegenProvider
 from .deepcode_provider import DeepCodeProvider
-from .app_builder_provider import AppBuilderProvider
-from .intent_router import IntentRouter, IntentType
+try:
+    from .app_builder_provider import AppBuilderProvider
+except ImportError:
+    # Sprint 106 App Builder not yet implemented - placeholder
+    AppBuilderProvider = None  # type: ignore
+try:
+    from .intent_router import IntentRouter, IntentType
+except ImportError:
+    IntentRouter = None  # type: ignore
+    IntentType = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 

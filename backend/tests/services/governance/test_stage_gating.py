@@ -29,7 +29,7 @@ from uuid import uuid4
 from app.services.governance.stage_gating import (
     StageGatingService,
     SDLCStage,
-    StageViolationType,
+    ViolationType,
     PRRequirement,
     StageRules,
     StageViolation,
@@ -215,7 +215,7 @@ class TestPRValidation:
         assert result.allowed is False
         assert len(result.violations) > 0
         assert any(
-            v.type == StageViolationType.FILE_BLOCKED for v in result.violations
+            v.type == ViolationType.FILE_BLOCKED for v in result.violations
         )
 
     @pytest.mark.asyncio
@@ -225,7 +225,7 @@ class TestPRValidation:
 
         # Should be allowed (with proper PR requirements)
         assert result.allowed is True or all(
-            v.type == StageViolationType.PR_REQUIREMENT_MISSING
+            v.type == ViolationType.PR_REQUIREMENT_MISSING
             for v in result.violations
         )
 
@@ -244,7 +244,7 @@ class TestPRValidation:
 
         assert result.allowed is False
         assert any(
-            v.type == StageViolationType.PREREQUISITE_INCOMPLETE
+            v.type == ViolationType.PREREQUISITE_INCOMPLETE
             for v in result.violations
         )
 
@@ -456,7 +456,7 @@ class TestSuggestionGeneration:
 
         prerequisite_violations = [
             v for v in result.violations
-            if v.type == StageViolationType.PREREQUISITE_INCOMPLETE
+            if v.type == ViolationType.PREREQUISITE_INCOMPLETE
         ]
 
         for v in prerequisite_violations:
