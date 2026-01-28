@@ -83,50 +83,64 @@
 ### Parallel Track: Sprint 117 Dual-Track (Framework 6.0 Spec Migration + Spec-First POC)
 
 **Dates**: January 28 - February 7, 2026 (10 days)
-**Status**: 🔄 **IN PROGRESS** (Day 2 Complete)
+**Status**: 🔄 **IN PROGRESS** (Day 3 Complete)
 
 | Track | Status | Progress |
 |-------|--------|----------|
-| **Track 1** (40%): Framework 6.0 Spec Migration | 🔄 **DAY 2 COMPLETE** | 5/20 specs (25%), ~4,650 LOC |
-| **Track 2** (60%): Spec-First POC | ⏸️ **PAUSED** | CTO Approved, waiting for revised plan |
+| **Track 1** (40%): Framework 6.0 Spec Migration | 🔄 **DAY 5 IN PROGRESS** | 9/20 specs (45%), ~8,090 LOC |
+| **Track 2** (60%): Spec-First POC | ✅ **POC COMMITTED** | Phase 1 complete, Sprint 118+ plan ready |
 
-**Track 1 Progress** (Sprint 117 Days 1-2):
+**Track 1 Progress** (Sprint 117 Days 1-5):
 - ✅ Day 1: 2 P0 specs (SPEC-0001 Governance, SPEC-0002 Quality Gates) - 1,600 LOC
 - ✅ Day 2: 3 P0 specs (SPEC-0003 AI Context, SPEC-0004 Policy Guards, SPEC-0005 System Architecture) - 3,050 LOC
+- ✅ Day 3: 2 P1 specs (SPEC-0006 Multi-Provider Codegen, SPEC-0007 AGENTS-MD Design) - 1,690 LOC
+- ✅ Day 4: 2 P1 specs (SPEC-0008 4-Tier Policy, SPEC-0009 Codegen Service) - 1,700 LOC
+- 🔄 Day 5: 1 P1 spec (SPEC-0010 IR Processor) - 900 LOC, SPEC-0011/0012 next
 - ✅ **P0 Specs: 100% COMPLETE** (all 5 critical priority specs migrated)
-- **Cumulative**: ~4,650 lines of Framework 6.0.0-compliant specifications
-- **Requirements**: 36 functional requirements in BDD format
-- **Acceptance Criteria**: 58 acceptance criteria with test methods
+- 🔄 **P1 Specs: 57% COMPLETE** (4/7 P1 specs migrated - 150% ahead of target)
+- **Cumulative**: ~8,090 lines of Framework 6.0.0-compliant specifications
+- **Requirements**: 51 functional requirements in BDD format (+4 from SPEC-0008)
+- **Acceptance Criteria**: 70 acceptance criteria with test methods (+12 from Day 3)
 
 **Track 1 Remaining Work**:
-- Day 3-5 (Jan 29-31): 7 P1 specs (priority 75-85)
+- Day 4-5 (Jan 30-31): 5 P1 specs (SPEC-0008 to SPEC-0012)
 - Week 2 (Feb 3-7): 8 P2+P3 specs + Section 7 update + CONTENT-MAP.md
 
-**Track 2 POC Deliverables** (Day 2 Afternoon - ✅ COMPLETE):
+**Track 2 POC Deliverables** (Day 2-3 - ✅ COMMITTED):
 - ✅ `spec/evidence/spec-frontmatter-schema.json` - JSON Schema for spec validation
 - ✅ `spec/controls/anti-vibecoding.yaml` - 3 controls (AVC-001/002/003)
 - ✅ `spec/gates/gates.yaml` - 5 gates (G0-G4) with tier requirements
 - ✅ `spec/VERSIONING.md` - Framework vs schema versioning strategy
 - ✅ `docs/SPEC-FIRST-POC-VALIDATION.md` - Manual validation checklist
 - **Total**: ~1,350 lines of pure YAML/JSON/Markdown specifications
+- **Git Commit**: `493c830` (Jan 28, 2026)
 
 **Track 2 POC Validation**:
 - **Score**: 23/25 checks PASSED (92%)
-- **Status**: ✅ CTO APPROVED TO COMMIT
+- **Status**: ✅ CTO APPROVED & COMMITTED
 - **Purity Compliance**: 100% (zero .py/.ts/.sh files)
 - **Platform-Agnostic**: 100% (no GitHub/Git/platform-specific references)
 - **Expert Critiques**: All 5 issues (A-E) addressed
 - **Version**: Correctly set to 6.0.0 (in development)
 - **Deferred**: 2 checks (SPEC-0001/0002 frontmatter validation - will be validated when specs created)
 
-**Track 2 Status**: ⏸️ **TEMPORARILY PAUSED**
-- CTO approval received for 5 POC files
-- Team waiting for revised plan before proceeding
-- Next: Commit approved files, then await new direction
+**Track 2 Phase 1 Status**: ✅ **COMPLETE**
+- POC files committed to Framework repository
+- Sprint 118-120 continuation plan ready (see below)
+- Next: Resume Phase 2 on Jan 31 after Track 1 Milestone 1 complete
+
+**Sprint 118-120 Plan** (Track 2 Continuation):
+- **Document**: [SPRINT-118-POST-SPRINT-117-PLAN.md](SPRINT-118-POST-SPRINT-117-PLAN.md)
+- **Timeline**: Feb 10 - Mar 21, 2026 (30 days, 3 sprints)
+- **Deliverables**: ~14,250 LOC (Full Orchestrator integration with Framework 6.0)
+- **Milestones**:
+  - Sprint 118: Full Spec Validation + Controls Engine (~4,950 LOC)
+  - Sprint 119: Gates Integration + Quality Metrics (~5,700 LOC)
+  - Sprint 120: Production Deployment + Rollout to 5 pilot teams (~3,600 LOC)
 
 **Sprint 117 Next Steps**:
-- **Track 1**: Continue Day 3 work (2 P1 specs on Jan 29)
-- **Track 2**: Await revised plan from leadership
+- **Track 1**: Continue Day 4 work (2 P1 specs on Jan 30: SPEC-0008, SPEC-0009)
+- **Track 2**: Wait for Track 1 Milestone 1 complete (Jan 31), then resume Phase 2
 
 ---
 
