@@ -289,17 +289,29 @@
 **Status**: ⏸️ DEFERRED to Sprint 118 (Feb 10-21)
 **CTO Decision (Jan 28)**: "DEFER - Do NOT start automation until Feb 3" → Further deferred to Sprint 118 (Feb 10) to maintain conductor/follower discipline
 
+**Detailed Sprint 118 Plan**: 📋 [SPRINT-118-TRACK-2-PLAN.md](./SPRINT-118-TRACK-2-PLAN.md) - 6 deliverables (documentation only, no code until Feb 10)
+
 **Rationale for Deferral**:
 - Track 1 must complete first (20/20 specs by Feb 7)
 - Sprint 117 priority is Framework 6.0.0 spec layer
 - Automation belongs to Sprint 118 implementation phase
 - Prevents premature optimization
+- Planning phase (Jan 28 - Feb 9) focuses on design only
 
 **Start Conditions (ALL must be true)**:
 1. ✅ Track 1 completes 20/20 specs
 2. ✅ Framework 6.0.0 spec layer finalized
 3. ✅ Sprint 117 officially ends (Feb 7)
 4. ✅ Sprint 118 kickoff (Feb 10)
+5. ✅ All 6 design deliverables completed and approved
+
+**Pre-Sprint 118 Activities (Jan 28 - Feb 9)**:
+- **D1**: Database schema design (14 tables, ERD, migrations) - Backend Lead
+- **D2**: API architecture design (12 endpoints, OpenAPI 3.0) - Backend Lead
+- **D3**: Technical dependencies documentation - DevOps Lead
+- **D4**: Testing strategy design (95%+ coverage) - QA Lead
+- **D5**: Implementation phases breakdown (10-day sprint) - Tech Lead
+- **D6**: Architecture diagrams (5 diagrams) - Tech Lead
 
 **Updated Dependency**: Sprint 118 starts (Feb 10)
 
