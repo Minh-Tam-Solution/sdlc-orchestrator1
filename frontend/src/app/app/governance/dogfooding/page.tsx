@@ -1,6 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+/**
+ * Dogfooding Dashboard - Sprint 114 Track 2
+ *
+ * Day 2-4 Enhanced Version:
+ * - Real API integration (replaces mock data)
+ * - Developer feedback survey link
+ * - Daily checks panel
+ * - CEO time tracking section
+ */
+
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +29,11 @@ import {
   RefreshCw,
   Download,
   Info,
+  ClipboardCheck,
+  Timer,
+  MessageSquare,
+  ExternalLink,
+  XCircle,
 } from "lucide-react";
 
 // Types
@@ -68,6 +84,48 @@ interface PRMetric {
   frictionMinutes: number;
   autoGenUsed: boolean;
   timestamp: string;
+}
+
+interface DailyCheck {
+  checkName: string;
+  passed: boolean;
+  currentValue: string;
+  targetValue: string;
+  severity: "info" | "warning" | "critical";
+  message: string;
+}
+
+interface DailyChecksData {
+  day: number;
+  date: string;
+  checks: DailyCheck[];
+  allPassed: boolean;
+  criticalIssues: number;
+  warnings: number;
+  recommendations: string[];
+}
+
+interface CEOTimeSummary {
+  baselineHours: number;
+  currentHours: number;
+  hoursSaved: number;
+  savingsPercentage: number;
+  targetHours: number;
+  targetPercentage: number;
+  onTrack: boolean;
+  breakdown: Record<string, number>;
+  prReviewCount: number;
+  autoApprovedCount: number;
+  manualReviewRatio: number;
+}
+
+interface FeedbackSummary {
+  totalResponses: number;
+  averageNps: number;
+  npsTarget: number;
+  satisfactionDistribution: Record<string, number>;
+  avgPerceivedFriction: number;
+  recommendationRate: number;
 }
 
 // Mock data for Sprint 114 dogfooding
@@ -138,6 +196,45 @@ const mockPRHistory: PRMetric[] = [
     timestamp: "2026-02-03T14:45:00Z",
   },
 ];
+
+const mockDailyChecks: DailyChecksData = {
+  day: 2,
+  date: "2026-02-04",
+  checks: [
+    { checkName: "PRs Evaluated", passed: false, currentValue: "3", targetValue: ">=10", severity: "warning", message: "3 PRs evaluated (target: 10+ by Day 2)" },
+    { checkName: "Kill Switch Status", passed: true, currentValue: "OFF (WARNING mode)", targetValue: "No triggers", severity: "info", message: "Kill switch not triggered" },
+    { checkName: "API Latency P95", passed: true, currentValue: "<100ms", targetValue: "<100ms", severity: "info", message: "API latency within SLO" },
+    { checkName: "Developer Friction", passed: true, currentValue: "4.5 min", targetValue: "<10 min", severity: "info", message: "Average friction: 4.5 min per PR" },
+    { checkName: "CEO Time Baseline", passed: false, currentValue: "Not recorded", targetValue: "Baseline recorded", severity: "warning", message: "CEO time tracking baseline measurement" },
+  ],
+  allPassed: false,
+  criticalIssues: 0,
+  warnings: 2,
+  recommendations: ["Create more PRs to hit evaluation target", "Record CEO time baseline for Day 2"],
+};
+
+const mockCEOTime: CEOTimeSummary = {
+  baselineHours: 40,
+  currentHours: 0,
+  hoursSaved: 0,
+  savingsPercentage: 0,
+  targetHours: 30,
+  targetPercentage: 25,
+  onTrack: false,
+  breakdown: {},
+  prReviewCount: 0,
+  autoApprovedCount: 2,
+  manualReviewRatio: 0,
+};
+
+const mockFeedback: FeedbackSummary = {
+  totalResponses: 0,
+  averageNps: 0,
+  npsTarget: 50,
+  satisfactionDistribution: {},
+  avgPerceivedFriction: 0,
+  recommendationRate: 0,
+};
 
 // Components
 function MetricCard({
@@ -321,6 +418,210 @@ function GoNoGoStatus({ metrics }: { metrics: DogfoodingMetrics }) {
   );
 }
 
+function DailyChecksPanel({ data }: { data: DailyChecksData }) {
+  const severityColors = {
+    info: "text-blue-600 bg-blue-50",
+    warning: "text-yellow-600 bg-yellow-50",
+    critical: "text-red-600 bg-red-50",
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5" />
+          Daily Checks - Day {data.day}
+        </CardTitle>
+        <CardDescription>{data.date}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Summary */}
+        <div className="flex gap-4 mb-4">
+          <Badge variant={data.allPassed ? "default" : "secondary"}>
+            {data.allPassed ? "All Passed" : `${data.criticalIssues} Critical, ${data.warnings} Warnings`}
+          </Badge>
+        </div>
+
+        {/* Checks List */}
+        <div className="space-y-3">
+          {data.checks.map((check, i) => (
+            <div key={i} className={`p-3 rounded-lg ${severityColors[check.severity]}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {check.passed ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : check.severity === "critical" ? (
+                    <XCircle className="h-4 w-4 text-red-600" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4" />
+                  )}
+                  <span className="font-medium">{check.checkName}</span>
+                </div>
+                <span className="text-sm">
+                  {check.currentValue} / {check.targetValue}
+                </span>
+              </div>
+              <p className="text-xs mt-1 opacity-80">{check.message}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Recommendations */}
+        {data.recommendations.length > 0 && (
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-sm font-medium mb-2">Recommendations:</p>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              {data.recommendations.map((rec, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="text-yellow-600">•</span>
+                  {rec}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CEOTimeSummaryCard({ data }: { data: CEOTimeSummary }) {
+  const savingsPercent = data.baselineHours > 0
+    ? ((data.baselineHours - data.currentHours) / data.baselineHours) * 100
+    : 0;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Timer className="h-5 w-5" />
+          CEO Time Tracking
+        </CardTitle>
+        <CardDescription>Governance review time reduction</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Main Gauge */}
+        <div className="text-center">
+          <div className="text-4xl font-bold">
+            {data.currentHours.toFixed(1)}h
+            <span className="text-lg font-normal text-muted-foreground"> / {data.baselineHours}h baseline</span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">
+            {data.hoursSaved > 0 ? (
+              <span className="text-green-600">
+                {data.hoursSaved.toFixed(1)}h saved ({savingsPercent.toFixed(0)}%)
+              </span>
+            ) : (
+              <span>Tracking in progress...</span>
+            )}
+          </p>
+        </div>
+
+        {/* Target Progress */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Target: {data.targetHours}h (-{data.targetPercentage}%)</span>
+            <Badge variant={data.onTrack ? "default" : "secondary"}>
+              {data.onTrack ? "On Track" : "Recording"}
+            </Badge>
+          </div>
+          <Progress value={(data.currentHours / data.baselineHours) * 100} className="h-2" />
+        </div>
+
+        {/* Breakdown */}
+        {Object.keys(data.breakdown).length > 0 && (
+          <div className="pt-4 border-t">
+            <p className="text-sm font-medium mb-2">Time Breakdown:</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {Object.entries(data.breakdown).map(([activity, hours]) => (
+                <div key={activity} className="flex justify-between">
+                  <span className="text-muted-foreground">{activity}:</span>
+                  <span>{(hours as number).toFixed(1)}h</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Auto-Approval Stats */}
+        <div className="pt-4 border-t grid grid-cols-2 gap-4 text-center">
+          <div>
+            <div className="text-2xl font-bold text-green-600">{data.autoApprovedCount}</div>
+            <p className="text-xs text-muted-foreground">Auto-Approved (Green Zone)</p>
+          </div>
+          <div>
+            <div className="text-2xl font-bold">{data.prReviewCount}</div>
+            <p className="text-xs text-muted-foreground">Manual Reviews</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function FeedbackSummaryCard({ data, onSubmitFeedback }: { data: FeedbackSummary; onSubmitFeedback: () => void }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          Developer Feedback
+        </CardTitle>
+        <CardDescription>Team satisfaction survey results</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {data.totalResponses === 0 ? (
+          <div className="text-center py-6">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground mb-4">No feedback received yet</p>
+            <Button onClick={onSubmitFeedback}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Submit Your Feedback
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* NPS Score */}
+            <div className="text-center">
+              <div className="text-4xl font-bold">
+                {data.averageNps.toFixed(0)}
+                <span className="text-lg font-normal text-muted-foreground"> NPS</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Target: {data.npsTarget}+ | Responses: {data.totalResponses}
+              </p>
+              <Badge
+                variant={data.averageNps >= data.npsTarget ? "default" : "secondary"}
+                className="mt-2"
+              >
+                {data.averageNps >= data.npsTarget ? "Target Met" : "Below Target"}
+              </Badge>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+              <div className="text-center">
+                <div className="text-xl font-bold">{data.avgPerceivedFriction.toFixed(1)} min</div>
+                <p className="text-xs text-muted-foreground">Avg Perceived Friction</p>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{data.recommendationRate.toFixed(0)}%</div>
+                <p className="text-xs text-muted-foreground">Would Recommend</p>
+              </div>
+            </div>
+
+            {/* Submit Link */}
+            <Button variant="outline" onClick={onSubmitFeedback} className="w-full">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Submit Additional Feedback
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function PRHistoryTable({ prs }: { prs: PRMetric[] }) {
   const zoneColors = {
     green: "bg-green-100 text-green-800",
@@ -385,49 +686,184 @@ function PRHistoryTable({ prs }: { prs: PRMetric[] }) {
 
 // Main Component
 export default function DogfoodingDashboard() {
+  const router = useRouter();
   const [metrics, setMetrics] = useState<DogfoodingMetrics>(mockMetrics);
   const [prHistory, setPRHistory] = useState<PRMetric[]>(mockPRHistory);
+  const [dailyChecks, setDailyChecks] = useState<DailyChecksData>(mockDailyChecks);
+  const [ceoTime, setCeoTime] = useState<CEOTimeSummary>(mockCEOTime);
+  const [feedback, setFeedback] = useState<FeedbackSummary>(mockFeedback);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [error, setError] = useState<string | null>(null);
 
-  const handleRefresh = async () => {
+  // Fetch all data from API
+  const fetchData = useCallback(async () => {
     setIsRefreshing(true);
-    // TODO: Fetch real metrics from API
-    // const response = await fetch('/api/v1/governance/dogfooding/metrics');
-    // const data = await response.json();
-    // setMetrics(data);
-    setTimeout(() => {
-      setIsRefreshing(false);
+    setError(null);
+
+    try {
+      // Fetch metrics
+      const metricsRes = await fetch("/api/v1/dogfooding/metrics");
+      if (metricsRes.ok) {
+        const data = await metricsRes.json();
+        setMetrics({
+          sprint: data.sprint,
+          mode: data.mode,
+          startDate: data.start_date,
+          endDate: data.end_date,
+          daysElapsed: data.days_elapsed,
+          totalDays: data.total_days,
+          prsEvaluated: data.prs_evaluated,
+          prsTarget: data.prs_target,
+          distribution: data.distribution,
+          averageIndex: data.average_index,
+          avgFrictionMinutes: data.avg_friction_minutes,
+          frictionTarget: data.friction_target,
+          falsePositiveRate: data.false_positive_rate,
+          falsePositiveTarget: data.false_positive_target,
+          teamNPS: data.team_nps,
+          npsTarget: data.nps_target,
+          goNoGoReady: data.go_no_go_ready,
+          blockers: data.blockers,
+        });
+      }
+
+      // Fetch PR history
+      const prsRes = await fetch("/api/v1/dogfooding/prs");
+      if (prsRes.ok) {
+        const data = await prsRes.json();
+        setPRHistory(data.items.map((pr: any) => ({
+          prNumber: pr.pr_number,
+          title: pr.title,
+          author: pr.author,
+          vibecodeIndex: pr.vibecode_index,
+          zone: pr.zone,
+          frictionMinutes: pr.friction_minutes,
+          autoGenUsed: pr.auto_gen_used,
+          timestamp: pr.timestamp,
+        })));
+      }
+
+      // Fetch daily checks
+      const checksRes = await fetch("/api/v1/dogfooding/daily-checks");
+      if (checksRes.ok) {
+        const data = await checksRes.json();
+        setDailyChecks({
+          day: data.day,
+          date: data.date,
+          checks: data.checks.map((c: any) => ({
+            checkName: c.check_name,
+            passed: c.passed,
+            currentValue: c.current_value,
+            targetValue: c.target_value,
+            severity: c.severity,
+            message: c.message,
+          })),
+          allPassed: data.all_passed,
+          criticalIssues: data.critical_issues,
+          warnings: data.warnings,
+          recommendations: data.recommendations,
+        });
+      }
+
+      // Fetch CEO time summary
+      const ceoRes = await fetch("/api/v1/dogfooding/ceo-time/summary");
+      if (ceoRes.ok) {
+        const data = await ceoRes.json();
+        setCeoTime({
+          baselineHours: data.baseline_hours,
+          currentHours: data.current_hours,
+          hoursSaved: data.hours_saved,
+          savingsPercentage: data.savings_percentage,
+          targetHours: data.target_hours,
+          targetPercentage: data.target_percentage,
+          onTrack: data.on_track,
+          breakdown: data.breakdown,
+          prReviewCount: data.pr_review_count,
+          autoApprovedCount: data.auto_approved_count,
+          manualReviewRatio: data.manual_review_ratio,
+        });
+      }
+
+      // Fetch feedback summary
+      const feedbackRes = await fetch("/api/v1/dogfooding/feedback/summary");
+      if (feedbackRes.ok) {
+        const data = await feedbackRes.json();
+        setFeedback({
+          totalResponses: data.total_responses,
+          averageNps: data.average_nps,
+          npsTarget: data.nps_target,
+          satisfactionDistribution: data.satisfaction_distribution,
+          avgPerceivedFriction: data.avg_perceived_friction,
+          recommendationRate: data.recommendation_rate,
+        });
+      }
+
       setLastUpdated(new Date());
-    }, 1000);
+    } catch (err) {
+      console.error("Failed to fetch dogfooding data:", err);
+      setError("Failed to load data. Using cached values.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleRefresh = () => {
+    fetchData();
   };
 
-  const handleExportReport = () => {
-    // TODO: Generate and download Sprint 114 metrics report
-    const report = {
-      sprint: metrics.sprint,
-      mode: metrics.mode,
-      period: { start: metrics.startDate, end: metrics.endDate },
-      metrics: {
-        prsEvaluated: metrics.prsEvaluated,
-        averageIndex: metrics.averageIndex,
-        distribution: metrics.distribution,
-        avgFrictionMinutes: metrics.avgFrictionMinutes,
-        falsePositiveRate: metrics.falsePositiveRate,
-        teamNPS: metrics.teamNPS,
-      },
-      prHistory: prHistory,
-      goNoGoReady: metrics.goNoGoReady,
-      blockers: metrics.blockers,
-      exportedAt: new Date().toISOString(),
-    };
+  const handleSubmitFeedback = () => {
+    router.push("/app/governance/dogfooding/feedback");
+  };
 
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `sprint-${metrics.sprint}-dogfooding-report.json`;
-    a.click();
+  const handleExportReport = async () => {
+    try {
+      const response = await fetch("/api/v1/dogfooding/export/json");
+      if (response.ok) {
+        const data = await response.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `sprint-${metrics.sprint}-dogfooding-report.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // Fallback to local export
+        const report = {
+          sprint: metrics.sprint,
+          mode: metrics.mode,
+          period: { start: metrics.startDate, end: metrics.endDate },
+          metrics: {
+            prsEvaluated: metrics.prsEvaluated,
+            averageIndex: metrics.averageIndex,
+            distribution: metrics.distribution,
+            avgFrictionMinutes: metrics.avgFrictionMinutes,
+            falsePositiveRate: metrics.falsePositiveRate,
+            teamNPS: metrics.teamNPS,
+          },
+          prHistory: prHistory,
+          goNoGoReady: metrics.goNoGoReady,
+          blockers: metrics.blockers,
+          exportedAt: new Date().toISOString(),
+        };
+
+        const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `sprint-${metrics.sprint}-dogfooding-report.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      console.error("Export failed");
+    }
   };
 
   const progressPercent = (metrics.daysElapsed / metrics.totalDays) * 100;
@@ -515,12 +951,23 @@ export default function DogfoodingDashboard() {
         />
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="daily-checks">Daily Checks</TabsTrigger>
           <TabsTrigger value="history">PR History</TabsTrigger>
-          <TabsTrigger value="feedback">Team Feedback</TabsTrigger>
+          <TabsTrigger value="ceo-time">CEO Time</TabsTrigger>
+          <TabsTrigger value="feedback">Feedback</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -530,43 +977,84 @@ export default function DogfoodingDashboard() {
           </div>
         </TabsContent>
 
+        <TabsContent value="daily-checks" className="space-y-4">
+          <DailyChecksPanel data={dailyChecks} />
+        </TabsContent>
+
         <TabsContent value="history">
           <PRHistoryTable prs={prHistory} />
         </TabsContent>
 
-        <TabsContent value="feedback">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Team Feedback Survey
-              </CardTitle>
-              <CardDescription>
-                Collect developer feedback on governance experience
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Survey Not Started</AlertTitle>
-                <AlertDescription>
-                  Team feedback survey will be sent on Day 4 (Feb 6).
-                  Results will be used for Go/No-Go decision.
-                </AlertDescription>
-              </Alert>
+        <TabsContent value="ceo-time" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <CEOTimeSummaryCard data={ceoTime} />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="h-5 w-5" />
+                  Record Time Entry
+                </CardTitle>
+                <CardDescription>Track governance review time</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Record time spent on PR reviews, architecture debates, firefighting, and vibecoding cleanup.
+                </p>
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Activity Types</AlertTitle>
+                  <AlertDescription>
+                    <ul className="text-sm mt-2 space-y-1">
+                      <li><strong>pr_review</strong> - Reviewing PRs</li>
+                      <li><strong>architecture_debate</strong> - Design discussions</li>
+                      <li><strong>firefighting</strong> - Urgent issue resolution</li>
+                      <li><strong>vibecoding_cleanup</strong> - Quality fixes</li>
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+                <p className="text-xs text-muted-foreground mt-4">
+                  Use <code>POST /api/v1/dogfooding/ceo-time/record</code> to record entries.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium">Survey Questions:</p>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• How much did governance slow down your workflow? (1-5)</li>
-                  <li>• How useful was auto-generated intent? (1-5)</li>
-                  <li>• How accurate were ownership suggestions? (1-5)</li>
-                  <li>• Would you recommend this system to other teams? (NPS 1-10)</li>
-                  <li>• What improvements would you suggest? (Open text)</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="feedback" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <FeedbackSummaryCard data={feedback} onSubmitFeedback={handleSubmitFeedback} />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Feedback Survey
+                </CardTitle>
+                <CardDescription>Help us improve the governance system</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Your feedback is critical for the Go/No-Go decision for Sprint 115 (SOFT mode).
+                </p>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Survey covers:</p>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                    <li>• Overall satisfaction rating</li>
+                    <li>• Net Promoter Score (NPS)</li>
+                    <li>• Perceived friction time</li>
+                    <li>• Helpful aspects & pain points</li>
+                    <li>• Improvement suggestions</li>
+                    <li>• SOFT mode readiness vote</li>
+                  </ul>
+                </div>
+
+                <Button onClick={handleSubmitFeedback} className="w-full">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Feedback Survey
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
