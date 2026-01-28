@@ -26,57 +26,20 @@ Status: ACTIVE
 
 from abc import ABC, abstractmethod
 from typing import List, Dict, Optional, Any
-from dataclasses import dataclass
 from pathlib import Path
 import logging
 
-from backend.app.schemas.codegen.template_blueprint import (
+from app.schemas.codegen.template_blueprint import (
     TemplateBlueprint,
     TemplateType,
+    ProjectTier,
     Entity,
     APIRoute,
     Page
 )
+from app.schemas.codegen.codegen_result import GeneratedFile
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class GeneratedFile:
-    """
-    Represents a single generated file from template scaffolding.
-
-    Attributes:
-        path: Relative file path (e.g., "src/pages/index.tsx")
-        content: File content as string
-        language: Programming language for syntax highlighting
-        is_binary: True if file is binary (images, fonts, etc.)
-    """
-    path: str
-    content: str
-    language: str = "text"
-    is_binary: bool = False
-
-    def __post_init__(self):
-        """Auto-detect language from file extension if not provided"""
-        if self.language == "text" and not self.is_binary:
-            ext_map = {
-                '.py': 'python',
-                '.ts': 'typescript',
-                '.tsx': 'typescriptreact',
-                '.js': 'javascript',
-                '.jsx': 'javascriptreact',
-                '.json': 'json',
-                '.md': 'markdown',
-                '.yml': 'yaml',
-                '.yaml': 'yaml',
-                '.toml': 'toml',
-                '.env': 'dotenv',
-                '.sql': 'sql',
-                '.sh': 'bash',
-            }
-            ext = Path(self.path).suffix
-            self.language = ext_map.get(ext, 'text')
 
 
 class BaseTemplate(ABC):
@@ -164,12 +127,18 @@ class BaseTemplate(ABC):
 
         Orchestrates the complete scaffolding process:
         1. Validate blueprint
-        2. Generate base files (README, .gitignore, LICENSE)
-        3. Generate framework config files
-        4. Generate entry point
-        5. Generate entities/models (if applicable)
-        6. Generate API routes (if applicable)
-        7. Generate pages (if applicable)
+        2. Generate SDLC 6.0 specification file (OpenSpec integration)
+        3. Generate base files (README, .gitignore, LICENSE)
+        4. Generate framework config files
+        5. Generate entry point
+        6. Generate entities/models (if applicable)
+        7. Generate API routes (if applicable)
+        8. Generate pages (if applicable)
+
+        SDLC Framework 6.0 Compliance:
+        - Generates SPEC-{id}-{name}.md with YAML frontmatter
+        - BDD requirements format (GIVEN-WHEN-THEN)
+        - Tier-specific quality requirements
 
         Args:
             blueprint: Validated and finalized template blueprint
@@ -188,6 +157,13 @@ class BaseTemplate(ABC):
         # Step 2: Collect all files
         files: List[GeneratedFile] = []
 
+        # Step 3: Generate SDLC 6.0 Specification file (OpenSpec integration)
+        # This creates the specification document BEFORE code generation
+        # ensuring full SDLC compliance from the start
+        spec_file = self.generate_spec_file(blueprint)
+        files.append(spec_file)
+        self.logger.info(f"Generated SDLC 6.0 spec: {spec_file.path}")
+
         # Base files (common to all templates)
         files.extend(self.generate_base_files(blueprint))
 
@@ -199,15 +175,18 @@ class BaseTemplate(ABC):
         if blueprint.entities:
             files.extend(self.generate_entity_files(blueprint))
 
-        # API route files (if routes defined)
-        if blueprint.api_routes:
-            files.extend(self.generate_route_files(blueprint))
+        # API route files (always call - templates may have default routes)
+        # e.g., SaaS template has Stripe routes regardless of user-specified routes
+        route_files = self.generate_route_files(blueprint)
+        if route_files:
+            files.extend(route_files)
 
-        # Frontend page files (if pages defined)
-        if blueprint.pages:
-            files.extend(self.generate_page_files(blueprint))
+        # Frontend page files (always call - templates may have default pages)
+        page_files = self.generate_page_files(blueprint)
+        if page_files:
+            files.extend(page_files)
 
-        self.logger.info(f"Scaffold complete: {len(files)} files generated")
+        self.logger.info(f"Scaffold complete: {len(files)} files generated (including SDLC 6.0 spec)")
 
         return files
 
@@ -444,3 +423,299 @@ Built with ❤️ using SDLC Orchestrator
             Shell command to run smoke test
         """
         return "echo 'No smoke test defined'"
+
+    def generate_spec_file(self, blueprint: TemplateBlueprint) -> GeneratedFile:
+        """
+        Generate SDLC Specification Standard v6.0 compliant spec file.
+
+        Creates a SPEC-{id}-{project-name}.md file with:
+        - YAML frontmatter (spec_id, tier, stage, owner, etc.)
+        - Overview section (from blueprint description)
+        - Requirements section (BDD format: GIVEN-WHEN-THEN)
+        - Technical specifications
+        - Entities and API contracts
+        - Quality requirements (tier-specific)
+
+        Args:
+            blueprint: Template blueprint with project specification
+
+        Returns:
+            GeneratedFile containing the SDLC 6.0 spec document
+        """
+        # Get YAML frontmatter
+        frontmatter = blueprint.get_openspec_frontmatter()
+
+        # Build spec content sections
+        sections = []
+
+        # Section 1: Overview
+        sections.append(self._generate_overview_section(blueprint))
+
+        # Section 2: Requirements (BDD format)
+        sections.append(self._generate_requirements_section(blueprint))
+
+        # Section 3: Technical Specifications
+        sections.append(self._generate_technical_section(blueprint))
+
+        # Section 4: Data Model (Entities)
+        if blueprint.entities:
+            sections.append(self._generate_entities_section(blueprint))
+
+        # Section 5: API Contracts
+        if blueprint.api_routes:
+            sections.append(self._generate_api_section(blueprint))
+
+        # Section 6: Pages/UI Specifications
+        if blueprint.pages:
+            sections.append(self._generate_pages_section(blueprint))
+
+        # Section 7: Quality Requirements (tier-specific)
+        sections.append(self._generate_quality_section(blueprint))
+
+        # Combine all sections
+        content = frontmatter + "\n".join(sections)
+
+        # Generate filename: SPEC-{short_id}-{project-name}.md
+        spec_filename = f"SPEC-{blueprint.spec_id.split('-')[1]}-{blueprint.project_name}.md"
+
+        return GeneratedFile(
+            path=f"docs/{spec_filename}",
+            content=content,
+            language="markdown"
+        )
+
+    def _generate_overview_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate overview section from blueprint."""
+        description = blueprint.description or f"A {blueprint.template_type.value} application"
+        tech_list = ", ".join(blueprint.tech_stack) if blueprint.tech_stack else "Not specified"
+        features_list = ", ".join(blueprint.features) if blueprint.features else "Basic scaffolding"
+
+        return f"""
+## 1. Overview
+
+### 1.1 Purpose
+{description}
+
+### 1.2 Scope
+- **Template Type:** {blueprint.template_type.value}
+- **Project Name:** {blueprint.project_name}
+- **Tech Stack:** {tech_list}
+- **Features:** {features_list}
+
+### 1.3 Stakeholders
+- **Owner:** {blueprint.owner}
+- **Generated by:** SDLC Orchestrator App Builder
+- **Blueprint ID:** {blueprint.blueprint_id}
+"""
+
+    def _generate_requirements_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate BDD-format requirements section."""
+        requirements = []
+
+        # Core scaffolding requirement
+        requirements.append(f"""
+**REQ-001: Project Scaffolding**
+- **Priority:** P1 (Critical)
+- **Status:** Generated
+
+GIVEN a user wants to create a {blueprint.template_type.value} application
+WHEN they provide the project specification
+THEN the system generates a complete project scaffold
+AND all configuration files are properly set up
+AND the project follows {blueprint.template_type.value} best practices
+""")
+
+        # Auth requirement if applicable
+        if "auth" in blueprint.features or any(e.auth_required for e in blueprint.entities):
+            requirements.append("""
+**REQ-002: Authentication System**
+- **Priority:** P1 (Critical)
+- **Status:** Generated
+
+GIVEN an unauthenticated user
+WHEN they access protected resources
+THEN the system redirects to the login page
+AND valid credentials grant access to protected areas
+AND invalid credentials show appropriate error messages
+""")
+
+        # CRUD requirements for entities
+        for i, entity in enumerate(blueprint.entities, start=3):
+            requirements.append(f"""
+**REQ-{i:03d}: {entity.name} Management**
+- **Priority:** P2 (High)
+- **Status:** Generated
+
+GIVEN an authenticated user with appropriate permissions
+WHEN they perform CRUD operations on {entity.name}
+THEN the system creates/reads/updates/deletes {entity.name} records
+AND data validation is enforced for all fields
+AND audit trails are maintained for changes
+""")
+
+        return f"""
+## 2. Requirements
+
+This section defines functional requirements in BDD (Behavior-Driven Development) format
+following SDLC Specification Standard v6.0.
+
+{"".join(requirements)}
+"""
+
+    def _generate_technical_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate technical specifications section."""
+        tech_details = []
+        for tech in blueprint.tech_stack:
+            tech_details.append(f"- **{tech}**: Included in project scaffold")
+
+        env_vars = []
+        for var in blueprint.env_vars:
+            env_vars.append(f"- `{var}`: Required")
+
+        return f"""
+## 3. Technical Specifications
+
+### 3.1 Technology Stack
+
+{chr(10).join(tech_details) if tech_details else "- Default stack for template type"}
+
+### 3.2 Environment Variables
+
+{chr(10).join(env_vars) if env_vars else "- See .env.example for required variables"}
+
+### 3.3 Quality Mode
+
+- **Mode:** {blueprint.quality_mode}
+- **Description:** {"Lenient validation for rapid prototyping" if blueprint.quality_mode == "scaffold" else "Strict validation for production code"}
+"""
+
+    def _generate_entities_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate entities/data model section."""
+        entity_docs = []
+        for entity in blueprint.entities:
+            fields_table = "| Field | Type | Required | Unique | Relation |\n"
+            fields_table += "|-------|------|----------|--------|----------|\n"
+            for field in entity.fields:
+                relation = field.relation_to or "-"
+                fields_table += f"| {field.name} | {field.type} | {'Yes' if field.required else 'No'} | {'Yes' if field.unique else 'No'} | {relation} |\n"
+
+            entity_docs.append(f"""
+### 4.{blueprint.entities.index(entity) + 1} {entity.name}
+
+- **Auth Required:** {'Yes' if entity.auth_required else 'No'}
+
+{fields_table}
+""")
+
+        return f"""
+## 4. Data Model
+
+This section defines the database entities and their relationships.
+
+{"".join(entity_docs)}
+"""
+
+    def _generate_api_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate API contracts section."""
+        api_docs = []
+        for i, route in enumerate(blueprint.api_routes, start=1):
+            methods_str = ", ".join(route.methods)
+            entity_ref = f"Related to: {route.entity}" if route.entity else "Standalone endpoint"
+
+            api_docs.append(f"""
+### 5.{i} {route.path}
+
+- **Methods:** {methods_str}
+- **Auth Required:** {'Yes' if route.auth_required else 'No'}
+- **{entity_ref}**
+""")
+
+        return f"""
+## 5. API Contracts
+
+This section defines the API endpoints generated by this scaffold.
+
+{"".join(api_docs)}
+"""
+
+    def _generate_pages_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate pages/UI specifications section."""
+        page_docs = []
+        for i, page in enumerate(blueprint.pages, start=1):
+            entities_used = ", ".join(page.entities_used) if page.entities_used else "None"
+
+            page_docs.append(f"""
+### 6.{i} {page.name}
+
+- **Route:** {page.path}
+- **Auth Required:** {'Yes' if page.auth_required else 'No'}
+- **Entities Used:** {entities_used}
+""")
+
+        return f"""
+## 6. User Interface
+
+This section defines the frontend pages generated by this scaffold.
+
+{"".join(page_docs)}
+"""
+
+    def _generate_quality_section(self, blueprint: TemplateBlueprint) -> str:
+        """Generate tier-specific quality requirements section."""
+        tier = blueprint.tier.value
+
+        # Tier-specific requirements based on SDLC Specification Standard v6.0
+        tier_requirements = {
+            "LITE": """
+### Quality Requirements (LITE Tier)
+
+- **Documentation:** README.md with setup instructions
+- **Testing:** Basic smoke tests
+- **Security:** Input validation on user-facing forms
+- **Performance:** Page load < 3s
+""",
+            "STANDARD": """
+### Quality Requirements (STANDARD Tier)
+
+- **Documentation:** README.md + API documentation
+- **Testing:** Unit tests (>60% coverage) + Integration tests
+- **Security:** OWASP Top 10 basic compliance
+- **Performance:** API response < 500ms (p95)
+- **Code Quality:** Linting enabled, consistent formatting
+""",
+            "PROFESSIONAL": """
+### Quality Requirements (PROFESSIONAL Tier)
+
+- **Documentation:** Full technical specs + API docs + Architecture diagrams
+- **Testing:** Unit (>80%) + Integration + E2E tests
+- **Security:** OWASP ASVS Level 1 compliance
+- **Performance:** API response < 200ms (p95), page load < 1s
+- **Code Quality:** Static analysis, dependency scanning
+- **Observability:** Logging + basic metrics
+""",
+            "ENTERPRISE": """
+### Quality Requirements (ENTERPRISE Tier)
+
+- **Documentation:** Complete specification package + ADRs + Runbooks
+- **Testing:** Unit (>90%) + Integration + E2E + Load tests
+- **Security:** OWASP ASVS Level 2 compliance, penetration testing
+- **Performance:** API response < 100ms (p95), 99.9% uptime target
+- **Code Quality:** Strict static analysis, SBOM, license scanning
+- **Observability:** Full APM, distributed tracing, alerting
+- **Compliance:** Audit trails, data retention policies
+"""
+        }
+
+        return f"""
+## 7. Quality Requirements
+
+Project Tier: **{tier}**
+
+{tier_requirements.get(tier, tier_requirements["STANDARD"])}
+
+---
+
+*This specification was auto-generated by SDLC Orchestrator App Builder.*
+*Spec ID: {blueprint.spec_id}*
+*Generated: {blueprint.created_at.strftime("%Y-%m-%d %H:%M UTC")}*
+"""

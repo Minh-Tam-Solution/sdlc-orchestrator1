@@ -1,0 +1,355 @@
+# ============================================================================
+# FULL Mode Governance Configuration
+# Sprint 116 Track 2 - Anti-Vibecoding Production Enforcement
+#
+# Version: 1.0.0
+# Effective: February 17, 2026 (Sprint 116)
+# Authority: CTO Approved (Sprint 115 GO Decision)
+# Framework: SDLC 5.3.0 Quality Assurance System
+#
+# FULL Mode Rules:
+# - GREEN (0-30): AUTO-APPROVED (no review)
+# - YELLOW (31-60): REQUIRES Tech Lead approval
+# - ORANGE (61-80): REQUIRES CEO approval
+# - RED (81-100): BLOCKED (CTO+CEO override required)
+#
+# Goal: CEO time savings -75% (40h → 10h/week)
+# ============================================================================
+
+version: "1.0.0"
+mode: "full"
+effective_date: "2026-02-17"
+sprint: "116"
+
+# ============================================================================
+# Signal Weights (Calibrated from Sprint 114-115 Dogfooding)
+# ============================================================================
+signal_weights:
+  # Architectural smell - God class, feature envy
+  architectural_smell: 0.25
+
+  # Abstraction complexity - Deep inheritance, generics
+  abstraction_complexity: 0.15
+
+  # AI dependency ratio - AI lines / total lines
+  ai_dependency_ratio: 0.20
+
+  # Change surface area - Files touched, cross-module
+  change_surface_area: 0.25
+
+  # Drift velocity - Change frequency in 7 days (calibrated from Sprint 114)
+  drift_velocity: 0.15
+
+# ============================================================================
+# Zone Thresholds (FULL Mode - Stricter Than SOFT)
+# ============================================================================
+zone_thresholds:
+  green:
+    min: 0
+    max: 30
+    action: "auto_approve"
+    review: "none"
+    description: "Low risk - automatic approval"
+
+  yellow:
+    min: 31
+    max: 60
+    action: "require_approval"
+    review: "tech_lead"
+    description: "Moderate risk - Tech Lead must approve"
+
+  orange:
+    min: 61
+    max: 80
+    action: "require_approval"
+    review: "ceo"
+    description: "High risk - CEO must approve"
+
+  red:
+    min: 81
+    max: 100
+    action: "blocked"
+    review: "cto_ceo"
+    override_required: true
+    description: "Critical risk - blocked, CTO+CEO override required"
+
+# ============================================================================
+# Exemption Rules (Carry Forward from SOFT Mode)
+# ============================================================================
+exemptions:
+  # Dependency update exemption - reduces false positives
+  dependency_update_exemption:
+    enabled: true
+    description: "Package dependency updates get reduced scrutiny"
+    trigger_files:
+      - "package.json"
+      - "package-lock.json"
+      - "yarn.lock"
+      - "pnpm-lock.yaml"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "Pipfile"
+      - "Pipfile.lock"
+      - "poetry.lock"
+      - "pyproject.toml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "go.mod"
+      - "go.sum"
+    conditions:
+      all_files_are_dependencies: true
+    effect:
+      drift_velocity_multiplier: 0.5
+      max_index_cap: 40
+      auto_message: "Dependency update - reduced governance friction"
+
+  # Documentation safe pattern - auto-approve docs-only PRs
+  documentation_safe_pattern:
+    enabled: true
+    description: "Documentation-only PRs auto-approved if low index"
+    trigger_paths:
+      - "docs/**"
+      - "*.md"
+      - "README*"
+      - "CHANGELOG*"
+      - "LICENSE*"
+      - ".github/**/*.md"
+    conditions:
+      all_files_are_docs: true
+      max_index: 25
+    effect:
+      force_zone: "green"
+      auto_approve: true
+      auto_message: "Documentation-only PR - auto-approved"
+
+  # Test-only pattern - reduced scrutiny for test files
+  test_only_pattern:
+    enabled: true
+    description: "Test-only PRs get reduced complexity scrutiny"
+    trigger_paths:
+      - "tests/**"
+      - "test/**"
+      - "**/*_test.py"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "**/*.spec.ts"
+      - "**/*.spec.tsx"
+      - "__tests__/**"
+    conditions:
+      all_files_are_tests: true
+      max_index: 50
+    effect:
+      abstraction_complexity_multiplier: 0.5
+      ai_dependency_multiplier: 0.7
+      auto_message: "Test-only PR - reduced scrutiny applied"
+
+# ============================================================================
+# Block Rules (FULL Mode - Stricter)
+# ============================================================================
+block_rules:
+  # RED zone blocking - non-negotiable
+  vibecoding_index_red:
+    enabled: true
+    threshold: 81
+    action: "block"
+    message: "PR blocked: Vibecoding Index exceeds critical threshold (81)"
+    override:
+      allowed: true
+      requires: ["CTO", "CEO"]
+      justification_required: true
+
+  # Missing ownership - must have @owner annotation
+  missing_ownership:
+    enabled: true
+    action: "block"
+    message: "PR blocked: Missing @owner annotation in AGENTS.md or PR description"
+    override:
+      allowed: false
+    documentation: "https://docs.sdlc-orchestrator.com/governance/ownership"
+
+  # Missing intent - must have intent statement
+  missing_intent:
+    enabled: true
+    action: "block"
+    message: "PR blocked: Missing intent statement explaining WHY this change"
+    override:
+      allowed: false
+    documentation: "https://docs.sdlc-orchestrator.com/governance/intent"
+
+  # Security scan critical - must pass Semgrep
+  security_scan_critical:
+    enabled: true
+    action: "block"
+    message: "PR blocked: Critical security vulnerabilities detected"
+    override:
+      allowed: true
+      requires: ["CTO", "Security Lead"]
+      justification_required: true
+    documentation: "https://docs.sdlc-orchestrator.com/governance/security"
+
+  # Coverage drop - FULL mode enforces coverage
+  coverage_drop:
+    enabled: true
+    threshold: -5  # Block if coverage drops more than 5%
+    action: "block"
+    message: "PR blocked: Test coverage dropped below threshold"
+    override:
+      allowed: true
+      requires: ["Tech Lead"]
+      justification_required: true
+
+# ============================================================================
+# Approval Rules (FULL Mode Specific)
+# ============================================================================
+approval_rules:
+  # YELLOW zone requires Tech Lead approval
+  yellow_zone_tech_lead:
+    enabled: true
+    zone: "yellow"
+    requires: ["Tech Lead"]
+    timeout_hours: 24
+    auto_escalate: true
+    escalate_to: "CEO"
+    message: "Vibecoding Index in yellow zone - Tech Lead approval required"
+
+  # ORANGE zone requires CEO approval
+  orange_zone_ceo:
+    enabled: true
+    zone: "orange"
+    requires: ["CEO"]
+    timeout_hours: 48
+    auto_escalate: false
+    message: "Vibecoding Index in orange zone - CEO approval required"
+
+  # New feature requires ADR linkage
+  new_feature_adr:
+    enabled: true
+    condition: "is_new_feature"
+    requires: ["ADR linkage"]
+    message: "New feature must link to approved ADR"
+
+# ============================================================================
+# CEO Time Tracking Integration
+# ============================================================================
+ceo_time_tracking:
+  enabled: true
+  baseline_hours_per_week: 40
+  target_hours_per_week: 10
+  target_reduction_percent: 75
+
+  activities:
+    pr_review:
+      category: "code_review"
+      weight: 1.0
+
+    override_approval:
+      category: "governance"
+      weight: 1.5  # Overrides take more time
+
+    architecture_review:
+      category: "design"
+      weight: 2.0
+
+  alerts:
+    weekly_threshold: 15  # Alert if CEO time exceeds 15h/week
+    daily_threshold: 4    # Alert if CEO time exceeds 4h/day
+
+  reporting:
+    frequency: "daily"
+    dashboard: true
+    slack_notification: true
+
+# ============================================================================
+# Kill Switch Criteria (Safety Net)
+# ============================================================================
+kill_switch:
+  auto_rollback_enabled: true
+  rollback_target: "soft"  # FULL → SOFT (not WARNING)
+
+  criteria:
+    rejection_rate:
+      threshold: 0.5  # Stricter than SOFT (50% vs 80%)
+      window_minutes: 60
+
+    latency_p95_ms:
+      threshold: 500
+      window_minutes: 60
+
+    false_positive_rate:
+      threshold: 0.15  # Stricter than SOFT (15% vs 20%)
+      window_hours: 24
+
+    developer_complaints:
+      threshold: 3  # Stricter than SOFT (3 vs 5)
+      window_hours: 24
+
+    ceo_overrides:
+      threshold: 5  # Too many overrides = calibration needed
+      window_hours: 24
+
+  notification:
+    slack: true
+    email: ["cto@company.com", "ceo@company.com"]
+    pagerduty: true
+
+# ============================================================================
+# Metrics Collection
+# ============================================================================
+metrics:
+  collect_interval_seconds: 60
+  retention_days: 90
+
+  dimensions:
+    - zone
+    - action
+    - review_type
+    - exemption_applied
+    - author
+    - team
+
+  gauges:
+    - name: "governance_full_mode_prs_total"
+      description: "Total PRs evaluated in FULL mode"
+
+    - name: "governance_full_mode_blocked"
+      description: "PRs blocked in FULL mode"
+
+    - name: "governance_full_mode_approved"
+      description: "PRs approved in FULL mode"
+
+    - name: "governance_full_mode_ceo_reviews"
+      description: "PRs requiring CEO review"
+
+    - name: "governance_full_mode_ceo_time_minutes"
+      description: "CEO time spent on governance"
+
+# ============================================================================
+# Feature Flags
+# ============================================================================
+feature_flags:
+  # Enable strict approval workflow
+  strict_approvals: true
+
+  # Enable CEO time tracking
+  ceo_time_tracking: true
+
+  # Enable coverage enforcement
+  coverage_enforcement: true
+
+  # Enable ADR linkage requirement
+  adr_linkage_required: true
+
+  # Enable Slack notifications for approvals
+  slack_notifications: true
+
+  # Enable dashboard metrics
+  dashboard_metrics: true
+
+# ============================================================================
+# Documentation
+# ============================================================================
+documentation:
+  governance_guide: "https://docs.sdlc-orchestrator.com/governance"
+  full_mode_faq: "https://docs.sdlc-orchestrator.com/governance/full-mode"
+  override_process: "https://docs.sdlc-orchestrator.com/governance/overrides"
+  exemption_rules: "https://docs.sdlc-orchestrator.com/governance/exemptions"

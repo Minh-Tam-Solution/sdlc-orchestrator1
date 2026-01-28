@@ -32,7 +32,7 @@ from typing import List, Dict
 from pathlib import Path
 import json
 
-from backend.app.schemas.codegen.template_blueprint import (
+from app.schemas.codegen.template_blueprint import (
     TemplateBlueprint,
     TemplateType,
     Entity,

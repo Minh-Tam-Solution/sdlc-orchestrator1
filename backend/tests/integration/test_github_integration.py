@@ -171,7 +171,7 @@ class TestOAuthFlow:
         with pytest.raises(GitHubAuthError) as exc_info:
             github_service_instance.get_authorization_url(state="state123")
 
-        assert "client ID" in str(exc_info.value).lower()
+        assert "client id" in str(exc_info.value).lower()
 
 
 # ============================================================================

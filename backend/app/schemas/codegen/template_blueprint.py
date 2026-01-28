@@ -2,10 +2,11 @@
 Template Blueprint Schema - IR for App Builder Integration
 
 SDLC Framework Compliance:
-- Framework: SDLC 5.2.0 (7-Pillar + AI Governance Principles)
+- Framework: SDLC 6.0.0 (7-Pillar + Section 8 Unified Specification Standard)
 - Pillar 2: Design Phase - Architecture & Technical Specifications
 - AI Governance Principle 4: Deterministic Intermediate Representations
 - Methodology: Contract-first design pattern for AI-assisted codegen
+- OpenSpec Integration: SDLC Specification Standard v6.0 compatible
 
 Purpose:
 This is the Intermediate Representation (IR) contract between:
@@ -13,9 +14,10 @@ This is the Intermediate Representation (IR) contract between:
 - App Builder Provider (execution phase) → consumes blueprint
 
 Ensures deterministic, auditable, and tamper-proof scaffolding workflow.
+Now includes OpenSpec/SDLC Specification Standard fields for governance compliance.
 
 Sprint: 106 - App Builder Integration (MVP)
-Date: January 27, 2026
+Date: January 28, 2026
 Owner: Backend Team
 """
 
@@ -24,6 +26,7 @@ from typing import List, Dict, Optional
 from enum import Enum
 from datetime import datetime
 import hashlib
+import json
 import uuid
 
 
@@ -33,6 +36,29 @@ class TemplateType(str, Enum):
     NEXTJS_SAAS = "nextjs-saas"
     FASTAPI = "fastapi"
     REACT_NATIVE = "react-native"
+
+
+class ProjectTier(str, Enum):
+    """
+    Project tier classification per SDLC Specification Standard v6.0.
+
+    Determines requirement granularity and governance strictness.
+    """
+    LITE = "LITE"               # Small projects, minimal requirements
+    STANDARD = "STANDARD"       # Typical projects, standard requirements
+    PROFESSIONAL = "PROFESSIONAL"  # Regulated industries, enhanced requirements
+    ENTERPRISE = "ENTERPRISE"   # Mission-critical systems, full requirements
+
+
+class SpecCategory(str, Enum):
+    """
+    Specification category per SDLC Specification Standard v6.0.
+    """
+    FUNCTIONAL = "functional"
+    TECHNICAL = "technical"
+    SECURITY = "security"
+    PERFORMANCE = "performance"
+    INTEGRATION = "integration"
 
 
 class EntityField(BaseModel):
@@ -135,7 +161,33 @@ class TemplateBlueprint(BaseModel):
     )
     template_type: TemplateType = Field(..., description="Template to use for scaffolding")
     project_name: str = Field(..., description="Project name (lowercase, hyphen-separated)")
-    
+
+    # OpenSpec/SDLC Specification Standard v6.0 Fields (Section 8)
+    spec_id: str = Field(
+        default_factory=lambda: f"SPEC-{uuid.uuid4().hex[:8].upper()}",
+        description="Unique specification identifier (OpenSpec format: SPEC-XXXX)"
+    )
+    tier: ProjectTier = Field(
+        default=ProjectTier.STANDARD,
+        description="Project tier: LITE, STANDARD, PROFESSIONAL, ENTERPRISE"
+    )
+    sdlc_stage: str = Field(
+        default="03",
+        description="Current SDLC stage (00-10). Default 03 = BUILD stage"
+    )
+    spec_category: SpecCategory = Field(
+        default=SpecCategory.TECHNICAL,
+        description="Specification category for classification"
+    )
+    owner: str = Field(
+        default="Backend Team",
+        description="Specification owner (team or person)"
+    )
+    description: str = Field(
+        default="",
+        description="Project description for specification document"
+    )
+
     # Tech Stack
     tech_stack: List[str] = Field(
         default_factory=list,
@@ -217,25 +269,27 @@ class TemplateBlueprint(BaseModel):
     def compute_hash(self) -> str:
         """
         Compute SHA256 hash of blueprint content
-        
+
         Excludes:
         - blueprint_id (changes on each creation)
         - integrity_hash (circular dependency)
         - created_at (timestamp varies)
-        
+
         Returns:
             str: Hexadecimal SHA256 hash
         """
-        # Serialize to JSON with sorted keys for deterministic hashing
-        content = self.model_dump_json(
+        # Get dict excluding volatile fields, then serialize with sorted keys
+        # Pydantic v2: model_dump_json doesn't support sort_keys, use json.dumps
+        data = self.model_dump(
             exclude={
                 'blueprint_id',
                 'integrity_hash',
                 'created_at',
                 'created_by'
             },
-            sort_keys=True
+            mode='json'  # Ensure JSON-serializable output
         )
+        content = json.dumps(data, sort_keys=True, default=str)
         return hashlib.sha256(content.encode()).hexdigest()
     
     def verify_integrity(self) -> bool:
@@ -267,7 +321,7 @@ class TemplateBlueprint(BaseModel):
     def get_summary(self) -> Dict[str, any]:
         """
         Get human-readable summary for CRP review
-        
+
         Returns:
             Dict with counts and key details
         """
@@ -280,7 +334,56 @@ class TemplateBlueprint(BaseModel):
             'pages': len(self.pages),
             'features': ', '.join(self.features),
             'quality_mode': self.quality_mode,
+            # OpenSpec fields
+            'spec_id': self.spec_id,
+            'tier': self.tier.value,
+            'sdlc_stage': self.sdlc_stage,
+            'owner': self.owner,
         }
+
+    def get_openspec_frontmatter(self) -> str:
+        """
+        Generate YAML frontmatter for SDLC Specification Standard v6.0.
+
+        Returns OpenSpec-compliant YAML frontmatter for the generated spec document.
+        """
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        features_str = ", ".join(self.features) if self.features else "scaffolding"
+
+        return f"""---
+# SDLC Specification Standard v6.0 - Generated by App Builder
+spec_id: {self.spec_id}
+spec_name: "{self.project_name} Application Specification"
+spec_version: "1.0.0"
+status: draft
+
+# Classification
+tier: {self.tier.value}
+stage: "{self.sdlc_stage}"
+category: {self.spec_category.value}
+
+# Ownership
+owner: "{self.owner}"
+reviewers: []
+approver: null
+
+# Timestamps
+created: {today}
+last_updated: {today}
+approved_date: null
+
+# Relationships
+related_adrs: ["ADR-040"]
+related_specs: []
+parent_spec: null
+supersedes: null
+
+# Tags
+tags: [{', '.join([f'"{t}"' for t in self.tech_stack[:5]])}]
+priority: P2
+effort: M
+---
+"""
 
 
 # Type alias for clarity

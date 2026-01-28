@@ -284,7 +284,7 @@ class IntentRouter:
 
 # Import TemplateType from template_blueprint
 try:
-    from backend.app.schemas.codegen.template_blueprint import TemplateType
+    from app.schemas.codegen.template_blueprint import TemplateType
 except ImportError:
     # Fallback if import fails (for testing)
     from enum import Enum

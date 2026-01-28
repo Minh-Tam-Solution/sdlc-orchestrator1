@@ -484,6 +484,153 @@ class OPAService:
         return results
 
     # ============================================================================
+    # Async Evaluate (SASE Sprint Policies)
+    # ============================================================================
+
+    async def evaluate(
+        self,
+        policy: str,
+        input_data: dict[str, Any],
+        query: Optional[str] = None,
+        timeout: Optional[int] = None,
+    ) -> dict[str, Any]:
+        """
+        Async policy evaluation for SASE sprint policies.
+
+        This method provides an async interface for policy evaluation,
+        used by SASE sprint policies that need async support.
+
+        Args:
+            policy: Policy package path (e.g., "sdlc.sprint")
+            input_data: Input data for policy evaluation
+            query: Optional OPA query path (e.g., "data.sdlc.sprint.deploy_allowed")
+            timeout: Request timeout in seconds
+
+        Returns:
+            Policy evaluation result:
+            {
+                "result": Any,  # Result of query evaluation
+                "allowed": bool,  # Convenience field if result is bool
+                "violations": list[str],
+                "denial_reason": str | None,
+                "metadata": dict,
+            }
+
+        Example:
+            result = await opa_service.evaluate(
+                policy="sdlc.sprint",
+                input_data={"action": "deploy", "stage": "staging", ...},
+                query="data.sdlc.sprint.deploy_allowed"
+            )
+        """
+        # Build URL from query if provided, otherwise from policy
+        if query:
+            # Convert query path to URL (data.sdlc.sprint.deploy_allowed -> sdlc/sprint/deploy_allowed)
+            query_path = query.replace("data.", "").replace(".", "/")
+            url = f"{self.base_url}/v1/data/{query_path}"
+        else:
+            # Convert dotted policy path to URL path (sdlc.sprint -> sdlc/sprint)
+            package_path = policy.replace(".", "/")
+            url = f"{self.base_url}/v1/data/{package_path}"
+
+        # Prepare request payload
+        payload = {"input": input_data}
+
+        # Set timeout
+        timeout = timeout or self.timeout
+
+        try:
+            # Call OPA REST API (sync request wrapped for async interface)
+            logger.debug(f"Async evaluating policy: {url} (timeout={timeout}s)")
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=timeout,
+                headers={"Content-Type": "application/json"},
+            )
+
+            # Handle HTTP errors
+            response.raise_for_status()
+
+            # Parse OPA response
+            opa_response = response.json()
+
+            # Extract raw result
+            raw_result = opa_response.get("result")
+
+            # Build response based on result type
+            if isinstance(raw_result, bool):
+                # Boolean result (e.g., deploy_allowed, code_review_allowed)
+                return {
+                    "result": raw_result,
+                    "allowed": raw_result,
+                    "violations": [],
+                    "denial_reason": None,
+                    "metadata": {
+                        "policy": policy,
+                        "query": query,
+                        "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    },
+                }
+            elif isinstance(raw_result, str):
+                # String result (e.g., denial_reason)
+                return {
+                    "result": raw_result,
+                    "allowed": False,
+                    "violations": [],
+                    "denial_reason": raw_result,
+                    "metadata": {
+                        "policy": policy,
+                        "query": query,
+                        "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    },
+                }
+            elif isinstance(raw_result, dict):
+                # Dict result (e.g., full response object)
+                return {
+                    "result": raw_result,
+                    "allowed": raw_result.get("allowed", False),
+                    "violations": raw_result.get("violations", []),
+                    "denial_reason": raw_result.get("denial_reason"),
+                    "metadata": {
+                        "policy": policy,
+                        "query": query,
+                        "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    },
+                }
+            else:
+                # Unknown result type
+                return {
+                    "result": raw_result,
+                    "allowed": False,
+                    "violations": [],
+                    "denial_reason": None,
+                    "metadata": {
+                        "policy": policy,
+                        "query": query,
+                        "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    },
+                }
+
+        except Timeout:
+            logger.error(f"OPA async request timeout after {timeout}s: {url}")
+            raise OPAEvaluationError(
+                f"Policy evaluation timed out after {timeout}s. Policy: {policy}"
+            )
+
+        except RequestException as e:
+            logger.error(f"OPA async request failed: {url}, Error: {e}")
+            raise OPAEvaluationError(
+                f"Failed to evaluate policy via OPA. Policy: {policy}, Error: {str(e)}"
+            )
+
+        except Exception as e:
+            logger.error(f"Unexpected error during async OPA evaluation: {e}")
+            raise OPAEvaluationError(
+                f"Unexpected error during policy evaluation. Policy: {policy}, Error: {str(e)}"
+            )
+
+    # ============================================================================
     # Health Check
     # ============================================================================
 

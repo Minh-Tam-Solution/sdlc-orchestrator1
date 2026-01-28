@@ -20,11 +20,17 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from typer.testing import CliRunner
 
-from sdlcctl.cli import app
+try:
+    from typer.testing import CliRunner
+    from sdlcctl.cli import app
+    runner = CliRunner()
+    TYPER_AVAILABLE = True
+except ImportError:
+    TYPER_AVAILABLE = False
+    runner = None
 
-runner = CliRunner()
+pytestmark = pytest.mark.skipif(not TYPER_AVAILABLE, reason="typer not installed")
 
 
 # =============================================================================

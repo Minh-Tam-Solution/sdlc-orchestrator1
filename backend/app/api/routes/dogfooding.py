@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db
+from app.api.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.services.governance.mode_service import GovernanceModeService, GovernanceMode
 
@@ -1343,3 +1343,340 @@ async def export_json_metrics(
             },
         },
     }
+
+
+# ============================================================================
+# Sprint 115: SOFT Mode Enforcement Endpoints
+# ============================================================================
+
+class SoftEnforcementRequest(BaseModel):
+    """Request for SOFT mode enforcement evaluation."""
+    pr_number: int = Field(description="Pull request number")
+    vibecoding_index: float = Field(ge=0, le=100, description="Vibecoding index score 0-100")
+    zone: str = Field(description="Zone: green, yellow, orange, red")
+    has_ownership: bool = Field(default=True, description="Has ownership header")
+    has_intent: bool = Field(default=True, description="Has intent statement")
+    files_changed: list[str] = Field(default_factory=list, description="List of changed files")
+    security_scan_critical: int = Field(default=0, description="Critical security issues")
+    author: str = Field(default="unknown", description="PR author")
+
+
+class SoftEnforcementResponse(BaseModel):
+    """Response from SOFT mode enforcement."""
+    pr_number: int
+    allowed: bool
+    action: str  # "pass", "warn", "block"
+    vibecoding_index: float
+    zone: str
+    routing: str
+    exemptions_applied: list[str]
+    block_reasons: list[str]
+    warn_reasons: list[str]
+    cto_override_available: bool
+    message: str
+
+
+class SoftModeStatusResponse(BaseModel):
+    """SOFT mode status response."""
+    mode: str
+    active: bool
+    sprint: str
+    configuration: dict
+    metrics: dict
+
+
+@router.post("/enforce/soft", response_model=SoftEnforcementResponse)
+async def enforce_soft_mode(
+    request: SoftEnforcementRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Evaluate PR against SOFT mode enforcement rules.
+
+    SOFT Mode Rules (Sprint 115):
+    - RED zone (81-100): BLOCK with CTO override option
+    - ORANGE zone (61-80): WARN (Tech Lead should review)
+    - YELLOW zone (31-60): WARN (Spot check recommended)
+    - GREEN zone (0-30): PASS (Auto-approve)
+
+    Exemptions applied:
+    - dependency_update_exemption: Package files only = reduced friction
+    - documentation_safe_pattern: docs/ only + low index = auto-approve
+    - test_only_pattern: tests/ only = warn, never block
+
+    This endpoint does not require authentication for GitHub Actions integration.
+    """
+    from app.services.governance.soft_mode_enforcer import (
+        SoftModeEnforcer,
+        get_soft_mode_enforcer,
+    )
+    from app.services.governance.signals_engine import (
+        IndexCategory,
+        RoutingDecision,
+        VibecodingIndex,
+    )
+
+    try:
+        enforcer = get_soft_mode_enforcer()
+    except Exception:
+        # Fallback to inline enforcer if service not available
+        enforcer = SoftModeEnforcer()
+
+    # Map zone string to IndexCategory
+    zone_to_category = {
+        "green": IndexCategory.GREEN,
+        "yellow": IndexCategory.YELLOW,
+        "orange": IndexCategory.ORANGE,
+        "red": IndexCategory.RED,
+    }
+    category = zone_to_category.get(request.zone.lower(), IndexCategory.YELLOW)
+
+    # Map index to RoutingDecision
+    if request.vibecoding_index <= 30:
+        routing = RoutingDecision.AUTO_APPROVE
+    elif request.vibecoding_index <= 60:
+        routing = RoutingDecision.TECH_LEAD_REVIEW
+    elif request.vibecoding_index <= 80:
+        routing = RoutingDecision.CEO_SHOULD_REVIEW
+    else:
+        routing = RoutingDecision.CEO_MUST_REVIEW
+
+    # Create VibecodingIndex
+    vibecoding = VibecodingIndex(
+        score=request.vibecoding_index,
+        category=category,
+        routing=routing,
+        signals={},  # Empty signals for API requests
+    )
+
+    # Create minimal CodeSubmission
+    class MinimalSubmission:
+        def __init__(self, files: list[str]):
+            self.changed_files = files
+            self.is_new_feature = False  # Default to False for existing feature/fix
+
+    submission = MinimalSubmission(request.files_changed)
+
+    # Enforce SOFT mode rules
+    result = enforcer.enforce(
+        vibecoding_index=vibecoding,
+        submission=submission,
+        has_ownership=request.has_ownership,
+        has_intent=request.has_intent,
+        security_scan_critical=request.security_scan_critical,
+    )
+
+    # Determine action
+    if result.blocked:
+        action = "block"
+        message = f"PR #{request.pr_number} BLOCKED: {', '.join(result.block_reasons)}"
+    elif result.warned:
+        action = "warn"
+        message = f"PR #{request.pr_number} WARNED: Review recommended. {', '.join(result.warn_reasons)}"
+    else:
+        action = "pass"
+        message = f"PR #{request.pr_number} PASSED: Governance requirements met."
+
+    # Record enforcement for metrics
+    enforcement_record = {
+        "pr_number": request.pr_number,
+        "author": request.author,
+        "vibecoding_index": request.vibecoding_index,
+        "zone": request.zone,
+        "action": action,
+        "exemptions": result.exemptions_applied_list,
+        "block_reasons": result.block_reasons,
+        "warn_reasons": result.warn_reasons,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    _soft_enforcement_log.append(enforcement_record)
+
+    return SoftEnforcementResponse(
+        pr_number=request.pr_number,
+        allowed=not result.blocked,
+        action=action,
+        vibecoding_index=request.vibecoding_index,
+        zone=request.zone,
+        routing=vibecoding.routing.value,
+        exemptions_applied=result.exemptions_applied_list,
+        block_reasons=result.block_reasons,
+        warn_reasons=result.warn_reasons,
+        cto_override_available=result.blocked and request.zone.lower() == "red",
+        message=message,
+    )
+
+
+def _determine_routing(vibecoding_index: float) -> str:
+    """Determine routing based on Vibecoding Index."""
+    if vibecoding_index <= 30:
+        return "auto_approve"
+    elif vibecoding_index <= 60:
+        return "tech_lead_review"
+    elif vibecoding_index <= 80:
+        return "ceo_should_review"
+    else:
+        return "ceo_must_review"
+
+
+@router.get("/enforce/soft/status", response_model=SoftModeStatusResponse)
+async def get_soft_mode_status(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get current SOFT mode configuration and metrics.
+
+    Returns configuration details and enforcement statistics.
+    """
+    mode_service = GovernanceModeService()
+    current_mode = mode_service.get_mode()
+
+    # Calculate enforcement metrics
+    total_enforcements = len(_soft_enforcement_log)
+    blocked_count = sum(1 for e in _soft_enforcement_log if e["action"] == "block")
+    warned_count = sum(1 for e in _soft_enforcement_log if e["action"] == "warn")
+    passed_count = sum(1 for e in _soft_enforcement_log if e["action"] == "pass")
+
+    # Exemption usage
+    exemption_usage = {}
+    for entry in _soft_enforcement_log:
+        for exemption in entry.get("exemptions", []):
+            exemption_usage[exemption] = exemption_usage.get(exemption, 0) + 1
+
+    return SoftModeStatusResponse(
+        mode="soft",
+        active=current_mode.value == "soft",
+        sprint="115",
+        configuration={
+            "signal_weights": {
+                "architectural_smell": 0.25,
+                "abstraction_complexity": 0.15,
+                "ai_dependency_ratio": 0.20,
+                "change_surface_area": 0.25,
+                "drift_velocity": 0.15,
+            },
+            "zone_thresholds": {
+                "green": [0, 30],
+                "yellow": [31, 60],
+                "orange": [61, 80],
+                "red": [81, 100],
+            },
+            "exemptions_enabled": [
+                "dependency_update_exemption",
+                "documentation_safe_pattern",
+                "test_only_pattern",
+            ],
+            "block_rules": [
+                "red_zone_blocking",
+                "missing_ownership",
+                "missing_intent",
+                "security_scan_critical",
+            ],
+        },
+        metrics={
+            "total_enforcements": total_enforcements,
+            "blocked": blocked_count,
+            "warned": warned_count,
+            "passed": passed_count,
+            "block_rate": blocked_count / total_enforcements if total_enforcements > 0 else 0,
+            "exemption_usage": exemption_usage,
+        },
+    )
+
+
+@router.get("/enforce/soft/log")
+async def get_soft_enforcement_log(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    action_filter: Optional[str] = Query(None, description="Filter by action: block, warn, pass"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Get SOFT mode enforcement log.
+
+    Returns paginated list of enforcement decisions for audit and analysis.
+    Requires authenticated user.
+    """
+    if current_user.role not in ["cto", "ceo", "admin", "tech_lead"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Enforcement log requires Tech Lead or higher role",
+        )
+
+    # Filter by action if specified
+    filtered_log = _soft_enforcement_log
+    if action_filter:
+        filtered_log = [e for e in _soft_enforcement_log if e["action"] == action_filter]
+
+    # Paginate
+    start = (page - 1) * page_size
+    end = start + page_size
+
+    return {
+        "items": filtered_log[start:end],
+        "total": len(filtered_log),
+        "page": page,
+        "page_size": page_size,
+        "filters": {"action": action_filter},
+    }
+
+
+@router.post("/enforce/soft/override")
+async def request_cto_override(
+    pr_number: int,
+    reason: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Request CTO override for blocked PR.
+
+    Only available for RED zone PRs. Requires authentication.
+    CTO/CEO can approve overrides directly.
+    """
+    # Find the enforcement record
+    enforcement = next(
+        (e for e in _soft_enforcement_log if e["pr_number"] == pr_number and e["action"] == "block"),
+        None,
+    )
+
+    if not enforcement:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No blocked enforcement found for PR #{pr_number}",
+        )
+
+    if enforcement["zone"] != "red":
+        raise HTTPException(
+            status_code=400,
+            detail="Override only available for RED zone PRs",
+        )
+
+    override_record = {
+        "pr_number": pr_number,
+        "requested_by": current_user.username,
+        "user_role": current_user.role,
+        "reason": reason,
+        "status": "approved" if current_user.role in ["cto", "ceo"] else "pending",
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+    _override_requests.append(override_record)
+
+    if current_user.role in ["cto", "ceo"]:
+        return {
+            "status": "approved",
+            "message": f"Override approved by {current_user.role.upper()}. PR #{pr_number} may proceed.",
+            "pr_number": pr_number,
+        }
+
+    return {
+        "status": "pending",
+        "message": f"Override request submitted. Awaiting CTO/CEO approval for PR #{pr_number}.",
+        "pr_number": pr_number,
+    }
+
+
+# In-memory storage for Sprint 115 SOFT mode
+_soft_enforcement_log: list[dict] = []
+_override_requests: list[dict] = []

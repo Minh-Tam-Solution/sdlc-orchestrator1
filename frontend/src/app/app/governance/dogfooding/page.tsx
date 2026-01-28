@@ -128,6 +128,27 @@ interface FeedbackSummary {
   recommendationRate: number;
 }
 
+// API Response Types (snake_case from backend)
+interface APIPRMetric {
+  pr_number: number;
+  title: string;
+  author: string;
+  vibecode_index: number;
+  zone: string;
+  friction_minutes: number;
+  auto_gen_used: boolean;
+  timestamp: string;
+}
+
+interface APIDailyCheck {
+  check_name: string;
+  passed: boolean;
+  current_value: string;
+  target_value: string;
+  severity: string;
+  message: string;
+}
+
 // Mock data for Sprint 114 dogfooding
 const mockMetrics: DogfoodingMetrics = {
   sprint: "114",
@@ -732,7 +753,7 @@ export default function DogfoodingDashboard() {
       const prsRes = await fetch("/api/v1/dogfooding/prs");
       if (prsRes.ok) {
         const data = await prsRes.json();
-        setPRHistory(data.items.map((pr: any) => ({
+        setPRHistory(data.items.map((pr: APIPRMetric) => ({
           prNumber: pr.pr_number,
           title: pr.title,
           author: pr.author,
@@ -751,7 +772,7 @@ export default function DogfoodingDashboard() {
         setDailyChecks({
           day: data.day,
           date: data.date,
-          checks: data.checks.map((c: any) => ({
+          checks: data.checks.map((c: APIDailyCheck) => ({
             checkName: c.check_name,
             passed: c.passed,
             currentValue: c.current_value,

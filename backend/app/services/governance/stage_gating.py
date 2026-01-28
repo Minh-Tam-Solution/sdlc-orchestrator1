@@ -851,6 +851,27 @@ class StageGatingService:
 
         return next_stage
 
+    def get_next_stage(self, current_stage: SDLCStage) -> Optional[SDLCStage]:
+        """
+        Get the next stage after the given stage.
+
+        Args:
+            current_stage: Current SDLC stage
+
+        Returns:
+            Next stage, or None if at final stage
+        """
+        stages = list(SDLCStage)
+        try:
+            current_index = stages.index(current_stage)
+        except ValueError:
+            return None
+
+        if current_index >= len(stages) - 1:
+            return None
+
+        return stages[current_index + 1]
+
 
 # ============================================================================
 # Factory Functions

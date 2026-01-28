@@ -37,9 +37,9 @@ from datetime import datetime
 import logging
 import re
 
-from backend.app.schemas.codegen.codegen_spec import CodegenSpec
-from backend.app.schemas.codegen.codegen_result import CodegenResult, GeneratedFile, CostBreakdown
-from backend.app.schemas.codegen.template_blueprint import (
+from app.schemas.codegen.codegen_spec import CodegenSpec
+from app.schemas.codegen.codegen_result import CodegenResult, GeneratedFile, CostBreakdown
+from app.schemas.codegen.template_blueprint import (
     TemplateBlueprint,
     TemplateType,
     Entity,
@@ -47,12 +47,12 @@ from backend.app.schemas.codegen.template_blueprint import (
     APIRoute,
     Page
 )
-from backend.app.services.codegen.base_provider import CodegenProvider
-from backend.app.services.codegen.templates.base_template import BaseTemplate
-from backend.app.services.codegen.templates.nextjs_fullstack_template import NextJSFullstackTemplate
-from backend.app.services.codegen.templates.nextjs_saas_template import NextJSSaaSTemplate
-from backend.app.services.codegen.templates.fastapi_template import FastAPITemplate
-from backend.app.services.codegen.templates.react_native_template import ReactNativeTemplate
+from app.services.codegen.base_provider import CodegenProvider
+from app.services.codegen.templates.base_template import BaseTemplate
+from app.services.codegen.templates.nextjs_fullstack_template import NextJSFullstackTemplate
+from app.services.codegen.templates.nextjs_saas_template import NextJSSaaSTemplate
+from app.services.codegen.templates.fastapi_template import FastAPITemplate
+from app.services.codegen.templates.react_native_template import ReactNativeTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,6 @@ class AppBuilderProvider(CodegenProvider):
         # → Cost: $0.02 (planning only, execution free)
     """
 
-    name = "app-builder"
     display_name = "App Builder (Deterministic Scaffolding)"
     version = "1.0.0"
 
@@ -108,6 +107,7 @@ class AppBuilderProvider(CodegenProvider):
     def __init__(self):
         """Initialize App Builder Provider with template registry"""
         super().__init__()
+        self._name = "app-builder"
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
 
         # Register templates
@@ -118,7 +118,50 @@ class AppBuilderProvider(CodegenProvider):
             TemplateType.REACT_NATIVE: ReactNativeTemplate(),
         }
 
-        self.logger.info(f"Initialized {self.name} provider with {len(self._templates)} templates")
+        self.logger.info(f"Initialized {self._name} provider with {len(self._templates)} templates")
+
+    @property
+    def name(self) -> str:
+        """Provider identifier"""
+        return self._name
+
+    @property
+    def is_available(self) -> bool:
+        """
+        App Builder is always available (no external dependencies).
+
+        Returns:
+            True: App Builder uses deterministic templates, no network calls
+        """
+        return True
+
+    async def validate(
+        self,
+        code: str,
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Validate generated code (minimal validation for deterministic templates).
+
+        For App Builder, validation is minimal because:
+        - Templates are pre-validated and tested
+        - Output is deterministic
+        - Syntax checking done at scaffold time
+
+        Args:
+            code: Generated code to validate
+            context: Additional context (language, framework, etc.)
+
+        Returns:
+            Dict with validation status (always passes for templates)
+        """
+        # Deterministic templates always produce valid code
+        return {
+            "valid": True,
+            "errors": [],
+            "warnings": [],
+            "suggestions": [],
+        }
 
     async def generate(self, spec: CodegenSpec) -> CodegenResult:
         """

@@ -519,7 +519,8 @@ class TestStageProgression:
     @pytest.mark.asyncio
     async def test_last_stage_has_no_next(self, service):
         """Test last stage returns None for next."""
-        next_stage = service.get_next_stage(SDLCStage.STAGE_10_DECOMMISSION)
+        # STAGE_10_EVOLVE is the last stage in SDLC 5.3.0
+        next_stage = service.get_next_stage(SDLCStage.STAGE_10_EVOLVE)
 
         assert next_stage is None
 

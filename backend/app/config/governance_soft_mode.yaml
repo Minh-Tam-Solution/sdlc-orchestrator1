@@ -1,0 +1,314 @@
+# ============================================================================
+# Sprint 115 Track 2: SOFT Mode Governance Configuration
+# SDLC Orchestrator - Anti-Vibecoding System
+#
+# Version: 1.0.0
+# Date: January 28, 2026 (Prepared ahead of Feb 10 kickoff)
+# Status: READY FOR DEPLOYMENT
+# Authority: CTO Approved (Sprint 114 GO Decision)
+# Framework: SDLC 5.3.0 Quality Assurance System
+#
+# Purpose:
+# - Enable SOFT enforcement mode (partial blocking)
+# - Implement threshold adjustments from Sprint 114 Day 3-4 analysis
+# - Add dependency_update_exemption rule (reduces false positives)
+# - Prepare for FULL mode transition in Sprint 116
+#
+# Changes from WARNING mode:
+# - RED zone PRs (81-100): BLOCKED (no merge without CTO override)
+# - ORANGE zone PRs (61-80): WARNED (recommended CEO review)
+# - YELLOW zone PRs (31-60): PASSED (Tech Lead review suggested)
+# - GREEN zone PRs (0-30): AUTO-APPROVED
+# ============================================================================
+
+governance:
+  # Mode: off | warning | soft | full
+  mode: soft
+  version: "1.0.0"
+  effective_date: "2026-02-10"
+
+# ============================================================================
+# Signal Weights (Adjusted from Sprint 114 Day 3 Analysis)
+# ============================================================================
+signal_weights:
+  # Weight changes from v1.0.0:
+  # - drift_velocity: 0.20 → 0.15 (reduce false positives on refactors)
+  # - change_surface_area: 0.20 → 0.25 (increase sensitivity to large changes)
+
+  architectural_smell: 0.25      # Unchanged - God class, feature envy
+  abstraction_complexity: 0.15  # Unchanged - Inheritance depth
+  ai_dependency_ratio: 0.20     # Unchanged - AI-generated code ratio
+  change_surface_area: 0.25     # Increased from 0.20 - Large changes matter
+  drift_velocity: 0.15          # Decreased from 0.20 - Less sensitive to patterns
+
+# ============================================================================
+# Index Thresholds (Unchanged)
+# ============================================================================
+thresholds:
+  green:
+    min: 0
+    max: 30
+    action: auto_approve
+    description: "Safe - Auto-approve without review"
+
+  yellow:
+    min: 31
+    max: 60
+    action: tech_lead_review
+    description: "Caution - Tech Lead review suggested"
+
+  orange:
+    min: 61
+    max: 80
+    action: ceo_should_review
+    description: "Warning - CEO review recommended"
+
+  red:
+    min: 81
+    max: 100
+    action: blocked
+    description: "BLOCKED - Cannot merge without CTO override"
+
+# ============================================================================
+# SOFT Mode Enforcement Rules
+# ============================================================================
+enforcement:
+  soft_mode:
+    enabled: true
+
+    # Block rules (cannot merge)
+    block_rules:
+      - rule: vibecoding_index_red
+        condition: "index >= 81"
+        action: block
+        message: "PR blocked: Vibecoding Index {index} exceeds threshold (81)"
+        override_allowed: true
+        override_requires: ["CTO"]
+
+      - rule: missing_ownership
+        condition: "ownership_header is None"
+        action: block
+        message: "PR blocked: Missing @owner annotation"
+        override_allowed: false
+
+      - rule: missing_intent
+        condition: "intent_statement is None"
+        action: block
+        message: "PR blocked: Missing intent statement"
+        override_allowed: false
+
+      - rule: security_scan_fail
+        condition: "security_scan.critical > 0"
+        action: block
+        message: "PR blocked: Critical security vulnerabilities detected"
+        override_allowed: true
+        override_requires: ["CTO", "Security Lead"]
+
+    # Warn rules (can merge with acknowledgment)
+    warn_rules:
+      - rule: vibecoding_index_orange
+        condition: "index >= 61 and index <= 80"
+        action: warn
+        message: "Warning: Vibecoding Index {index} in orange zone. CEO review recommended."
+
+      - rule: missing_adr_linkage
+        condition: "adr_linkage is None and is_new_feature"
+        action: warn
+        message: "Warning: New feature without ADR linkage"
+
+      - rule: low_test_coverage
+        condition: "test_coverage < 80"
+        action: warn
+        message: "Warning: Test coverage {coverage}% below 80% target"
+
+    # Auto-approve rules
+    auto_approve_rules:
+      - rule: vibecoding_index_green
+        condition: "index <= 30"
+        action: auto_approve
+        message: "Auto-approved: Vibecoding Index {index} in green zone"
+
+# ============================================================================
+# Exemption Rules (New in Sprint 115 - from Day 4 False Positive Analysis)
+# ============================================================================
+exemptions:
+  # Dependency Update Exemption
+  # Reduces drift_velocity impact for package file changes
+  dependency_update_exemption:
+    enabled: true
+    description: "Reduce false positives for dependency updates"
+
+    # Files that trigger this exemption
+    trigger_files:
+      - "package.json"
+      - "package-lock.json"
+      - "yarn.lock"
+      - "pnpm-lock.yaml"
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "poetry.lock"
+      - "pyproject.toml"
+      - "Pipfile"
+      - "Pipfile.lock"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Gemfile"
+      - "Gemfile.lock"
+      - "go.mod"
+      - "go.sum"
+      - "composer.json"
+      - "composer.lock"
+
+    # Conditions for exemption
+    conditions:
+      # Only apply if ALL changed files are dependency files
+      all_files_match: true
+      # Maximum lines changed (excludes lockfile auto-generation)
+      max_non_lock_lines: 50
+
+    # Effect when exemption applies
+    effect:
+      drift_velocity_multiplier: 0.5  # Reduce drift_velocity by 50%
+      max_index_cap: 40               # Cap index at 40 (yellow) max
+      auto_message: "Dependency update exemption applied"
+
+  # Documentation Safe Pattern
+  # Auto-approve documentation-only changes with low index
+  documentation_safe_pattern:
+    enabled: true
+    description: "Fast-track documentation-only PRs"
+
+    # Paths that trigger this pattern
+    trigger_paths:
+      - "docs/**"
+      - "*.md"
+      - "*.rst"
+      - "*.txt"
+      - ".github/*.md"
+      - "LICENSE*"
+      - "CHANGELOG*"
+      - "README*"
+
+    # Conditions
+    conditions:
+      # Only apply if ALL changed files are documentation
+      all_files_match: true
+      # Maximum vibecoding index
+      max_index: 25
+
+    # Effect
+    effect:
+      force_zone: green
+      auto_approve: true
+      auto_message: "Documentation-only PR - auto-approved"
+
+  # Test-Only Pattern
+  # Reduced scrutiny for test-only changes
+  test_only_pattern:
+    enabled: true
+    description: "Reduced scrutiny for test files"
+
+    trigger_paths:
+      - "tests/**"
+      - "test/**"
+      - "**/test_*.py"
+      - "**/*_test.py"
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "**/*.spec.ts"
+      - "**/*.spec.tsx"
+      - "e2e/**"
+      - "cypress/**"
+      - "playwright/**"
+
+    conditions:
+      all_files_match: true
+      max_index: 50
+
+    effect:
+      abstraction_complexity_multiplier: 0.5
+      ai_dependency_multiplier: 0.7
+      auto_message: "Test-only PR - reduced scrutiny applied"
+
+# ============================================================================
+# Kill Switch Configuration (Unchanged from Sprint 114)
+# ============================================================================
+kill_switch:
+  enabled: true
+
+  # Auto-rollback triggers
+  triggers:
+    rejection_rate:
+      threshold: 0.80  # >80% PRs blocked
+      window_hours: 24
+      action: rollback_to_warning
+
+    latency_p95:
+      threshold_ms: 500
+      window_minutes: 15
+      action: rollback_to_warning
+
+    false_positive_rate:
+      threshold: 0.20  # >20% flagged as false positive
+      window_hours: 24
+      action: rollback_to_warning
+
+    developer_complaints:
+      threshold: 5
+      window_hours: 24
+      action: alert_cto
+
+  # Manual controls
+  manual:
+    cto_kill_switch: true
+    ceo_kill_switch: true
+    rollback_target: warning
+
+# ============================================================================
+# Metrics & Monitoring
+# ============================================================================
+metrics:
+  # Sprint 115 targets
+  targets:
+    developer_friction_minutes: 8     # <8 min (softer than WARNING's 10 min)
+    false_positive_rate: 0.10         # <10% (stricter than WARNING's 20%)
+    first_pass_rate: 0.80             # >80%
+    ceo_time_reduction: 0.375         # -37.5% (40h → 25h)
+    blocked_pr_rate: 0.05             # <5% PRs blocked
+
+  # Alerting
+  alerts:
+    friction_high:
+      condition: "friction_minutes > 10"
+      severity: warning
+      notify: ["tech_lead"]
+
+    false_positive_spike:
+      condition: "false_positive_rate > 0.15"
+      severity: warning
+      notify: ["tech_lead", "cto"]
+
+    blocked_rate_high:
+      condition: "blocked_pr_rate > 0.10"
+      severity: critical
+      notify: ["cto", "ceo"]
+
+# ============================================================================
+# Transition Configuration
+# ============================================================================
+transition:
+  # From WARNING (Sprint 114) to SOFT (Sprint 115)
+  from_warning:
+    migration_date: "2026-02-10"
+    gradual_rollout: false  # Full cutover
+    rollback_plan: "Set GOVERNANCE_MODE=warning"
+
+  # To FULL (Sprint 116) - conditional
+  to_full:
+    planned_date: "2026-02-17"
+    conditions:
+      - "false_positive_rate < 0.10"
+      - "developer_friction < 8"
+      - "ceo_time_reduced >= 0.375"
+      - "no_critical_bugs"
+    approval_required: ["CTO", "CEO"]
