@@ -179,7 +179,7 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings, risk_analysis, consultations, mrp, framework_version, context_validation, maturity, auto_generation, governance_mode, vibecoding_index, stage_gating, context_authority, ceo_dashboard, governance_metrics, grafana_dashboards, dogfooding  # Sprint 42-114: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning + Risk Analysis + CRP + MRP/VCR + Framework Version + Context Validation + Maturity + Auto-Generation + Governance Mode + Vibecoding Index + Stage Gating + Context Authority + CEO Dashboard + Prometheus Metrics + Grafana Dashboards + Dogfooding
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings, risk_analysis, consultations, mrp, framework_version, context_validation, maturity, auto_generation, governance_mode, vibecoding_index, stage_gating, context_authority, ceo_dashboard, governance_metrics, grafana_dashboards, dogfooding, governance_specs, governance_vibecoding, tier_management  # Sprint 42-118: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning + Risk Analysis + CRP + MRP/VCR + Framework Version + Context Validation + Maturity + Auto-Generation + Governance Mode + Vibecoding Index + Stage Gating + Context Authority + CEO Dashboard + Prometheus Metrics + Grafana Dashboards + Dogfooding + Sprint 118: Governance Specs + Governance Vibecoding + Tier Management
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -313,6 +313,9 @@ app.include_router(ceo_dashboard.router, prefix="/api/v1", tags=["CEO Dashboard"
 app.include_router(governance_metrics.router, prefix="/api/v1", tags=["Governance Metrics"])  # Sprint 110 - Prometheus Metrics Collector (45 Governance Observability Metrics)
 app.include_router(grafana_dashboards.router, prefix="/api/v1", tags=["Grafana Dashboards"])  # Sprint 110 - Grafana Dashboard Configurations (CEO, Tech, Ops Dashboards)
 app.include_router(dogfooding.router, prefix="/api/v1", tags=["Dogfooding"])  # Sprint 114 - Track 2 WARNING Mode Dogfooding Metrics
+app.include_router(governance_specs.router, prefix="/api/v1", tags=["Governance Specs"])  # Sprint 118 - SPEC-0002 Specification Management
+app.include_router(governance_vibecoding.router, prefix="/api/v1", tags=["Governance Vibecoding"])  # Sprint 118 - SPEC-0001 Vibecoding Index Engine
+app.include_router(tier_management.router, prefix="/api/v1", tags=["Tier Management"])  # Sprint 118 - 4-Tier Classification System
 
 # ============================================================================
 # Health Check Endpoints
