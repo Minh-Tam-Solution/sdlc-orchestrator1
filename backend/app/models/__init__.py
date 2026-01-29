@@ -178,6 +178,13 @@ from app.models.framework_version import FrameworkVersion
 # Agentic Maturity (Sprint 104) - 1 model
 from app.models.agentic_maturity import AgenticMaturityAssessment
 
+# Context Authority V2 (Sprint 120 - SPEC-0011) - 3 models
+from app.models.context_authority_v2 import (
+    ContextOverlayTemplate,
+    ContextSnapshot as ContextSnapshotV2,
+    ContextOverlayApplication,
+)
+
 __all__ = [
     # Base
     "Base",
@@ -307,4 +314,8 @@ __all__ = [
     "FrameworkVersion",
     # Agentic Maturity - Sprint 104 (1 model)
     "AgenticMaturityAssessment",
+    # Context Authority V2 - Sprint 120 SPEC-0011 (3 models)
+    "ContextOverlayTemplate",
+    "ContextSnapshotV2",
+    "ContextOverlayApplication",
 ]
