@@ -105,25 +105,28 @@ P0_ARTIFACTS: List[P0Artifact] = [
         artifact_id="P0-02-SAD",
         name="System Architecture Document",
         stage_id="02",
-        relative_path="02-design/01-System-Architecture/System-Architecture-Document.md",
+        relative_path="02-design/02-System-Architecture/System-Architecture-Document.md",
         description="System architecture overview",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
         alternative_paths=[
             "02-design/System-Architecture.md",
             "02-design/Architecture.md",
+            "02-design/01-System-Architecture/System-Architecture-Document.md",
         ],
     ),
     P0Artifact(
         artifact_id="P0-02-OPENAPI",
         name="OpenAPI Specification",
         stage_id="02",
-        relative_path="02-design/03-API-Design/openapi.yml",
+        relative_path="01-planning/05-API-Design/openapi.yml",
         description="API contract definition",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
         alternative_paths=[
+            "01-planning/05-API-Design/openapi.yaml",
+            "01-planning/05-API-Design/API-Specification.md",
+            "02-design/03-API-Design/openapi.yml",
             "02-design/openapi.yaml",
             "02-design/openapi.json",
-            "02-design/03-API-Design/openapi.yaml",
         ],
     ),
     # Stage 03: Development & Implementation
@@ -135,70 +138,58 @@ P0_ARTIFACTS: List[P0Artifact] = [
         description="Entry point for Development stage",
         required_tiers={Tier.LITE, Tier.STANDARD, Tier.PROFESSIONAL, Tier.ENTERPRISE},
     ),
-    # Stage 04: Testing & QA
+    # Stage 04: Build
     P0Artifact(
         artifact_id="P0-04-README",
         name="Stage 04 README",
         stage_id="04",
-        relative_path="04-Testing-QA/README.md",
-        description="Entry point for Testing & QA stage",
+        relative_path="04-build/README.md",
+        description="Entry point for Build stage",
         required_tiers={Tier.STANDARD, Tier.PROFESSIONAL, Tier.ENTERPRISE},
-        alternative_paths=[
-            "04-Testing-Quality/README.md",
-            "04-Testing/README.md",
-        ],
     ),
-    # Stage 05: Deployment & Release
+    # Stage 05: Test
     P0Artifact(
         artifact_id="P0-05-README",
         name="Stage 05 README",
         stage_id="05",
-        relative_path="05-Deployment-Release/README.md",
-        description="Entry point for Deployment stage",
+        relative_path="05-test/README.md",
+        description="Entry point for Test stage",
         required_tiers={Tier.STANDARD, Tier.PROFESSIONAL, Tier.ENTERPRISE},
     ),
-    # Stage 06: Operations & Monitoring
+    # Stage 06: Deploy
     P0Artifact(
         artifact_id="P0-06-README",
         name="Stage 06 README",
         stage_id="06",
-        relative_path="06-Operations-Monitoring/README.md",
-        description="Entry point for Operations stage",
+        relative_path="06-deploy/README.md",
+        description="Entry point for Deploy stage",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
-        alternative_paths=[
-            "06-Operations-Maintenance/README.md",
-            "06-Operations/README.md",
-        ],
     ),
-    # Stage 07: Integration Hub
+    # Stage 07: Operate
     P0Artifact(
         artifact_id="P0-07-README",
         name="Stage 07 README",
         stage_id="07",
-        relative_path="07-Integration-Hub/README.md",
-        description="Entry point for Integration Hub stage",
+        relative_path="07-operate/README.md",
+        description="Entry point for Operate stage",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
-        alternative_paths=[
-            "07-Integration-APIs/README.md",
-            "07-Integration/README.md",
-        ],
     ),
-    # Stage 08: Team Management
+    # Stage 08: Collaborate
     P0Artifact(
         artifact_id="P0-08-README",
         name="Stage 08 README",
         stage_id="08",
-        relative_path="08-Team-Management/README.md",
-        description="Entry point for Team Management stage",
+        relative_path="08-collaborate/README.md",
+        description="Entry point for Collaborate stage",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
     ),
-    # Stage 09: Executive Reports
+    # Stage 09: Govern
     P0Artifact(
         artifact_id="P0-09-README",
         name="Stage 09 README",
         stage_id="09",
-        relative_path="09-Executive-Reports/README.md",
-        description="Entry point for Executive Reports stage",
+        relative_path="09-govern/README.md",
+        description="Entry point for Govern stage",
         required_tiers={Tier.PROFESSIONAL, Tier.ENTERPRISE},
     ),
     # Stage 10: Archive
@@ -206,7 +197,7 @@ P0_ARTIFACTS: List[P0Artifact] = [
         artifact_id="P0-10-README",
         name="Stage 10 README",
         stage_id="10",
-        relative_path="10-Archive/README.md",
+        relative_path="10-archive/README.md",
         description="Entry point for Archive stage",
         required_tiers={Tier.ENTERPRISE},
     ),
