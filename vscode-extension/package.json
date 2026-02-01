@@ -1,8 +1,8 @@
 {
   "name": "sdlc-orchestrator",
   "displayName": "SDLC Orchestrator",
-  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 5.1.2 governance platform",
-  "version": "1.0.0",
+  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 6.0.1 governance platform",
+  "version": "1.3.0",
   "publisher": "mtsolution",
   "license": "Apache-2.0",
   "repository": {
@@ -39,7 +39,7 @@
         "id": "sdlc-orchestrator.gate",
         "name": "gate",
         "fullName": "SDLC Gate Assistant",
-        "description": "Compliance and gate evaluation assistance for SDLC 5.1.2 (G0-G5)",
+        "description": "Compliance and gate evaluation assistance for SDLC 6.0.0 (G0-G5)",
         "isSticky": true,
         "commands": [
           {
@@ -95,7 +95,8 @@
           "id": "sdlc-projects",
           "name": "Projects",
           "icon": "$(folder)",
-          "contextualTitle": "SDLC Projects"
+          "contextualTitle": "SDLC Projects",
+          "when": "sdlc.projectsPanelVisible"
         },
         {
           "id": "sdlc-blueprint",
@@ -267,6 +268,48 @@
         "title": "Copy Context as PR Comment",
         "category": "SDLC",
         "icon": "$(clippy)"
+      },
+      {
+        "command": "sdlc.validateSpec",
+        "title": "Validate Specification (SDLC 6.0.0)",
+        "category": "SDLC",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "sdlc.validateSpecWithTier",
+        "title": "Validate Specification with Tier Selection",
+        "category": "SDLC",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "sdlc.showSpecValidationResults",
+        "title": "Show Spec Validation Results",
+        "category": "SDLC",
+        "icon": "$(output)"
+      },
+      {
+        "command": "sdlc.connectGithub",
+        "title": "Connect GitHub Repository",
+        "category": "SDLC",
+        "icon": "$(github)"
+      },
+      {
+        "command": "sdlc.disconnectGithub",
+        "title": "Disconnect GitHub Repository",
+        "category": "SDLC",
+        "icon": "$(github)"
+      },
+      {
+        "command": "sdlc.syncGithub",
+        "title": "Sync GitHub Repository",
+        "category": "SDLC",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "sdlc.scanGithubRepo",
+        "title": "Scan GitHub Repository",
+        "category": "SDLC",
+        "icon": "$(search)"
       }
     ],
     "menus": {
@@ -350,6 +393,22 @@
         {
           "command": "sdlc.login",
           "when": "!sdlc.isAuthenticated"
+        },
+        {
+          "command": "sdlc.connectGithub",
+          "when": "sdlc.isAuthenticated"
+        },
+        {
+          "command": "sdlc.disconnectGithub",
+          "when": "sdlc.isAuthenticated"
+        },
+        {
+          "command": "sdlc.syncGithub",
+          "when": "sdlc.isAuthenticated"
+        },
+        {
+          "command": "sdlc.scanGithubRepo",
+          "when": "sdlc.isAuthenticated"
         }
       ]
     },
@@ -393,6 +452,36 @@
           "default": true,
           "description": "Show violation count badge in activity bar",
           "order": 6
+        },
+        "sdlc.validateSpecOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically validate specification files on save (SDLC 6.0.0)",
+          "order": 7
+        },
+        "sdlc.defaultSpecTier": {
+          "type": "string",
+          "default": "PROFESSIONAL",
+          "enum": [
+            "LITE",
+            "STANDARD",
+            "PROFESSIONAL",
+            "ENTERPRISE"
+          ],
+          "enumDescriptions": [
+            "Minimal governance (1-2 people, 4 stages)",
+            "Basic governance (3-10 people, 6 stages)",
+            "Full governance (10-50 people, 10 stages)",
+            "Complete governance (50+ people, 11 stages)"
+          ],
+          "description": "Default tier for specification validation",
+          "order": 8
+        },
+        "sdlc.showProjectsPanel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Always show Projects panel even when project is auto-detected (Sprint 127)",
+          "order": 9
         }
       }
     },
@@ -437,6 +526,12 @@
         "key": "ctrl+shift+b",
         "mac": "cmd+shift+b",
         "when": "sdlc.isAuthenticated"
+      },
+      {
+        "command": "sdlc.validateSpec",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "editorLangId == markdown"
       }
     ],
     "colors": [
@@ -481,6 +576,7 @@
     "publish": "vsce publish"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.80.0",
@@ -494,6 +590,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "axios": "^1.6.2"
+    "axios": "^1.6.2",
+    "js-yaml": "^4.1.1"
   }
 }
