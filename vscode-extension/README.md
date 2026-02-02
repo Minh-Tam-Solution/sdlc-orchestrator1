@@ -1,12 +1,31 @@
 # SDLC Orchestrator VS Code Extension
 
-**Version**: 1.3.0
+**Version**: 1.4.0
 **Status**: GA (General Availability)
-**Framework**: SDLC 6.0.1 (Stage Consistency Validation)
-**Sprint**: 136 - Framework 6.0.1 + Stage Consistency Validation
-**Last Updated**: February 1, 2026
+**Framework**: SDLC 6.0.2 (E2E API Testing + Stage Cross-Reference)
+**Sprint**: 138 - RFC-SDLC-602 Validation & Release
+**Last Updated**: February 2, 2026
 
 Gate status monitoring, AI-powered code generation, and compliance assistance directly in VS Code. Part of the SDLC Orchestrator governance platform - the **Operating System for Software 3.0**.
+
+## What's New in 1.4.0 (Sprint 138)
+
+### SDLC 6.0.2 Framework Support
+- **Framework 6.0.2**: RFC-SDLC-602 E2E API Testing Enhancement
+- **E2E API Testing Workflow**: 6-phase standardized testing process awareness
+- **Stage Cross-Reference**: Stage 03 ↔ Stage 05 bidirectional traceability
+- **OWASP API Top 10**: Security checklist integration ready
+- **Version Sync**: Synchronized with `sdlcctl` CLI v1.4.0
+
+### New Features
+- **E2E Testing Commands**: Extension recognizes `sdlcctl e2e validate` and `sdlcctl e2e cross-reference`
+- **Cross-Reference Validation**: Validates Stage 03 (API) ↔ Stage 05 (Testing) links
+- **SSOT Enforcement**: Single Source of Truth for openapi.json in Stage 03
+- **4 New Evidence Types**: e2e_test_report, security_test_report, api_coverage_report, cross_reference_validation
+
+### Quick Start Guide Integration
+- See: `SDLC-Enterprise-Framework/07-Implementation-Guides/E2E-TESTING-QUICKSTART.md`
+- Time savings: 3 hours → 30 minutes E2E setup
 
 ## What's New in 1.3.0 (Sprint 136)
 

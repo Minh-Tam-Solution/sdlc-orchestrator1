@@ -1,8 +1,8 @@
 {
   "name": "sdlc-orchestrator",
   "displayName": "SDLC Orchestrator",
-  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 6.0.1 governance platform",
-  "version": "1.3.0",
+  "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 6.0.2 governance platform with E2E API Testing support",
+  "version": "1.4.0",
   "publisher": "mtsolution",
   "license": "Apache-2.0",
   "repository": {
@@ -39,7 +39,7 @@
         "id": "sdlc-orchestrator.gate",
         "name": "gate",
         "fullName": "SDLC Gate Assistant",
-        "description": "Compliance and gate evaluation assistance for SDLC 6.0.0 (G0-G5)",
+        "description": "Compliance and gate evaluation assistance for SDLC 6.0.2 (G0-G5, E2E Testing)",
         "isSticky": true,
         "commands": [
           {
@@ -271,7 +271,7 @@
       },
       {
         "command": "sdlc.validateSpec",
-        "title": "Validate Specification (SDLC 6.0.0)",
+        "title": "Validate Specification (SDLC 6.0.2)",
         "category": "SDLC",
         "icon": "$(check-all)"
       },
