@@ -33,6 +33,9 @@ import { registerPreviewCommand } from './commands/previewCommand';
 import { registerResumeCommand } from './commands/resumeCommand';
 import { registerSpecValidationCommand } from './commands/specValidationCommand';
 import { registerGithubCommands } from './commands/connectGithubCommand';
+import { registerE2EValidateCommand } from './commands/e2eValidateCommand';
+import { registerE2ECrossRefCommand } from './commands/e2eCrossRefCommand';
+import { registerSSOTCommands, SSOTValidator } from './validation/ssotValidator';
 import { SDLCStructureService } from './services/sdlcStructureService';
 import { BlueprintProvider, registerBlueprintCommands } from './providers/blueprintProvider';
 import { AppBuilderPanel } from './panels/appBuilderPanel';
@@ -55,6 +58,7 @@ interface ExtensionState {
     contextPanelProvider: ContextPanelProvider | undefined;
     contextStatusBar: ContextStatusBarItem | undefined;
     chatParticipant: ComplianceChatParticipant | undefined;
+    ssotValidator: SSOTValidator | undefined;
     refreshInterval: ReturnType<typeof setInterval> | undefined;
 }
 
@@ -71,6 +75,7 @@ const state: ExtensionState = {
     contextPanelProvider: undefined,
     contextStatusBar: undefined,
     chatParticipant: undefined,
+    ssotValidator: undefined,
     refreshInterval: undefined,
 };
 
@@ -208,6 +213,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         // Register GitHub Integration commands (Sprint 129 Day 3)
         registerGithubCommands(context, state.apiClient);
 
+        // Register E2E Testing commands (Sprint 139 - RFC-SDLC-602)
+        registerE2EValidateCommand(context);
+        registerE2ECrossRefCommand(context);
+
+        // Register SSOT Validation commands (Sprint 141 - RFC-SDLC-602)
+        state.ssotValidator = registerSSOTCommands(context);
+
         // Register Blueprint commands (Sprint 53 Day 2)
         registerBlueprintCommands(context, state.blueprintProvider);
 
@@ -318,6 +330,12 @@ export function deactivate(): void {
         state.contextStatusBar = undefined;
     }
 
+    // Cleanup SSOT Validator (Sprint 141)
+    if (state.ssotValidator) {
+        state.ssotValidator.dispose();
+        state.ssotValidator = undefined;
+    }
+
     Logger.info('SDLC Orchestrator extension deactivated');
 }
 
@@ -337,7 +355,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
         vscode.commands.registerCommand('sdlc.openGate', (gateId: string) => {
             const config = ConfigManager.getInstance();
-            const url = `${config.apiUrl.replace('/api', '')}/gates/${gateId}`;
+            const url = `${config.apiUrl.replace('/api', '')}/app/gates/${gateId}`;
             void vscode.env.openExternal(vscode.Uri.parse(url));
         })
     );

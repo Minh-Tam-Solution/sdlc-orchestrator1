@@ -69,6 +69,9 @@ const previewCommand_1 = require("./commands/previewCommand");
 const resumeCommand_1 = require("./commands/resumeCommand");
 const specValidationCommand_1 = require("./commands/specValidationCommand");
 const connectGithubCommand_1 = require("./commands/connectGithubCommand");
+const e2eValidateCommand_1 = require("./commands/e2eValidateCommand");
+const e2eCrossRefCommand_1 = require("./commands/e2eCrossRefCommand");
+const ssotValidator_1 = require("./validation/ssotValidator");
 const sdlcStructureService_1 = require("./services/sdlcStructureService");
 const blueprintProvider_1 = require("./providers/blueprintProvider");
 const appBuilderPanel_1 = require("./panels/appBuilderPanel");
@@ -87,6 +90,7 @@ const state = {
     contextPanelProvider: undefined,
     contextStatusBar: undefined,
     chatParticipant: undefined,
+    ssotValidator: undefined,
     refreshInterval: undefined,
 };
 /**
@@ -159,6 +163,11 @@ async function activate(context) {
         (0, specValidationCommand_1.registerSpecValidationCommand)(context, state.codegenApi);
         // Register GitHub Integration commands (Sprint 129 Day 3)
         (0, connectGithubCommand_1.registerGithubCommands)(context, state.apiClient);
+        // Register E2E Testing commands (Sprint 139 - RFC-SDLC-602)
+        (0, e2eValidateCommand_1.registerE2EValidateCommand)(context);
+        (0, e2eCrossRefCommand_1.registerE2ECrossRefCommand)(context);
+        // Register SSOT Validation commands (Sprint 141 - RFC-SDLC-602)
+        state.ssotValidator = (0, ssotValidator_1.registerSSOTCommands)(context);
         // Register Blueprint commands (Sprint 53 Day 2)
         (0, blueprintProvider_1.registerBlueprintCommands)(context, state.blueprintProvider);
         // Register App Builder Panel command (Sprint 53 Day 2)
@@ -245,6 +254,11 @@ function deactivate() {
         state.contextStatusBar.dispose();
         state.contextStatusBar = undefined;
     }
+    // Cleanup SSOT Validator (Sprint 141)
+    if (state.ssotValidator) {
+        state.ssotValidator.dispose();
+        state.ssotValidator = undefined;
+    }
     logger_1.Logger.info('SDLC Orchestrator extension deactivated');
 }
 /**
@@ -259,7 +273,7 @@ function registerCommands(context) {
     // Open gate in browser command
     context.subscriptions.push(vscode.commands.registerCommand('sdlc.openGate', (gateId) => {
         const config = config_1.ConfigManager.getInstance();
-        const url = `${config.apiUrl.replace('/api', '')}/gates/${gateId}`;
+        const url = `${config.apiUrl.replace('/api', '')}/app/gates/${gateId}`;
         void vscode.env.openExternal(vscode.Uri.parse(url));
     }));
     // Select project command
