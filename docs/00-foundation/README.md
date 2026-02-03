@@ -42,7 +42,7 @@
 **Changelog v3.1.0** (Dec 21, 2025):
 - Vision updated to v3.1.0 with EP-04/05/06 strategic extensions
 - Roadmap updated to v4.1.0 with Sprint 41-55 (15 sprints, 305+ SP)
-- NQH AI Platform integration: qwen2.5-coder:32b (92.7% HumanEval)
+- NQH AI Platform integration: qwen3-coder:30b (256K context)
 - Mode C Hybrid Fallback: Claude → Continue.dev auto-failover
 - Investment committed: $124.5K for Q1-Q3 2026
 - Revenue projection: +$34.5K ARR Year 1 from new epics
@@ -263,7 +263,7 @@ Layer 1: SDLC-Enterprise-Framework (Methodology) ← Our foundation
 
 1. **`.sdlc-config.json`** - 1KB replaces 700KB manual compliance docs (700x smaller!)
 2. **Multi-Provider Fallback** - Ollama → Claude → DeepCode (DeepCode Q2 2026 decision gate)
-3. **qwen2.5-coder:32b** - 92.7% HumanEval (NQH AI Platform: api.nhatquangholding.com)
+3. **qwen3-coder:30b** - 256K context (NQH AI Platform: api.nhatquangholding.com)
 4. **IR Decomposition** - 128K → 5K tokens (96% context reduction)
 5. **Vietnamese Domain Templates** - F&B, Hotel, Retail with Vietnamese questionnaire flow
 

@@ -29,7 +29,7 @@
 │                    Governance API + Quality Gates               │
 ├─────────────────────────────────────────────────────────────────┤
 │ LAYER 4: EP-06 CODEGEN (Our Innovation)                         │
-│  • IR-Based Code Generation (qwen2.5-coder:32b)                 │
+│  • IR-Based Code Generation (qwen3-coder:30b)                   │
 │  • 4-Gate Quality Pipeline (Syntax → Security → Context → Test) │
 │  • Validation Loop with max_retries=3                           │
 ├─────────────────────────────────────────────────────────────────┤
@@ -545,7 +545,7 @@ cd frontend/web && npm install && npm run dev
 
 ### 3. EP-06 IR-Based Codegen (NEW)
 - **Intermediate Representation**: Spec → IR → Code (deterministic)
-- **Multi-Provider Fallback**: Ollama (qwen2.5-coder:32b) → Claude → DeepCode
+- **Multi-Provider Fallback**: Ollama (qwen3-coder:30b) → Claude → DeepCode
 - **4-Gate Quality Pipeline**: Syntax → Security → Context → Tests
 - **Vietnamese SME Templates**: E-commerce, HRM, CRM domain-specific
 

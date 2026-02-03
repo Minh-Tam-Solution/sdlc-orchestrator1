@@ -65,7 +65,7 @@
 - **EP-06**: Codegen Engine Tri-Mode - BYO + Native OSS + Hybrid Fallback
 - **EP-06 Quality Gates (Stage 01 refresh)**: FR41-FR45 + NFR29-NFR35 + P8 traceability + codegen data/API additions
 - **Model Roles**: IT Admin 10-model strategy integrated
-- **NQH AI Platform**: qwen2.5-coder:32b (92.7% HumanEval) configured
+- **NQH AI Platform**: qwen3-coder:30b (256K context) configured
 - **.sdlc-config.json**: Revolutionary 1KB replacement for 700KB manual docs
 
 ---

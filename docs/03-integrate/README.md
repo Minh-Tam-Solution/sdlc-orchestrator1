@@ -156,7 +156,7 @@ This stage manages API design, third-party integrations, and system interoperabi
 
 | Provider | Endpoint | Model | Latency Target | Fallback Order |
 |----------|----------|-------|----------------|----------------|
-| **Ollama** | `api.nhatquangholding.com` | qwen2.5-coder:32b | <15s | Primary |
+| **Ollama** | `api.nhatquangholding.com` | qwen3-coder:30b | <15s | Primary |
 | **Claude** | `api.anthropic.com` | claude-sonnet-4-5-20250929 | <25s | Secondary |
 | **DeepCode** | TBD (Q2 2026) | deepcode-v1 | TBD | Tertiary |
 
