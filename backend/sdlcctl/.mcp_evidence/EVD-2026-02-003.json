@@ -1,0 +1,18 @@
+{
+  "artifact_id": "EVD-2026-02-003",
+  "operation": "mcp_connect",
+  "platform": "github",
+  "metadata": {
+    "repositories": [
+      "nqh/sdlc-orchestrator"
+    ],
+    "app_id": "123456"
+  },
+  "user_id": "dttai",
+  "created_at": "2026-02-03T00:59:50.869520+00:00",
+  "previous_hash": "6df024c3220032e826121e17ac66ea3b9f76ae8e54c0c7752fcc191920893e6a",
+  "hash": "e99e28df6469ef928d2047e4e30df6255d1f9d43556a2b72dc7453af2afff326",
+  "signature": null,
+  "signer_key_id": "default-key-v1",
+  "signing_algorithm": "Ed25519"
+}

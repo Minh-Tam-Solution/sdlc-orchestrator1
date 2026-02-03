@@ -16,7 +16,7 @@ Usage:
 """
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -531,7 +531,7 @@ def compliance_report(
     report = {
         "project_path": str(path),
         "docs_path": str(docs_path),
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "framework_version": "6.0.0",
         "compliance_score": {
             "overall": score_result["overall_score"],

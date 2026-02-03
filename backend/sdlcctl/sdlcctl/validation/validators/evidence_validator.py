@@ -9,7 +9,7 @@ Part of SPEC-0016: Implementation Evidence Validation
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -443,7 +443,7 @@ class EvidenceValidator(BaseValidator):
             warnings: List of warnings
         """
         validation = evidence_data.get("validation", {})
-        validation["last_checked"] = datetime.utcnow().isoformat() + "Z"
+        validation["last_checked"] = datetime.now(timezone.utc).isoformat() + "Z"
         validation["checker_version"] = "1.0.0"  # TODO: Get from package version
         validation["status"] = status
 

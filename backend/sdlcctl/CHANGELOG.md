@@ -7,6 +7,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0] - 2026-02-13
+
+### Added
+
+**Sprint 140: CLI Orchestration Upgrade (RFC-SDLC-602)**
+
+#### E2E API Testing Commands
+
+- **`sdlcctl e2e validate --init`**: Initialize E2E testing folder structure
+  - Creates `docs/05-Testing-Quality/03-E2E-Testing/` with templates
+  - Generates README, Postman collection template, pytest template
+  - OPA policy integration for validation
+
+- **`sdlcctl e2e cross-reference`**: Validate Stage 03 ↔ Stage 05 cross-references
+  - Bidirectional traceability validation
+  - SSOT compliance checking (no duplicate `openapi.json`)
+  - `--fix` flag for auto-fixing SSOT violations (creates symlinks)
+  - `--use-opa/--no-opa` for OPA policy evaluation toggle
+
+- **`sdlcctl e2e auth-setup`**: Automate authentication configuration
+  - OAuth2 client credentials flow
+  - API Key, Basic Auth, Bearer token support
+  - Interactive and non-interactive modes
+  - Saves to `.env.test` with example template
+
+- **`sdlcctl e2e generate-report`**: Generate E2E test reports from results
+  - Markdown report generation
+  - Cross-reference links to API documentation
+  - SSOT OpenAPI spec linking
+
+#### OPA Client Library (`sdlcctl/lib/opa_client.py`)
+
+- Network-only OPA REST API client (AGPL-safe)
+- `OPAClient.evaluate()` for policy evaluation
+- `OPAClient.check_health()` for health checks
+- `OPAClient.get_policies()` for policy listing
+- Graceful fallback to local validation when OPA unavailable
+- Support for E2E compliance and cross-reference policies
+
+#### Backend E2E Testing API (Sprint 140)
+
+- `POST /api/v1/e2e/execute`: Queue E2E test execution (async)
+- `GET /api/v1/e2e/results/{id}`: Get test execution results
+- `GET /api/v1/e2e/status/{id}`: Check execution status
+- `POST /api/v1/e2e/cancel/{id}`: Cancel running tests
+- `GET /api/v1/e2e/history`: Get execution history with filtering
+- Support for Newman, Pytest, REST Assured runners
+
+#### Redis-Backed Execution Store
+
+- `E2EExecutionStore` service for persistent execution state
+- Automatic TTL cleanup (7-day retention)
+- User/project-based filtering with sorted set indexes
+- In-memory fallback when Redis unavailable
+- Full CRUD operations with async support
+
+### Changed
+
+- Updated framework version: SDLC 6.0.1 → SDLC 6.0.2
+- CLI version: 1.4.0 → 1.5.0
+- Cross-reference command now uses OPA by default (with `--no-opa` fallback)
+
+### Tests
+
+- **81 new integration tests** across 3 test files:
+  - `test_e2e_execution_store.py` (21 tests, 601 LOC)
+  - `test_opa_client.py` (41 tests, 733 LOC)
+  - `test_e2e_cross_reference.py` (19 tests, 576 LOC)
+- Test pass rate: 96.3% (78/81 passing)
+- Coverage: CRUD operations, error handling, fallback scenarios
+
+### Documentation
+
+- Updated README with E2E commands section
+- Command reference for all E2E commands
+- Examples for OPA integration and fallback modes
+
+### References
+
+- [RFC-SDLC-602: E2E API Testing Enhancement](../../docs/01-planning/02-RFCs/RFC-SDLC-602-E2E-API-TESTING.md)
+- [Sprint 140 Progress](../../docs/04-build/02-Sprint-Plans/SPRINT-140-PROGRESS.md)
+
+---
+
+## [1.4.0] - 2026-02-08
+
+### Added
+
+**Sprint 139: VS Code Extension E2E Commands**
+
+- Initial E2E command structure (`sdlcctl e2e` subcommand group)
+- `sdlcctl e2e validate`: Basic E2E artifact validation
+- `sdlcctl e2e cross-reference`: Initial cross-reference validation
+- VS Code Extension integration endpoints
+
+---
+
 ## [1.3.0] - 2026-02-01
 
 ### Added

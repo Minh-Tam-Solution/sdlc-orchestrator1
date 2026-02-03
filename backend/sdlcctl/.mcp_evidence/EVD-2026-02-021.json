@@ -1,0 +1,13 @@
+{
+  "artifact_id": "EVD-2026-02-021",
+  "operation": "mcp_disconnect",
+  "platform": "slack",
+  "metadata": {},
+  "user_id": "dttai",
+  "created_at": "2026-02-03T01:18:56.008007+00:00",
+  "previous_hash": "9edeb385b92ec2c738edc94efb5fdbaaccc03e7128e3c19ab4b99cfde6deb19a",
+  "hash": "d0d43a716270cc09d813492055518864073b8bfc87bd010e1a00f4948236d6ac",
+  "signature": null,
+  "signer_key_id": "default-key-v1",
+  "signing_algorithm": "Ed25519"
+}

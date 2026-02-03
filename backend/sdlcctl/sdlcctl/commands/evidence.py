@@ -164,8 +164,8 @@ def create_command(
             raise typer.Exit(code=0)
 
     # Create template
-    from datetime import datetime
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    from datetime import datetime, timezone
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     template = {
         "spec_id": spec_id,
@@ -417,12 +417,12 @@ def _display_gaps(gaps: dict) -> None:
 
 def _write_markdown_report(gaps: dict, output_path: str, project_root: Path) -> None:
     """Write gap analysis to Markdown file."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     lines = [
         "# Implementation Gap Analysis Report",
         "",
-        f"**Generated**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
         f"**Project**: {project_root.name}",
         "",
         "## Summary",

@@ -1,0 +1,18 @@
+{
+  "artifact_id": "EVD-2026-02-011",
+  "operation": "mcp_connect",
+  "platform": "slack",
+  "metadata": {
+    "channels": [
+      "bugs"
+    ],
+    "bot_token": "xoxb-test-token..."
+  },
+  "user_id": "dttai",
+  "created_at": "2026-02-03T01:11:28.964653+00:00",
+  "previous_hash": "8a0e6759c99413d53e3ee51b867d64556c01769cf499688a1bd74efa84ba21da",
+  "hash": "8d2d086a931fbf74c140ff05327f5536838f5f2f7893f8d53d6305ab712b5ad8",
+  "signature": null,
+  "signer_key_id": "default-key-v1",
+  "signing_algorithm": "Ed25519"
+}

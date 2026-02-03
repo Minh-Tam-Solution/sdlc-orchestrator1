@@ -1,0 +1,13 @@
+{
+  "artifact_id": "EVD-2026-02-028",
+  "operation": "mcp_disconnect",
+  "platform": "github",
+  "metadata": {},
+  "user_id": "dttai",
+  "created_at": "2026-02-03T01:26:03.220559+00:00",
+  "previous_hash": "d58b0084d7d9660693a8137710c041745c0f8328df84cc9ccd395626b0ab6af9",
+  "hash": "d751f233aadd9af004070dc049346cff0add2387bd2c05c99c36bf6e9b2038af",
+  "signature": null,
+  "signer_key_id": "default-key-v1",
+  "signing_algorithm": "Ed25519"
+}
