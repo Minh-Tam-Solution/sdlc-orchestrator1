@@ -29,7 +29,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # =========================================================================
@@ -141,9 +141,7 @@ class GateResponse(BaseModel):
     approvals: List[Dict[str, Any]] = Field(default_factory=list, description="List of approvals")
     evidence_count: int = Field(default=0, description="Number of evidence files attached")
     policy_violations: List[Dict[str, Any]] = Field(default_factory=list, description="Policy evaluation violations")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GateListResponse(BaseModel):
@@ -242,9 +240,7 @@ class GateApprovalResponse(BaseModel):
     is_approved: bool = Field(..., description="Approval decision")
     comments: Optional[str] = Field(None, description="Approval comments")
     approved_at: datetime = Field(..., description="Approval timestamp")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========================================================================
@@ -308,9 +304,7 @@ class GateEvidenceResponse(BaseModel):
     description: Optional[str] = Field(None, description="Evidence description")
     uploaded_by: UUID = Field(..., description="Uploader user UUID")
     uploaded_at: datetime = Field(..., description="Upload timestamp")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========================================================================
@@ -347,6 +341,4 @@ class PolicyEvaluationResponse(BaseModel):
     is_passed: bool = Field(..., description="Evaluation result (true = passed)")
     violations: List[Dict[str, Any]] = Field(..., description="List of violations (if any)")
     evaluated_at: datetime = Field(..., description="Evaluation timestamp")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)

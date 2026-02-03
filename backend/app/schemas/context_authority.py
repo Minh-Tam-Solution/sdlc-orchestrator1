@@ -41,7 +41,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # =========================================================================
@@ -503,9 +503,7 @@ class SnapshotResponse(BaseModel):
         ...,
         description="Record creation timestamp"
     )
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SnapshotListResponse(BaseModel):
@@ -718,9 +716,7 @@ class TemplateResponse(BaseModel):
         ...,
         description="Last update timestamp"
     )
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TemplateListResponse(BaseModel):

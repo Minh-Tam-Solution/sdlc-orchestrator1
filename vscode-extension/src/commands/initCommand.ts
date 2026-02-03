@@ -22,6 +22,7 @@ import {
 } from '../services/sdlcStructureService';
 import { ApiClient } from '../services/apiClient';
 import { Logger } from '../utils/logger';
+import { trackCommand, trackProjectCreated } from '../services/telemetryService';
 
 /**
  * Init command options
@@ -167,9 +168,15 @@ export class InitCommandHandler {
         if (result.success) {
             await this.showSuccessMessage(result.createdFolders, result.createdFiles, tier);
             await this.openGettingStarted(workspaceRoot);
+
+            // Track telemetry (Sprint 147 - Product Truth Layer)
+            void trackProjectCreated(`vscode-${path.basename(workspaceRoot)}`, tier);
+            void trackCommand('sdlc.init', true);
+
             return true;
         } else {
             void vscode.window.showErrorMessage('Failed to create SDLC structure');
+            void trackCommand('sdlc.init', false);
             return false;
         }
     }
@@ -224,6 +231,11 @@ export class InitCommandHandler {
                 void vscode.window.showInformationMessage(
                     `Created ${result.createdFolders.length} folders and ${result.createdFiles.length} files`
                 );
+
+                // Track telemetry (Sprint 147 - Product Truth Layer)
+                void trackProjectCreated(`vscode-${path.basename(workspaceRoot)}`, tier);
+                void trackCommand('sdlc.init', true);
+
                 return true;
             }
         } else if (action === 'config-only') {
@@ -239,6 +251,11 @@ export class InitCommandHandler {
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 
             void vscode.window.showInformationMessage('Created .sdlc-config.json');
+
+            // Track telemetry (Sprint 147 - Product Truth Layer)
+            void trackProjectCreated(`vscode-${path.basename(workspaceRoot)}`, tier);
+            void trackCommand('sdlc.init', true);
+
             return true;
         }
 

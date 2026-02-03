@@ -26,7 +26,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SessionStatus(str, Enum):
@@ -41,17 +41,18 @@ class SessionStatus(str, Enum):
 
 class GeneratedFileCheckpoint(BaseModel):
     """Checkpoint data for a generated file."""
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat()
+        }
+    )
+
     file_path: str
     content: str
     language: str
     lines: int
     generated_at: datetime
     checksum: str  # SHA256 for integrity
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
 
 class ErrorContext(BaseModel):
@@ -91,12 +92,12 @@ class SessionState(BaseModel):
 
     # Error tracking
     errors: List[ErrorContext] = Field(default_factory=list)
-
-    class Config:
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.isoformat(),
             UUID: lambda v: str(v)
         }
+    )
 
 
 class SessionMetadata(BaseModel):

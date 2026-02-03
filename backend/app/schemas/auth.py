@@ -30,7 +30,7 @@ from enum import Enum
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # =========================================================================
@@ -150,9 +150,7 @@ class RegisterResponse(BaseModel):
         default="Registration successful. You can now login.",
         description="Success message"
     )
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginRequest(BaseModel):
@@ -330,9 +328,7 @@ class UserProfile(BaseModel):
     )
     created_at: datetime = Field(..., description="Account creation timestamp")
     last_login_at: Optional[datetime] = Field(None, description="Last login timestamp")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========================================================================
@@ -405,9 +401,7 @@ class APIKeyInfo(BaseModel):
     expires_at: Optional[datetime] = Field(None, description="Expiry timestamp")
     last_used_at: Optional[datetime] = Field(None, description="Last used timestamp")
     is_active: bool = Field(..., description="Active status")
-
-    class Config:
-        from_attributes = True  # Pydantic v2: Enable ORM mode
+    model_config = ConfigDict(from_attributes=True)
 
 
 # =========================================================================

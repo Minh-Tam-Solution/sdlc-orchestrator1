@@ -100,8 +100,8 @@ def test_user_data() -> dict:
     }
 
 
-@pytest.fixture
-def auth_headers(test_user_data: dict) -> dict:
+@pytest_asyncio.fixture
+async def auth_headers(test_user_data: dict) -> dict:
     """
     Authentication headers for API requests.
 
@@ -113,8 +113,9 @@ def auth_headers(test_user_data: dict) -> dict:
         from datetime import timedelta
 
         # Create a real JWT token for testing
-        token = create_access_token(
-            data={"sub": test_user_data["id"], "email": test_user_data["email"]},
+        # Note: create_access_token takes subject (str or dict), not data keyword
+        token = await create_access_token(
+            subject=test_user_data["id"],
             expires_delta=timedelta(hours=1),
         )
         return {"Authorization": f"Bearer {token}"}
@@ -134,8 +135,8 @@ def auth_headers(test_user_data: dict) -> dict:
         return {"Authorization": f"Bearer test.{token_data}.test"}
 
 
-@pytest.fixture
-def admin_auth_headers() -> dict:
+@pytest_asyncio.fixture
+async def admin_auth_headers() -> dict:
     """
     Admin authentication headers for privileged operations.
     """
@@ -143,12 +144,9 @@ def admin_auth_headers() -> dict:
         from app.core.security import create_access_token
         from datetime import timedelta
 
-        token = create_access_token(
-            data={
-                "sub": "admin-user-001",
-                "email": "admin@example.com",
-                "role": "admin",
-            },
+        # Note: create_access_token takes subject (str or dict), not data keyword
+        token = await create_access_token(
+            subject="admin-user-001",
             expires_delta=timedelta(hours=1),
         )
         return {"Authorization": f"Bearer {token}"}

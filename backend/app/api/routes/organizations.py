@@ -26,20 +26,28 @@ Zero Mock Policy: Production-ready API routes
 =========================================================================
 """
 
+import logging
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
 from app.db.session import get_db
 from app.models.user import User
+from app.models.organization import Organization, UserOrganization
 from app.schemas.team import (
     OrganizationCreate,
     OrganizationListResponse,
     OrganizationResponse,
     OrganizationUpdate,
+)
+from app.schemas.organization_invitation import (
+    AddMemberRequest,
+    MemberAddedResponse,
 )
 from app.services.organizations_service import (
     OrganizationNotFoundError,
@@ -47,6 +55,8 @@ from app.services.organizations_service import (
     OrganizationsService,
     UserNotInOrganizationError,
 )
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
@@ -203,16 +213,27 @@ async def get_organization(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization {org_id} not found"
         )
-    
+
     # Sprint 88: Platform admins CANNOT access customer data
     # Check access: user must belong to org or be regular admin (not platform admin)
     is_regular_admin = current_user.is_superuser and not current_user.is_platform_admin
-    if not is_regular_admin and current_user.organization_id != org_id:
+
+    # Multi-org support: Check if user is a member of this organization
+    is_member_result = await db.execute(
+        select(UserOrganization).where(
+            UserOrganization.user_id == current_user.id,
+            UserOrganization.organization_id == org_id
+        )
+    )
+    is_member = is_member_result.scalar_one_or_none() is not None
+
+    # Allow access if: regular admin OR primary org matches OR is a member
+    if not is_regular_admin and current_user.organization_id != org_id and not is_member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have access to this organization"
         )
-    
+
     return org_to_response(org)
 
 
@@ -291,12 +312,23 @@ async def get_organization_statistics(
     # Sprint 88: Platform admins CANNOT access customer data
     # Check access: user must belong to org or be regular admin (not platform admin)
     is_regular_admin = current_user.is_superuser and not current_user.is_platform_admin
-    if not is_regular_admin and current_user.organization_id != org_id:
+
+    # Multi-org support: Check if user is a member of this organization
+    is_member_result = await db.execute(
+        select(UserOrganization).where(
+            UserOrganization.user_id == current_user.id,
+            UserOrganization.organization_id == org_id
+        )
+    )
+    is_member = is_member_result.scalar_one_or_none() is not None
+
+    # Allow access if: regular admin OR primary org matches OR is a member
+    if not is_regular_admin and current_user.organization_id != org_id and not is_member:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have access to this organization"
         )
-    
+
     try:
         return await service.get_organization_statistics(org_id)
     except OrganizationNotFoundError:
@@ -304,3 +336,149 @@ async def get_organization_statistics(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Organization {org_id} not found"
         )
+
+
+# =========================================================================
+# Direct Member Addition Endpoint (Sprint 146 - ADR-047 Phase 2)
+# =========================================================================
+
+@router.post(
+    "/{org_id}/members",
+    response_model=MemberAddedResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add Member Directly",
+    description="Add existing user to organization directly (bypass invitation flow)."
+)
+async def add_member_directly(
+    org_id: UUID,
+    data: AddMemberRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> MemberAddedResponse:
+    """
+    Add existing user to organization directly (no invitation email).
+
+    **Use Cases**:
+    - Enterprise bulk onboarding (HR has employee list)
+    - SSO/LDAP integration (auto-provision from directory)
+    - Internal teams (faster than invitation flow)
+
+    **Permissions**:
+    - Owner: Can add with any role (admin, member)
+    - Admin: Can add members only
+
+    **Errors**:
+    - 404: User or organization not found
+    - 403: Insufficient permissions
+    - 409: User already member
+
+    **ADR-047**: Direct member addition endpoint for enterprise use cases.
+    """
+    # 1. Get organization
+    org_result = await db.execute(
+        select(Organization).where(Organization.id == org_id)
+    )
+    org = org_result.scalar_one_or_none()
+
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Organization {org_id} not found"
+        )
+
+    # 2. Check current user's permission (must be owner or admin in this org)
+    membership_result = await db.execute(
+        select(UserOrganization).where(
+            UserOrganization.organization_id == org_id,
+            UserOrganization.user_id == current_user.id,
+            UserOrganization.role.in_(["owner", "admin"])
+        )
+    )
+    membership = membership_result.scalar_one_or_none()
+
+    if not membership:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only organization owners and admins can add members"
+        )
+
+    # 3. Role restriction: only owner can add admin
+    if data.role == "admin" and membership.role != "owner":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only organization owner can add admins"
+        )
+
+    # 4. Find user by email
+    user_result = await db.execute(
+        select(User).where(User.email == data.user_email.lower())
+    )
+    user_to_add = user_result.scalar_one_or_none()
+
+    if not user_to_add:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with email {data.user_email} not found. User must be registered first."
+        )
+
+    # 5. Check if user is already a member
+    existing_result = await db.execute(
+        select(UserOrganization).where(
+            UserOrganization.user_id == user_to_add.id,
+            UserOrganization.organization_id == org_id
+        )
+    )
+    existing = existing_result.scalar_one_or_none()
+
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"User {data.user_email} is already a member of this organization"
+        )
+
+    # 6. Create membership
+    now = datetime.now(timezone.utc)
+    new_membership = UserOrganization(
+        user_id=user_to_add.id,
+        organization_id=org_id,
+        role=data.role,
+        joined_at=now
+    )
+    db.add(new_membership)
+
+    # 7. Audit log (optional - log to structured logger)
+    logger.info(
+        "Member added directly to organization",
+        extra={
+            "action": "member_added_directly",
+            "user_id": str(current_user.id),
+            "target_user_id": str(user_to_add.id),
+            "organization_id": str(org_id),
+            "role": data.role,
+            "method": "direct_add"
+        }
+    )
+
+    await db.commit()
+
+    # 8. TODO: Send notification email (not invitation)
+    # This would be implemented via email service
+    # send_notification_email(
+    #     to_email=user_to_add.email,
+    #     subject=f"Added to {org.name}",
+    #     template="member_added",
+    #     data={"organization_name": org.name, "role": data.role, "added_by": current_user.display_name}
+    # )
+
+    return MemberAddedResponse(
+        user_id=user_to_add.id,
+        organization_id=org_id,
+        organization_name=org.name,
+        role=data.role,
+        joined_at=now,
+        added_by={
+            "user_id": str(current_user.id),
+            "display_name": current_user.display_name or current_user.email
+        },
+        message=f"Successfully added {data.user_email} to {org.name} as {data.role}"
+    )

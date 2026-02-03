@@ -3,8 +3,8 @@
  *
  * @module frontend/landing/src/hooks/useEvidence
  * @description React Query hooks for Evidence API
- * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 69 - CTO Go-Live Requirements
+ * @sdlc SDLC 6.0.3 Universal Framework
+ * @status Sprint 147 - Telemetry Integration
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import {
   type IntegrityCheckResponse,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { trackFirstEvidenceUploaded, trackEvent, TELEMETRY_EVENTS } from "@/lib/telemetry";
 
 // Query keys for cache management
 export const evidenceKeys = {
@@ -96,6 +97,7 @@ export function useInvalidateEvidence() {
 /**
  * Hook to upload evidence file
  * Sprint 69: File upload to MinIO S3-compatible storage
+ * Sprint 147: Added telemetry tracking for evidence upload events
  */
 export function useUploadEvidence() {
   const queryClient = useQueryClient();
@@ -103,13 +105,20 @@ export function useUploadEvidence() {
   return useMutation({
     mutationFn: ({ data, file }: { data: EvidenceUploadRequest; file: File }) =>
       uploadEvidence(data, file),
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
       // Invalidate evidence list
       queryClient.invalidateQueries({ queryKey: evidenceKeys.lists() });
       // Invalidate gate-specific evidence list
       queryClient.invalidateQueries({
         queryKey: evidenceKeys.list({ gate_id: variables.data.gate_id }),
       });
+
+      // Track evidence upload event for activation funnel (Sprint 147)
+      trackFirstEvidenceUploaded(
+        variables.data.project_id || "",
+        variables.data.evidence_type || "unknown",
+        variables.file.size
+      );
     },
   });
 }

@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import { Logger } from '../utils/logger';
 import type { CodegenApiService } from '../services/codegenApi';
 import type { SpecValidationResult, SpecTier } from '../types/codegen';
+import { trackCommand, trackSpecValidation } from '../services/telemetryService';
 
 // Diagnostic collection for showing validation errors in Problems panel
 let diagnosticCollection: vscode.DiagnosticCollection;
@@ -235,10 +236,24 @@ async function validateDocument(
 
                 Logger.info(`Spec validation complete: ${result.spec_id} - ${errorCount} errors, ${warningCount} warnings`);
 
+                // Track telemetry (Sprint 147 - Product Truth Layer)
+                void trackSpecValidation(
+                    1,  // spec_count
+                    errorCount === 0 ? 1 : 0,  // valid_count
+                    errorCount > 0 ? 1 : 0,  // invalid_count
+                );
+                void trackCommand(
+                    'sdlc.validateSpec',
+                    errorCount === 0,  // success
+                );
+
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : String(error);
                 Logger.error(`Spec validation failed: ${errorMessage}`);
                 void vscode.window.showErrorMessage(`Specification validation failed: ${errorMessage}`);
+
+                // Track telemetry for failed validation (Sprint 147)
+                void trackCommand('sdlc.validateSpec', false);
             }
         }
     );

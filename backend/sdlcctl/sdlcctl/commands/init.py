@@ -5,8 +5,11 @@ Initialize a new SDLC 6.0.0 project structure.
 
 Sprint 129 Day 5 - Added GitHub Integration
 Reference: ADR-044-GitHub-Integration-Strategy.md
+
+Sprint 147: Added telemetry tracking for project initialization events.
 """
 
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -16,6 +19,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt, Confirm
 
+from ..lib.telemetry import track_command, track_project_init
 from ..services.github_service import (
     GitHubService,
     GitHubRepoFormatError,
@@ -269,6 +273,20 @@ def init_command(
     if github_repo:
         console.print("  4. Push changes to GitHub to sync with SDLC Orchestrator")
     console.print()
+
+    # Track project initialization telemetry (Sprint 147 - Product Truth Layer)
+    # Generate a project ID from path name for tracking purposes
+    project_id = f"cli-{path.name}"
+    track_project_init(
+        project_id=project_id,
+        tier=project_tier.value.upper(),
+        template="sdlcctl-init",
+    )
+    track_command(
+        command="init",
+        success=True,
+        exit_code=0,
+    )
 
 
 def _prompt_for_tier() -> Tier:

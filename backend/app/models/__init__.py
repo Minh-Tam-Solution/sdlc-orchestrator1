@@ -111,6 +111,7 @@ from app.models.council_session import CouncilSession
 from app.models.organization import Organization
 from app.models.team import Team  # Must be before TeamInvitation (relationship dependency)
 from app.models.team_invitation import TeamInvitation, InvitationStatus  # Sprint 128
+from app.models.organization_invitation import OrganizationInvitation, OrgInvitationStatus  # Sprint 146
 from app.models.team_member import TeamMember
 
 # GitHub Integration (Sprint 129) - 2 models
@@ -207,6 +208,9 @@ from app.models.context_authority_v2 import (
     ContextOverlayApplication,
 )
 
+# Product Telemetry (Sprint 147 - Product Truth Layer) - 1 model + constants
+from app.models.product_event import ProductEvent, EventNames
+
 # Note: ComplianceScore, ComplianceIssue, FolderCollisionCheck imported earlier
 # (before Project) to resolve forward references
 
@@ -293,6 +297,11 @@ __all__ = [
     "Organization",
     "Team",
     "TeamMember",
+    # Team & Org Invitations - Sprint 128, 146 (2 models + 2 enums)
+    "TeamInvitation",
+    "InvitationStatus",
+    "OrganizationInvitation",
+    "OrgInvitationStatus",
     # Planning Hierarchy - Sprint 74 (5 models + 2 templates)
     "Roadmap",
     "Phase",
@@ -356,4 +365,7 @@ __all__ = [
     "GitHubRepository",
     "InstallationStatus",
     "CloneStatus",
+    # Product Telemetry - Sprint 147 Product Truth Layer (1 model + constants)
+    "ProductEvent",
+    "EventNames",
 ]

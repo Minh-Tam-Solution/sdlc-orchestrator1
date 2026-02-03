@@ -1,22 +1,32 @@
 """
 =========================================================================
-Context Authority API Routes - Metadata & Linkage Validation
-SDLC Orchestrator - Sprint 109 (Vibecoding Index & Stage-Aware Gating)
+Context Authority API Routes V1 - DEPRECATED
+SDLC Orchestrator - Sprint 147 (Spring Cleaning)
 
-Version: 1.0.0
-Date: January 27, 2026
-Status: ACTIVE - Sprint 109 Day 5
-Authority: CTO + Backend Lead Approved
-Framework: SDLC 5.3.0 Quality Assurance System
+Version: 1.1.0
+Date: February 4, 2026
+Status: DEPRECATED - Use /context-authority/v2 instead
+Sunset Date: March 6, 2026 (30 days)
+Authority: CTO Approved
+Framework: SDLC 6.0.3 API Deprecation Policy
 
-Endpoints:
-- POST /context-authority/validate - Validate code context linkage
-- GET /context-authority/adrs - List all ADRs
-- GET /context-authority/adrs/{adr_id} - Get specific ADR
-- POST /context-authority/check-adr-linkage - Check ADR linkage for modules
-- POST /context-authority/check-spec - Check design spec existence
-- GET /context-authority/agents-md - Get AGENTS.md status
-- GET /context-authority/health - Health check
+DEPRECATION NOTICE:
+All V1 endpoints in this file are deprecated and will be removed on
+March 6, 2026. Please migrate to the V2 API at /context-authority/v2.
+
+Migration Guide:
+- POST /validate → POST /v2/validate (gate-aware validation)
+- GET /adrs → Use V2 snapshot/overlay system
+- Other endpoints → See /docs/migration/context-authority-v2.md
+
+Deprecated Endpoints:
+- POST /context-authority/validate
+- GET /context-authority/adrs
+- GET /context-authority/adrs/{adr_id}
+- POST /context-authority/check-adr-linkage
+- POST /context-authority/check-spec
+- GET /context-authority/agents-md
+- GET /context-authority/health
 
 Zero Mock Policy: Real validation with file checks
 =========================================================================
@@ -28,8 +38,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
+
+from app.utils.deprecation import (
+    add_deprecation_headers,
+    CONTEXT_AUTHORITY_V1_SUNSET,
+)
 
 from app.services.governance.context_authority import (
     ContextAuthorityEngineV1,
@@ -44,7 +59,17 @@ from app.services.governance.context_authority import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/context-authority")
+# V1 Router - DEPRECATED (Sunset: March 6, 2026)
+router = APIRouter(
+    prefix="/context-authority",
+    tags=["Context Authority V1 (DEPRECATED)"],
+    deprecated=True,
+)
+
+# Deprecation constants
+V1_SUNSET = CONTEXT_AUTHORITY_V1_SUNSET
+V1_SUCCESSOR = "/context-authority/v2"
+V1_MIGRATION_GUIDE = "/docs/migration/context-authority-v2.md"
 
 
 # ============================================================================
@@ -176,8 +201,12 @@ class AgentsMdResponse(BaseModel):
 @router.post(
     "/validate",
     response_model=ContextValidationResponse,
-    summary="Validate code context linkage",
+    summary="[DEPRECATED] Validate code context linkage",
+    deprecated=True,
     description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use `POST /context-authority/v2/validate` instead for gate-aware validation.
+
     Validate that code submission has proper context linkage.
 
     Performs 4 checks:
@@ -193,14 +222,12 @@ class AgentsMdResponse(BaseModel):
     - Pattern matching for annotations
     - Simple text search in ADR content
 
-    **NOT in V1 Scope**:
-    - Semantic understanding
-    - Deep content analysis
-    - AI-powered validation
+    **Migration**: The V2 API adds gate-aware context overlays and dynamic AGENTS.md updates.
     """,
 )
 async def validate_context(
     request: ContextValidationRequest,
+    response: Response,
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> ContextValidationResponse:
     """Validate code context linkage."""
@@ -228,6 +255,15 @@ async def validate_context(
     logger.info(
         f"Context validation: {'PASS' if result.valid else 'FAIL'} - "
         f"{len(result.violations)} errors, {len(result.warnings)} warnings"
+    )
+
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/validate",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 for gate-aware context validation",
     )
 
     return ContextValidationResponse(
@@ -272,10 +308,17 @@ async def validate_context(
 @router.get(
     "/adrs",
     response_model=ADRListResponse,
-    summary="List all ADRs",
-    description="Get list of all ADRs in the repository with their status.",
+    summary="[DEPRECATED] List all ADRs",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use the V2 snapshot/overlay system for ADR management.
+
+    Get list of all ADRs in the repository with their status.
+    """,
 )
 async def list_adrs(
+    response: Response,
     status_filter: Optional[str] = Query(
         None,
         description="Filter by status (proposed, accepted, deprecated, superseded)",
@@ -303,6 +346,15 @@ async def list_adrs(
         status_name = adr.status.value
         status_counts[status_name] = status_counts.get(status_name, 0) + 1
 
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/templates",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 overlay templates for ADR management",
+    )
+
     return ADRListResponse(
         total=len(all_adrs),
         adrs=[
@@ -323,11 +375,18 @@ async def list_adrs(
 @router.get(
     "/adrs/{adr_id}",
     response_model=ADRResponse,
-    summary="Get specific ADR",
-    description="Get details of a specific ADR by ID.",
+    summary="[DEPRECATED] Get specific ADR",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use V2 snapshot/overlay system for ADR management.
+
+    Get details of a specific ADR by ID.
+    """,
 )
 async def get_adr(
     adr_id: str,
+    response: Response,
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> ADRResponse:
     """Get specific ADR."""
@@ -340,6 +399,15 @@ async def get_adr(
         )
 
     adr = engine._adr_cache[adr_id_upper]
+
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/templates",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 overlay templates for ADR management",
+    )
 
     return ADRResponse(
         id=adr.id,
@@ -354,11 +422,18 @@ async def get_adr(
 @router.post(
     "/check-adr-linkage",
     response_model=ADRLinkageResponse,
-    summary="Check ADR linkage for modules",
-    description="Check if modules have proper ADR linkage.",
+    summary="[DEPRECATED] Check ADR linkage for modules",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use `POST /context-authority/v2/validate` for comprehensive validation.
+
+    Check if modules have proper ADR linkage.
+    """,
 )
 async def check_adr_linkage(
     request: ADRLinkageRequest,
+    response: Response,
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> ADRLinkageResponse:
     """Check ADR linkage for modules."""
@@ -391,6 +466,15 @@ async def check_adr_linkage(
                             "adr_title": adr.title,
                         })
 
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/validate",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 validate for comprehensive linkage checks",
+    )
+
     return ADRLinkageResponse(
         modules_checked=len(request.modules),
         modules_linked=len(request.modules) - len(orphan_modules),
@@ -404,11 +488,18 @@ async def check_adr_linkage(
 @router.post(
     "/check-spec",
     response_model=SpecCheckResponse,
-    summary="Check design spec existence",
-    description="Check if a design specification document exists for a task.",
+    summary="[DEPRECATED] Check design spec existence",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use `POST /context-authority/v2/validate` for spec checking.
+
+    Check if a design specification document exists for a task.
+    """,
 )
 async def check_spec(
     request: SpecCheckRequest,
+    response: Response,
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> SpecCheckResponse:
     """Check design spec existence."""
@@ -446,6 +537,15 @@ async def check_spec(
     else:
         message = f"No spec found for {request.task_id}"
 
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/validate",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 validate for spec checking",
+    )
+
     return SpecCheckResponse(
         task_id=request.task_id,
         spec_found=spec_found,
@@ -459,14 +559,30 @@ async def check_spec(
 @router.get(
     "/agents-md",
     response_model=AgentsMdResponse,
-    summary="Get AGENTS.md status",
-    description="Get the status and freshness of the AGENTS.md context file.",
+    summary="[DEPRECATED] Get AGENTS.md status",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use `POST /context-authority/v2/overlay` for dynamic AGENTS.md management.
+
+    Get the status and freshness of the AGENTS.md context file.
+    """,
 )
 async def get_agents_md_status(
+    response: Response,
     repo_path: Optional[str] = Query(None, description="Repository root path"),
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> AgentsMdResponse:
     """Get AGENTS.md status."""
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/overlay",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 overlay for dynamic AGENTS.md management",
+    )
+
     repo_path = repo_path or engine._get_default_repo_path()
     agents_file = Path(repo_path) / engine.agents_md_path
 
@@ -509,16 +625,34 @@ async def get_agents_md_status(
 
 @router.get(
     "/health",
-    summary="Context authority health check",
-    description="Check health of context authority service.",
+    summary="[DEPRECATED] Context authority health check",
+    deprecated=True,
+    description="""
+    **⚠️ DEPRECATED**: This endpoint will be removed on March 6, 2026.
+    Use `GET /context-authority/v2/health` instead.
+
+    Check health of context authority service.
+    """,
 )
 async def context_authority_health(
+    response: Response,
     engine: ContextAuthorityEngineV1 = Depends(get_context_authority_engine),
 ) -> Dict[str, Any]:
     """Health check for context authority."""
+    # Add deprecation headers (Sprint 147)
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/health",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use V2 health check endpoint",
+    )
+
     return {
         "status": "healthy",
         "service": "context_authority_v1",
+        "deprecated": True,
+        "deprecation_notice": f"This V1 endpoint will be removed on {V1_SUNSET}. Use /context-authority/v2/health",
         "adr_count": len(engine._adr_cache),
         "adr_path": engine.adr_path,
         "spec_path": engine.spec_path,

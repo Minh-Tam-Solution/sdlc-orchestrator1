@@ -536,6 +536,16 @@ export async function createProject(
   });
 }
 
+/**
+ * Delete a project (soft delete)
+ * Sprint 145: Only project owners can delete projects
+ */
+export async function deleteProject(projectId: string): Promise<void> {
+  return apiRequest<void>(`/projects/${projectId}`, {
+    method: "DELETE",
+  });
+}
+
 // =============================================================================
 // Gates API (Sprint 62 - Dashboard Migration)
 // =============================================================================

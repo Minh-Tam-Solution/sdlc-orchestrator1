@@ -3,8 +3,8 @@
  *
  * @module frontend/landing/src/hooks/useGates
  * @description React Query hooks for Gates API
- * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 69 - CTO Go-Live Requirements
+ * @sdlc SDLC 6.0.3 Universal Framework
+ * @status Sprint 147 - Telemetry Integration
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +22,7 @@ import {
   type GateApproval,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { trackFirstGatePassed, trackEvent, TELEMETRY_EVENTS } from "@/lib/telemetry";
 
 // Query keys for cache management
 export const gateKeys = {
@@ -115,6 +116,7 @@ export function useGateApprovals(gateId: string | undefined) {
 /**
  * Hook to submit gate for approval
  * Sprint 69: Gate workflow - submit DRAFT → PENDING_APPROVAL
+ * Sprint 147: Added telemetry tracking for gate approval request
  */
 export function useSubmitGate() {
   const queryClient = useQueryClient();
@@ -132,6 +134,13 @@ export function useSubmitGate() {
       queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
       // Update the specific gate in cache
       queryClient.setQueryData(gateKeys.detail(updatedGate.id), updatedGate);
+
+      // Track gate approval request event (Sprint 147)
+      trackEvent(
+        TELEMETRY_EVENTS.GATE_APPROVAL_REQUESTED,
+        { gate_id: updatedGate.gate_id || updatedGate.id },
+        { projectId: updatedGate.project_id }
+      );
     },
   });
 }
@@ -139,6 +148,7 @@ export function useSubmitGate() {
 /**
  * Hook to approve or reject gate (CTO/CPO/CEO only)
  * Sprint 69: Gate workflow - approve/reject PENDING_APPROVAL → APPROVED/REJECTED
+ * Sprint 147: Added telemetry tracking for gate approval events
  */
 export function useApproveGate() {
   const queryClient = useQueryClient();
@@ -151,7 +161,7 @@ export function useApproveGate() {
       gateId: string;
       data: GateApprovalRequest;
     }) => approveGate(gateId, data),
-    onSuccess: (updatedGate) => {
+    onSuccess: (updatedGate, variables) => {
       // Invalidate gates list
       queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
       // Update the specific gate in cache
@@ -160,6 +170,15 @@ export function useApproveGate() {
       queryClient.invalidateQueries({
         queryKey: [...gateKeys.details(), updatedGate.id, "approvals"],
       });
+
+      // Track gate pass event for activation funnel (Sprint 147)
+      if (variables.data.decision === "approved" && updatedGate.status === "APPROVED") {
+        trackFirstGatePassed(
+          updatedGate.project_id || "",
+          updatedGate.gate_id || updatedGate.id,
+          1 // attempt_count - would need to track this properly in production
+        );
+      }
     },
   });
 }

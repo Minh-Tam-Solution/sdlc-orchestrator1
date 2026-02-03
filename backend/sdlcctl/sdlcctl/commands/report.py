@@ -2,9 +2,12 @@
 SDLC 6.0.0 Report Command.
 
 Generate detailed validation reports in various formats.
+
+Sprint 147: Added telemetry tracking for report generation events.
 """
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -12,6 +15,7 @@ from typing import Optional
 import typer
 from rich.console import Console
 
+from ..lib.telemetry import track_command, track_report_generated
 from ..validation.engine import SDLCValidator, ValidationResult, ValidationSeverity
 from ..validation.tier import STAGE_NAMES, Tier
 
@@ -101,6 +105,18 @@ def report_command(
         console.print(f"[green]✓ Report saved to:[/green] {output_path}")
     else:
         print(report)
+
+    # Track report generation telemetry (Sprint 147 - Product Truth Layer)
+    track_report_generated(
+        report_type="compliance",
+        format=output_format,
+    )
+    track_command(
+        command="report",
+        success=True,
+        duration_ms=int(result.validation_time_ms),
+        exit_code=0,
+    )
 
 
 def _generate_markdown_report(result: ValidationResult) -> str:

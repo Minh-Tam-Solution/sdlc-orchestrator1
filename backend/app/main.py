@@ -179,7 +179,9 @@ async def lifespan(app: FastAPI):
 # ============================================================================
 
 # Import API routers (after lifespan is defined)
-from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings, risk_analysis, consultations, mrp, framework_version, context_validation, maturity, auto_generation, governance_mode, vibecoding_index, stage_gating, context_authority, context_authority_v2, ceo_dashboard, governance_metrics, grafana_dashboards, dogfooding, governance_specs, governance_vibecoding, tier_management, gates_engine, compliance_validation  # Sprint 42-123: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning + Risk Analysis + CRP + MRP/VCR + Framework Version + Context Validation + Maturity + Auto-Generation + Governance Mode + Vibecoding Index + Stage Gating + Context Authority + Context Authority V2 + CEO Dashboard + Prometheus Metrics + Grafana Dashboards + Dogfooding + Sprint 118: Governance Specs + Governance Vibecoding + Tier Management + Sprint 120: Context Authority V2 + Gates Engine (SPEC-0011) + Sprint 123: Compliance Validation (SPEC-0013)
+from app.api.routes import auth, evidence, gates, policies, dashboard, projects, github, compliance, notifications, feedback, triage, analytics, analytics_v2, council, sdlc_structure, sop, admin, docs, ai_detection, policy_packs, sast, evidence_timeline, override, codegen, pilot, preview, contract_lock, api_keys, payments, ai_providers, teams, organizations, organization_invitations, planning, agents, evidence_manifest, check_runs, planning_subagent, learnings, risk_analysis, consultations, mrp, framework_version, context_validation, maturity, auto_generation, governance_mode, vibecoding_index, stage_gating, context_authority, context_authority_v2, ceo_dashboard, governance_metrics, grafana_dashboards, dogfooding, governance_specs, governance_vibecoding, tier_management, gates_engine, compliance_validation, telemetry  # Sprint 42-147: AI Safety + Codegen + Pilot + Preview + Contract Lock + API Keys + Payments + AI Providers + Teams + Planning + AGENTS.md + Evidence Manifest + Check Runs + Planning Subagent + Feedback Learning + Risk Analysis + CRP + MRP/VCR + Framework Version + Context Validation + Maturity + Auto-Generation + Governance Mode + Vibecoding Index + Stage Gating + Context Authority + Context Authority V2 + CEO Dashboard + Prometheus Metrics + Grafana Dashboards + Dogfooding + Sprint 118: Governance Specs + Governance Vibecoding + Tier Management + Sprint 120: Context Authority V2 + Gates Engine (SPEC-0011) + Sprint 123: Compliance Validation (SPEC-0013) + Sprint 146: Organization Invitations (ADR-047) + Sprint 147: Telemetry (Product Truth Layer)
+from app.api.v1.endpoints import cross_reference  # Sprint 139 - RFC-SDLC-602 E2E Cross-Reference Validation
+from app.api.v1.endpoints import e2e_testing  # Sprint 140 - RFC-SDLC-602 E2E Test Execution API
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -292,6 +294,7 @@ app.include_router(payments.router, prefix="/api/v1", tags=["Payments"])  # Spri
 app.include_router(ai_providers.router, prefix="/api/v1", tags=["AI Providers"])  # Sprint 70 - AI Provider Admin UI
 app.include_router(teams.router, prefix="/api/v1", tags=["Teams"])  # Sprint 71 - Teams Foundation
 app.include_router(organizations.router, prefix="/api/v1", tags=["Organizations"])  # Sprint 71 - Organizations
+app.include_router(organization_invitations.router, prefix="/api/v1", tags=["Organization Invitations"])  # Sprint 146 - Organization Invitations (ADR-047)
 app.include_router(planning.router, prefix="/api/v1", tags=["Planning Hierarchy"])  # Sprint 74 - Planning Hierarchy (ADR-013)
 app.include_router(agents.router, prefix="/api/v1", tags=["AGENTS.md"])  # Sprint 80 - AGENTS.md Integration (ADR-029)
 app.include_router(evidence_manifest.router, prefix="/api/v1", tags=["Evidence Manifest"])  # Sprint 82 - Tamper-Evident Hash Chain
@@ -319,6 +322,9 @@ app.include_router(tier_management.router, prefix="/api/v1", tags=["Tier Managem
 app.include_router(context_authority_v2.router, prefix="/api/v1", tags=["Context Authority V2"])  # Sprint 120 - Context Authority V2 Gate-Aware Dynamic Context (SPEC-0011)
 app.include_router(gates_engine.router, prefix="/api/v1", tags=["Gates Engine"])  # Sprint 120 - Gates Engine OPA Integration + Gate Evaluation (Track B)
 app.include_router(compliance_validation.router, prefix="/api/v1", tags=["Compliance Validation"])  # Sprint 123 - SDLC 6.0.0 Compliance Validation (SPEC-0013)
+app.include_router(cross_reference.router, prefix="/api/v1", tags=["Cross-Reference"])  # Sprint 139 - RFC-SDLC-602 E2E Cross-Reference Validation (Stage 03 ↔ Stage 05)
+app.include_router(e2e_testing.router, prefix="/api/v1", tags=["E2E Testing"])  # Sprint 140 - RFC-SDLC-602 E2E Test Execution API (Phase 2 & 3)
+app.include_router(telemetry.router, prefix="/api/v1", tags=["Telemetry"])  # Sprint 147 - Product Truth Layer (Replace "82-85% realization" with measured metrics)
 
 # ============================================================================
 # Health Check Endpoints

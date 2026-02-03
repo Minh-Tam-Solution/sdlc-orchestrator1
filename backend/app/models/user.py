@@ -188,6 +188,15 @@ class User(Base):
     organization = relationship("Organization", back_populates="users")
     team_memberships = relationship("TeamMember", back_populates="user", cascade="all, delete-orphan")
 
+    # Multi-Organization Memberships (Sprint 146 - ADR-047)
+    # Provides access to all organizations user belongs to (via user_organizations join table)
+    org_memberships = relationship(
+        "UserOrganization",
+        foreign_keys="[UserOrganization.user_id]",
+        lazy="selectin",  # Eager load to prevent N+1 queries in effective_tier
+        viewonly=True,  # Read-only (manage via UserOrganization directly)
+    )
+
     # Project Relationships
     owned_projects = relationship("Project", back_populates="owner", foreign_keys="[Project.owner_id]")
     project_memberships = relationship("ProjectMember", back_populates="user", foreign_keys="[ProjectMember.user_id]")
@@ -262,6 +271,76 @@ class User(Base):
     def requires_mfa(self) -> bool:
         """Check if user must have MFA enabled (C-Suite mandatory)"""
         return self.is_c_suite
+
+    @property
+    def effective_tier(self) -> str:
+        """
+        Calculate user's effective subscription tier.
+
+        Sprint 146 - ADR-047: Multi-Organization Access Control
+
+        Logic: User's tier = HIGHEST tier among ALL organizations they belong to.
+
+        Tier Hierarchy (ranked):
+        - enterprise (4): Highest priority - full feature access
+        - pro (3): Advanced features
+        - starter (2): Basic paid features
+        - free (1): Lowest priority - limited features
+
+        Examples:
+        - User in Free org only → effective_tier = 'free'
+        - User in Free + Pro orgs → effective_tier = 'pro'
+        - User in Pro + Enterprise orgs → effective_tier = 'enterprise'
+
+        Performance: CTO MANDATORY CONDITION #3 - Early exit optimization
+        when enterprise found (no need to check further organizations).
+
+        Returns:
+            str: Tier name (enterprise, pro, starter, or free)
+        """
+        TIER_RANK = {
+            "enterprise": 4,
+            "pro": 3,
+            "starter": 2,
+            "free": 1
+        }
+
+        max_tier = "free"
+        max_rank = 1
+
+        # Check primary organization first (most common case)
+        if self.organization and self.organization.plan:
+            primary_rank = TIER_RANK.get(self.organization.plan, 1)
+            if primary_rank > max_rank:
+                max_rank = primary_rank
+                max_tier = self.organization.plan
+                # CTO MANDATORY CONDITION #3: Early exit if enterprise
+                if max_rank == 4:
+                    return max_tier
+
+        # Check all organizations via user_organizations join table
+        # org_memberships loaded with selectin to prevent N+1 queries
+        if self.org_memberships:
+            for membership in self.org_memberships:
+                # Access organization through membership (already loaded via selectin)
+                if hasattr(membership, 'organization') and membership.organization:
+                    org_plan = membership.organization.plan
+                    rank = TIER_RANK.get(org_plan, 1)
+                    if rank > max_rank:
+                        max_rank = rank
+                        max_tier = org_plan
+
+                        # CTO MANDATORY CONDITION #3: Early exit optimization
+                        # Enterprise is highest tier, no need to check further
+                        if max_rank == 4:
+                            return max_tier
+
+        return max_tier
+
+    @property
+    def display_name(self) -> str:
+        """Get display name (full_name or email)."""
+        return self.full_name or self.email
 
 
 class Role(Base):

@@ -2,7 +2,7 @@
   "name": "sdlc-orchestrator",
   "displayName": "SDLC Orchestrator",
   "description": "Gate status monitoring, compliance assistance, and AI-powered development for SDLC 6.0.2 governance platform with E2E API Testing support",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "publisher": "mtsolution",
   "license": "Apache-2.0",
   "repository": {
@@ -310,6 +310,48 @@
         "title": "Scan GitHub Repository",
         "category": "SDLC",
         "icon": "$(search)"
+      },
+      {
+        "command": "sdlc.e2eValidate",
+        "title": "E2E: Validate Testing Compliance",
+        "category": "SDLC",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "sdlc.e2eCrossReference",
+        "title": "E2E: Validate Cross-References",
+        "category": "SDLC",
+        "icon": "$(references)"
+      },
+      {
+        "command": "sdlc.e2eInit",
+        "title": "E2E: Initialize Testing Structure",
+        "category": "SDLC",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "sdlc.e2eValidateWithOptions",
+        "title": "E2E: Validate with Options",
+        "category": "SDLC",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "sdlc.showE2EResults",
+        "title": "E2E: Show Validation Results",
+        "category": "SDLC",
+        "icon": "$(output)"
+      },
+      {
+        "command": "sdlc.checkSSOT",
+        "title": "SDLC: Check SSOT Compliance",
+        "category": "SDLC",
+        "icon": "$(file-symlink-file)"
+      },
+      {
+        "command": "sdlc.fixSSOT",
+        "title": "SDLC: Fix SSOT Violations",
+        "category": "SDLC",
+        "icon": "$(wrench)"
       }
     ],
     "menus": {
@@ -532,6 +574,11 @@
         "key": "ctrl+shift+v",
         "mac": "cmd+shift+v",
         "when": "editorLangId == markdown"
+      },
+      {
+        "command": "sdlc.e2eValidate",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e"
       }
     ],
     "colors": [

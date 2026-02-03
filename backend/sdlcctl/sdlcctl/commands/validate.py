@@ -5,15 +5,19 @@ Sprint 44+ implementation: validate docs structure using the plugin-based
 
 Note: The legacy `SDLCValidator` (tier + P0 artifacts) remains available for
 `sdlcctl fix` and `sdlcctl report`.
+
+Sprint 147: Added telemetry tracking for validation events.
 """
 
 import json
+import time
 from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
 
+from ..lib.telemetry import track_command, track_validation
 from ..validation import ConfigLoader, ScanResult, SDLCStructureScanner, Severity, ViolationReport
 from ..validation.tier import STAGE_NAMES, Tier, TierDetector
 
@@ -155,12 +159,31 @@ def validate_command(
     fail_on_warning = bool(config and config.get("fail_on_warning"))
     fail_on_error = True if not config else bool(config.get("fail_on_error", True))
 
+    # Determine exit code and track telemetry (Sprint 147)
+    exit_code = 0
     if fail_on_error and scan_result.error_count > 0:
-        raise typer.Exit(code=1)
-    if strict and (scan_result.error_count > 0 or scan_result.warning_count > 0):
-        raise typer.Exit(code=1)
-    if (fail_on_warning or strict) and scan_result.warning_count > 0:
-        raise typer.Exit(code=1)
+        exit_code = 1
+    elif strict and (scan_result.error_count > 0 or scan_result.warning_count > 0):
+        exit_code = 1
+    elif (fail_on_warning or strict) and scan_result.warning_count > 0:
+        exit_code = 1
+
+    # Track validation telemetry (Sprint 147 - Product Truth Layer)
+    result_status = "pass" if exit_code == 0 else "fail"
+    track_validation(
+        validation_type="folder",
+        result=result_status,
+        errors_count=scan_result.error_count,
+    )
+    track_command(
+        command="validate",
+        success=(exit_code == 0),
+        duration_ms=int(scan_result.scan_time_ms),
+        exit_code=exit_code,
+    )
+
+    if exit_code != 0:
+        raise typer.Exit(code=exit_code)
 
 
 def _render_output(

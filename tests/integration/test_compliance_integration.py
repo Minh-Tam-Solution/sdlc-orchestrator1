@@ -28,6 +28,7 @@ Target Coverage: 90%+
 """
 
 import pytest
+import pytest_asyncio
 from datetime import datetime
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession

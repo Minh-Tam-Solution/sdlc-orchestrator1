@@ -14,6 +14,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { TierBadge } from "@/components/user/TierBadge";
+import { useUserTier } from "@/hooks/useUserTier";
 
 function BellIcon({ className }: { className?: string }) {
   return (
@@ -324,6 +326,7 @@ export function Header() {
   const { user, logout } = useAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const breadcrumbs = useBreadcrumbs();
+  const { effectiveTier, organizationCount, isLoading: isTierLoading } = useUserTier();
 
   const handleLogout = async () => {
     await logout();
@@ -386,11 +389,16 @@ export function Header() {
               )}
             </div>
             <div className="hidden text-left md:block">
-              <p className="text-sm font-medium text-gray-900">
-                {user?.name || user?.email || "User"}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.name || user?.email || "User"}
+                </p>
+                {!isTierLoading && effectiveTier && (
+                  <TierBadge tier={effectiveTier} size="sm" variant="compact" />
+                )}
+              </div>
               <p className="text-xs text-gray-500">
-                {user?.roles?.[0] || "Member"}
+                {user?.roles?.[0] || "Member"}{organizationCount > 0 ? ` · ${organizationCount} org${organizationCount > 1 ? "s" : ""}` : ""}
               </p>
             </div>
             <ChevronDownIcon className="hidden h-4 w-4 text-gray-400 md:block" />
@@ -405,10 +413,20 @@ export function Header() {
               />
               <div className="absolute right-0 z-20 mt-2 w-56 origin-top-right rounded-lg bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
                 <div className="border-b border-gray-100 px-4 py-3">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.name || "User"}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user?.name || "User"}
+                    </p>
+                    {!isTierLoading && effectiveTier && (
+                      <TierBadge tier={effectiveTier} size="sm" />
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">{user?.email}</p>
+                  {organizationCount > 0 && (
+                    <p className="mt-1 text-xs text-gray-400">
+                      {organizationCount} organization{organizationCount > 1 ? "s" : ""}
+                    </p>
+                  )}
                 </div>
 
                 <Link

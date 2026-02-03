@@ -24,7 +24,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PreviewMetadata(BaseModel):
@@ -39,12 +39,12 @@ class PreviewMetadata(BaseModel):
     view_count: int = 0
     password_protected: bool = False
     password_hash: Optional[str] = None  # bcrypt hash
-
-    class Config:
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.isoformat(),
             UUID: lambda v: str(v)
         }
+    )
 
 
 class PreviewFile(BaseModel):

@@ -1,12 +1,37 @@
 # SDLC Orchestrator VS Code Extension
 
-**Version**: 1.4.0
+**Version**: 1.5.0
 **Status**: GA (General Availability)
 **Framework**: SDLC 6.0.2 (E2E API Testing + Stage Cross-Reference)
-**Sprint**: 138 - RFC-SDLC-602 Validation & Release
+**Sprint**: 139 - E2E Commands Implementation
 **Last Updated**: February 2, 2026
 
 Gate status monitoring, AI-powered code generation, and compliance assistance directly in VS Code. Part of the SDLC Orchestrator governance platform - the **Operating System for Software 3.0**.
+
+## What's New in 1.5.0 (Sprint 139)
+
+### E2E Testing Commands (RFC-SDLC-602)
+- **E2E Validate** (`Cmd+Shift+E`): Validate E2E testing compliance with CLI integration
+- **E2E Cross-Reference**: Validate Stage 03 ↔ Stage 05 bidirectional links
+- **E2E Initialize**: Create E2E testing folder structure in Stage 05
+- **E2E Validate with Options**: Advanced validation with custom pass rate threshold
+- **Show E2E Results**: View detailed validation results in tree view
+
+### New Backend API Endpoints
+- `POST /api/v1/cross-reference/validate`: Full cross-reference validation
+- `GET /api/v1/cross-reference/coverage/{id}`: Quick coverage check
+- `GET /api/v1/cross-reference/missing-tests/{id}`: Get missing test endpoints
+- `GET /api/v1/cross-reference/ssot-check/{id}`: SSOT compliance check
+
+### SSOT Enforcement
+- Validates `openapi.json` exists only in Stage 03
+- Detects duplicate OpenAPI files in Stage 05 or other folders
+- Reports violations with actionable fix suggestions
+
+### CLI Integration (Zero Mock Policy)
+- Real `sdlcctl e2e validate` execution via Extension
+- Falls back to local validation when CLI unavailable
+- JSON output parsing for structured results
 
 ## What's New in 1.4.0 (Sprint 138)
 
@@ -157,6 +182,11 @@ Use Copilot-style commands in VS Code Chat:
 | SDLC: Unlock Contract Spec | - | Unlock blueprint for editing |
 | SDLC: Preview Generated Code | Cmd+Shift+P | Preview with QR code |
 | SDLC: Resume Failed Generation | - | Resume from checkpoint |
+| **E2E: Validate Testing Compliance** | Cmd+Shift+E | Validate E2E testing with CLI |
+| **E2E: Validate Cross-References** | - | Validate Stage 03 ↔ 05 links |
+| **E2E: Initialize Testing Structure** | - | Create E2E folder structure |
+| **E2E: Validate with Options** | - | Advanced validation with options |
+| **E2E: Show Validation Results** | - | View detailed E2E results |
 
 ## Configuration
 
@@ -198,13 +228,16 @@ src/
 ├── commands/
 │   ├── lockCommand.ts     # Contract lock/unlock commands
 │   ├── generateCommand.ts # Code generation commands
-│   └── magicCommand.ts    # Natural language mode
+│   ├── magicCommand.ts    # Natural language mode
+│   ├── e2eValidateCommand.ts   # E2E validation (Sprint 139)
+│   └── e2eCrossRefCommand.ts   # Cross-reference validation
 ├── utils/
 │   ├── config.ts          # Configuration manager
 │   ├── logger.ts          # Structured logging
 │   └── errors.ts          # Error classification & handling
 ├── types/
-│   └── codegen.ts         # Type definitions for codegen
+│   ├── codegen.ts         # Type definitions for codegen
+│   └── evidence.ts        # E2E evidence types (RFC-SDLC-602)
 └── test/
     └── suite/
         ├── apiClient.test.ts

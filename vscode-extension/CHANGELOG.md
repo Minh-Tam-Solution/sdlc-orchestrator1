@@ -5,6 +5,75 @@ All notable changes to the SDLC Orchestrator VS Code Extension will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-02-02
+
+### Added
+
+**Sprint 139: E2E Commands Implementation (RFC-SDLC-602)**
+
+#### E2E Testing Commands (5 New Commands)
+- **E2E: Validate Testing Compliance** (`Cmd+Shift+E`): Validate E2E testing with real CLI integration
+  - Calls `sdlcctl e2e validate --format json` under the hood
+  - Falls back to local validation when CLI unavailable
+  - Shows pass rate, coverage, and compliance checklist
+- **E2E: Validate Cross-References**: Validate Stage 03 ↔ Stage 05 bidirectional links
+  - Parses OpenAPI from Stage 03, matches to test files in Stage 05
+  - Calculates endpoint coverage percentage
+  - Identifies missing tests with priority (critical > important > normal)
+- **E2E: Initialize Testing Structure**: Create E2E testing folder structure in Stage 05
+  - Creates `docs/05-deploy/03-E2E-Testing/` directory
+  - Generates template test script and README
+- **E2E: Validate with Options**: Advanced validation with customizable settings
+  - Configurable minimum pass rate threshold
+  - Strict mode option (fail if coverage < 80%)
+  - Init mode for first-time setup
+- **E2E: Show Validation Results**: View detailed validation results in tree view
+  - Displays errors, warnings, and checklist items
+  - Shows endpoint coverage breakdown
+
+#### New Evidence Types (RFC-SDLC-602)
+- `E2E_TESTING_REPORT`: E2E test execution results
+- `API_DOCUMENTATION_REFERENCE`: OpenAPI spec metadata
+- `SECURITY_TESTING_RESULTS`: OWASP security scan results
+- `STAGE_CROSS_REFERENCE`: Bidirectional stage links
+
+#### Backend Cross-Reference API (4 Endpoints)
+- `POST /api/v1/cross-reference/validate`: Full cross-reference validation
+- `GET /api/v1/cross-reference/coverage/{id}`: Quick coverage metrics
+- `GET /api/v1/cross-reference/missing-tests/{id}`: Get uncovered endpoints
+- `GET /api/v1/cross-reference/ssot-check/{id}`: SSOT compliance check
+
+#### SSOT Enforcement
+- Validates `openapi.json` exists only in Stage 03 (Single Source of Truth)
+- Detects duplicate OpenAPI files in Stage 05 or other folders
+- Reports SSOT-001 violations with actionable fix suggestions
+
+#### Zero Mock Policy Compliance
+- Real CLI integration via `child_process.exec`
+- Graceful fallback to local validation when CLI unavailable
+- JSON output parsing for structured results
+- Error handling with retry recommendations
+
+### Changed
+- Package version bumped from 1.4.0 to 1.5.0
+- Description updated to include E2E testing capabilities
+- README updated with E2E commands section
+
+### Technical Details
+- **New Files Created**:
+  - `src/commands/e2eValidateCommand.ts` (~500 LOC)
+  - `src/commands/e2eCrossRefCommand.ts` (~450 LOC)
+  - `src/types/evidence.ts` (~350 LOC)
+  - `src/test/suite/e2eValidation.test.ts` (~500 LOC)
+  - `backend/app/api/v1/endpoints/cross_reference.py` (~560 LOC)
+- **Files Modified**:
+  - `src/extension.ts` - Command registration
+  - `package.json` - 5 new commands, 1 keybinding
+  - `backend/app/main.py` - Router registration
+- **Total LOC Added**: ~2,360
+
+---
+
 ## [1.3.0] - 2026-02-01
 
 ### Added

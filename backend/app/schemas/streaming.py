@@ -33,7 +33,7 @@ from datetime import datetime
 from typing import Literal, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # =========================================================================
@@ -69,11 +69,11 @@ class StreamEvent(BaseModel):
     type: StreamEventType
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     session_id: str = Field(..., description="Unique session ID for recovery")
-
-    class Config:
-        json_encoders = {
+    model_config = ConfigDict(
+        json_encoders={
             datetime: lambda v: v.isoformat(),
         }
+    )
 
 
 # =========================================================================

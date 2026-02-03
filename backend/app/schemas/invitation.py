@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 # ============================================================================
@@ -36,8 +36,9 @@ class InvitationCreate(BaseModel):
         example="Join our SDLC project!"
     )
 
-    @validator("role")
-    def validate_role(cls, v):
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
         """Validate role is one of allowed values"""
         allowed_roles = {"owner", "admin", "member"}
         if v not in allowed_roles:
@@ -62,27 +63,24 @@ class InvitationDecline(BaseModel):
 
 class InviterInfo(BaseModel):
     """Nested schema for inviter information"""
+    model_config = ConfigDict(from_attributes=True)
 
     user_id: UUID
     display_name: str
 
-    class Config:
-        from_attributes = True
-
 
 class TeamInfo(BaseModel):
     """Nested schema for team information"""
+    model_config = ConfigDict(from_attributes=True)
 
     team_id: UUID
     team_name: str
     organization: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class InvitationResponse(BaseModel):
     """Response schema for invitation creation/retrieval"""
+    model_config = ConfigDict(from_attributes=True)
 
     invitation_id: UUID
     team_id: UUID
@@ -96,12 +94,10 @@ class InvitationResponse(BaseModel):
     # Optional fields
     message: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 
 class InvitationDetails(BaseModel):
     """Response schema for public invitation details (no auth required)"""
+    model_config = ConfigDict(from_attributes=True)
 
     team: TeamInfo
     invited_email: EmailStr
@@ -112,12 +108,10 @@ class InvitationDetails(BaseModel):
     message: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 
 class InvitationAccepted(BaseModel):
     """Response schema for successful acceptance"""
+    model_config = ConfigDict(from_attributes=True)
 
     status: str = "accepted"
     team_id: UUID
@@ -126,23 +120,19 @@ class InvitationAccepted(BaseModel):
     accepted_at: datetime
     redirect_url: str
 
-    class Config:
-        from_attributes = True
-
 
 class InvitationDeclined(BaseModel):
     """Response schema for successful decline"""
+    model_config = ConfigDict(from_attributes=True)
 
     status: str = "declined"
     declined_at: datetime
     message: str = "Invitation declined successfully"
 
-    class Config:
-        from_attributes = True
-
 
 class InvitationResent(BaseModel):
     """Response schema for successful resend"""
+    model_config = ConfigDict(from_attributes=True)
 
     invitation_id: UUID
     status: str
@@ -151,9 +141,6 @@ class InvitationResent(BaseModel):
     expires_at: datetime
     message: str = "Invitation email resent successfully"
 
-    class Config:
-        from_attributes = True
-
 
 # ============================================================================
 # List Response Schemas
@@ -161,6 +148,7 @@ class InvitationResent(BaseModel):
 
 class InvitationListItem(BaseModel):
     """Schema for invitation in list view"""
+    model_config = ConfigDict(from_attributes=True)
 
     invitation_id: UUID
     invited_email: EmailStr
@@ -169,9 +157,6 @@ class InvitationListItem(BaseModel):
     expires_at: datetime
     created_at: datetime
     resend_count: int
-
-    class Config:
-        from_attributes = True
 
 
 class InvitationListResponse(BaseModel):

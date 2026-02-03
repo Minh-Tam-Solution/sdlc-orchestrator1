@@ -29,7 +29,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
-from sqlalchemy import String, Text, CheckConstraint, DateTime
+from sqlalchemy import String, Text, CheckConstraint, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -38,6 +38,7 @@ from app.db.base_class import Base
 if TYPE_CHECKING:
     from app.models.team import Team
     from app.models.user import User
+    from app.models.organization_invitation import OrganizationInvitation
 
 
 class UserOrganization(Base):
@@ -45,6 +46,8 @@ class UserOrganization(Base):
     Join table for many-to-many relationship between users and organizations.
 
     Sprint 105: Enables GitHub-style multi-organization membership.
+    Sprint 146: Added relationships for User.effective_tier calculation (ADR-047).
+
     A user can belong to multiple organizations with different roles in each.
 
     Fields:
@@ -52,17 +55,23 @@ class UserOrganization(Base):
         organization_id: FK to organizations.id
         role: User's role in this org (owner, admin, member)
         joined_at: When user joined this organization
+
+    Relationships:
+        organization: Access to Organization for tier calculation (Sprint 146)
+        user: Access to User (Sprint 146)
     """
 
     __tablename__ = "user_organizations"
 
     user_id: Mapped[uuid4] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
         doc="User ID"
     )
     organization_id: Mapped[uuid4] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
         primary_key=True,
         doc="Organization ID"
     )
@@ -77,6 +86,15 @@ class UserOrganization(Base):
         nullable=False,
         default=datetime.utcnow,
         doc="When user joined this organization"
+    )
+
+    # Relationships (Sprint 146 - ADR-047)
+    # Used by User.effective_tier property to calculate highest tier
+    organization: Mapped["Organization"] = relationship(
+        "Organization",
+        foreign_keys=[organization_id],
+        lazy="selectin",  # Eager load for effective_tier calculation
+        viewonly=True
     )
 
     def __repr__(self) -> str:
@@ -208,6 +226,12 @@ class Organization(Base):
         "User",
         back_populates="organization",
         doc="Users belonging to this organization"
+    )
+    invitations: Mapped[list["OrganizationInvitation"]] = relationship(
+        "OrganizationInvitation",
+        back_populates="organization",
+        cascade="all, delete-orphan",
+        doc="Pending and past invitations to this organization (Sprint 146)"
     )
 
     # Table constraints

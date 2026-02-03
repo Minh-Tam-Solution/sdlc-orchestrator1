@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ============================================================
@@ -123,9 +123,7 @@ class SprintDependencyResponse(SprintDependencyBase):
     resolved_by_id: Optional[UUID] = None
     created_at: datetime
     resolved_at: Optional[datetime] = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SprintDependencyWithDetails(SprintDependencyResponse):

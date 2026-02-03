@@ -25,7 +25,7 @@ from enum import Enum
 from typing import List, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UnlockReason(str, Enum):
@@ -54,13 +54,13 @@ class SpecLockRequest(BaseModel):
         max_length=500,
         description="Optional reason for locking"
     )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "reason": "Ready for production deployment"
             }
         }
+    )
 
 
 class SpecUnlockRequest(BaseModel):
@@ -73,14 +73,14 @@ class SpecUnlockRequest(BaseModel):
         default=False,
         description="Force unlock even during generation (admin only)"
     )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "unlock_reason": "manual_unlock",
                 "force": False
             }
         }
+    )
 
 
 class HashVerifyRequest(BaseModel):
@@ -90,13 +90,13 @@ class HashVerifyRequest(BaseModel):
         pattern=r"^sha256:[a-f0-9]{64}$",
         description="Expected hash in format sha256:<64-hex-chars>"
     )
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "expected_hash": "sha256:a7f3c2d1e5b4f6a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"
             }
         }
+    )
 
 
 # Response Schemas
@@ -111,9 +111,8 @@ class SpecLockResponse(BaseModel):
     spec_hash: str = Field(..., pattern=r"^sha256:[a-f0-9]{64}$")
     version: int = Field(default=1, description="Lock version number")
     message: str
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "success": True,
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -125,6 +124,7 @@ class SpecLockResponse(BaseModel):
                 "message": "Specification locked successfully"
             }
         }
+    )
 
 
 class SpecUnlockResponse(BaseModel):
@@ -136,9 +136,8 @@ class SpecUnlockResponse(BaseModel):
     unlocked_by: str
     unlock_reason: UnlockReason
     message: str
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "success": True,
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -149,6 +148,7 @@ class SpecUnlockResponse(BaseModel):
                 "message": "Specification unlocked successfully"
             }
         }
+    )
 
 
 class HashVerifyResponse(BaseModel):
@@ -158,9 +158,8 @@ class HashVerifyResponse(BaseModel):
     current_hash: str
     expected_hash: str
     message: str
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "valid": True,
                 "match": True,
@@ -169,6 +168,7 @@ class HashVerifyResponse(BaseModel):
                 "message": "Hash verification successful"
             }
         }
+    )
 
 
 # Status Schemas
@@ -199,9 +199,8 @@ class ContractLockStatus(BaseModel):
     spec_hash: Optional[str] = None
     version: Optional[int] = None
     lock_expires_at: Optional[datetime] = None
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "session_id": "550e8400-e29b-41d4-a716-446655440000",
                 "is_locked": True,
@@ -212,6 +211,7 @@ class ContractLockStatus(BaseModel):
                 "lock_expires_at": "2025-12-26T11:00:00.000Z"
             }
         }
+    )
 
 
 class OnboardingStatusResponse(BaseModel):
@@ -258,9 +258,8 @@ class LockErrorDetail(BaseModel):
     code: str
     message: str
     details: Optional[dict] = None
-
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "code": "ALREADY_LOCKED",
                 "message": "Specification is already locked",
@@ -270,3 +269,4 @@ class LockErrorDetail(BaseModel):
                 }
             }
         }
+    )

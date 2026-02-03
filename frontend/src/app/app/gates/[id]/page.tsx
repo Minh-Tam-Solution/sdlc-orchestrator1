@@ -10,9 +10,10 @@ import { use, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useGate } from "@/hooks/useGates";
+import { useGate, gateKeys } from "@/hooks/useGates";
 import { useUploadEvidence } from "@/hooks/useEvidence";
 import { useAuth } from "@/hooks/useAuth";
+import { approveGate as apiApproveGate, submitGate as apiSubmitGate } from "@/lib/api";
 import {
   Card,
   CardContent,
@@ -125,66 +126,46 @@ export default function GateDetailPage({ params }: PageProps) {
   // Upload mutation
   const uploadMutation = useUploadEvidence();
 
-  // Submit gate for approval
+  // Submit gate for approval - uses apiSubmitGate with auto-refresh token (Sprint 136)
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
-      const response = await fetch(`${API_BASE_URL}/gates/${id}/submit`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ message: "Submitting for approval" }),
-      });
-      if (!response.ok) throw new Error("Failed to submit gate");
-      return response.json();
+      console.log("[Gate Submit] Starting submit request:", { gateId: id });
+      const result = await apiSubmitGate(id as string, { message: "Submitting for approval" });
+      console.log("[Gate Submit] Success:", result);
+      return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+    onSuccess: (data) => {
+      queryClient.setQueryData(gateKeys.detail(id as string), data);
+      queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
+    },
+    onError: (error: Error) => {
+      console.error("[Gate Submit] Mutation error:", error);
+      if (typeof window !== "undefined") {
+        alert(`Error: ${error.message}`);
+      }
     },
   });
 
-  // Approve/reject gate
+  // Approve/reject gate - uses apiApproveGate with auto-refresh token (Sprint 136)
   const approveMutation = useMutation({
     mutationFn: async (approved: boolean) => {
-      const token = localStorage.getItem("access_token");
-      if (!token) throw new Error("Not authenticated");
-
       console.log("[Gate Approval] Starting approval request:", { gateId: id, approved });
-
-      const response = await fetch(`${API_BASE_URL}/gates/${id}/approve`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          approved,
-          comments: approved ? "Approved" : "Rejected",
-        }),
+      // Use API function with auto-refresh token support
+      const result = await apiApproveGate(id as string, {
+        approved,
+        comments: approved ? "Approved" : "Rejected",
       });
-
-      console.log("[Gate Approval] Response status:", response.status);
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("[Gate Approval] Error response:", errorBody);
-        throw new Error(`Failed to update gate: ${response.status} - ${errorBody}`);
-      }
-
-      const data = await response.json();
-      console.log("[Gate Approval] Success:", data);
-      return data;
+      console.log("[Gate Approval] Success:", result);
+      return result;
     },
     onSuccess: (data) => {
-      console.log("[Gate Approval] Mutation success, invalidating queries");
-      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
-      // Show success toast (if toast is available)
+      console.log("[Gate Approval] Mutation success, updating cache with:", data);
+      // Directly update cache with returned data (immediate UI update)
+      queryClient.setQueryData(gateKeys.detail(id as string), data);
+      // Also invalidate to ensure fresh data on next fetch
+      queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: gateKeys.detail(id as string) });
+      // Show success toast
       if (typeof window !== "undefined") {
         alert(data.status === "APPROVED" ? "Gate approved successfully!" : "Gate rejected");
       }
@@ -235,9 +216,10 @@ export default function GateDetailPage({ params }: PageProps) {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setEditDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+      queryClient.setQueryData(gateKeys.detail(id as string), data);
+      queryClient.invalidateQueries({ queryKey: gateKeys.lists() });
     },
   });
 
@@ -290,7 +272,7 @@ export default function GateDetailPage({ params }: PageProps) {
       setUploadDescription("");
       setUploadType("DOCUMENTATION");
       // Refresh gate data to update evidence count
-      queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+      queryClient.invalidateQueries({ queryKey: gateKeys.detail(id as string) });
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     }

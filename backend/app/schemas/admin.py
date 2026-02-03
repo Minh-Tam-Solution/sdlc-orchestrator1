@@ -29,7 +29,7 @@ from datetime import datetime
 from typing import Any, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # Import UserRole enum from auth schemas
 from app.schemas.auth import UserRole
@@ -98,9 +98,7 @@ class AdminUserListItem(BaseModel):
     created_at: datetime = Field(..., description="Account creation timestamp")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
     deleted_at: Optional[datetime] = Field(None, description="Soft deletion timestamp (Sprint 105)")
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminUserDetail(BaseModel):
@@ -137,9 +135,7 @@ class AdminUserDetail(BaseModel):
     created_at: datetime = Field(..., description="Account creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     last_login: Optional[datetime] = Field(None, description="Last login timestamp")
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AdminUserCreate(BaseModel):
@@ -280,9 +276,7 @@ class AuditLogItem(BaseModel):
     target_name: Optional[str] = Field(None, description="Target name (for display)")
     details: dict = Field(default_factory=dict, description="Additional details")
     ip_address: Optional[str] = Field(None, description="Client IP address")
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuditLogListResponse(BaseModel):
@@ -351,9 +345,7 @@ class SystemSettingItem(BaseModel):
     description: Optional[str] = Field(None, description="Human-readable description")
     updated_at: datetime = Field(..., description="Last update timestamp")
     updated_by: Optional[str] = Field(None, description="Email of last updater")
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SystemSettingUpdate(BaseModel):

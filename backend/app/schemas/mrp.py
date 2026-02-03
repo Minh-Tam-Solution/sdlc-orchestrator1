@@ -31,7 +31,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # =========================================================================
@@ -353,10 +353,7 @@ class MRPValidation(BaseModel):
         ge=0,
         description="Total validation time in milliseconds",
     )
-
-    class Config:
-        """Pydantic config."""
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     def get_summary(self) -> str:
         """Get human-readable summary of MRP validation."""
@@ -447,10 +444,7 @@ class VCR(BaseModel):
         default=None,
         description="Whether CRP was approved",
     )
-
-    class Config:
-        """Pydantic config."""
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
     def is_merge_ready(self) -> bool:
         """Check if PR is merge-ready based on VCR."""

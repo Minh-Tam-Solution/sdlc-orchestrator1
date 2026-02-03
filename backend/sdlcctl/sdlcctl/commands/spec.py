@@ -19,6 +19,7 @@ Changelog:
     - Sprint 119: Initial spec validate/report/list commands
     - Sprint 125: Added SpecFrontmatterValidator with JSON Schema
     - Sprint 126: Added spec init, spec convert, JSON Schema integration
+    - Sprint 147: Added telemetry tracking for spec validation events
 """
 
 import json
@@ -38,6 +39,7 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 from rich.tree import Tree
 
+from ..lib.telemetry import track_command, track_spec_validation
 from ..validation.violation import ScanResult, Severity, ViolationReport
 
 # Try to import jsonschema for schema-based validation
@@ -914,6 +916,21 @@ def validate(
         exit_code = 0 if len(result.violations) == 0 else 1
     else:
         exit_code = 0 if result.error_count == 0 else 1
+
+    # Track spec validation telemetry (Sprint 147 - Product Truth Layer)
+    valid_count = result.files_scanned - result.error_count
+    track_spec_validation(
+        spec_count=result.files_scanned,
+        valid_count=valid_count,
+        invalid_count=result.error_count,
+    )
+    track_command(
+        command="spec",
+        subcommand="validate",
+        success=(exit_code == 0),
+        duration_ms=int(result.scan_time_ms),
+        exit_code=exit_code,
+    )
 
     raise typer.Exit(code=exit_code)
 

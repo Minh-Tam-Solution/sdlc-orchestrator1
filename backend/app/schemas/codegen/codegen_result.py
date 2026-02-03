@@ -22,7 +22,7 @@ Owner: Backend Team
 Status: ACTIVE
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from pathlib import Path
@@ -251,9 +251,8 @@ class CodegenResult(BaseModel):
             "success": self.success,
         }
 
-    class Config:
-        """Pydantic configuration"""
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "files": [
                     {
@@ -285,3 +284,4 @@ class CodegenResult(BaseModel):
                 "success": True
             }
         }
+    )

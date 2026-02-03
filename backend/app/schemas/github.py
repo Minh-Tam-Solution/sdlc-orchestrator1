@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 
 # ============================================================================
@@ -54,6 +54,7 @@ class GitHubCloneRequest(BaseModel):
 
 class GitHubInstallationResponse(BaseModel):
     """Response schema for GitHub App installation"""
+    model_config = ConfigDict(from_attributes=True)
 
     id: UUID = Field(..., description="Internal UUID")
     installation_id: int = Field(..., description="GitHub's installation ID")
@@ -63,9 +64,6 @@ class GitHubInstallationResponse(BaseModel):
     status: str = Field(..., description="Installation status (active, suspended, uninstalled)")
     installed_at: datetime
     repositories_count: Optional[int] = Field(None, description="Number of repos accessible")
-
-    class Config:
-        from_attributes = True
 
 
 class GitHubInstallationsListResponse(BaseModel):
@@ -104,6 +102,7 @@ class GitHubRepositoriesListResponse(BaseModel):
 
 class GitHubRepositoryResponse(BaseModel):
     """Response schema for a linked GitHub repository"""
+    model_config = ConfigDict(from_attributes=True)
 
     id: UUID = Field(..., description="Internal UUID")
     installation_id: UUID = Field(..., description="Installation UUID")
@@ -125,9 +124,6 @@ class GitHubRepositoryResponse(BaseModel):
     # Audit
     connected_at: datetime
     connected_by: UUID
-
-    class Config:
-        from_attributes = True
 
 
 class GitHubLinkResponse(BaseModel):

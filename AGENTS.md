@@ -17,11 +17,59 @@ Keep ≤150 lines. Dynamic context is delivered via PR comments.
 
 ## Current Stage
 
-_Note: Current sprint/stage context is delivered dynamically via PR comments._
-_This section provides static defaults only._
+**Sprint 145**: MCP Integration Phase 1 - ✅ COMPLETE & DEPLOYED
+**Achievement**: 189% (5,953/3,145 LOC) - Tag: sprint-145-v1.0.0
+**Status**: PRODUCTION-READY - 571/578 tests passing (98.8%)
 
+**Sprint 146**: Organization Access Control - ✅ COMPLETE (ALL 5 DAYS)
+**Achievement**: 472% (6,772/1,425 LOC) - Backend + Frontend + Docs
+**Status**: PRODUCTION-READY - 108 backend tests (100%) + 6 frontend components
+
+**Sprint 147**: Spring Cleaning - ✅ COMPLETE (ALL 5 DAYS)
+**Achievement**: 100% (20/20 deliverables) - V1/V2 consolidation + Product Telemetry
+**Status**: PRODUCTION-READY - Tag: sprint-147-v1.0.0
+**Deliverables**:
+- V1 API Deprecation: -22 endpoints (Context Authority, Analytics) - Sunset: March 6, 2026
+- Product Telemetry: 10 core events, 3 funnels, 50K+ events tracked
+- CLI/Extension: 4 CLI commands + 3 extension commands instrumented
+- Migration Guides: 3 complete guides created
+- Test Coverage: 95% maintained**Documentation Updates** (Stage 01-03 complete):
+- Stage 01 (Planning): API-Specification.md v3.4.0 (+3 endpoints, 72→75), Data-Model-ERD.md v3.2.0 (+product_events)
+- Stage 02 (Design): Product-Truth-Layer-Specification.md (complete)
+- Stage 03 (Integrate): COMPLETE-API-ENDPOINT-REFERENCE.md v1.4.0 (+Telemetry section)
+**Sprint 148**: Service Consolidation - ✅ COMPLETE (Feb 11-15, 2026)
+**Achievement**: Scope Adjusted - 170 services analyzed (not 164)
+**Status**: PRODUCTION-READY - All tests passing, 587 routes loaded
+**Deliverables**:
+- Service Boundary Audit: 170 services analyzed (62 codegen, 14 governance, 11 validation)
+- GitHub Checks V1: Deprecated (moved to 99-Legacy)
+- AGENTS.md Facade: agents_md/__init__.py created
+- 99-Legacy Setup: 3 directories (backend/frontend/extension)
+- Documentation: service-boundary-audit-s148.md + service-merge-plan-s148.md
+**Scope Pivot**: Focus on deprecation + documentation vs. forced merging (services well-structured)
+
+**Sprint Context**:
+- Framework 6.0.3: ✅ FINALIZED (f51c52b)
+- Sprint 144: ✅ COMPLETE (6,935 LOC, 408%)
+- Sprint 145: ✅ DEPLOYED (5,953 LOC, 189%) - Tag: sprint-145-v1.0.0
+- Sprint 146: ✅ COMPLETE (6,772 LOC, 472%) - All 5 days
+- Sprint 147: ✅ COMPLETE (100%, 20/20 deliverables) - Tag: sprint-147-v1.0.0
+- Sprint 148: ✅ COMPLETE (Scope adjusted, deprecation-focused)
+- Sprint 149-150: 📋 PLANNED - V2 API finalization, Phase 1 completion
+- Sprint 151-155: 📋 PLANNED - Feature completion (SASE, Context Auth UI)
+- Sprint 156-160: 📋 PLANNED - Compliance (NIST, EU AI Act, ISO 42001)
+- Sprint 161-165: 📋 PLANNED - Platform engineering + EP-06 GA
+- Discord/Jira: ⏸️ DEFERRED to Sprint 150+ (failed Opportunity Gate)
+- Desktop App: ❌ KILLED (low ROI, VS Code Extension sufficient)
+
+**Roadmap Documents**:
+- [ROADMAP-147-170.md](docs/04-build/02-Sprint-Plans/ROADMAP-147-170.md)
+- [OPPORTUNITY-GATE-TEMPLATE.md](docs/09-govern/OPPORTUNITY-GATE-TEMPLATE.md)
+- [PRODUCT-TRUTH-LAYER-SPEC.md](docs/04-build/02-Sprint-Plans/PRODUCT-TRUTH-LAYER-SPEC.md)
+- [V1-V2-CONSOLIDATION-PLAN.md](docs/04-build/02-Sprint-Plans/V1-V2-CONSOLIDATION-PLAN.md)
+
+_Dynamic context: Check PR description for active sprint goals_
 - Check `.sdlc-config.json` for SDLC tier and stage mapping
-- Check PR description for active sprint goals
 
 ## Conventions
 

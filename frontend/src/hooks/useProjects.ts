@@ -3,8 +3,8 @@
  *
  * @module frontend/landing/src/hooks/useProjects
  * @description React Query hooks for Projects API
- * @sdlc SDLC 5.1.2 Universal Framework
- * @status Sprint 69 - Cookie Auth Migration
+ * @sdlc SDLC 6.0.3 Universal Framework
+ * @status Sprint 147 - Telemetry Integration
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import {
   type CreateProjectResponse,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
+import { trackProjectCreated } from "@/lib/telemetry";
 
 // Query keys for cache management
 export const projectKeys = {
@@ -78,6 +79,7 @@ export function useInvalidateProjects() {
 /**
  * Hook to create a new project
  * Sprint 69: Uses httpOnly cookie auth (credentials: "include")
+ * Sprint 147: Added telemetry tracking for project_created event
  */
 export function useCreateProject() {
   const queryClient = useQueryClient();
@@ -86,9 +88,18 @@ export function useCreateProject() {
     mutationFn: (data: CreateProjectRequest): Promise<CreateProjectResponse> => {
       return createProject(data);
     },
-    onSuccess: () => {
+    onSuccess: (response, variables) => {
       // Invalidate projects list to refetch
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+
+      // Track project creation event for activation funnel (Sprint 147)
+      if (response.id) {
+        trackProjectCreated(
+          response.id,
+          (variables.tier as "LITE" | "STANDARD" | "PROFESSIONAL" | "ENTERPRISE") || "LITE",
+          variables.template
+        );
+      }
     },
   });
 }

@@ -1,20 +1,38 @@
 """
-Usage Analytics API Routes - Sprint 24 Day 4 + Sprint 41 Enhancement
+=========================================================================
+Usage Analytics API Routes V1 - DEPRECATED
+SDLC Orchestrator - Sprint 24 Day 4 + Sprint 41 Enhancement
+
+Version: 1.0.0 (DEPRECATED)
+Sunset Date: March 6, 2026
+Successor: /api/v1/telemetry
+Migration Guide: /docs/migration/analytics-v2.md
+Sprint: 147 - Spring Cleaning (Deprecation)
+
+⚠️ DEPRECATION NOTICE:
+This API is deprecated and will be removed on March 6, 2026.
+Please migrate to the new Telemetry API (/api/v1/telemetry).
 
 Endpoints for tracking and reporting user activity:
-- Session management (Sprint 24)
-- Event tracking (Sprint 24)
-- Usage analytics (Sprint 24)
-- Pilot metrics (Sprint 24)
-- Retention management (Sprint 41 - CTO Condition #3)
-- Circuit breaker status (Sprint 41 - CTO Condition #2)
+- Session management (Sprint 24) - Use /telemetry/events
+- Event tracking (Sprint 24) - Use /telemetry/events
+- Usage analytics (Sprint 24) - Use /telemetry/dashboard
+- Pilot metrics (Sprint 24) - Use /telemetry/funnels
+- Retention management (Sprint 41)
+- Circuit breaker status (Sprint 41)
+
+New Telemetry API Features:
+- Activation funnels (Time-to-First-Project, Evidence, Gate)
+- Interface breakdown (web, cli, extension, api)
+- Measured metrics to replace "82-85% realization" narrative
+=========================================================================
 """
 
 from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,9 +42,22 @@ from app.models.usage_tracking import EventType
 from app.services.usage_tracking_service import UsageTrackingService
 from app.services.analytics_service import analytics_service  # Sprint 41
 from app.tasks.analytics_retention import AnalyticsRetentionTask  # Sprint 41
+from app.utils.deprecation import add_deprecation_headers
+
+# ============================================================================
+# Deprecation Constants - Sprint 147
+# ============================================================================
+
+V1_SUNSET = "2026-03-06"  # 30 days for internal API
+V1_SUCCESSOR = "/api/v1/telemetry"
+V1_MIGRATION_GUIDE = "/docs/migration/analytics-v2.md"
 
 
-router = APIRouter(prefix="/analytics", tags=["Analytics"])
+router = APIRouter(
+    prefix="/analytics",
+    tags=["Analytics V1 (DEPRECATED)"],
+    deprecated=True,
+)
 
 
 # ============================================================================
@@ -138,18 +169,30 @@ class UserActivityResponse(BaseModel):
 # ============================================================================
 
 
-@router.post("/sessions/start", response_model=SessionResponse)
+@router.post("/sessions/start", response_model=SessionResponse, deprecated=True)
 async def start_session(
     request: Request,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> SessionResponse:
     """
     Start a new user session.
 
+    ⚠️ DEPRECATED: Use POST /telemetry/events with event_name="session_started" instead.
+    Sunset: March 6, 2026
+
     Automatically captures user agent and IP address from request.
     Returns session token for subsequent event tracking.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/events",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API for session tracking",
+    )
+
     service = UsageTrackingService(db)
 
     user_agent = request.headers.get("user-agent")
@@ -176,17 +219,29 @@ async def start_session(
     )
 
 
-@router.post("/sessions/{session_id}/end", response_model=SessionResponse)
+@router.post("/sessions/{session_id}/end", response_model=SessionResponse, deprecated=True)
 async def end_session(
     session_id: UUID,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> SessionResponse:
     """
     End a user session.
 
+    ⚠️ DEPRECATED: Use POST /telemetry/events with event_name="session_ended" instead.
+    Sunset: March 6, 2026
+
     Calculates total session duration and marks session as inactive.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/events",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API for session tracking",
+    )
+
     service = UsageTrackingService(db)
 
     session = await service.end_session(session_id)
@@ -212,12 +267,26 @@ async def end_session(
     )
 
 
-@router.get("/sessions/active", response_model=Optional[SessionResponse])
+@router.get("/sessions/active", response_model=Optional[SessionResponse], deprecated=True)
 async def get_active_session(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Optional[SessionResponse]:
-    """Get the current active session for the authenticated user."""
+    """
+    Get the current active session for the authenticated user.
+
+    ⚠️ DEPRECATED: Session management via Telemetry API.
+    Sunset: March 6, 2026
+    """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=V1_SUCCESSOR,
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API for session tracking",
+    )
+
     service = UsageTrackingService(db)
 
     session = await service.get_active_session(current_user.id)
@@ -245,18 +314,30 @@ async def get_active_session(
 # ============================================================================
 
 
-@router.post("/events", response_model=EventResponse)
+@router.post("/events", response_model=EventResponse, deprecated=True)
 async def track_event(
     request: TrackEventRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> EventResponse:
     """
     Track a usage event.
 
+    ⚠️ DEPRECATED: Use POST /telemetry/events instead.
+    Sunset: March 6, 2026
+
     Generic event tracking for any type of user activity.
     For specific events, use dedicated endpoints (page views, features).
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/events",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API with standardized event taxonomy",
+    )
+
     service = UsageTrackingService(db)
 
     # Get session ID from token if provided
@@ -288,13 +369,27 @@ async def track_event(
     )
 
 
-@router.post("/events/page-view", response_model=EventResponse)
+@router.post("/events/page-view", response_model=EventResponse, deprecated=True)
 async def track_page_view(
     request: TrackPageViewRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> EventResponse:
-    """Track a page view event."""
+    """
+    Track a page view event.
+
+    ⚠️ DEPRECATED: Use POST /telemetry/events with event_name="dashboard_page_viewed".
+    Sunset: March 6, 2026
+    """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/events",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API for page view tracking",
+    )
+
     service = UsageTrackingService(db)
 
     # Get session ID from token if provided
@@ -319,13 +414,27 @@ async def track_page_view(
     )
 
 
-@router.post("/events/feature", response_model=EventResponse)
+@router.post("/events/feature", response_model=EventResponse, deprecated=True)
 async def track_feature_use(
     request: TrackFeatureRequest,
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> EventResponse:
-    """Track feature usage event."""
+    """
+    Track feature usage event.
+
+    ⚠️ DEPRECATED: Use POST /telemetry/events with appropriate event_name.
+    Sunset: March 6, 2026
+    """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/events",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry API for feature tracking",
+    )
+
     service = UsageTrackingService(db)
 
     # Get session ID from token if provided
@@ -357,8 +466,9 @@ async def track_feature_use(
 # ============================================================================
 
 
-@router.get("/my-activity", response_model=UserActivityResponse)
+@router.get("/my-activity", response_model=UserActivityResponse, deprecated=True)
 async def get_my_activity(
+    response: Response,
     days: int = 7,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
@@ -367,8 +477,19 @@ async def get_my_activity(
     """
     Get the current user's recent activity.
 
+    ⚠️ DEPRECATED: Use GET /telemetry/dashboard instead.
+    Sunset: March 6, 2026
+
     Returns events from the last N days (default 7).
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/dashboard",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry dashboard for activity metrics",
+    )
+
     service = UsageTrackingService(db)
 
     start_date = datetime.utcnow() - timedelta(days=days)
@@ -396,16 +517,28 @@ async def get_my_activity(
     )
 
 
-@router.get("/engagement", response_model=EngagementSummary)
+@router.get("/engagement", response_model=EngagementSummary, deprecated=True)
 async def get_engagement_summary(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> EngagementSummary:
     """
     Get engagement summary for dashboard.
 
+    ⚠️ DEPRECATED: Use GET /telemetry/dashboard instead.
+    Sunset: March 6, 2026
+
     Returns today's and this week's metrics.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/dashboard",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry dashboard for engagement metrics",
+    )
+
     service = UsageTrackingService(db)
 
     summary = await service.get_engagement_summary()
@@ -413,8 +546,9 @@ async def get_engagement_summary(
     return EngagementSummary(**summary)
 
 
-@router.get("/features", response_model=dict)
+@router.get("/features", response_model=dict, deprecated=True)
 async def get_feature_usage(
+    response: Response,
     days: int = 7,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -422,8 +556,19 @@ async def get_feature_usage(
     """
     Get feature usage statistics.
 
+    ⚠️ DEPRECATED: Use GET /telemetry/interfaces for interface breakdown.
+    Sunset: March 6, 2026
+
     Returns aggregated feature usage for the last N days.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/interfaces",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry interfaces endpoint for usage breakdown",
+    )
+
     service = UsageTrackingService(db)
 
     end_date = datetime.utcnow()
@@ -439,8 +584,9 @@ async def get_feature_usage(
     }
 
 
-@router.get("/pilot-metrics", response_model=list[PilotMetricsResponse])
+@router.get("/pilot-metrics", response_model=list[PilotMetricsResponse], deprecated=True)
 async def get_pilot_metrics(
+    response: Response,
     days: int = 7,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -448,8 +594,19 @@ async def get_pilot_metrics(
     """
     Get pilot program metrics for dashboard.
 
+    ⚠️ DEPRECATED: Use GET /telemetry/funnels/{funnel_name} instead.
+    Sunset: March 6, 2026
+
     Returns daily metrics for the last N days.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/funnels/time_to_first_project",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry funnels for activation metrics",
+    )
+
     service = UsageTrackingService(db)
 
     end_date = datetime.utcnow()
@@ -479,16 +636,28 @@ async def get_pilot_metrics(
     ]
 
 
-@router.post("/pilot-metrics/calculate")
+@router.post("/pilot-metrics/calculate", deprecated=True)
 async def calculate_today_metrics(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Manually trigger pilot metrics calculation for today.
 
+    ⚠️ DEPRECATED: Telemetry API uses real-time event tracking.
+    Sunset: March 6, 2026
+
     This is typically done by a scheduled job, but can be triggered manually.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/dashboard",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Telemetry API uses real-time event tracking",
+    )
+
     service = UsageTrackingService(db)
 
     metrics = await service.calculate_pilot_metrics(datetime.utcnow())
@@ -508,18 +677,30 @@ async def calculate_today_metrics(
 # ============================================================================
 
 
-@router.get("/retention/stats")
+@router.get("/retention/stats", deprecated=True)
 async def get_retention_stats(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Get analytics data retention statistics.
 
+    ⚠️ DEPRECATED: Retention stats will be part of admin telemetry dashboard.
+    Sunset: March 6, 2026
+
     Returns current storage metrics and events older than retention period.
 
     CTO Condition #3: Monitor retention compliance
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/health",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Retention stats available in admin telemetry dashboard",
+    )
+
     task = AnalyticsRetentionTask()
     stats = await task.get_retention_stats(db)
 
@@ -530,13 +711,17 @@ async def get_retention_stats(
     }
 
 
-@router.post("/retention/cleanup")
+@router.post("/retention/cleanup", deprecated=True)
 async def run_retention_cleanup(
+    response: Response,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Manually trigger analytics retention cleanup.
+
+    ⚠️ DEPRECATED: Retention cleanup will be admin-only in telemetry system.
+    Sunset: March 6, 2026
 
     Deletes events older than retention period (default: 90 days).
     This is typically run by cron job daily at 2:00 AM UTC.
@@ -545,6 +730,14 @@ async def run_retention_cleanup(
 
     CTO Condition #3: Manual cleanup trigger for testing/emergency
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=V1_SUCCESSOR,
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Retention cleanup available via admin endpoints",
+    )
+
     task = AnalyticsRetentionTask()
 
     # Get stats before cleanup
@@ -564,12 +757,16 @@ async def run_retention_cleanup(
     }
 
 
-@router.get("/circuit-breaker/status")
+@router.get("/circuit-breaker/status", deprecated=True)
 async def get_circuit_breaker_status(
+    response: Response,
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """
     Get Mixpanel circuit breaker status.
+
+    ⚠️ DEPRECATED: Circuit breaker health available via /telemetry/health.
+    Sunset: March 6, 2026
 
     Returns current circuit state, failure count, and recovery info.
 
@@ -580,6 +777,14 @@ async def get_circuit_breaker_status(
 
     CTO Condition #2: Monitor circuit breaker health
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/health",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Health status available via telemetry health endpoint",
+    )
+
     status = analytics_service.get_circuit_breaker_status()
 
     return {
@@ -589,8 +794,9 @@ async def get_circuit_breaker_status(
     }
 
 
-@router.get("/summary")
+@router.get("/summary", deprecated=True)
 async def get_analytics_summary(
+    response: Response,
     period_start: Optional[str] = Query(None, description="Start of period (ISO format)"),
     period_end: Optional[str] = Query(None, description="End of period (ISO format)"),
     current_user: User = Depends(get_current_user),
@@ -599,11 +805,22 @@ async def get_analytics_summary(
     """
     Get comprehensive analytics summary for AGENTS.md.
 
+    ⚠️ DEPRECATED: Use GET /telemetry/dashboard for activation metrics.
+    Sunset: March 6, 2026
+
     Sprint 85: Combined metrics endpoint for AGENTS.md analytics dashboard.
 
     Returns:
         Dictionary with overlay, engagement, gates, security, and agents_md metrics.
     """
+    add_deprecation_headers(
+        response=response,
+        removal_date=V1_SUNSET,
+        successor_version=f"{V1_SUCCESSOR}/dashboard",
+        migration_guide=V1_MIGRATION_GUIDE,
+        reason="Use Telemetry dashboard for comprehensive metrics",
+    )
+
     from sqlalchemy import select, func
     from app.models.project import Project
     from app.models.agents_md import AgentsMdFile

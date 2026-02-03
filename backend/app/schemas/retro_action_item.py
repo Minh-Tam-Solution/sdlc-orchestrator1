@@ -23,7 +23,7 @@ from datetime import datetime
 from typing import Optional, List
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ============================================================
@@ -145,8 +145,7 @@ class RetroActionItemResponse(RetroActionItemBase):
     updated_at: datetime
     completed_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RetroActionItemWithDetails(RetroActionItemResponse):

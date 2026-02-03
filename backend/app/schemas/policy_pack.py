@@ -20,7 +20,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class PolicySeverity(str, Enum):
@@ -139,9 +139,7 @@ class PolicyRuleResponse(PolicyRuleBase):
     message_template: str
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==============================================================================
@@ -266,9 +264,7 @@ class PolicyPackResponse(PolicyPackBase):
     created_at: datetime
     updated_at: datetime
     created_by: Optional[UUID] = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PolicyPackWithRules(PolicyPackResponse):
@@ -358,9 +354,7 @@ class PolicyEvaluationHistoryResponse(BaseModel):
     blocked: bool
     duration_ms: int
     created_at: datetime
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==============================================================================
