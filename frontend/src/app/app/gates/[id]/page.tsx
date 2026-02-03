@@ -154,6 +154,8 @@ export default function GateDetailPage({ params }: PageProps) {
       const token = localStorage.getItem("access_token");
       if (!token) throw new Error("Not authenticated");
 
+      console.log("[Gate Approval] Starting approval request:", { gateId: id, approved });
+
       const response = await fetch(`${API_BASE_URL}/gates/${id}/approve`, {
         method: "POST",
         headers: {
@@ -166,11 +168,33 @@ export default function GateDetailPage({ params }: PageProps) {
           comments: approved ? "Approved" : "Rejected",
         }),
       });
-      if (!response.ok) throw new Error("Failed to update gate");
-      return response.json();
+
+      console.log("[Gate Approval] Response status:", response.status);
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error("[Gate Approval] Error response:", errorBody);
+        throw new Error(`Failed to update gate: ${response.status} - ${errorBody}`);
+      }
+
+      const data = await response.json();
+      console.log("[Gate Approval] Success:", data);
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("[Gate Approval] Mutation success, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ["gates", "detail", id] });
+      // Show success toast (if toast is available)
+      if (typeof window !== "undefined") {
+        alert(data.status === "APPROVED" ? "Gate approved successfully!" : "Gate rejected");
+      }
+    },
+    onError: (error: Error) => {
+      console.error("[Gate Approval] Mutation error:", error);
+      // Show error to user
+      if (typeof window !== "undefined") {
+        alert(`Error: ${error.message}`);
+      }
     },
   });
 
