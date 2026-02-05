@@ -175,6 +175,20 @@ Keep ≤150 lines. Dynamic context is delivered via PR comments.
 - Discord/Jira: ⏸️ DEFERRED to Sprint 150+ (failed Opportunity Gate)
 - Desktop App: ❌ KILLED (low ROI, VS Code Extension sufficient)
 
+**Sprint 159**: NIST Polish + Technical Debt - ✅ COMPLETE (Feb 5-7, 2026)
+**Achievement**: 96/100 (Core objectives, 2 days vs 3 planned)
+**Status**: PRODUCTION-READY - All critical issues resolved
+**Deliverables**:
+- Day 1: 55 files committed (Sprint 156-158 deliverables, 32,357 LOC)
+- Day 2: Security fixes (8 endpoints) + OPA config + risk_id index
+- Issue #13 (CRITICAL): Authorization added to nist_govern.py (7) + compliance_framework.py (1)
+- Issue #5: Hardcoded OPA URL fixed in nist_govern_service.py
+- Migration s159_001: Index on manage_incidents.risk_id
+- Day 3: API consolidation deferred to Sprint 160+ (non-blocking)
+**Security Impact**: Cross-user access vulnerability eliminated
+**Production Readiness**: Zero blockers, staging deployment ready
+**Framework**: 92.0% → 92.1% (+0.1% polish)
+
 **Roadmap Documents**:
 - [ROADMAP-147-170.md](docs/04-build/02-Sprint-Plans/ROADMAP-147-170.md)
 - [OPPORTUNITY-GATE-TEMPLATE.md](docs/09-govern/OPPORTUNITY-GATE-TEMPLATE.md)
@@ -187,8 +201,9 @@ Keep ≤150 lines. Dynamic context is delivered via PR comments.
 - [SPRINT-157-CODE-REVIEW.md](docs/09-govern/01-CTO-Reports/SPRINT-157-CODE-REVIEW.md)
 - [SPRINT-158-CTO-APPROVAL.md](docs/09-govern/01-CTO-Reports/SPRINT-158-CTO-APPROVAL.md)
 - [SPRINT-158-COMPLETION-REPORT.md](docs/09-govern/01-CTO-Reports/SPRINT-158-COMPLETION-REPORT.md)
+- [SPRINT-159-COMPLETION-REPORT.md](docs/09-govern/01-CTO-Reports/SPRINT-159-COMPLETION-REPORT.md)
 
-**Next Phase** (Sprint 159+): NIST Polish + EU AI Act + ISO 42001
+**Next Phase** (Sprint 160+): EU AI Act + ISO 42001
 - **Sprint 156**: ✅ COMPLETE (CTO score 98/100) - NIST GOVERN (April 7-11)
   - 85 tests, ~9,700 LOC (12 backend + 5 frontend + 5 test files)
   - 5 OPA policies (accountability, risk culture, legal, third-party, continuous improvement)
