@@ -92,14 +92,14 @@ def upgrade() -> None:
 
         # Insert approval record
         conn.execute(text("""
-            INSERT INTO gate_approvals (id, gate_id, approver_id, is_approved, comments, approved_at, created_at, updated_at)
-            VALUES (:id, :gate_id, :approver_id, :is_approved, :comments, :approved_at, :created_at, :updated_at)
+            INSERT INTO gate_approvals (id, gate_id, approver_id, status, comments, approved_at, created_at, updated_at)
+            VALUES (:id, :gate_id, :approver_id, :status, :comments, :approved_at, :created_at, :updated_at)
             ON CONFLICT DO NOTHING
         """), {
             'id': approval_id,
             'gate_id': str(gate_id),
             'approver_id': approver_id,
-            'is_approved': True,
+            'status': 'APPROVED',
             'comments': comments,
             'approved_at': approved_at,
             'created_at': approved_at,
