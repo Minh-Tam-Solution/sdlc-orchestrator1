@@ -184,15 +184,31 @@ Keep ≤150 lines. Dynamic context is delivered via PR comments.
 - [ADR-051-Compliance-Framework-Architecture.md](docs/02-design/ADR-051-Compliance-Framework-Architecture.md)
 - [SPRINT-156-CTO-APPROVAL.md](docs/09-govern/01-CTO-Reports/SPRINT-156-CTO-APPROVAL.md)
 - [SPRINT-156-KICKOFF-CHECKLIST.md](docs/04-build/02-Sprint-Plans/SPRINT-156-KICKOFF-CHECKLIST.md)
+- [SPRINT-157-CODE-REVIEW.md](docs/09-govern/01-CTO-Reports/SPRINT-157-CODE-REVIEW.md)
+- [SPRINT-158-CTO-APPROVAL.md](docs/09-govern/01-CTO-Reports/SPRINT-158-CTO-APPROVAL.md)
+- [SPRINT-158-COMPLETION-REPORT.md](docs/09-govern/01-CTO-Reports/SPRINT-158-COMPLETION-REPORT.md)
 
-**Next Phase** (Sprint 156+): COMPLIANCE - NIST AI RMF + EU AI Act + ISO 42001
-- **Sprint 156**: ✅ APPROVED (CTO score 98/100) - NIST GOVERN (April 7-11)
+**Next Phase** (Sprint 159+): NIST Polish + EU AI Act + ISO 42001
+- **Sprint 156**: ✅ COMPLETE (CTO score 98/100) - NIST GOVERN (April 7-11)
   - 85 tests, ~9,700 LOC (12 backend + 5 frontend + 5 test files)
   - 5 OPA policies (accountability, risk culture, legal, third-party, continuous improvement)
   - 10 API endpoints (/api/v1/compliance/*)
   - Database: 5 tables (frameworks, controls, assessments, risks, RACI)
   - Framework: 90% → 90.5% (+0.5%)
-- Phase 3 (Sprint 156-160): Enterprise compliance ready (Framework 90%→92%)
+- **Sprint 157**: ✅ COMPLETE (Approval: 96/100, Execution: 94/100) - NIST MAP & MEASURE (April 14-18)
+  - 145 tests (77 backend + 27 frontend), ~6,400 LOC
+  - 6 OPA policies (3 MAP + 3 MEASURE)
+  - 14 API endpoints (7 MAP + 7 MEASURE)
+  - Database: 2 tables (ai_systems, performance_metrics)
+  - Framework: 90.5% → 91.2% (+0.7%)
+- **Sprint 158**: ✅ COMPLETE (Approval: 97/100, Execution: 98/100) - NIST MANAGE (April 21-25)
+  - 286 total tests (114 Sprint 158 + 172 previous), ~3,322 LOC
+  - 4 OPA policies (risk response, resource allocation, third-party, post-deployment)
+  - 8 API endpoints (/api/v1/compliance/nist/manage/*)
+  - Database: 2 tables (manage_risk_responses, manage_incidents)
+  - Framework: 91.2% → 92.0% (+0.8%)
+  - **NIST AI RMF: 19/19 controls (100% COMPLETE)** ✅
+- Phase 3 (Sprint 156-160): Enterprise compliance ready (Framework 90%→92%) - **ON TRACK**
 - Phase 4 (Sprint 161-165): EP-06 GA + IDP Golden Paths (Framework 92%→95%)
 - Phase 5 (Sprint 166-170+): Market launch + 10+ paying customers
 
