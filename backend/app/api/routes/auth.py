@@ -649,8 +649,9 @@ async def get_current_user_profile(
         3. Fetch linked OAuth providers
         4. Return user profile
     """
-    # Fetch user roles
-    role_names = [role.display_name for role in current_user.roles]
+    # Fetch user roles (Sprint 159.1 Fix: Return uppercase short names for frontend compatibility)
+    # Frontend expects: ["CTO", "CPO", "CEO"] not ["Chief Technology Officer", ...]
+    role_names = [role.name.upper() for role in current_user.roles]
 
     # Fetch OAuth providers
     oauth_providers = [oauth.provider for oauth in current_user.oauth_accounts]
