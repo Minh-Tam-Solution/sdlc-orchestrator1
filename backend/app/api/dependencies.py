@@ -278,8 +278,12 @@ def require_roles(allowed_roles: List[str]):
         if current_user.is_superuser:
             return current_user
 
-        # Get user's role names from relationships
-        user_role_names = [role.display_name for role in current_user.roles]
+        # Get user's role names from relationships (check both name and display_name)
+        # Sprint 159.1 Fix: Compare both role.name.upper() and role.display_name
+        user_role_names = set()
+        for role in current_user.roles:
+            user_role_names.add(role.name.upper())  # e.g., "CEO", "CTO", "CPO"
+            user_role_names.add(role.display_name)  # e.g., "Chief Executive Officer"
 
         # Check if user has at least one allowed role
         has_role = any(role in allowed_roles for role in user_role_names)
