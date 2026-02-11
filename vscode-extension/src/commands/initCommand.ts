@@ -186,7 +186,7 @@ export class InitCommandHandler {
      */
     private async handleExistingProject(
         workspaceRoot: string,
-        _options: InitOptions
+        options: InitOptions
     ): Promise<boolean> {
         Logger.info('Analyzing existing project for SDLC compliance');
 
@@ -228,6 +228,15 @@ export class InitCommandHandler {
             );
 
             if (result.success) {
+                // Sprint 172: Sync with server to register project in backend
+                if (!options.offline && this.apiClient) {
+                    try {
+                        await this.syncWithServer(workspaceRoot, projectName, tier);
+                    } catch {
+                        Logger.warn('Failed to sync with server, continuing in offline mode');
+                    }
+                }
+
                 void vscode.window.showInformationMessage(
                     `Created ${result.createdFolders.length} folders and ${result.createdFiles.length} files`
                 );
@@ -249,6 +258,15 @@ export class InitCommandHandler {
             const configPath = path.join(workspaceRoot, '.sdlc-config.json');
             const fs = await import('fs');
             fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
+
+            // Sprint 172: Sync with server to register project in backend
+            if (!options.offline && this.apiClient) {
+                try {
+                    await this.syncWithServer(workspaceRoot, projectName, tier);
+                } catch {
+                    Logger.warn('Failed to sync with server, continuing in offline mode');
+                }
+            }
 
             void vscode.window.showInformationMessage('Created .sdlc-config.json');
 
