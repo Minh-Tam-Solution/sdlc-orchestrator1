@@ -37,6 +37,7 @@ from app.services.cache_service import (
 )
 from app.services.settings_service import SettingsService
 from app.services.gate_auto_creation_service import create_default_gates
+from app.services.project_metadata_service import project_metadata_service
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -751,6 +752,160 @@ async def get_project_context(
         strict_mode=overlay.strict_mode,
         updated_at=overlay.generated_at.isoformat() if overlay.generated_at else datetime.utcnow().isoformat(),
     )
+
+
+@router.post(
+    "/{project_id}/sync",
+    summary="Sync project metadata from repository files",
+    description="""
+    Sync project metadata from repository files to database.
+
+    **Sprint 172 - Project Metadata Auto-Sync**:
+    - Parses .sdlc-config.json, AGENTS.md, CLAUDE.md, README.md
+    - Updates database with synced metadata
+    - 5-min cache to prevent excessive file I/O
+    - <200ms p95 latency target
+
+    **ADR-029 Compliance**: Static AGENTS.md + Dynamic Overlay pattern
+
+    **Sources**:
+    - .sdlc-config.json: project.id, name, tier
+    - AGENTS.md (lines 20-30): current_sprint, sprint_status, sprint_description
+    - CLAUDE.md (lines 1-15): framework_version, gate_status
+    - README.md: description (first paragraph)
+    - Git metadata: last_commit_date, last_commit_sha
+    """,
+)
+async def sync_project_metadata(
+    project_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Sync project metadata from repository files.
+
+    Sprint 172 Day 1 Task 1.2 - API Endpoint
+
+    Flow:
+    1. Check permissions (project member only)
+    2. Check 5-min cache (Redis) - skip if recently synced
+    3. Call ProjectMetadataService.sync_project_metadata()
+    4. Update database with extracted metadata
+    5. Set cache (5-min TTL)
+    6. Return updated project
+
+    Performance: <200ms p95 (cache miss), <50ms (cache hit)
+    """
+    # 1. Check project exists
+    result = await db.execute(
+        select(Project).where(
+            Project.id == project_id,
+            Project.deleted_at.is_(None),
+        )
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+
+    # 2. Check permissions (project member only)
+    member_result = await db.execute(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == current_user.id,
+        )
+    )
+    member = member_result.scalar_one_or_none()
+
+    # Sprint 88: Platform admins CANNOT access customer data
+    is_regular_admin = current_user.is_superuser and not current_user.is_platform_admin
+    if not member and not is_regular_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to sync this project",
+        )
+
+    # 3. Check 5-min cache (Redis) - skip sync if recently synced
+    cache_key = cache_service._make_key(f"{PROJECTS_CACHE}:sync", project_id=str(project_id))
+    cached_result = await cache_service.get(cache_key)
+    if cached_result is not None:
+        # Return cached project data (skip file parsing)
+        return cached_result
+
+    # 4. Get repository path from project
+    # For SDLC-Orchestrator: /home/nqh/shared/SDLC-Orchestrator
+    # For other projects: /home/nqh/shared/{project.slug}
+    if str(project.id) == "c0000000-0000-0000-0000-000000000003":
+        repo_path = "/home/nqh/shared/SDLC-Orchestrator"
+    else:
+        repo_path = f"/home/nqh/shared/{project.slug}"
+
+    # 5. Call ProjectMetadataService to parse files
+    try:
+        metadata = await project_metadata_service.sync_project_metadata(
+            project_id=project_id,
+            repo_path=repo_path,
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Repository not found: {str(e)}",
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid repository: {str(e)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync metadata: {str(e)}",
+        )
+
+    # 6. Update database with synced metadata
+    if metadata.name:
+        project.name = metadata.name
+    if metadata.description:
+        project.description = metadata.description
+
+    project.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(project)
+
+    # 7. Build response
+    response = {
+        "id": str(project.id),
+        "name": project.name,
+        "slug": project.slug,
+        "description": project.description,
+        "owner_id": str(project.owner_id),
+        "is_active": project.is_active,
+        "created_at": project.created_at.isoformat() if project.created_at else None,
+        "updated_at": project.updated_at.isoformat() if project.updated_at else None,
+        # Include synced metadata
+        "metadata": {
+            "tier": metadata.tier,
+            "current_sprint": metadata.current_sprint,
+            "sprint_status": metadata.sprint_status,
+            "sprint_description": metadata.sprint_description,
+            "framework_version": metadata.framework_version,
+            "gate_status": metadata.gate_status,
+            "last_commit_date": metadata.last_commit_date,
+            "last_commit_sha": metadata.last_commit_sha,
+        },
+    }
+
+    # 8. Set cache (5-min TTL = 300 seconds)
+    await cache_service.set(cache_key, response, ttl=300)
+
+    # 9. Invalidate projects cache to refresh list
+    await invalidate_projects_cache()
+
+    return response
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)

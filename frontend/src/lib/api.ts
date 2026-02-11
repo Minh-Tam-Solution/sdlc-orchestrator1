@@ -587,6 +587,24 @@ export async function getProject(projectId: string): Promise<ProjectDetail> {
   return apiRequest<ProjectDetail>(`/projects/${projectId}`);
 }
 
+export interface ProjectSyncResponse {
+  success: boolean;
+  message?: string;
+  project?: ProjectDetail;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * Sync project metadata from repo sources
+ * Sprint 172 Day 2: POST /projects/{id}/sync
+ */
+export async function syncProjectMetadata(projectId: string): Promise<ProjectSyncResponse> {
+  return apiRequest<ProjectSyncResponse>(`/projects/${projectId}/sync`, {
+    method: "POST",
+  });
+}
+
 /**
  * Create new project request
  * Sprint 90: Added team_id, github_repo_id, github_repo_full_name for project linking

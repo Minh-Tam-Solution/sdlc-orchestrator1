@@ -11,11 +11,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getProjects,
   getProject,
+  syncProjectMetadata,
   createProject,
   type Project,
   type ProjectDetail,
   type CreateProjectRequest,
   type CreateProjectResponse,
+  type ProjectSyncResponse,
 } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import { trackProjectCreated } from "@/lib/telemetry";
@@ -104,5 +106,23 @@ export function useCreateProject() {
   });
 }
 
+/**
+ * Hook to sync project metadata
+ * Sprint 172 Day 2: Calls POST /projects/{id}/sync and refreshes cached project data
+ */
+export function useProjectSync() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: string): Promise<ProjectSyncResponse> => {
+      return syncProjectMetadata(projectId);
+    },
+    onSuccess: (_response, projectId) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(projectId) });
+      queryClient.invalidateQueries({ queryKey: projectKeys.all });
+    },
+  });
+}
+
 // Export types for use in components
-export type { Project, ProjectDetail, CreateProjectRequest, CreateProjectResponse };
+export type { Project, ProjectDetail, CreateProjectRequest, CreateProjectResponse, ProjectSyncResponse };

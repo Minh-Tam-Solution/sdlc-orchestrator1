@@ -9,9 +9,9 @@
 
 "use client";
 
-import { use, Suspense } from "react";
+import { use, Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useProject } from "@/hooks/useProjects";
+import { useProject, useProjectSync } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
 
 // =============================================================================
@@ -140,6 +140,15 @@ function LoadingSkeleton() {
 
 function ProjectContent({ projectId }: { projectId: string }) {
   const { data: project, isLoading, error, isError } = useProject(projectId);
+  const projectSync = useProjectSync();
+  const hasTriggeredSync = useRef(false);
+
+  useEffect(() => {
+    if (!project) return;
+    if (hasTriggeredSync.current) return;
+    hasTriggeredSync.current = true;
+    projectSync.mutate(projectId);
+  }, [projectId, project?.id]);
 
   // Group gates by stage
   const gatesByStage = (project?.gates || []).reduce<Record<string, ProjectGate[]>>((acc, gate) => {
