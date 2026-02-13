@@ -2435,7 +2435,7 @@
           "projects"
         ],
         "summary": "Initialize SDLC project",
-        "description": "Initialize a new SDLC 5.0.0 project. Creates project in database and returns configuration for .sdlc-config.json.",
+        "description": "Initialize a new SDLC 6.0.5 project. Creates project in database and returns configuration for .sdlc-config.json. Per RFC-001, creates 10-archive/ (no 99-Legacy/ in active stages).",
         "operationId": "init_project_api_v1_projects_init_post",
         "security": [
           {
@@ -54760,7 +54760,7 @@
         },
         "type": "object",
         "title": "MigrateStagesRequest",
-        "description": "Request to migrate project stages to SDLC 5.0.0."
+        "description": "Request to migrate project stages to SDLC 6.0.5. Includes RFC-001 legacy archive migration."
       },
       "MigrateStagesResponse": {
         "properties": {

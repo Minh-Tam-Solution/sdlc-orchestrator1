@@ -3,8 +3,10 @@
 **Status**: ✅ **APPROVED**  
 **Date**: December 13, 2025  
 **Deciders**: CTO + CPO + Backend Lead  
-**Framework**: SDLC 5.1.3 (Internal Restructure - No Version Change)  
+**Framework**: SDLC 5.1.3 → Current: SDLC 6.0.5 (RFC-001 applied)
 **Impact**: High - Affects all documentation, onboarding flows, and project structure
+
+> **Note (Feb 2026):** This ADR was written during SDLC 5.1.3. The stage restructuring has been carried forward into SDLC 6.0.5. Additionally, RFC-001 (SDLC 6.0.5 MANDATORY) eliminates `99-Legacy/` from active stages — legacy content is now centralized in `docs/10-archive/{NN}-Legacy/`.
 
 ---
 

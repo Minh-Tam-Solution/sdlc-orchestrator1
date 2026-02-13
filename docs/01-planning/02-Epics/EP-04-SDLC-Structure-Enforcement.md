@@ -451,7 +451,7 @@ jobs:
               repo: context.repo.repo,
               body: `🤖 **SDLC Orchestrator Structure Validation**
               
-              ❌ **PR BLOCKED** - SDLC 5.1.3 violations detected
+              ❌ **PR BLOCKED** - SDLC 6.0.5 violations detected
               
               **Auto-fix available:**
               \`\`\`bash
@@ -526,4 +526,4 @@ export class StructureValidator {
 
 - [ADR-014: SDLC Structure Validator](../../../02-design/01-ADRs/ADR-014-SDLC-Structure-Validator.md)
 - [EP-02: AI Safety Layer](EP-02-AI-Safety-Layer.md)
-- [SDLC 5.1.3 Framework](../../../../SDLC-Enterprise-Framework/02-Core-Methodology/)
+- [SDLC 6.0.5 Framework](../../../../SDLC-Enterprise-Framework/02-Core-Methodology/)

@@ -11,9 +11,9 @@
 
 ## Context and Problem Statement
 
-**Real-World Pain Point**: Yesterday we manually restructured `docs/02-design/` (78 files, 45 minutes). Bflow Platform migrated 3,800+ Python files from SDLC 5.1.3 → 5.1 (projected 4 weeks manual → 2 hours automated with custom tooling).
+**Real-World Pain Point**: Yesterday we manually restructured `docs/02-design/` (78 files, 45 minutes). Bflow Platform migrated 3,800+ Python files from SDLC 5.x → 6.0.5 (projected 4 weeks manual → 2 hours automated with custom tooling). RFC-001 (SDLC 6.0.5) adds legacy archive migration (`99-Legacy/` → `10-archive/{NN}-Legacy/`).
 
-**Problem**: When customers upgrade large codebases (5K-50K files) from SDLC 4.x/5.0 → 5.1+, they face:
+**Problem**: When customers upgrade large codebases (5K-50K files) from SDLC 4.x/5.x → 6.0.5, they face:
 
 1. **Scale Challenge**: Manual migration of 10K+ files = 3-4 weeks full-time work
 2. **Accuracy Risk**: Human error rate ~5-10% (missed files, wrong stage assignments)
@@ -184,9 +184,10 @@ class MigrationScannerService:
         self.db = db
         self.project_id = project_id
         self.scan_engine = ScanEngine(
-            target_version="5.1.0",
+            target_version="6.0.5",
             exclude_patterns=DEFAULT_EXCLUDE_PATTERNS,
-            chunk_size=500  # CTO directive from Bflow
+            chunk_size=500,  # CTO directive from Bflow
+            rfc001_enabled=True  # Detect 99-Legacy/ in active stages
         )
 
     async def scan_project(
@@ -272,10 +273,11 @@ class MigrationScannerService:
 **Extracted from**: `Bflow/tools/sdlc51-compliance/fixers/` (7 fixer modules, ~90KB)
 
 **Responsibilities**:
-- Version fixes (4.x/5.0 → 5.1)
+- Version fixes (4.x/5.x → 6.0.5)
 - Stage fixes (auto-detect from file path)
 - Header fixes (add missing Date/Component/Status)
 - Folder structure fixes (rename + preserve git history)
+- RFC-001 legacy archive migration (99-Legacy/ → 10-archive/{NN}-Legacy/)
 - Cross-reference updates (update all links)
 - Backup creation (MANDATORY before any fix)
 - Rollback support (one-click restore)
@@ -287,7 +289,7 @@ class MigrationFixerService:
     def __init__(self, db: Session, backup_service: MigrationBackupService):
         self.db = db
         self.backup_service = backup_service
-        self.version_fixer = VersionFixer(target_version="5.1.0")
+        self.version_fixer = VersionFixer(target_version="6.0.5")
         self.stage_fixer = StageFixer()
         self.header_fixer = HeaderFixer()
 
@@ -697,7 +699,7 @@ class ComplianceDocsGenerator:
         # 8. Store in database
         compliance_docs = MigrationComplianceDocs(
             project_id=project.id,
-            sdlc_version="5.1.0",
+            sdlc_version="6.0.5",
             tier=tier,
             docs_folder_path=str(target_path),
             **stats,
@@ -867,7 +869,7 @@ POST   /api/v1/migrations/jobs
        Body: {
          project_id: UUID,
          from_version: "5.0.0",
-         to_version: "5.1.0",
+         to_version: "6.0.5",
          target_path: "/path/to/project"
        }
        Response: { job_id: UUID, status: "pending" }
@@ -950,7 +952,7 @@ POST   /api/v1/migrations/docs/generate
 GET    /api/v1/migrations/docs/:project_id
        Get compliance docs info
        Response: {
-         sdlc_version: "5.1.0",
+         sdlc_version: "6.0.5",
          tier: "professional",
          generated_at: "2026-04-15T10:30:00Z",
          total_files: 38
@@ -1102,7 +1104,7 @@ migration:docs:generate - Generate compliance docs (PM, Tech Lead, Owner)
 
 1. **Bflow Platform Migration** (`/home/nqh/shared/Bflow-Platform/`)
    - Source: `/tools/sdlc51-compliance/` (~10,500 LOC)
-   - Tested on: 3,800+ Python files (SDLC 5.1.3 → 5.1)
+   - Tested on: 3,800+ Python files (SDLC 5.x → 6.0.5)
    - Performance: 4 weeks manual → 2 hours automated (120x speedup)
    - Compliance docs: `/docs/08-Team-Management/03-SDLC-Compliance/` (27,789 lines)
 

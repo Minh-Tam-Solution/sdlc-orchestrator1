@@ -1,14 +1,14 @@
 # EP-05: Enterprise SDLC Migration Automation
-## Automated Migration from SDLC 4.x/5.0 → 5.1+ for Large Codebases
+## Automated Migration from SDLC 4.x/5.x → 6.0.5 for Large Codebases
 
 **Epic ID**: EP-05
-**Version**: 1.0.0
-**Date**: December 21, 2025
+**Version**: 1.1.0
+**Date**: December 21, 2025 (Updated: February 13, 2026)
 **Stage**: 01 - PLANNING (WHAT)
 **Status**: PROPOSED - Ready for CTO Review
 **Tier**: PROFESSIONAL + ENTERPRISE (NOT for LITE/STANDARD)
 **Sprint Target**: Sprint 47-49 (Q2 2026)
-**Framework**: SDLC 5.1.3 Complete Lifecycle
+**Framework**: SDLC 6.0.5 (7-Pillar + RFC-001 Legacy Document Organization)
 
 ---
 
@@ -16,7 +16,7 @@
 
 ### The Problem
 
-**Real-World Scenario**: Bflow Platform (200K users, 5+ years production) needed to upgrade from SDLC 5.1.3 → 5.1:
+**Real-World Scenario**: Bflow Platform (200K users, 5+ years production) needed to upgrade from SDLC 5.x → 6.0.5:
 
 - **3,800+ Python files** to migrate
 - **1,200+ Markdown docs** to update
@@ -69,22 +69,24 @@
 - [ ] Detect stage violations (wrong stage for file path)
 - [ ] Detect missing fields (Date, Component, Status)
 - [ ] Detect folder structure violations (duplicate numbers, wrong naming)
+- [ ] Detect RFC-001 violations (99-Legacy/ in active stages 00-09)
 - [ ] Generate comprehensive violation report (JSON + Markdown)
 - [ ] Parallel processing for 10K+ file codebases (<5 min scan time)
 
 **Phase 2: Intelligent Auto-Fixer** (Sprint 48 - Apr 21 - May 2, 2026)
-- [ ] Version fixer (4.x/5.0 → 5.1)
+- [ ] Version fixer (4.x/5.x → 6.0.5)
 - [ ] Stage fixer (auto-detect stage from file path)
 - [ ] Header fixer (add missing Date/Component/Status)
 - [ ] Folder structure fixer (rename to sequential numbering)
+- [ ] Legacy archive migration (99-Legacy/ → 10-archive/{NN}-Legacy/ per RFC-001)
 - [ ] Cross-reference updater (update all links after renames)
 - [ ] Backup manager (git stash + timestamped backups)
 - [ ] Dry-run mode (preview changes before applying)
 - [ ] Rollback system (one-click restore from backup)
 
 **Phase 3: Self-Contained Documentation Generator** (Sprint 49 - May 5-16, 2026)
-- [ ] Generate `/docs/08-Team-Management/03-SDLC-Compliance/` folder
-- [ ] Copy SDLC 5.1 methodology docs (84KB)
+- [ ] Generate `/docs/08-collaborate/03-SDLC-Compliance/` folder
+- [ ] Copy SDLC 6.0.5 methodology docs (84KB)
 - [ ] Copy SASE artifacts (70KB)
 - [ ] Generate project-specific Quick Reference (cheatsheets)
 - [ ] Generate Situation-Specific Guides (When-Starting-Feature.md, etc.)
@@ -101,7 +103,7 @@ sdlcctl migrate scan /path/to/project --output reports/migration-scan.json
 sdlcctl migrate fix /path/to/project --dry-run --verbose
 
 # Apply fixes with backup
-sdlcctl migrate fix /path/to/project --backup --from-version 5.0 --to-version 5.1
+sdlcctl migrate fix /path/to/project --backup --from-version 5.0 --to-version 6.0.5
 
 # Rollback if needed
 sdlcctl migrate rollback <backup-id>
@@ -200,7 +202,7 @@ CREATE TABLE migration_jobs (
 
     -- Migration config
     from_version VARCHAR(20) NOT NULL, -- "5.0.0"
-    to_version VARCHAR(20) NOT NULL, -- "5.1.0"
+    to_version VARCHAR(20) NOT NULL, -- "6.0.5"
     target_path TEXT NOT NULL, -- "/path/to/project"
 
     -- Status tracking
@@ -237,7 +239,7 @@ CREATE TABLE migration_violations (
     file_type VARCHAR(20), -- "python", "markdown", "typescript"
 
     -- Violation details
-    violation_type VARCHAR(50), -- "wrong_version", "missing_stage", "wrong_folder", etc.
+    violation_type VARCHAR(50), -- "wrong_version", "missing_stage", "wrong_folder", "rfc001_99legacy", etc.
     violation_severity VARCHAR(20), -- "critical", "high", "medium", "low"
     current_value TEXT,
     expected_value TEXT,
@@ -256,11 +258,11 @@ CREATE TABLE migration_compliance_docs (
     project_id UUID NOT NULL REFERENCES projects(id),
 
     -- Generation config
-    sdlc_version VARCHAR(20) NOT NULL, -- "5.1.0"
+    sdlc_version VARCHAR(20) NOT NULL, -- "6.0.5"
     tier VARCHAR(20) NOT NULL, -- "professional", "enterprise"
 
     -- Generated artifacts
-    docs_folder_path TEXT NOT NULL, -- "/docs/08-Team-Management/03-SDLC-Compliance"
+    docs_folder_path TEXT NOT NULL, -- "/docs/08-collaborate/03-SDLC-Compliance"
     total_files INTEGER DEFAULT 0,
     total_size_kb INTEGER DEFAULT 0,
 
@@ -320,13 +322,13 @@ GET    /api/v1/migrations/docs/:project_id - Get compliance docs info
 
 **Implementation**:
 
-SDLC Orchestrator auto-generates `/docs/08-Team-Management/03-SDLC-Compliance/` with:
+SDLC Orchestrator auto-generates `/docs/08-collaborate/03-SDLC-Compliance/` with:
 
 ```
 03-SDLC-Compliance/ (~700KB self-contained)
 ├── README.md (Navigation hub - "I want to..." guide)
 │
-├── Core-Methodology/ (What is SDLC 5.1?)
+├── Core-Methodology/ (What is SDLC 6.0.5?)
 │   ├── SDLC-Core-Methodology.md (84KB)
 │   ├── SDLC-Agentic-Core-Principles.md (43KB)
 │   ├── SDLC-Agentic-Maturity-Model.md (29KB)
@@ -459,7 +461,7 @@ class BackupManager:
 
 3. Apply fixes
    → Progress: "Fixing 127 files... (25 files/sec)"
-   → Real-time log: "✅ Fixed: backend/api/auth_service.py (version 5.0 → 5.1)"
+   → Real-time log: "✅ Fixed: backend/api/auth_service.py (version 5.0 → 6.0.5)"
 
 4. Completion
    → Success: "127 files fixed. Backup ID: stash@{0}"
@@ -485,7 +487,7 @@ STAGE_MAPPING = {
     'docs/07-': ('07', 'OPERATIONS', 'MAINTAIN'),
     'docs/08-': ('08', 'COLLABORATION', 'TEAMWORK'),
     'docs/09-': ('09', 'GOVERNANCE', 'CONTROL'),
-    'docs/10-': ('10', 'ARCHIVE', 'LEGACY'),
+    'docs/10-': ('10', 'ARCHIVE', 'LEGACY'),  # RFC-001: centralized legacy archive
 
     # Code paths
     'backend/api/': ('04', 'DEVELOPMENT', 'BUILD'),
@@ -615,7 +617,7 @@ POST /api/v1/projects/:id/folders/rename
 ### Sprint 48: Intelligent Auto-Fixer (Apr 21 - May 2, 2026)
 
 **Week 1**: Fixers
-- [ ] Day 1-2: Version fixer (4.x/5.0 → 5.1)
+- [ ] Day 1-2: Version fixer (4.x/5.x → 6.0.5)
 - [ ] Day 3-4: Stage fixer (path-based detection)
 - [ ] Day 5-6: Header fixer (add missing fields)
 - [ ] Day 7-8: Backup manager (git stash + MinIO)
@@ -685,7 +687,7 @@ POST /api/v1/projects/:id/folders/rename
 **Upsell Scenario**:
 
 ```
-Customer: "We have 8,000 Python files to migrate from SDLC 5.1.3 to 5.1"
+Customer: "We have 8,000 Python files to migrate from SDLC 5.x to 6.0.5"
 SDLC Orchestrator: "You need PROFESSIONAL tier for automated migration"
 
 Manual Migration (STANDARD tier):
@@ -719,7 +721,7 @@ Upsell Value:
 | **Jira Align** | ❌ No automated migration | $1,200/user/year |
 | **Linear** | ❌ No SDLC framework support | $96/user/year |
 | **Monday.com** | ❌ No compliance automation | $144/user/year |
-| **SDLC Orchestrator** | ✅ **Automated 4.x → 5.1 migration** | $99/month (PRO tier) |
+| **SDLC Orchestrator** | ✅ **Automated 4.x/5.x → 6.0.5 migration** | $99/month (PRO tier) |
 
 **Unique Value Proposition**:
 
@@ -732,7 +734,7 @@ Upsell Value:
 ### Battle-Tested Implementation
 
 1. **Bflow Platform Migration** (`/home/nqh/shared/Bflow-Platform/`)
-   - 3,800+ Python files migrated (SDLC 5.1.3 → 5.1)
+   - 3,800+ Python files migrated (SDLC 5.x → 6.0.5)
    - Tools: `/tools/sdlc51-compliance/` (~10,500 LOC)
    - Docs: `/docs/08-Team-Management/03-SDLC-Compliance/` (27,789 lines)
    - Timeline: 4 weeks manual → 2 hours automated (120x speedup)

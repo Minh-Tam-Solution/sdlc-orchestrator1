@@ -1,5 +1,5 @@
 # Design Stage Restructure Plan
-## SDLC 5.1.3 Compliance - Stage 02 (DESIGN)
+## SDLC 6.0.5 Compliance - Stage 02 (DESIGN)
 
 **Date**: December 21, 2025
 **Status**: PROPOSED
@@ -30,7 +30,7 @@
 
 ---
 
-## Proposed Structure (SDLC 5.1.3 Compliant)
+## Proposed Structure (SDLC 6.0.5 / RFC-001 Compliant)
 
 ```
 docs/02-design/
@@ -117,12 +117,12 @@ docs/02-design/
 │   ├── Design-Partner-Scorecard-v1.md
 │   └── Workshop-Deck-AI-Safety-v1.md
 │
-├── 99-Legacy/
-│   ├── ADR-015-SDLC-5.1.0-STAGE-RESTRUCTURING.md  # Duplicate, deprecated
-│   ├── VERIFICATION-SUMMARY.md
-│   └── WEEK-3-4-EXECUTION-PLAN.md
-│
 └── README.md
+
+# NOTE: Per RFC-001 (SDLC 6.0.5 MANDATORY), legacy content is centralized in:
+#   docs/10-archive/02-Legacy/
+# Active stages (00-09) NO LONGER contain 99-Legacy/ folders.
+# See: SDLC-Enterprise-Framework/02-Core-Methodology/Documentation-Standards/SDLC-Legacy-Document-Organization-Standard.md
 ```
 
 ---
