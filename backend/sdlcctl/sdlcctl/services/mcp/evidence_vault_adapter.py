@@ -239,7 +239,7 @@ class EvidenceVaultAdapter:
 
         for artifact_file in sorted(
             self.vault_path.glob("EVD-*.json"),
-            key=lambda p: p.stat().st_mtime,
+            key=lambda p: p.name,
             reverse=True
         )[:limit]:
             try:
@@ -278,7 +278,7 @@ class EvidenceVaultAdapter:
         """
         artifacts = list(sorted(
             self.vault_path.glob("EVD-*.json"),
-            key=lambda p: p.stat().st_mtime,
+            key=lambda p: p.name,
             reverse=True
         ))
 

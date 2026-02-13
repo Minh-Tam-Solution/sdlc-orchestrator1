@@ -56,6 +56,10 @@ def valid_project_structure():
             "info": {"title": "Test API", "version": "1.0.0"},
             "paths": {"/users": {"get": {"summary": "List users"}}}
         }))
+        (api_spec / "COMPLETE-API-ENDPOINT-REFERENCE.md").write_text(
+            "# API Endpoint Reference\n\n"
+            "See [E2E Test Report](../../05-Testing-Quality/03-E2E-Testing/reports/latest.md)\n"
+        )
 
         # Create Stage 05 structure
         stage_05 = project_path / "docs" / "05-Testing-Quality"
@@ -303,8 +307,8 @@ class TestFixSSOTViolations:
 
         assert result["success"] is True
         assert result["fixed_count"] == 1
-        # Verify symlink was created
-        assert Path(str(duplicate_path) + ".bak").exists()
+        # Verify backup was created (.json.backup per _fix_ssot_violations)
+        assert duplicate_path.with_suffix(".json.backup").exists()
 
     def test_fix_with_nonexistent_duplicate(self, valid_project_structure):
         """Test fix handles nonexistent duplicate gracefully."""

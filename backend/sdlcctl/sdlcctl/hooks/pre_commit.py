@@ -92,6 +92,12 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description="SDLC pre-commit validation hook")
     parser.add_argument(
+        "--path",
+        type=str,
+        default=None,
+        help="Project root path (defaults to git root)",
+    )
+    parser.add_argument(
         "--tier",
         default="lite",
         choices=["lite", "standard", "professional", "enterprise"],
@@ -111,18 +117,16 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    success, message = run_validation(
+    project_root = Path(args.path) if args.path else None
+
+    exit_code = run_validation(
+        project_root=project_root,
         tier=args.tier,
         strict=args.strict,
         performance_threshold=args.performance_threshold,
     )
 
-    if success:
-        print(f"✅ {message}")
-        return 0
-    else:
-        print(f"❌ {message}")
-        return 1
+    return exit_code
 
 
 if __name__ == "__main__":
