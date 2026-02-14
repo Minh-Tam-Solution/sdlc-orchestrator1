@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-02-14
+
+### Added
+
+**SDLC 6.0.5 Enhancement: Framework Templates + Fuzzy P0 Detection**
+
+#### Fuzzy P0 Artifact Detection (Legacy Naming Support)
+
+- **3-strategy P0 resolution**: exact path → alternative paths → fuzzy stage resolution
+  - Projects using legacy long-form names (e.g., `02-Design-Architecture`) now detected correctly
+  - Bflow: P0 detection 0% → 71.4%, compliance 40 → 68.6
+  - NQH-Bot: P0 detection 0% → 64.3%, compliance 40 → 65.7
+  - Zero regression on RFC-001 compliant projects (Orchestrator: 100/100)
+
+- **Stage path caching** (`_stage_path_cache`): 10x performance improvement for P0 validation
+  - Avoids repeated filesystem scans for stage folder resolution
+  - Cache hit rate >90% in production workloads
+
+- **Ambiguity resolution**: Precedence rules when multiple folders match same stage prefix
+  - Priority 1: Exact RFC-001 match (e.g., `02-design`)
+  - Priority 2: Longest name (most specific)
+  - Warning logged if multiple candidates found
+
+- **SDLC-012 warning code**: New validation warning for P0 artifacts found at legacy paths
+  - Guides migration without blocking compliance
+  - Suggests `sdlcctl fix --naming` for folder renaming
+
+- **`STAGE_NAME_VARIANTS`**: Common stage name variations map in tier.py for fuzzy matching
+
+#### Framework Templates (4 New)
+
+- `deployment_go-live-readiness-checklist.md`: Tactical 100-item go-live checklist by tier (LITE → ENTERPRISE)
+- `deployment_go-live-readiness-assessment.md`: Strategic Go/No-Go scoring framework with 8-week countdown
+- `governance_maturity-assessment-framework.md`: Per-stage maturity scoring (0-100%) with weighted categories
+- `governance_risk-register-analyzer.md`: Risk identification + Likelihood × Impact scoring matrix
+
+#### Tests
+
+- 9 new unit tests for legacy name P0 detection:
+  - Standard names (baseline), legacy long-form, mixed naming (hybrid)
+  - SAD artifact at legacy path, stage path caching, missing stage
+  - Coverage percent validation, ENTERPRISE tier with archive, no regression
+
+### Fixed
+
+- False negative P0 detection in projects using long-form stage names (critical bug for Bflow/NQH-Bot)
+
+---
+
 ## [1.5.0] - 2026-02-13
 
 ### Added

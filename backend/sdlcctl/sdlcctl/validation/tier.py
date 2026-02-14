@@ -101,6 +101,22 @@ STAGE_NAMES_4_9 = {
     "10": "10-Archive",                     # Was ARCHIVE
 }
 
+# Common stage name variations (for fuzzy P0 detection)
+# Maps stage ID to list of known naming patterns (lowercase for matching)
+STAGE_NAME_VARIANTS = {
+    "00": ["00-foundation", "00-project-foundation", "00-discover"],
+    "01": ["01-planning", "01-planning-analysis"],
+    "02": ["02-design", "02-design-architecture"],
+    "03": ["03-integrate", "03-development-implementation", "03-integration-apis"],
+    "04": ["04-build", "04-testing-quality", "04-development"],
+    "05": ["05-test", "05-deployment-release", "05-testing-quality"],
+    "06": ["06-deploy", "06-operations-maintenance", "06-deployment-release"],
+    "07": ["07-operate", "07-integration-apis", "07-operations-maintenance"],
+    "08": ["08-collaborate", "08-team-management"],
+    "09": ["09-govern", "09-executive-reports"],
+    "10": ["10-archive"],
+}
+
 # Tier-specific requirements
 TIER_REQUIREMENTS = {
     Tier.LITE: TierRequirements(

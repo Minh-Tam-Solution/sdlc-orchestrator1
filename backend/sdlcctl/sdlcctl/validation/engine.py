@@ -331,7 +331,21 @@ class SDLCValidator:
 
             # Report issues found during check
             for issue_msg in result.issues:
-                if "alternative path" in issue_msg.lower():
+                if "legacy path" in issue_msg.lower():
+                    issues.append(
+                        ValidationIssue(
+                            code="SDLC-012",
+                            severity=ValidationSeverity.WARNING,
+                            message=f"P0 artifact at legacy path: {issue_msg}",
+                            stage_id=result.artifact.stage_id,
+                            path=str(result.actual_path) if result.actual_path else None,
+                            fix_suggestion=(
+                                f"Run 'sdlcctl fix --naming' to rename stage folder "
+                                f"to SDLC 6.0.5 standard: {result.artifact.relative_path}"
+                            ),
+                        )
+                    )
+                elif "alternative path" in issue_msg.lower():
                     issues.append(
                         ValidationIssue(
                             code="SDLC-006",

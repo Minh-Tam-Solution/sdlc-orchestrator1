@@ -5,11 +5,15 @@ Validates presence of 15 P0 (Priority 0) artifacts for AI discoverability.
 These are the minimum required documents for AI assistants to understand a project.
 """
 
+import logging
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-from .tier import Tier, TierDetector
+from .tier import STAGE_NAMES, Tier, TierDetector
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -234,6 +238,9 @@ class P0ArtifactChecker:
         self.project_root = Path(project_root).resolve()
         self.docs_root = self.project_root / docs_root
 
+        # Cache resolved stage paths to avoid repeated filesystem scans
+        self._stage_path_cache: Dict[str, Optional[Path]] = {}
+
         # Determine tier
         if tier:
             self.tier = tier
@@ -288,6 +295,11 @@ class P0ArtifactChecker:
         """
         Check a single P0 artifact.
 
+        Tries three resolution strategies in order:
+        1. Primary path (exact SDLC 6.0.5 match)
+        2. Alternative paths (known variations)
+        3. Fuzzy stage resolution (legacy/non-standard folder names)
+
         Args:
             artifact: Artifact definition to check
 
@@ -296,12 +308,12 @@ class P0ArtifactChecker:
         """
         issues: List[str] = []
 
-        # Try primary path first
+        # Strategy 1: Try primary path (exact SDLC 6.0.5 match)
         primary_path = self.docs_root / artifact.relative_path
         if primary_path.exists() and primary_path.is_file():
             return self._create_result(artifact, primary_path, issues)
 
-        # Try alternative paths
+        # Strategy 2: Try alternative paths
         for alt_path in artifact.alternative_paths:
             full_path = self.docs_root / alt_path
             if full_path.exists() and full_path.is_file():
@@ -309,6 +321,17 @@ class P0ArtifactChecker:
                     f"Found at alternative path: {alt_path} (expected: {artifact.relative_path})"
                 )
                 return self._create_result(artifact, full_path, issues)
+
+        # Strategy 3: Fuzzy stage path resolution (legacy naming support)
+        resolved_path = self._resolve_artifact_via_stage(artifact)
+        if resolved_path and resolved_path.exists() and resolved_path.is_file():
+            rel_path = resolved_path.relative_to(self.docs_root)
+            issues.append(
+                f"Found at legacy path: {rel_path} "
+                f"(expected: {artifact.relative_path}). "
+                f"Run 'sdlcctl fix --naming' to rename to SDLC 6.0.5 standard."
+            )
+            return self._create_result(artifact, resolved_path, issues)
 
         # Not found
         issues.append(f"File not found: {artifact.relative_path}")
@@ -320,6 +343,105 @@ class P0ArtifactChecker:
             has_content=False,
             issues=issues,
         )
+
+    def _resolve_stage_path(self, stage_id: str) -> Optional[Path]:
+        """
+        Resolve actual stage folder path by ID prefix.
+
+        Uses caching to avoid repeated filesystem scans.
+        Applies precedence rules when multiple folders match:
+        1. Exact SDLC 6.0.5 name match (e.g., 02-design)
+        2. Longest match (most specific name)
+        3. Logs warning if multiple candidates found
+
+        Args:
+            stage_id: Stage ID (e.g., "00", "01", "02")
+
+        Returns:
+            Path to the actual stage folder, or None if not found
+        """
+        if stage_id in self._stage_path_cache:
+            return self._stage_path_cache[stage_id]
+
+        if not self.docs_root.exists():
+            self._stage_path_cache[stage_id] = None
+            return None
+
+        # Check for exact SDLC 6.0.5 standard name first
+        expected_name = STAGE_NAMES.get(stage_id)
+        if expected_name:
+            exact_path = self.docs_root / expected_name
+            if exact_path.exists() and exact_path.is_dir():
+                self._stage_path_cache[stage_id] = exact_path
+                return exact_path
+
+        # Scan for any folder starting with stage ID prefix
+        prefix = f"{stage_id}-"
+        candidates: List[Path] = []
+        for item in self.docs_root.iterdir():
+            if item.is_dir() and item.name.startswith(prefix):
+                candidates.append(item)
+
+        if not candidates:
+            self._stage_path_cache[stage_id] = None
+            return None
+
+        if len(candidates) == 1:
+            self._stage_path_cache[stage_id] = candidates[0]
+            return candidates[0]
+
+        # Multiple candidates — apply precedence rules
+        logger.warning(
+            "Multiple folders match stage %s: %s. Using longest name (most specific).",
+            stage_id,
+            [c.name for c in candidates],
+        )
+        # Sort by name length descending (longest = most specific)
+        candidates.sort(key=lambda p: len(p.name), reverse=True)
+        self._stage_path_cache[stage_id] = candidates[0]
+        return candidates[0]
+
+    def _resolve_artifact_via_stage(self, artifact: P0Artifact) -> Optional[Path]:
+        """
+        Try to find a P0 artifact by resolving the stage folder name.
+
+        Replaces the standard stage prefix in the artifact's relative_path
+        with the actual folder name found on disk.
+
+        Args:
+            artifact: P0 artifact definition
+
+        Returns:
+            Resolved path if found, None otherwise
+        """
+        stage_folder = self._resolve_stage_path(artifact.stage_id)
+        if not stage_folder:
+            return None
+
+        expected_stage_name = STAGE_NAMES.get(artifact.stage_id)
+        if not expected_stage_name:
+            return None
+
+        # If resolved folder matches the expected name, no need for fuzzy
+        if stage_folder.name == expected_stage_name:
+            return None
+
+        # Build resolved path by replacing stage prefix in relative_path
+        rel_path = artifact.relative_path
+        if rel_path.startswith(expected_stage_name + "/"):
+            suffix = rel_path[len(expected_stage_name) + 1:]
+            resolved = stage_folder / suffix
+            return resolved
+
+        # Also try alternative paths with resolved stage folder
+        for alt_path in artifact.alternative_paths:
+            if alt_path.startswith(expected_stage_name + "/"):
+                suffix = alt_path[len(expected_stage_name) + 1:]
+                resolved = stage_folder / suffix
+                if resolved.exists() and resolved.is_file():
+                    return resolved
+
+        return None
 
     def _create_result(
         self, artifact: P0Artifact, path: Path, issues: List[str]
