@@ -1,5 +1,5 @@
 """
-SDLC 6.0.5 Validation Engine.
+SDLC 6.0.6 Validation Engine.
 
 Main orchestrator for SDLC structure validation.
 Combines folder scanning, tier detection, and P0 artifact checking.
@@ -99,7 +99,7 @@ class ValidationResult:
 
 class SDLCValidator:
     """
-    Main SDLC 6.0.5 Structure Validator.
+    Main SDLC 6.0.6 Structure Validator.
 
     Orchestrates validation of:
     - Folder structure (10 stages)
@@ -341,7 +341,7 @@ class SDLCValidator:
                             path=str(result.actual_path) if result.actual_path else None,
                             fix_suggestion=(
                                 f"Run 'sdlcctl fix --naming' to rename stage folder "
-                                f"to SDLC 6.0.5 standard: {result.artifact.relative_path}"
+                                f"to SDLC 6.0.6 standard: {result.artifact.relative_path}"
                             ),
                         )
                     )
@@ -364,7 +364,7 @@ class SDLCValidator:
     def _validate_legacy_folders(
         self, scan_result: ScanResult
     ) -> List[ValidationIssue]:
-        """Validate legacy/archive folder handling (RFC-001, SDLC 6.0.5)."""
+        """Validate legacy/archive folder handling (RFC-001, SDLC 6.0.6)."""
         issues: List[ValidationIssue] = []
 
         for legacy_path in scan_result.legacy_folders:
@@ -401,7 +401,7 @@ class SDLCValidator:
                     )
                 )
 
-        # RFC-001 (SDLC 6.0.5): Check for 99-Legacy in active stages — should be migrated
+        # RFC-001 (SDLC 6.0.6): Check for 99-Legacy in active stages — should be migrated
         for stage_id, stage_info in scan_result.stages_found.items():
             stage_legacy = stage_info.path / "99-Legacy"
             if stage_legacy.exists():
@@ -411,7 +411,7 @@ class SDLCValidator:
                         severity=ValidationSeverity.WARNING,
                         message=(
                             f"Stage {stage_id} has 99-Legacy/ folder. "
-                            "Per RFC-001 (SDLC 6.0.5), migrate to 10-archive/"
+                            "Per RFC-001 (SDLC 6.0.6), migrate to 10-archive/"
                             f"{stage_id}-Legacy/"
                         ),
                         stage_id=stage_id,
@@ -477,7 +477,7 @@ class SDLCValidator:
 
         lines = [
             "=" * 60,
-            "SDLC 6.0.5 Structure Validation Report",
+            "SDLC 6.0.6 Structure Validation Report",
             "=" * 60,
             "",
             f"Project: {result.project_root}",

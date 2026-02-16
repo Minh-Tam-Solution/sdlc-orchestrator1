@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/useCliTokens
  * @description TanStack Query hooks for CLI token management (Sprint 85)
- * @sdlc SDLC 5.1.3 Framework - Sprint 85 (CLI Authentication)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 85 (CLI Authentication)
  * @status Sprint 85 - CTO APPROVED (January 20, 2026)
  */
 

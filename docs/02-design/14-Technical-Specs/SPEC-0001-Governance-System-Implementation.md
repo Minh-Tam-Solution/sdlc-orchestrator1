@@ -2,14 +2,14 @@
 
 ---
 spec_id: SPEC-0001
-spec_version: 1.0.0
+version: 1.0.0
 title: Governance System Implementation Specification
 status: APPROVED
 tier: PROFESSIONAL
 stage: "04"
 category: technical
 created_date: 2026-01-28
-updated_date: 2026-01-28
+last_updated: 2026-01-28
 owner: Backend Lead
 reviewers:
   - QA Lead

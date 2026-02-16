@@ -5,7 +5,7 @@
  *
  * Version: 1.0.0
  * Date: January 28, 2026
- * Framework: SDLC 5.3.0 Quality Assurance System
+ * Framework: SDLC 6.0.6 Quality Assurance System
  * ADR Reference: ADR-041
  *
  * Purpose: Toggle governance enforcement mode (OFF/WARNING/SOFT/FULL)

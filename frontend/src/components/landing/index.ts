@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/components/landing
  * @description Barrel export for all landing page components
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 57 - Landing MVP
  */
 

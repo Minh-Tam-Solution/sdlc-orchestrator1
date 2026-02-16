@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/check-runs/loading
  * @description Loading skeleton for Check Runs page
- * @sdlc SDLC 5.1.3 Framework - Sprint 86 (GitHub Check Run UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 86 (GitHub Check Run UI)
  * @status Sprint 86 - CTO APPROVED (January 20, 2026)
  */
 

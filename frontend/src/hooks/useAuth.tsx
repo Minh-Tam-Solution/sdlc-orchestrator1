@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/hooks/useAuth
  * @description React hook for authentication state management
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 63 - httpOnly Cookie Migration
  */
 

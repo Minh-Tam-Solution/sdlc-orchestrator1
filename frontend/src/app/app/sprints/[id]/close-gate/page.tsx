@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/[id]/close-gate/page
  * @description G-Sprint-Close gate checklist with 24h documentation deadline
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Sprint Governance UI)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Sprint Governance UI)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 87 - Core Feature Implementation
  */
 
@@ -570,7 +570,7 @@ export default function GSprintCloseGatePage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">G-Sprint-Close Gate</h1>
             <p className="mt-1 text-sm text-gray-500">
-              SDLC 5.1.3 Pillar 2 - Sprint Close Gate with 24h Documentation Rule
+              SDLC 6.0.6 Pillar 2 - Sprint Close Gate with 24h Documentation Rule
             </p>
           </div>
           <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${getGateStatusColor(gateStatus)}`}>

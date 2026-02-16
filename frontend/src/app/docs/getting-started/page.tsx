@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/docs/getting-started/page
  * @description Comprehensive getting started guide with i18n support
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - i18n Localization
  */
 
@@ -19,7 +19,7 @@ import { useTranslations } from "next-intl";
 export default function GettingStartedPage() {
   const t = useTranslations("docs");
 
-  // Success stories from SDLC 5.1.3
+  // Success stories from SDLC 6.0.6
   const successStories = [
     { name: "BFlow", result: "$43M revenue, 827:1 ROI", industry: "SaaS" },
     { name: "NQH-Bot", result: "15B+ VND value", industry: "AI Assistant" },
@@ -205,7 +205,7 @@ sdlcctl --version`}</pre>
               <div className="bg-muted/30 rounded-lg p-6 overflow-x-auto mb-6">
                 <pre className="text-body-sm text-muted-foreground whitespace-pre">
 {`┌────────────────────────────────────────────────────────────────────┐
-│                    SDLC 5.1.2 - 10 STAGES                          │
+│                    SDLC 6.0.6 - 10 STAGES                          │
 ├────────────────────────────────────────────────────────────────────┤
 │  00 FOUNDATION  → Why are we building this?                        │
 │  01 PLANNING    → What exactly do we need?                         │

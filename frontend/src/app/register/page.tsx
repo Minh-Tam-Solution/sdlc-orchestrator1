@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/register/page
  * @description Registration form with email/password and OAuth validation
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - i18n Localization
  */
 

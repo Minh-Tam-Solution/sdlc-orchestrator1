@@ -5,9 +5,9 @@ version: 1.0.0
 status: CTO_APPROVED
 stage: 02-design
 tier: PROFESSIONAL
-author: PM/PJM Office
+owner: PM/PJM Office
 created: 2026-01-30
-updated: 2026-01-30
+last_updated: 2026-01-30
 sprint: 123
 priority: P0
 dependencies:

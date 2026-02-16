@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/plan-review/page
  * @description Planning session list with conformance scores and approval workflow
- * @sdlc SDLC 5.2.0 Framework - Sprint 99 (Planning Sub-agent Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 99 (Planning Sub-agent Part 2)
  * @reference ADR-034 Planning Sub-agent Orchestration
  * @status Sprint 99 - Implementation
  */
@@ -522,7 +522,7 @@ export default function PlanReviewPage() {
             </h4>
             <p className="mt-1 text-xs text-gray-500">
               Planning mode extracts codebase patterns, ADR constraints, and test
-              conventions before generating an implementation plan. Per SDLC 5.2.0,
+              conventions before generating an implementation plan. Per SDLC 6.0.6,
               planning mode is <strong>mandatory for changes &gt;15 LOC</strong> to
               prevent architectural drift.
             </p>

@@ -3,6 +3,7 @@ Codegen Service Orchestrator.
 
 Sprint 45: Multi-Provider Codegen Architecture (EP-06)
 Sprint 48: Quality Gates + Ollama Optimization + MVP Hardening
+Sprint 174: Context Cache Integration (Anthropic Best Practices)
 ADR-022: Provider-Agnostic Codegen Architecture
 
 This module implements the main orchestrator service for code generation.
@@ -359,6 +360,26 @@ class CodegenService:
                     return cached_result
             except Exception as e:
                 logger.warning(f"Cache lookup failed: {e}")
+
+        # Sprint 174: Inject cached SDLC context into spec options
+        try:
+            from app.services.context_cache_service import get_context_cache
+            context_cache = get_context_cache()
+            cached_context = await context_cache.get_or_assemble(
+                project_root=spec.options.get("project_root", "."),
+            )
+            if cached_context.context_text:
+                spec.options["sdlc_context"] = cached_context.context_text
+                spec.options["sdlc_context_hash"] = cached_context.context_hash
+                # Anthropic cache_control hint for Claude provider
+                cache_hint = context_cache.get_anthropic_cache_hint(cached_context)
+                spec.options["anthropic_cache_hint"] = cache_hint
+                logger.info(
+                    f"Context cache: {cached_context.token_estimate} tokens, "
+                    f"from_cache={cached_context.from_cache}"
+                )
+        except Exception as e:
+            logger.debug(f"Context cache injection skipped: {e}")
 
         # Sprint 106: Intent-based routing (if no explicit provider specified)
         if preferred_provider is None:

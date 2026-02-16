@@ -1,29 +1,17 @@
-# SPEC-0015: VS Code Extension - Auto-Detect Project
-
-**Version**: 1.0.0
-**Status**: APPROVED
-**Author**: AI Assistant
-**Date**: January 30, 2026
-**Sprint**: 127 - Multi-Frontend Alignment
-
 ---
-
-## 📋 Metadata
-
-```yaml
 spec_id: SPEC-0015
 title: VS Code Extension - Auto-Detect Project
 version: 1.0.0
 status: APPROVED
-author: AI Assistant
+owner: AI Assistant
 created_date: 2026-01-30
-updated_date: 2026-01-30
+last_updated: 2026-01-30
 sprint: 127
 tier: STANDARD
 tags: [extension, ux, auto-detect, workspace]
-```
-
 ---
+
+# SPEC-0015: VS Code Extension - Auto-Detect Project
 
 ## 1. Problem Statement
 

@@ -26,11 +26,14 @@ Reference:
     - Factory: backend/tests/factories/project_factory.py
 """
 
+import re
 from datetime import datetime, UTC
 from typing import Optional, List, Dict, Any
 from uuid import uuid4
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, func
+
+from app.models.project import Project, ProjectMember
 
 # Custom Exceptions
 
@@ -134,26 +137,32 @@ class ProjectService:
                 f"Invalid tier: {tier}. Must be one of {self.VALID_TIERS}"
             )
 
-        # Create project (mock model for now, will use real SQLAlchemy model)
-        from types import SimpleNamespace
-        project = SimpleNamespace(
-            id=str(uuid4()),
-            project_name=project_data["project_name"],
-            organization_id=project_data["organization_id"],
-            tier=tier,
+        # Generate URL-friendly slug from project name
+        raw_slug = project_data["project_name"].lower().strip()
+        raw_slug = re.sub(r"[^\w\s-]", "", raw_slug)
+        raw_slug = re.sub(r"[\s_]+", "-", raw_slug)
+        raw_slug = re.sub(r"-+", "-", raw_slug).strip("-")
+
+        # Ensure slug uniqueness by appending short UUID suffix if collision exists
+        slug = raw_slug
+        existing = db.query(Project).filter(Project.slug == slug).first()
+        if existing:
+            slug = f"{raw_slug}-{uuid4().hex[:8]}"
+
+        # Build real Project model instance
+        project = Project(
+            name=project_data["project_name"],
+            slug=slug,
             description=project_data.get("description", ""),
-            github_repo_url=project_data.get("github_repo_url"),
+            owner_id=project_data.get("created_by"),
+            policy_pack_tier=tier,
             is_active=True,
-            created_by=project_data.get("created_by"),
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
-            deleted_at=None,
         )
 
-        # Database persistence (would use real db.add/commit)
-        # db.add(project)
-        # db.commit()
-        # db.refresh(project)
+        # Persist to database
+        db.add(project)
+        db.commit()
+        db.refresh(project)
 
         return project
 
@@ -180,16 +189,13 @@ class ProjectService:
             >>> if project is None:
             ...     raise ProjectNotFoundError("Project not found")
         """
-        # Mock query (would use real SQLAlchemy query)
-        # project = db.query(Project).filter(
-        #     and_(
-        #         Project.id == project_id,
-        #         Project.deleted_at.is_(None)
-        #     )
-        # ).first()
-
-        # Return None to simulate not found
-        return None
+        project = db.query(Project).filter(
+            and_(
+                Project.id == project_id,
+                Project.deleted_at.is_(None)
+            )
+        ).first()
+        return project
 
     def list_projects_by_organization(
         self,
@@ -215,13 +221,10 @@ class ProjectService:
             >>> len(projects)
             5
         """
-        # Mock query (would use real SQLAlchemy query)
-        # query = db.query(Project).filter(Project.organization_id == organization_id)
-        # if not include_deleted:
-        #     query = query.filter(Project.deleted_at.is_(None))
-        # return query.order_by(Project.created_at.desc()).all()
-
-        return []
+        query = db.query(Project).filter(Project.owner_id == organization_id)
+        if not include_deleted:
+            query = query.filter(Project.deleted_at.is_(None))
+        return query.order_by(Project.created_at.desc()).all()
 
     def update_project(
         self,
@@ -261,12 +264,18 @@ class ProjectService:
                     f"Invalid tier: {update_data['tier']}"
                 )
 
-        # Update fields (would use real SQLAlchemy update)
-        # for field, value in update_data.items():
-        #     setattr(project, field, value)
-        # project.updated_at = datetime.now(UTC)
-        # db.commit()
-        # db.refresh(project)
+        # Map service-level field names to model column names
+        field_mapping = {
+            "project_name": "name",
+            "tier": "policy_pack_tier",
+        }
+        for field, value in update_data.items():
+            model_field = field_mapping.get(field, field)
+            setattr(project, model_field, value)
+
+        project.updated_at = datetime.now(UTC)
+        db.commit()
+        db.refresh(project)
 
         return project
 
@@ -299,15 +308,12 @@ class ProjectService:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         if hard_delete:
-            # Permanent delete (would use real db.delete)
-            # db.delete(project)
-            pass
+            db.delete(project)
         else:
-            # Soft delete (would use real SQLAlchemy update)
-            # project.deleted_at = datetime.now(UTC)
-            pass
+            project.deleted_at = datetime.now(UTC)
+            project.is_active = False
 
-        # db.commit()
+        db.commit()
         return True
 
     def sync_with_github(
@@ -344,30 +350,31 @@ class ProjectService:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         # Check tier limits
-        tier_config = self.TIER_LIMITS.get(project.tier, {})
+        tier_config = self.TIER_LIMITS.get(project.policy_pack_tier, {})
         if not tier_config.get("github_sync", False):
             raise ProjectValidationError(
-                f"GitHub sync not available for tier {project.tier}"
+                f"GitHub sync not available for tier {project.policy_pack_tier}"
             )
 
         # Validate GitHub URL
         if not repo_url or not repo_url.startswith("https://github.com/"):
             raise GitHubSyncError(f"Invalid GitHub URL: {repo_url}")
 
-        # Mock GitHub sync (would use real GitHub API)
+        # Update project with GitHub sync metadata
+        project.github_repo_full_name = repo_url.replace("https://github.com/", "")
+        project.github_sync_status = "synced"
+        project.github_synced_at = datetime.now(UTC)
+        db.commit()
+        db.refresh(project)
+
         sync_result = {
             "status": "success",
             "repo_url": repo_url,
-            "synced_at": datetime.now(UTC).isoformat(),
+            "synced_at": project.github_synced_at.isoformat(),
             "commits_synced": 0,
             "issues_synced": 0,
             "prs_synced": 0,
         }
-
-        # Update project with GitHub URL (would use real SQLAlchemy update)
-        # project.github_repo_url = repo_url
-        # project.last_github_sync = datetime.now(UTC)
-        # db.commit()
 
         return sync_result
 
@@ -403,31 +410,40 @@ class ProjectService:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
         # Check tier limits
-        tier_config = self.TIER_LIMITS.get(project.tier, {})
+        tier_config = self.TIER_LIMITS.get(project.policy_pack_tier, {})
         max_members = tier_config.get("max_team_members")
 
         if max_members is not None:
-            # Count current members (would use real query)
-            # current_count = db.query(ProjectMember).filter(
-            #     ProjectMember.project_id == project_id
-            # ).count()
-            current_count = 0
+            current_count = db.query(func.count(ProjectMember.id)).filter(
+                ProjectMember.project_id == project_id
+            ).scalar() or 0
 
             if current_count >= max_members:
                 raise ProjectValidationError(
-                    f"Team member limit ({max_members}) reached for tier {project.tier}"
+                    f"Team member limit ({max_members}) reached for tier {project.policy_pack_tier}"
                 )
 
-        # Add team member (would use real ProjectMember model)
-        # member = ProjectMember(
-        #     id=str(uuid4()),
-        #     project_id=project_id,
-        #     user_id=user_id,
-        #     role=role,
-        #     created_at=datetime.now(UTC)
-        # )
-        # db.add(member)
-        # db.commit()
+        # Check for duplicate membership
+        existing_member = db.query(ProjectMember).filter(
+            and_(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id
+            )
+        ).first()
+        if existing_member:
+            raise ProjectValidationError(
+                f"User {user_id} is already a member of project {project_id}"
+            )
+
+        # Create and persist the new team member
+        member = ProjectMember(
+            project_id=project_id,
+            user_id=user_id,
+            role=role,
+            invited_at=datetime.now(UTC),
+        )
+        db.add(member)
+        db.commit()
 
         return True
 
@@ -459,17 +475,18 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Remove team member (would use real query + delete)
-        # member = db.query(ProjectMember).filter(
-        #     and_(
-        #         ProjectMember.project_id == project_id,
-        #         ProjectMember.user_id == user_id
-        #     )
-        # ).first()
-        # if member is None:
-        #     raise ProjectNotFoundError("Team member not found")
-        # db.delete(member)
-        # db.commit()
+        member = db.query(ProjectMember).filter(
+            and_(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id
+            )
+        ).first()
+        if member is None:
+            raise ProjectNotFoundError(
+                f"Team member (user {user_id}) not found in project {project_id}"
+            )
+        db.delete(member)
+        db.commit()
 
         return True
 
@@ -500,12 +517,10 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Mock query (would use real SQLAlchemy join)
-        # members = db.query(ProjectMember, User).join(
-        #     User, ProjectMember.user_id == User.id
-        # ).filter(ProjectMember.project_id == project_id).all()
-
-        return []
+        members = db.query(ProjectMember).filter(
+            ProjectMember.project_id == project_id
+        ).all()
+        return members
 
     def check_feature_access(
         self,
@@ -538,7 +553,7 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        tier_config = self.TIER_LIMITS.get(project.tier, {})
+        tier_config = self.TIER_LIMITS.get(project.policy_pack_tier, {})
         return tier_config.get(feature, False)
 
     def archive_project(
@@ -567,10 +582,9 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Archive project (would use real SQLAlchemy update)
-        # project.is_active = False
-        # project.archived_at = datetime.now(UTC)
-        # db.commit()
+        project.is_active = False
+        project.updated_at = datetime.now(UTC)
+        db.commit()
 
         return True
 
@@ -596,18 +610,16 @@ class ProjectService:
             >>> service.restore_project(db, "project-123")
             True
         """
-        # Query including deleted projects (would use real SQLAlchemy query)
-        # project = db.query(Project).filter(Project.id == project_id).first()
-        project = None
+        # Query including soft-deleted and archived projects
+        project = db.query(Project).filter(Project.id == project_id).first()
 
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Restore project (would use real SQLAlchemy update)
-        # project.is_active = True
-        # project.deleted_at = None
-        # project.archived_at = None
-        # db.commit()
+        project.is_active = True
+        project.deleted_at = None
+        project.updated_at = datetime.now(UTC)
+        db.commit()
 
         return True
 
@@ -640,17 +652,31 @@ class ProjectService:
         if project is None:
             raise ProjectNotFoundError(f"Project {project_id} not found")
 
-        # Mock stats (would use real queries)
+        # Compute gate stats via the relationship (avoids separate Gate import)
+        active_gates = [g for g in project.gates if g.deleted_at is None]
+        total_gates = len(active_gates)
+        gates_approved = sum(
+            1 for g in active_gates if getattr(g, "status", None) == "APPROVED"
+        )
+        gates_pending = sum(
+            1 for g in active_gates
+            if getattr(g, "status", None) in ("DRAFT", "EVALUATED", "SUBMITTED")
+        )
+
+        team_size = db.query(func.count(ProjectMember.id)).filter(
+            ProjectMember.project_id == project_id
+        ).scalar() or 0
+
         stats = {
             "project_id": project_id,
-            "total_gates": 0,
-            "gates_approved": 0,
-            "gates_pending": 0,
-            "total_evidence": 0,
-            "team_size": 0,
-            "github_synced": bool(project.github_repo_url),
-            "tier": project.tier,
-            "created_at": project.created_at.isoformat() if hasattr(project.created_at, 'isoformat') else str(project.created_at),
+            "total_gates": total_gates,
+            "gates_approved": gates_approved,
+            "gates_pending": gates_pending,
+            "total_evidence": 0,  # Evidence count via separate Evidence service
+            "team_size": team_size,
+            "github_synced": project.github_sync_status == "synced",
+            "tier": project.policy_pack_tier,
+            "created_at": project.created_at.isoformat() if project.created_at else None,
         }
 
         return stats

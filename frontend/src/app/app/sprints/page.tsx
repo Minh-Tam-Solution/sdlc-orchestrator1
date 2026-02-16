@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/page
  * @description Main Sprint Governance dashboard showing active sprint, gates, and metrics
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Sprint Governance UI)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Sprint Governance UI)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 87 - Core Feature Implementation
  */
 
@@ -367,7 +367,7 @@ function EmptyState() {
       <CalendarIcon className="mb-4 h-12 w-12 text-gray-400" />
       <h3 className="mb-2 text-lg font-semibold text-gray-900">No Active Sprint</h3>
       <p className="mb-6 max-w-sm text-center text-sm text-gray-500">
-        Create your first sprint to start tracking progress with SDLC 5.1.3 Sprint Governance.
+        Create your first sprint to start tracking progress with SDLC 6.0.6 Sprint Governance.
       </p>
       <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
         <PlusIcon className="h-4 w-4" />
@@ -420,7 +420,7 @@ export default function SprintGovernanceDashboard() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Sprint Governance</h1>
-            <p className="text-sm text-gray-500">SDLC 5.1.3 Pillar 2 - Sprint Planning Governance</p>
+            <p className="text-sm text-gray-500">SDLC 6.0.6 Pillar 2 - Sprint Planning Governance</p>
           </div>
         </div>
         <LoadingSkeleton />
@@ -467,7 +467,7 @@ export default function SprintGovernanceDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sprint Governance</h1>
           <p className="text-sm text-gray-500">
-            SDLC 5.1.3 Pillar 2 - Sprint Planning Governance • {firstProject.name}
+            SDLC 6.0.6 Pillar 2 - Sprint Planning Governance • {firstProject.name}
           </p>
         </div>
         <div className="flex items-center gap-3">

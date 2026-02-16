@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/page
  * @description Main landing page with all sections per approved Design Spec v1.1.0
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 57 - Landing MVP
  * @approved CTO December 26, 2025 (G2 CONDITIONAL PASS)
  */

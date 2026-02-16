@@ -1,13 +1,17 @@
-# SPEC-0024: VCR/CRP Technical Specification
-
-**Status**: APPROVED
-**Version**: 1.0.0
-**Date**: February 5, 2026
-**Sprint**: 151 (SASE Artifacts Enhancement)
-**Author**: Backend Lead
-**ADR Reference**: [ADR-048](../01-ADRs/ADR-048-SASE-VCR-CRP-Architecture.md)
-
 ---
+spec_id: SPEC-0024
+title: VCR/CRP Technical Specification
+version: 1.0.0
+status: APPROVED
+tier: PROFESSIONAL
+owner: Backend Lead
+last_updated: 2026-02-05
+sprint: 151 (SASE Artifacts Enhancement)
+related_adrs:
+  - ADR-048-SASE-VCR-CRP-Architecture
+---
+
+# SPEC-0024: VCR/CRP Technical Specification
 
 ## Overview
 

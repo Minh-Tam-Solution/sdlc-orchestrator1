@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/components/landing/Header
  * @description Sticky header with navigation and language toggle
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - Auth-aware Header
  */
 

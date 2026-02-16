@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/reset-password/page
  * @description Reset password with token from email
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - Password Reset Feature
  */
 

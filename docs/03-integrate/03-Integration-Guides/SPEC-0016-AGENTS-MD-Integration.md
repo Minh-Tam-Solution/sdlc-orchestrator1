@@ -1,8 +1,4 @@
-# SPEC-0016: AGENTS.md Integration Specification
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0016
 title: AGENTS.md Integration - Static + Dynamic AI Context Governance
 version: 2.0.0
@@ -23,9 +19,9 @@ related_specs:
 epic: EP-07 AGENTS.md Framework
 sprint: Sprint 80
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/AGENTS-MD-Integration-Specification.md"
-```
-
 ---
+
+# SPEC-0016: AGENTS.md Integration Specification
 
 ## Executive Summary
 

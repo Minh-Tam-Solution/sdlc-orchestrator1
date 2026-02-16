@@ -138,7 +138,7 @@ async def list_check_runs(
         CheckRunsResponse: Paginated list of check runs
     """
     try:
-        # PLACEHOLDER: Check runs feature planned for Sprint 86-87
+        # Check runs: Returns empty until check_runs table is created
         # This endpoint returns empty data until database table is created
 
         logger.info(f"Check runs list requested by user {current_user.id}")
@@ -182,7 +182,7 @@ async def get_check_run_stats(
         CheckRunStats: Aggregate statistics for check runs
     """
     try:
-        # PLACEHOLDER: Check runs feature planned for Sprint 86-87
+        # Check runs: Returns empty until check_runs table is created
         # This endpoint returns zero stats until database table is created
 
         logger.info(
@@ -237,7 +237,7 @@ async def get_check_run(
         dict: Check run detail with gate results
     """
     try:
-        # PLACEHOLDER: Check runs feature planned for Sprint 86-87
+        # Check runs: Returns empty until check_runs table is created
         # This endpoint returns 404 until database table is created
 
         logger.info(f"Check run detail requested: {check_run_id}")
@@ -279,7 +279,7 @@ async def rerun_check_run(
         dict: New check run result
     """
     try:
-        # PLACEHOLDER: Check runs feature planned for Sprint 86-87
+        # Check runs: Returns empty until check_runs table is created
         # This endpoint returns 404 until database table is created
 
         logger.info(f"Check run rerun requested: {check_run_id} (force={force})")

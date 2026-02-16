@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/(dashboard)/page
  * @description Main dashboard overview with stats and quick actions
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 62 - Route Group Migration (Real API)
  */
 

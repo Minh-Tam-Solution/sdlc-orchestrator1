@@ -1,14 +1,18 @@
-# SPEC-0021: Stage Consistency Validation Service
-
-**Version**: 1.0.0
-**Status**: DRAFT
-**Created**: February 1, 2026
-**Framework Version**: SDLC 6.0.5
-**Type**: Service Specification
-**Owner**: CTO Office + QA Team (BFlow)
-**Approval**: Pending
-
 ---
+spec_id: SPEC-0021
+title: Stage Consistency Validation Service
+version: 1.0.0
+status: DRAFT
+tier: PROFESSIONAL
+owner: CTO Office + QA Team (BFlow)
+last_updated: 2026-02-01
+created: 2026-02-01
+framework_version: SDLC 6.0.5
+type: Service Specification
+approval: Pending
+---
+
+# SPEC-0021: Stage Consistency Validation Service
 
 ## Executive Summary
 

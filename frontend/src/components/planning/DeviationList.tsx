@@ -3,7 +3,7 @@
  *
  * @module frontend/src/components/planning/DeviationList
  * @description Table component for displaying pattern deviations
- * @sdlc SDLC 5.2.0 Framework - Sprint 99 (Planning Sub-agent Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 99 (Planning Sub-agent Part 2)
  */
 
 import { cn } from "@/lib/utils";

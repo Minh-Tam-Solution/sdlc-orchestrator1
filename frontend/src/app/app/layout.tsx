@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/app/layout
  * @description Protected layout for the main Web App
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 88 - Platform Admin Privacy Fix (Day 1 Task 2)
  * @security Requires authentication + NON-PLATFORM-ADMIN user
  */

@@ -1,5 +1,5 @@
 """
-SDLC 6.0.5 P0 Artifact Checker.
+SDLC 6.0.6 P0 Artifact Checker.
 
 Validates presence of 15 P0 (Priority 0) artifacts for AI discoverability.
 These are the minimum required documents for AI assistants to understand a project.
@@ -55,7 +55,7 @@ class P0ValidationResult:
     is_compliant: bool = False
 
 
-# 15 P0 Artifacts defined by SDLC 6.0.5
+# 15 P0 Artifacts defined by SDLC 6.0.6
 P0_ARTIFACTS: List[P0Artifact] = [
     # Stage 00: Project Foundation
     P0Artifact(
@@ -210,7 +210,7 @@ P0_ARTIFACTS: List[P0Artifact] = [
 
 class P0ArtifactChecker:
     """
-    Checker for SDLC 6.0.5 P0 (Priority 0) artifacts.
+    Checker for SDLC 6.0.6 P0 (Priority 0) artifacts.
 
     P0 artifacts are the minimum required documents for AI assistants
     to understand and navigate a project effectively.
@@ -296,7 +296,7 @@ class P0ArtifactChecker:
         Check a single P0 artifact.
 
         Tries three resolution strategies in order:
-        1. Primary path (exact SDLC 6.0.5 match)
+        1. Primary path (exact SDLC 6.0.6 match)
         2. Alternative paths (known variations)
         3. Fuzzy stage resolution (legacy/non-standard folder names)
 
@@ -308,7 +308,7 @@ class P0ArtifactChecker:
         """
         issues: List[str] = []
 
-        # Strategy 1: Try primary path (exact SDLC 6.0.5 match)
+        # Strategy 1: Try primary path (exact SDLC 6.0.6 match)
         primary_path = self.docs_root / artifact.relative_path
         if primary_path.exists() and primary_path.is_file():
             return self._create_result(artifact, primary_path, issues)
@@ -329,7 +329,7 @@ class P0ArtifactChecker:
             issues.append(
                 f"Found at legacy path: {rel_path} "
                 f"(expected: {artifact.relative_path}). "
-                f"Run 'sdlcctl fix --naming' to rename to SDLC 6.0.5 standard."
+                f"Run 'sdlcctl fix --naming' to rename to SDLC 6.0.6 standard."
             )
             return self._create_result(artifact, resolved_path, issues)
 
@@ -350,7 +350,7 @@ class P0ArtifactChecker:
 
         Uses caching to avoid repeated filesystem scans.
         Applies precedence rules when multiple folders match:
-        1. Exact SDLC 6.0.5 name match (e.g., 02-design)
+        1. Exact SDLC 6.0.6 name match (e.g., 02-design)
         2. Longest match (most specific name)
         3. Logs warning if multiple candidates found
 
@@ -367,7 +367,7 @@ class P0ArtifactChecker:
             self._stage_path_cache[stage_id] = None
             return None
 
-        # Check for exact SDLC 6.0.5 standard name first
+        # Check for exact SDLC 6.0.6 standard name first
         expected_name = STAGE_NAMES.get(stage_id)
         if expected_name:
             exact_path = self.docs_root / expected_name
@@ -576,7 +576,7 @@ class P0ArtifactChecker:
 **Version**: 5.0.0
 **Stage**: {stage_id} - {stage_name}
 **Status**: DRAFT
-**Framework**: SDLC 6.0.5 Complete Lifecycle
+**Framework**: SDLC 6.0.6 Complete Lifecycle
 
 ---
 
@@ -595,7 +595,7 @@ class P0ArtifactChecker:
 ├── 02-[Subfolder]/                   # [Description]
 ```
 
-Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDLC 6.0.5).
+Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDLC 6.0.6).
 
 ---
 
@@ -619,7 +619,7 @@ Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDL
 ---
 
 **Document Status**: P0 Entry Point
-**Compliance**: SDLC 6.0.5 Stage {stage_id}
+**Compliance**: SDLC 6.0.6 Stage {stage_id}
 **Last Updated**: [Date]
 **Owner**: [Role]
 
@@ -677,7 +677,7 @@ Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDL
 ---
 
 **Document Status**: P0 Artifact
-**Compliance**: SDLC 6.0.5 Stage 00
+**Compliance**: SDLC 6.0.6 Stage 00
 **Last Updated**: [Date]
 
 """
@@ -743,7 +743,7 @@ Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDL
 ---
 
 **Document Status**: P0 Artifact
-**Compliance**: SDLC 6.0.5 Stage 01
+**Compliance**: SDLC 6.0.6 Stage 01
 **Last Updated**: [Date]
 
 """
@@ -816,7 +816,7 @@ Legacy content archived in `docs/10-archive/{stage_id}-Legacy/` per RFC-001 (SDL
 ---
 
 **Document Status**: P0 Artifact
-**Compliance**: SDLC 6.0.5 Stage 02
+**Compliance**: SDLC 6.0.6 Stage 02
 **Last Updated**: [Date]
 
 """
@@ -906,7 +906,7 @@ security:
 ---
 
 **Document Status**: P0 Artifact
-**Compliance**: SDLC 6.0.5 Stage {artifact.stage_id}
+**Compliance**: SDLC 6.0.6 Stage {artifact.stage_id}
 **Last Updated**: [Date]
 
 """

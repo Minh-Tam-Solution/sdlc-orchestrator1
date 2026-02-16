@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/components/admin/AdminSidebar
  * @description Admin-only navigation sidebar
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - Route Restructure
  */
 

@@ -1,8 +1,4 @@
-# SPEC-0015: Governance Metrics & Dashboards Specification
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0015
 title: Governance Metrics & Dashboards - Observable Quality Governance
 version: 2.0.0
@@ -24,9 +20,9 @@ related_specs:
 epic: Governance Observability
 sprint: Sprint 70-75
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Governance-Metrics-Dashboards.md"
-```
-
 ---
+
+# SPEC-0015: Governance Metrics & Dashboards Specification
 
 ## Executive Summary
 

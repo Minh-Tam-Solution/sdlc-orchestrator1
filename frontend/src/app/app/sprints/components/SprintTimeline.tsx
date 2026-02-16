@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/components/SprintTimeline
  * @description Gantt-style timeline visualization of sprints within phases
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Days 6-7: Planning Hierarchy Visualization)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Days 6-7: Planning Hierarchy Visualization)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 87 - Core Feature Implementation
  */
 

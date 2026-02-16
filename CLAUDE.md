@@ -1,13 +1,13 @@
 # CLAUDE AI PROJECT CONTEXT - SDLC ORCHESTRATOR
 ## AI Assistant Configuration for Software 3.0 Operating System
 
-**Version**: 3.3.0
+**Version**: 3.5.0
 **Status**: Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 147 - Spring Cleaning
-**Effective Date**: February 3, 2026
+**Current Sprint**: Sprint 174 - Anthropic Best Practices Integration
+**Effective Date**: February 17, 2026
 **Project**: SDLC Orchestrator - Operating System for Software 3.0
 **Authority**: CTO + CPO + CEO Approved
-**Framework**: SDLC 6.0.5 (7-Pillar + Section 7 Quality Assurance + Section 8 Specification Standard)
+**Framework**: SDLC 6.0.6 (7-Pillar + Section 7 Quality Assurance + Section 8 Specification Standard)
 **SE 3.0 Status**: Track 1 APPROVED - SASE Integration Complete
 **EP-06 Status**: IR-Based Codegen Engine - Sprint 45-50 (~$50K investment)
 
@@ -35,14 +35,14 @@ SDLC Orchestrator is the **Operating System for Software 3.0** - a control plane
 
 ```yaml
 Current Stage: Stage 04 (BUILD - Development & Implementation)
-Current Sprint: Sprint 147 - Spring Cleaning
+Current Sprint: Sprint 174 - Anthropic Best Practices Integration
 Gate G3 Readiness: 98.2% (EXCEEDS 95% threshold)
 Timeline: 90 days MVP + 6 sprints EP-06 extension
 Budget: $564K (8.5 FTE team) + $50K EP-06 investment
 Target: Vietnam SME Pilot (5 founding customers)
-Framework: SDLC 6.0.5 (7-Pillar + Section 7 Quality Assurance + Section 8 Specification Standard)
+Framework: SDLC 6.0.6 (7-Pillar + Section 7 Quality Assurance + Section 8 Specification Standard)
 
-SDLC 6.0.5 Key Features:
+SDLC 6.0.6 Key Features:
   ✅ 7-Pillar Architecture + Section 7 (Quality Assurance System)
   ✅ Stage Dependency Matrix (ADR-041) - Explicit stage prerequisites
   ✅ Stage Exit Criteria - Documentation, evidence, signoff per tier
@@ -99,13 +99,13 @@ Next Gate:
 
 ## 🤖 **YOUR ROLE AS AI ASSISTANT**
 
-You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 6.0.5. Your primary responsibilities:
+You are an **AI Development Partner** working with the SDLC Orchestrator team to build the **first governance platform** on SDLC 6.0.6. Your primary responsibilities:
 
 ### **1. Code Generation & Implementation**
 - Generate **production-ready code** (Python FastAPI, React TypeScript, PostgreSQL)
 - Follow **Zero Mock Policy** (no `// TODO`, no placeholders, real implementations only)
 - Integrate with **OSS components** (OPA, MinIO, Grafana, Redis) via adapter pattern
-- Apply **SDLC 6.0.5 patterns** with 7-Pillar Architecture, AI Governance Principles, and Risk-Based Planning
+- Apply **SDLC 6.0.6 patterns** with 7-Pillar Architecture, AI Governance Principles, and Risk-Based Planning
 - Follow **Code File Naming Standards** (snake_case for Python ≤50 chars, camelCase/PascalCase for TypeScript)
 
 ### **2. Architecture & Design Review**
@@ -162,7 +162,7 @@ Framework Submodule:
   URL: https://github.com/Minh-Tam-Solution/SDLC-Enterprise-Framework
   Location: /home/nqh/shared/SDLC-Orchestrator/SDLC-Enterprise-Framework/
   Type: Git submodule
-  Version: SDLC 6.0.5 (7-Pillar + AI Governance Principles)
+  Version: SDLC 6.0.6 (7-Pillar + AI Governance Principles)
   Purpose: Methodology layer, templates, best practices
 ```
 
@@ -194,7 +194,7 @@ mkdir -p 03-Templates-Tools/SASE-Artifacts
 
 # Commit to Framework repo
 git add .
-git commit -m "feat(SDLC 6.0.5): Add SASE artifact templates"
+git commit -m "feat(SDLC 6.0.6): Add SASE artifact templates"
 git push origin main
 
 # Update Orchestrator submodule pointer
@@ -410,7 +410,7 @@ Core Capabilities (ADR-011 to ADR-014):
      - CLI tool: sdlcctl validate/fix/init/report
      - Pre-commit hook (block non-compliant commits)
      - CI/CD gate (GitHub Actions integration)
-     - 100% SDLC 6.0.5 folder structure enforcement
+     - 100% SDLC 6.0.6 folder structure enforcement
 ```
 
 ---
@@ -558,7 +558,7 @@ Frontend:
   Component render: <100ms
 ```
 
-### **4. Code File Naming Standards (SDLC 6.0.5 - MANDATORY)**
+### **4. Code File Naming Standards (SDLC 6.0.6 - MANDATORY)**
 
 ```yaml
 Python Files:
@@ -784,7 +784,7 @@ Code Quality:
   - Pre-commit: Linting (ruff, ESLint) + formatting (black, Prettier)
   - CI/CD: Tests (95%+ coverage), security scan (Semgrep), SBOM (Syft)
   - Code review: 2+ approvers required (Tech Lead + Backend Lead)
-  - File naming: SDLC 6.0.5 Code File Naming Standards enforced
+  - File naming: SDLC 6.0.6 Code File Naming Standards enforced
 
 Performance:
   - Load test: 100K concurrent users (Locust)
@@ -916,7 +916,7 @@ PHASE-04: SDLC Validator (Sprint 29-30 - Jan 2026)
     - Web UI compliance report
   Success Criteria:
     - Validation <10s (1000+ files)
-    - 100% accuracy on SDLC 6.0.5
+    - 100% accuracy on SDLC 6.0.6
     - Pre-commit <2s
   Reference: docs/03-Development-Implementation/04-Phase-Plans/PHASE-04-SDLC-VALIDATOR.md
 ```
@@ -962,7 +962,7 @@ ADR-013: 4-Level Planning Hierarchy
 ADR-014: SDLC Structure Validator
   - Problem: 5 NQH projects have inconsistent folder structures
   - Decision: CLI + pre-commit + CI/CD enforcement
-  - Consequences: 100% SDLC 6.0.5 compliance across portfolio
+  - Consequences: 100% SDLC 6.0.6 compliance across portfolio
 ```
 
 ---
@@ -1061,7 +1061,7 @@ As Claude AI working on SDLC Orchestrator, you MUST:
 - Understand **4-Phase implementation** (Sprint 26-30)
 - Apply **Context-Aware Requirements** (MANDATORY/RECOMMENDED/OPTIONAL)
 - Follow **4-Level Planning Hierarchy** (Roadmap → Phase → Sprint → Backlog)
-- Enforce **SDLC 6.0.5 folder structure** (10 stages: 00-10, 4-Tier Classification)
+- Enforce **SDLC 6.0.6 folder structure** (10 stages: 00-10, 4-Tier Classification)
 - Reference **ADR-011 to ADR-014** for AI Governance decisions
 
 ### **7. EP-06 Codegen Awareness (Sprint 45-50 - NEW)**
@@ -1078,7 +1078,7 @@ As Claude AI working on SDLC Orchestrator, you MUST:
 
 Based on expert workflow analysis (Jan 2026), these practices maximize AI-assisted development effectiveness.
 
-### **1. Planning Mode (SDLC 6.0.5 - RISK-BASED TRIGGERS)**
+### **1. Planning Mode (SDLC 6.0.6 - RISK-BASED TRIGGERS)**
 
 ```yaml
 When to Use Planning Mode (MANDATORY - Risk-Based):
@@ -1246,6 +1246,470 @@ Continuous Improvement:
 
 ---
 
+## 🏗️ **MODULE ZONES** (PRO Tier — Sprint 174)
+
+*Following SDLC 6.0.6 CLAUDE.md Standard (Framework: 03-AI-GOVERNANCE/10-CLAUDE-MD-STANDARD.md)*
+
+### **Module 1: Gate Engine API**
+
+**Purpose**: Quality Gate lifecycle management — the core governance mechanism that enforces evidence-based development through 4 gates (G1-G4).
+
+**Key Files**:
+- `backend/app/api/routes/gates.py` — Gate CRUD + lifecycle endpoints (52KB, largest route file)
+- `backend/app/services/gate_service.py` — Gate business logic (create, evaluate, submit, approve, reject)
+- `backend/app/services/governance/gates_engine.py` — OPA-powered gate evaluation with Context Authority V2
+- `backend/app/models/gate.py` — SQLAlchemy model (30 fields, JSONB exit_criteria)
+- `backend/app/schemas/gate.py` — Pydantic request/response schemas
+- `backend/app/models/gate_approval.py` — Multi-approver workflow model
+
+**State Machine** (Sprint 173 — ADR-053):
+```
+DRAFT ──evaluate──> EVALUATED ──submit──> SUBMITTED ──approve──> APPROVED
+                        │                     │
+                        │                     └──reject──> REJECTED
+                        │
+                        └──(24h stale)──> EVALUATED_STALE
+                                               │
+                                               └──re-evaluate──> EVALUATED
+
+All terminal states ──archive──> ARCHIVED
+```
+
+**Gate Types** (SDLC 6.0.6):
+- G0.1: Foundation Ready (WHY stage)
+- G0.2: Solution Diversity (WHY stage)
+- G1: Design Ready / Consultation (WHAT stage)
+- G2: Security + Architecture (HOW stage)
+- G3: Ship Ready (BUILD stage)
+- G4: Production Validation (DEPLOY stage)
+
+**Common Tasks**:
+1. **Create a gate**: `POST /api/v1/gates` with `{"project_id": 1, "gate_type": "G1_CONSULTATION"}`
+2. **Evaluate gate**: `POST /api/v1/gates/{gate_id}/evaluate` — triggers OPA policy check
+3. **Submit for approval**: `POST /api/v1/gates/{gate_id}/submit`
+4. **Approve gate**: `POST /api/v1/gates/{gate_id}/approve`
+5. **Check policy result**: `GET /api/v1/gates/{gate_id}/policy-result`
+6. **Compute available actions**: `gate_service.compute_gate_actions(gate)` — returns valid state transitions
+
+**Debugging**:
+- **Issue**: BaseHTTPMiddleware hangs on unhandled exceptions in FastAPI 0.100+
+  - **Root Cause**: Starlette event loop conflict — `AttributeError` inside middleware causes indefinite hang instead of clean 500 error
+  - **Fix**: Use pure ASGI middleware OR ensure all exceptions are caught before reaching middleware layer
+  - **Sprint 173 fix**: `action_timestamp = approval.rejected_at or approval.approved_at` in reject endpoint (line ~1351)
+
+- **Issue**: Redis connection errors in tests
+  - **Fix**: Use comprehensive `AsyncMock` for all Redis methods (`get`, `set`, `delete`, `setex`, `expire`, `exists`, `keys`)
+  - **Example**: See `backend/tests/e2e/test_governance_loop_e2e.py` for full Redis mock setup
+
+- **Issue**: EVALUATED_STALE not triggering
+  - **Root Cause**: 24-hour TTL check runs via background task, not real-time
+  - **Fix**: Check `gate.evaluated_at` timestamp in gate_service before allowing submit
+
+**Tests**:
+```bash
+# Unit tests (gate service logic)
+DATABASE_URL="postgresql://test:test@localhost:15432/sdlc_test" \
+  python -m pytest backend/tests/unit/test_gate_service.py -v
+
+# E2E tests (full governance loop across 3 interfaces)
+DATABASE_URL="postgresql://test:test@localhost:15432/sdlc_test" \
+  python -m pytest backend/tests/e2e/test_governance_loop_e2e.py -v
+
+# Quick gate API tests
+python -m pytest backend/tests/quick-tests/ -k "gate" -v
+```
+
+**Dependencies**:
+- **Upstream**: PostgreSQL 15.5 (port 15432), Redis 7.2 (port 6395), OPA 0.58 (port 8185)
+- **Downstream**: Evidence Vault (evidence binding), AI Context Engine (gate-aware prompts), Frontend Dashboard (gate status display)
+- **Integration**: OPA policies in `backend/policy-packs/rego/gates/`
+
+---
+
+### **Module 2: Evidence Vault API**
+
+**Purpose**: Immutable evidence storage with SHA256 integrity verification and 8-state lifecycle. Stores all Quality Gate artifacts (SAST reports, test results, code reviews, deployment proofs).
+
+**Key Files**:
+- `backend/app/api/routes/evidence.py` — Evidence upload/retrieve/search endpoints
+- `backend/app/services/evidence_manifest_service.py` — Manifest management (36KB)
+- `backend/app/services/minio_service.py` — S3-compatible MinIO adapter (boto3, AGPL-safe)
+- `backend/app/models/gate_evidence.py` — Evidence model + EvidenceIntegrityCheck
+- `backend/app/schemas/evidence.py` — Pydantic schemas
+
+**Evidence Types**:
+- `DESIGN_DOCUMENT` — Architecture docs, PRDs, wireframes
+- `TEST_RESULTS` — Test coverage reports, E2E recordings
+- `CODE_REVIEW` — Review comments, approval records
+- `DEPLOYMENT_PROOF` — Deployment logs, health check results
+- `DOCUMENTATION` — ADRs, runbooks, MRPs
+- `COMPLIANCE` — SAST reports, license scans, SBOM
+
+**8-State Lifecycle**:
+```
+uploaded ──validate──> validating ──pass──> evidence_locked ──vcr──> awaiting_vcr ──merge──> merged
+                           │                                                           │
+                           └──fail──> retrying ──(max 3)──> escalated ──abort──> aborted
+```
+
+**AGPL Containment** (CRITICAL):
+```python
+# BANNED: from minio import Minio (AGPL contamination)
+# CORRECT: Uses boto3 (Apache 2.0) for S3-compatible API
+import boto3  # Apache 2.0 license — safe
+
+s3_client = boto3.client('s3',
+    endpoint_url='http://minio:9000',
+    aws_access_key_id=settings.MINIO_ACCESS_KEY,
+    aws_secret_access_key=settings.MINIO_SECRET_KEY
+)
+```
+
+**Key Storage Fields**:
+- `s3_key`, `s3_bucket` — MinIO S3 location
+- `sha256_hash` — Integrity verification (computed on upload, verified on download)
+- `criteria_snapshot_id` — Binds evidence to specific gate exit_criteria_version
+- `source` — Origin interface: `cli`, `extension`, `web`, `other`
+
+**Common Tasks**:
+1. **Upload evidence**: `POST /api/v1/evidence/upload` with multipart form data
+2. **Verify integrity**: `GET /api/v1/evidence/{id}/verify` — recomputes SHA256
+3. **Search evidence**: `GET /api/v1/evidence?gate_id=X&type=TEST_RESULTS`
+4. **Download evidence**: `GET /api/v1/evidence/{id}/download`
+
+**Tests**:
+```bash
+# Evidence API tests
+python -m pytest backend/tests/quick-tests/ -k "evidence" -v
+
+# MinIO integration (requires Docker)
+python -m pytest backend/tests/unit/test_minio_integration.py -v
+```
+
+**Dependencies**:
+- **Upstream**: MinIO (port 9000, S3 API), PostgreSQL (metadata)
+- **Downstream**: Gate Engine (evidence binding), MRP generation, Compliance Scanner
+- **Performance**: <2s upload for 10MB files
+
+---
+
+### **Module 3: AI Context Engine**
+
+**Purpose**: Multi-provider AI orchestration with stage-aware prompts. Routes AI requests through a cost-optimized provider chain (Ollama → Claude → GPT-4o → Rule-based) with context-aware requirement classification.
+
+**Key Files**:
+- `backend/app/services/ai_council_service.py` — Multi-LLM deliberation (3-stage council: QUERIES → PEER_REVIEW → SYNTHESIS)
+- `backend/app/services/ai_recommendation_service.py` — Recommendation generation (37KB)
+- `backend/app/services/governance/context_authority_v2.py` — Context Authority V2 (61KB, FROZEN Sprint 173)
+- `backend/app/services/ollama_service.py` — Local LLM HTTP adapter
+- `backend/app/services/dynamic_context_service.py` — Dynamic context overlays (31KB)
+
+**Multi-Provider Fallback Chain** (Model Strategy v3.0):
+```
+Request → Ollama (Primary, $50/mo)
+            │ timeout/error
+            └──> Claude (Fallback 1, $1000/mo)
+                    │ timeout/error
+                    └──> GPT-4o (Fallback 2)
+                            │ timeout/error
+                            └──> Rule-based (Final, $0/mo)
+```
+
+**Ollama 10-Model Configuration** (RTX 5090 32GB):
+- `qwen3-coder:30b` (18GB) — PRIMARY CODE (256K context)
+- `qwen3:32b` (20GB) — PRIMARY CHAT (Vietnamese excellent)
+- `deepseek-r1:32b` (19GB) — DEEP REASONING (thinking mode)
+- `mistral-small3.2:24b` (15GB) — SOP RAG PRIMARY (structured JSON)
+- `qwen3:14b` (9.3GB) — VIETNAMESE FAST
+- `qwen3:8b` (5.2GB) — FASTEST CHAT
+- `bge-m3:latest` (1.2GB) — EMBEDDINGS
+
+**Context Authority V2** (Sprint 173 — FROZEN):
+- 3-tier classification: MANDATORY (red) → RECOMMENDED (yellow) → OPTIONAL (gray)
+- 5 context dimensions: scale, team, industry, risk, practices
+- Auto-filtering based on project profile
+
+**Council Deliberation Stages**:
+```
+STAGE_1_QUERIES ──> STAGE_2_PEER_REVIEW ──> STAGE_3_SYNTHESIS ──> CouncilDecision
+```
+
+**Common Tasks**:
+1. **Generate AI recommendation**: `POST /api/v1/projects/{id}/decompose`
+2. **Query context authority**: Context Authority V2 evaluates requirement applicability
+3. **Ollama health check**: `curl http://api.nhatquangholding.com:11434/api/tags`
+
+**Debugging**:
+- **Issue**: Ollama timeout on large context (>128K tokens)
+  - **Fix**: Use `qwen3-coder:30b` (256K context) for code analysis; split requests for other models
+- **Issue**: Council stuck in STAGE_2
+  - **Root Cause**: Peer review timeout when comparing 3+ model outputs
+  - **Fix**: Set `council_timeout=120` seconds, fallback to Stage 1 best result
+
+**Tests**:
+```bash
+# Ollama integration (requires running Ollama)
+python -m pytest backend/tests/unit/test_ollama_integration.py -v
+
+# Council service tests
+python -m pytest backend/tests/unit/ -k "council" -v
+```
+
+**Dependencies**:
+- **Upstream**: Ollama (port 11434), Anthropic API (cloud), OpenAI API (cloud)
+- **Downstream**: EP-06 Codegen (code generation), Gate Engine (gate-aware prompts)
+- **Cost**: $50/mo Ollama (primary), $1,000/mo Claude (fallback)
+
+---
+
+### **Module 4: EP-06 Codegen Pipeline**
+
+**Purpose**: IR-based code generation with 4-Gate Quality Pipeline. Transforms specifications into production-ready code through multi-provider generation and iterative validation.
+
+**Key Files**:
+- `backend/app/services/codegen/codegen_service.py` — Main orchestrator (23KB)
+- `backend/app/services/codegen/quality_pipeline.py` — 4-Gate Quality Pipeline
+- `backend/app/services/codegen/ollama_provider.py` — Ollama code generation
+- `backend/app/services/codegen/claude_provider.py` — Claude code generation
+- `backend/app/services/codegen/deepcode_provider.py` — DeepCode provider (Q2 2026)
+- `backend/app/services/codegen/provider_registry.py` — Auto-registration pattern
+- `backend/app/services/codegen/intent_router.py` — Intent detection for provider routing
+- `backend/app/services/codegen/error_classifier.py` — Auto-fix feedback classification
+- `backend/app/services/codegen/session_manager.py` — Session state tracking
+- `backend/app/api/routes/codegen.py` — Codegen REST API (81KB)
+
+**4-Gate Quality Pipeline**:
+```
+Generated Code
+    │
+    ├──> Gate 1: Syntax Check (<5s)
+    │    ast.parse, ruff lint, tsc typecheck
+    │    Mode: MANDATORY (scaffold + production)
+    │
+    ├──> Gate 2: Security Scan (<10s)
+    │    Semgrep SAST, OWASP rules, AI-specific rules
+    │    Mode: MANDATORY (scaffold + production)
+    │
+    ├──> Gate 3: Context Validation (<10s)
+    │    Import validation, dependency check, file structure
+    │    Mode: SOFT-FAIL (scaffold) / MANDATORY (production)
+    │
+    └──> Gate 4: Test Execution (<60s)
+         Dockerized pytest, smoke tests
+         Mode: SMOKE (scaffold) / FULL (production)
+```
+
+**Quality Modes** (Sprint 106):
+- `SCAFFOLD` — Lenient for initial project generation (G1+G2 mandatory, G3 soft-fail, G4 smoke)
+- `PRODUCTION` — Strict for production-ready code (all gates mandatory, full test suite)
+
+**Validation Loop**:
+- `max_retries=3` (configurable)
+- Deterministic feedback: error_classifier categorizes failures → targeted prompt refinement
+- Escalation chain: auto-fix → council review → human intervention → abort
+
+**Provider Registry**:
+- Auto-registration via `@provider_registry.register` decorator
+- Fallback chain: Ollama → Claude → DeepCode → Rule-based
+- Per-provider cost tracking and timeout handling
+
+**Common Tasks**:
+1. **Generate code**: `POST /api/v1/codegen/generate` with spec payload
+2. **Check quality pipeline status**: `GET /api/v1/codegen/sessions/{id}/quality`
+3. **View provider stats**: `GET /api/v1/codegen/providers/stats`
+
+**Tests**:
+```bash
+# Codegen unit tests
+python -m pytest backend/tests/unit/ -k "codegen" -v
+
+# Quality pipeline tests
+python -m pytest backend/tests/unit/ -k "quality_pipeline" -v
+```
+
+**Dependencies**:
+- **Upstream**: AI Context Engine (provider routing), Ollama/Claude/GPT APIs
+- **Downstream**: Evidence Vault (stores generated artifacts), Gate Engine (quality gate results)
+- **Performance**: <15s (Ollama), <25s (Claude) per generation
+
+---
+
+### **Module 5: SAST Integration**
+
+**Purpose**: Static Application Security Testing via Semgrep with AI-specific security rules. Integrates with the 4-Gate Quality Pipeline (Gate 2) and standalone compliance scanning.
+
+**Key Files**:
+- `backend/app/services/semgrep_service.py` — Async Semgrep CLI wrapper (SARIF output parsing)
+- `backend/app/api/routes/sast.py` — SAST API endpoints (33KB)
+- `backend/app/models/sast_scan.py` — SAST scan results model
+- `backend/policy-packs/semgrep/ai-security.yml` — AI-specific security rules (10.8KB)
+- `backend/policy-packs/semgrep/owasp-python.yml` — OWASP Top 10 Python rules (15.3KB)
+
+**OPA Policy Packs** (Rego):
+- `backend/policy-packs/rego/ai-safety/` — AI safety policies
+- `backend/policy-packs/rego/compliance/` — Compliance policies
+- `backend/policy-packs/rego/gates/` — Gate evaluation policies
+- `backend/policy-packs/rego/sprint/` — Sprint governance policies
+
+**Semgrep Severity Levels**:
+- `ERROR` — Must fix before merge (blocks Gate G2)
+- `WARNING` — Should fix, tracked as tech debt
+- `INFO` — Best practice suggestion, non-blocking
+
+**Semgrep Categories**:
+- `INJECTION` — SQL injection, command injection
+- `BROKEN_AUTH` — Authentication bypasses
+- `XSS` — Cross-site scripting
+- `SECRETS` — Hardcoded API keys, passwords
+- `CRYPTO` — Weak cryptography
+- `SSRF` — Server-side request forgery
+
+**Common Tasks**:
+1. **Run SAST scan**: `POST /api/v1/sast/scan` with file paths or git diff
+2. **View scan results**: `GET /api/v1/sast/scans/{id}/findings`
+3. **Run Semgrep locally**:
+   ```bash
+   semgrep --config backend/policy-packs/semgrep/ai-security.yml \
+           --config backend/policy-packs/semgrep/owasp-python.yml \
+           --sarif backend/app/
+   ```
+
+**Tests**:
+```bash
+python -m pytest backend/tests/unit/ -k "sast or semgrep" -v
+```
+
+**Dependencies**:
+- **Upstream**: Semgrep CLI (LGPL, subprocess execution — not imported as library)
+- **Downstream**: EP-06 Quality Pipeline (Gate 2), Evidence Vault (SAST reports), Compliance Dashboard
+- **Performance**: <10s for typical Python project scan
+
+---
+
+### **Module 6: Frontend Dashboard**
+
+**Purpose**: React-based web dashboard for gate management, evidence viewing, code generation, compliance tracking, and executive dashboards.
+
+**Key Files**:
+- `frontend/landing/src/app/` — Next.js 14 App Router pages
+- `frontend/landing/src/components/` — Reusable UI components
+- `frontend/landing/src/lib/` — Utilities, API clients, stores
+
+**Tech Stack**:
+- **Framework**: Next.js 14.2.35 (React 18, App Router)
+- **State**: Zustand (lightweight, no Redux)
+- **UI**: shadcn/ui (Radix UI + Tailwind CSS 3.4.1)
+- **Data**: TanStack Query v5 (caching, optimistic updates)
+- **Forms**: React Hook Form + Zod validation
+- **Charts**: Recharts (DORA metrics visualization)
+- **Testing**: Vitest (unit) + Playwright (E2E)
+
+**Key Pages**:
+- `/app/gates/` — Gate management dashboard (list, evaluate, approve/reject)
+- `/app/evidence/` — Evidence upload and browsing
+- `/app/codegen/` — Code generation interface
+- `/app/compliance/` — Compliance framework (NIST, OWASP)
+- `/app/context-authority/` — Context Authority V2 UI
+- `/app/governance/` — Governance mode dashboards
+- `/app/planning/` — Planning hierarchy (Roadmap → Phase → Sprint → Backlog)
+- `/app/ceo-dashboard/` — Executive dashboard
+- `/app/crp/` — Change Request Process
+- `/app/mrp/` — MRP validation
+- `/auth/` — Authentication (login, OAuth, MFA)
+- `/admin/` — Admin panel
+
+**Component Organization**:
+- `components/ui/` — Base UI components (buttons, dialogs, forms) from shadcn/ui
+- `components/codegen/` — Code generation UI components
+- `components/dashboard/` — Dashboard-specific components
+- `components/governance/` — Governance controls and displays
+- `components/auth/` — Authentication flow components
+
+**Common Tasks**:
+1. **Start dev server**: `cd frontend/landing && npm run dev`
+2. **Run tests**: `cd frontend/landing && npx vitest run`
+3. **Run E2E tests**: `cd frontend/landing && npx playwright test`
+4. **Add shadcn component**: `cd frontend/landing && npx shadcn-ui@latest add [component]`
+5. **Type check**: `cd frontend/landing && npx tsc --noEmit`
+
+**Performance Budget**:
+- TTI (Time to Interactive): <3s
+- FCP (First Contentful Paint): <1s
+- LCP (Largest Contentful Paint): <2.5s
+- Component render: <100ms (p95)
+- Lighthouse score: >90
+
+**Dependencies**:
+- **Upstream**: Backend REST API (all modules), WebSocket (real-time gate updates)
+- **Downstream**: User-facing (end users, PMs, CTOs, DevOps)
+
+---
+
+### **Integration Map**
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Frontend   │────>│  Gate Engine  │────>│     OPA      │
+│  Dashboard   │     │     API      │     │  (port 8185) │
+└──────────────┘     └──────────────┘     └──────────────┘
+       │                    │                     │
+       │                    v                     │
+       │             ┌──────────────┐             │
+       │             │  Evidence    │             │
+       └────────────>│  Vault API   │<────────────┘
+                     └──────────────┘
+                            │
+                     ┌──────┴──────┐
+                     v             v
+              ┌──────────┐  ┌──────────┐
+              │  MinIO   │  │ PostgreSQL│
+              │(port 9000│  │(port 15432│
+              └──────────┘  └──────────┘
+
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ AI Context   │────>│  EP-06       │────>│    SAST      │
+│   Engine     │     │  Codegen     │     │ Integration  │
+└──────────────┘     └──────────────┘     └──────────────┘
+       │                    │                     │
+       v                    v                     v
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│   Ollama     │     │  Evidence    │     │   Semgrep    │
+│ (port 11434) │     │  Vault API   │     │   (CLI)      │
+└──────────────┘     └──────────────┘     └──────────────┘
+```
+
+---
+
+### **Onboarding Checklist (New Developer with AI Assistant)**
+
+1. **Clone + setup** (5 min):
+   ```bash
+   git clone --recurse-submodules https://github.com/Minh-Tam-Solution/SDLC-Orchestrator
+   cd SDLC-Orchestrator
+   docker compose up -d  # Start PostgreSQL, Redis, OPA, MinIO
+   cd backend && pip install -r requirements.txt
+   ```
+
+2. **Run tests** (10 min):
+   ```bash
+   DATABASE_URL="postgresql://test:test@localhost:15432/sdlc_test" \
+     python -m pytest backend/tests/quick-tests/ -v
+   ```
+
+3. **Explore Gate Engine** (15 min): Read Module 1 above, navigate to `gates.py`, understand state machine
+
+4. **Submit first evidence** (10 min): Upload a test file via Evidence Vault API
+
+5. **Generate code** (15 min): Use EP-06 codegen endpoint with a simple spec
+
+6. **Run SAST scan** (5 min): Scan your generated code with Semgrep
+
+7. **View dashboard** (5 min): `cd frontend/landing && npm run dev` → navigate to gates page
+
+**Total onboarding time**: ~65 minutes (target: <2 hours)
+
+---
+
 ## 🎯 **WHEN IN DOUBT**
 
 ```yaml
@@ -1286,31 +1750,50 @@ You are successful if:
 - ✅ **Test Coverage**: 95%+ (unit + integration)
 - ✅ **CTO Approval**: Code review pass (2+ approvers)
 - ✅ **Gate G3 Pass**: Ship Ready APPROVED (Dec 12, 2025, 98.2%)
-- ✅ **SDLC 6.0.5 Compliance**: Code File Naming Standards + 4-Tier Classification + Risk-Based Planning enforced
+- ✅ **SDLC 6.0.6 Compliance**: Code File Naming Standards + 4-Tier Classification + Risk-Based Planning enforced
 
 ---
 
 **Template Status**: ✅ **SDLC ORCHESTRATOR AI CONTEXT COMPLETE**
-**Framework**: ✅ **SDLC 6.0.5 (7-PILLAR + AI GOVERNANCE PRINCIPLES)**
+**Framework**: ✅ **SDLC 6.0.6 (7-PILLAR + AI GOVERNANCE PRINCIPLES)**
 **Authorization**: ✅ **CTO + CPO + CEO APPROVED**
 
 ---
 
-*SDLC Orchestrator - First Governance-First Platform on SDLC 6.0.5. Zero facade tolerance. Battle-tested patterns. Production excellence.*
+*SDLC Orchestrator - First Governance-First Platform on SDLC 6.0.6. Zero facade tolerance. Battle-tested patterns. Production excellence.*
 
 **"Quality over quantity. Real implementations over mocks. Let's build with discipline."** - CTO
 
 ---
 
-**Last Updated**: February 3, 2026
+**Last Updated**: February 16, 2026
 **Owner**: CTO + CPO + CEO
 **Status**: ✅ Gate G3 APPROVED - Ship Ready (98.2%)
-**Current Sprint**: Sprint 147 - Spring Cleaning
+**Current Sprint**: Sprint 174 - Anthropic Best Practices Integration
 **Next Review**: Weekly CEO Review (Every Friday 3pm)
 
 ---
 
 ## 📋 **CHANGELOG**
+
+### v3.5.0 (February 16, 2026)
+- **SDLC 6.0.6 Upgrade** - All framework references updated from 6.0.5 to 6.0.6
+- **Sprint 174 Remediation** - P0 audit findings addressed (Zero Mock, CLAUDE.md version drift)
+- **Compliance Audit** - Full quick audit run, 10 checks, remediation in progress
+
+### v3.4.0 (February 17, 2026)
+- **Sprint 174 Active** - Anthropic Best Practices Integration (Framework-First)
+- **6 Module Zones Added** (PRO tier per Framework CLAUDE.md Standard):
+  - Gate Engine API (state machine, debugging patterns, test commands)
+  - Evidence Vault API (8-state lifecycle, AGPL containment, SHA256)
+  - AI Context Engine (multi-provider chain, 10-model Ollama config)
+  - EP-06 Codegen Pipeline (4-Gate Quality Pipeline, provider registry)
+  - SAST Integration (Semgrep, OPA policy packs)
+  - Frontend Dashboard (Next.js 14, shadcn/ui, page routes)
+- **Integration Map** added (module dependency diagram)
+- **Onboarding Checklist** added (7 steps, ~65 min target)
+- **Framework-First Compliance**: Follows 10-CLAUDE-MD-STANDARD.md from Framework
+- Updated sprint reference to Sprint 174
 
 ### v3.3.0 (February 3, 2026)
 - **SDLC 6.0.5 Framework Upgrade** - Complete update to 7-Pillar + Section 7 + Section 8

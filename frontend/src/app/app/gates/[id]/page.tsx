@@ -61,7 +61,7 @@ import {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
 /**
- * SDLC 5.1.3 Stage Definitions (10 Stages: 00-09)
+ * SDLC 6.0.6 Stage Definitions (10 Stages: 00-09)
  */
 const SDLC_STAGES = [
   { code: "00", name: "FOUNDATION", description: "Strategic Discovery & Validation" },

@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/admin/layout
  * @description Protected layout for Admin Panel (superusers only)
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - Route Restructure
  * @security Requires is_superuser=true
  */

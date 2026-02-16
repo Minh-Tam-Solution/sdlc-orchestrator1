@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 
 /**
- * SDLC 5.1.3 Stage Definitions
+ * SDLC 6.0.6 Stage Definitions
  */
 const SDLC_STAGES = [
   { code: "00", name: "FOUNDATION", description: "Strategic Discovery" },
@@ -211,7 +211,7 @@ export default function PoliciesPage() {
       {/* Policy pack summary */}
       <Card>
         <CardHeader>
-          <CardTitle>SDLC 5.1.3 Policy Pack</CardTitle>
+          <CardTitle>SDLC 6.0.6 Policy Pack</CardTitle>
           <CardDescription>
             Pre-configured policies for all 10 SDLC stages
           </CardDescription>

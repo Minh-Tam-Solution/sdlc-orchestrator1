@@ -1,8 +1,4 @@
-# SPEC-0013: Teams Data Model Specification
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0013
 title: Teams Data Model Specification - Multi-Tenant Collaboration Schema
 version: 2.0.0
@@ -24,9 +20,9 @@ related_specs:
 epic: Multi-Tenant Teams System
 sprint: Sprint 60-65
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Teams-Data-Model-Specification.md"
-```
-
 ---
+
+# SPEC-0013: Teams Data Model Specification
 
 ## Executive Summary
 

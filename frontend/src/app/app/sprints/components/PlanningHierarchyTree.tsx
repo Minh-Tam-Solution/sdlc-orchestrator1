@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/components/PlanningHierarchyTree
  * @description Interactive tree visualization of Roadmap → Phase → Sprint hierarchy
- * @sdlc SDLC 5.1.3 Framework - Sprint 92 (Planning Hierarchy CRUD)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 92 (Planning Hierarchy CRUD)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 92 - Edit/Delete Actions Implementation
  */
 

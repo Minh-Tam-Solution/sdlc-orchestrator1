@@ -1,8 +1,4 @@
-# SPEC-0014: Planning Hierarchy Specification
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0014
 title: Planning Hierarchy Specification - Strategic-to-Tactical Traceability
 version: 2.0.0
@@ -26,9 +22,9 @@ related_specs:
 epic: AI Governance Layer
 sprint: Sprint 28
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Planning-Hierarchy-Specification.md"
-```
-
 ---
+
+# SPEC-0014: Planning Hierarchy Specification
 
 ## Executive Summary
 

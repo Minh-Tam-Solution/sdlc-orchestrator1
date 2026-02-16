@@ -5,9 +5,10 @@ spec_id: SPEC-0025
 title: Real-Time Notifications Technical Specification
 version: 1.0.0
 status: APPROVED
+tier: PROFESSIONAL
 created: 2026-02-04
-updated: 2026-02-04
-author: CTO + AI Assistant
+last_updated: 2026-02-04
+owner: CTO + AI Assistant
 sprint: Sprint 153
 framework: SDLC 6.0.5
 adr_ref: ADR-049-Real-Time-Notifications-Architecture

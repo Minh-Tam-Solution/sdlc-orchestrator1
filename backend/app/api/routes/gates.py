@@ -1329,6 +1329,7 @@ async def reject_gate(
 
     asyncio.create_task(_notify())
 
+    action_timestamp = approval.rejected_at or approval.approved_at
     response = GateResponse(
         id=gate.id,
         project_id=gate.project_id,
@@ -1348,7 +1349,7 @@ async def reject_gate(
             "approved_by": str(approval.approver_id),
             "is_approved": approval.is_approved,
             "comments": approval.comments,
-            "approved_at": approval.approved_at.isoformat(),
+            "approved_at": action_timestamp.isoformat() if action_timestamp else None,
         }],
         evidence_count=evidence_count,
         policy_violations=policy_violations,

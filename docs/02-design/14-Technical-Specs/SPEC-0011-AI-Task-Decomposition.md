@@ -1,8 +1,4 @@
-# SPEC-0011: AI Task Decomposition Service - CEO-Quality Task Generation
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0011
 title: AI Task Decomposition Service - CEO-Quality Task Generation
 version: 1.0.0
@@ -31,9 +27,9 @@ related_specs:
   - SPEC-0009
 stage: 02-DESIGN
 framework_version: 6.0.5
-```
-
 ---
+
+# SPEC-0011: AI Task Decomposition Service - CEO-Quality Task Generation
 
 **Status**: APPROVED
 **Date**: December 3, 2025

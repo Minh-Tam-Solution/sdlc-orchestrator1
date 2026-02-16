@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/hooks/useCodegen
  * @description React Query hooks for Codegen API
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - Zero Mock Policy Compliance
  */
 

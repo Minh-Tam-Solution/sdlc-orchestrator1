@@ -5,7 +5,7 @@
  *
  * @module frontend/src/app/app/evidence-manifests/[id]/page
  * @description Individual manifest detail with artifacts and chain info
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Evidence Hash Chain v1)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Evidence Hash Chain v1)
  * @status Sprint 87 - CTO APPROVED (January 20, 2026)
  */
 

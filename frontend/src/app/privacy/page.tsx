@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/privacy/page
  * @description Privacy policy page to prevent 404 errors during OAuth flow
- * @sdlc SDLC 5.2.0 Framework
+ * @sdlc SDLC 6.0.6 Framework
  * @status Sprint 105 - OAuth Fix
  */
 

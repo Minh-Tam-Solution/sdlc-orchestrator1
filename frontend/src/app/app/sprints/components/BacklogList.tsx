@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/components/BacklogList
  * @description Backlog item list with filtering, sorting, and status management
- * @sdlc SDLC 5.1.3 Framework - Sprint 93 (Planning Hierarchy Part 2)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 93 (Planning Hierarchy Part 2)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 93 - Sprint CRUD & Charts
  */
 

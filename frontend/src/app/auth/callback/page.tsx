@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/auth/callback/page
  * @description Handles OAuth callback from GitHub/Google providers
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 59 - OAuth Integration
  */
 

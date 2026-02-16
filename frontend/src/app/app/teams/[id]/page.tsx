@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/teams/[id]/page
  * @description Team detail with members management
- * @sdlc SDLC 5.1.3 Framework - Sprint 84 (Teams & Organizations UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 84 (Teams & Organizations UI)
  * @status Sprint 84 - CTO APPROVED (January 20, 2026)
  */
 

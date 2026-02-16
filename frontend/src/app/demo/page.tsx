@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/demo/page
  * @description Interactive demo showcasing platform features with i18n support
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - i18n Localization
  */
 
@@ -109,12 +109,12 @@ export default function DemoPage() {
             {/* SDLC Framework Preview */}
             <div className="mb-16">
               <h2 className="text-heading-1 font-bold text-foreground text-center mb-6">
-                SDLC 5.1.2 Framework
+                SDLC 6.0.6 Framework
               </h2>
               <div className="bg-muted/30 rounded-lg p-6 overflow-x-auto">
                 <pre className="text-body-sm text-muted-foreground whitespace-pre font-mono">
 {`┌────────────────────────────────────────────────────────────────────┐
-│                    SDLC 5.1.2 - 10 STAGES                          │
+│                    SDLC 6.0.6 - 10 STAGES                          │
 ├────────────────────────────────────────────────────────────────────┤
 │  00 FOUNDATION  → Why are we building this?                        │
 │  01 PLANNING    → What exactly do we need?                         │

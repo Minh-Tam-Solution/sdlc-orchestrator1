@@ -3,7 +3,7 @@
  *
  * @module frontend/src/contexts/WorkspaceContext
  * @description Context for managing selected organization and team across dashboard
- * @sdlc SDLC 5.1.3 Framework - Sprint 91 (Teams & Organizations UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 91 (Teams & Organizations UI)
  * @status Sprint 91 - Team/Org Switcher Implementation
  */
 

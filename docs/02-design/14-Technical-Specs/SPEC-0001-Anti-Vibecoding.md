@@ -1,5 +1,4 @@
 ---
-spec_version: "2.0.0"
 spec_id: SPEC-0001
 title: Anti-Vibecoding Quality Assurance System
 version: "2.0.0"

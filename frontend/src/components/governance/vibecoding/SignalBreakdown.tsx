@@ -5,7 +5,7 @@
  *
  * Version: 1.0.0
  * Date: January 29, 2026
- * Framework: SDLC 5.3.0 Quality Assurance System
+ * Framework: SDLC 6.0.6 Quality Assurance System
  * Spec Reference: SPEC-0001
  *
  * Purpose: Detailed visualization of 5-signal breakdown for a submission

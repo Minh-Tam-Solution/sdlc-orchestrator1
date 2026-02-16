@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/components/SprintModal
  * @description Modal dialog for creating and editing sprints
- * @sdlc SDLC 5.1.3 Framework - Sprint 93 (Planning Hierarchy Part 2)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 93 (Planning Hierarchy Part 2)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 93 - Sprint CRUD & Charts
  */
 
@@ -219,9 +219,9 @@ export function SprintModal({
     if (formData.start_date && formData.end_date) {
       const duration = calculateDuration(formData.start_date, formData.end_date);
       if (duration < 5) {
-        newErrors.end_date = "Sprint must be at least 5 days (SDLC 5.1.3)";
+        newErrors.end_date = "Sprint must be at least 5 days (SDLC 6.0.6)";
       } else if (duration > 14) {
-        newErrors.end_date = "Sprint should not exceed 14 days (SDLC 5.1.3)";
+        newErrors.end_date = "Sprint should not exceed 14 days (SDLC 6.0.6)";
       }
     }
 
@@ -431,9 +431,9 @@ export function SprintModal({
             </p>
           </div>
 
-          {/* SDLC 5.1.3 Info */}
+          {/* SDLC 6.0.6 Info */}
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
-            <p className="font-medium text-gray-700">SDLC 5.1.3 Sprint Guidelines:</p>
+            <p className="font-medium text-gray-700">SDLC 6.0.6 Sprint Guidelines:</p>
             <ul className="mt-1 list-inside list-disc space-y-1">
               <li>Sprint duration: 5-10 days (max 14 days)</li>
               <li>G-Sprint gate required before starting</li>

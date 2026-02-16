@@ -1,9 +1,9 @@
 # SPEC-0004: Policy Guards Design (OPA Integration)
 
 ---
-spec_version: "1.0.0"
+version: "1.0.0"
 spec_id: SPEC-0004
-spec_name: Policy Guards Design
+title: Policy Guards Design
 status: approved
 tier: PROFESSIONAL
 stage: "04"

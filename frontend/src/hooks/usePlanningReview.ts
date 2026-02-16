@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/usePlanningReview
  * @description TanStack Query hooks for Planning Sub-agent (ADR-034)
- * @sdlc SDLC 5.2.0 Framework - Sprint 99 (Planning Sub-agent Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 99 (Planning Sub-agent Part 2)
  * @status Sprint 99 - Core Feature Implementation
  */
 

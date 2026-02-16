@@ -1,9 +1,9 @@
 # SPEC-0005: System Architecture Document
 
 ---
-spec_version: "1.0.0"
+version: "1.0.0"
 spec_id: SPEC-0005
-spec_name: System Architecture Document - 5-Layer Architecture
+title: System Architecture Document - 5-Layer Architecture
 status: approved
 tier: ALL
 stage: "02"

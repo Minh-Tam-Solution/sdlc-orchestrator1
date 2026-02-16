@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/useContextOverlay
  * @description React Query hooks for Dynamic Context Overlay API (TRUE MOAT)
- * @sdlc SDLC 5.1.3 Framework - Sprint 85 (AGENTS.md UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 85 (AGENTS.md UI)
  * @status Sprint 85 - CTO APPROVED (January 20, 2026)
  * @see backend/app/api/routes/context_overlay.py
  */

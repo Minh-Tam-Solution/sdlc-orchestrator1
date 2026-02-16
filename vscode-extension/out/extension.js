@@ -152,7 +152,7 @@ async function activate(context) {
         context.subscriptions.push(chatParticipantDisposable);
         // Register commands
         registerCommands(context);
-        // Register init commands (SDLC 6.0.5 project initialization)
+        // Register init commands (SDLC 6.0.6 project initialization)
         (0, initCommand_1.registerInitCommand)(context, state.apiClient, state.authService);
         // Register App Builder commands (Sprint 53)
         (0, generateCommand_1.registerGenerateCommand)(context, state.codegenApi);
@@ -650,11 +650,11 @@ async function checkAndPromptForInit(context) {
     let message;
     let actions;
     if (isEmptyOrMinimal) {
-        message = 'This folder is empty. Would you like to create an SDLC 6.0.5 project structure?';
+        message = 'This folder is empty. Would you like to create an SDLC 6.0.6 project structure?';
         actions = ['Create SDLC Project', 'Not Now', "Don't Ask Again"];
     }
     else {
-        message = 'This project doesn\'t have an SDLC configuration. Would you like to add SDLC 6.0.5 governance?';
+        message = 'This project doesn\'t have an SDLC configuration. Would you like to add SDLC 6.0.6 governance?';
         actions = ['Run Gap Analysis', 'Initialize', 'Not Now', "Don't Ask Again"];
     }
     const selection = await vscode.window.showInformationMessage(message, ...actions);

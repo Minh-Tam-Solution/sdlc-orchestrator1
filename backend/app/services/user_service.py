@@ -34,10 +34,16 @@ from uuid import uuid4, UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 import hashlib
+import logging
 import secrets
 import re
 
+from jose import jwt as jose_jwt
+
+from app.core.config import settings
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 # Custom Exceptions
 
@@ -769,19 +775,48 @@ class UserService:
 
     def _generate_jwt(self, user: Any, token_type: str = "access") -> str:
         """
-        Generate JWT token (simulated for testing).
+        Generate JWT token for authentication.
 
-        In production, use: jwt.encode(payload, secret, algorithm='HS256')
+        Uses python-jose with HS256 algorithm, consistent with
+        app.core.security module (OWASP ASVS Level 2 compliant).
+
+        Args:
+            user: User model instance with id, email, role attributes.
+            token_type: Token type - "access" (15min) or "refresh" (7 days).
+
+        Returns:
+            Encoded JWT token string (Base64url).
+
+        Raises:
+            ValueError: If token_type is not "access" or "refresh".
         """
-        # Simulated JWT (would use real jwt in production)
-        if token_type == "access":
-            expiry = datetime.now(UTC) + timedelta(minutes=self.JWT_EXPIRY_MINUTES)
-        else:
-            expiry = datetime.now(UTC) + timedelta(days=self.REFRESH_TOKEN_EXPIRY_DAYS)
+        if token_type not in ("access", "refresh"):
+            raise ValueError(f"Invalid token_type: {token_type}. Must be 'access' or 'refresh'.")
 
-        # Mock token structure
-        token_data = f"{user.id}:{user.email}:{user.role}:{expiry.timestamp()}"
-        return f"mock_jwt_{hashlib.sha256(token_data.encode()).hexdigest()[:32]}"
+        now = datetime.now(UTC)
+
+        if token_type == "access":
+            expiry = now + timedelta(minutes=self.JWT_EXPIRY_MINUTES)
+        else:
+            expiry = now + timedelta(days=self.REFRESH_TOKEN_EXPIRY_DAYS)
+
+        payload = {
+            "sub": str(user.id),
+            "email": user.email,
+            "role": user.role,
+            "type": token_type,
+            "exp": expiry,
+            "iat": now,
+        }
+
+        try:
+            return jose_jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+        except Exception as exc:
+            logger.error(
+                "JWT generation failed for user %s (type=%s): %s",
+                user.id, token_type, str(exc),
+            )
+            raise
 
     def _generate_mfa_secret(self) -> str:
         """

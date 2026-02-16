@@ -280,7 +280,7 @@ export interface OnboardingSession {
     updated_at: string;
 }
 /**
- * SDLC 6.0.5 Tier classification
+ * SDLC 6.0.6 Tier classification
  */
 export type SpecTier = 'LITE' | 'STANDARD' | 'PROFESSIONAL' | 'ENTERPRISE';
 /**

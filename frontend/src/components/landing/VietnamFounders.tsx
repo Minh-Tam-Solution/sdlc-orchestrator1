@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/components/landing/VietnamFounders
  * @description EP-06 Vietnamese Founders section with i18n support
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - i18n Localization
  */
 

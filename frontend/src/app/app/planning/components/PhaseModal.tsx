@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/planning/components/PhaseModal
  * @description Modal for creating/editing Phases (4-8 week theme-based grouping)
- * @sdlc SDLC 5.1.3 Framework - Sprint 92 (Planning Hierarchy Part 1)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 92 (Planning Hierarchy Part 1)
  * @status Sprint 92 - Phase Management UI Implementation
  */
 

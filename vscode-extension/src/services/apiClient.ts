@@ -827,7 +827,7 @@ export class ApiClient {
         return this.get<{
             folders: string[];
             files: { path: string; content: string }[];
-        }>(`/api/v1/templates/sdlc-structure?tier=${tier}&version=6.0.5`);
+        }>(`/api/v1/templates/sdlc-structure?tier=${tier}&version=6.0.6`);
     }
 
     // ============================================

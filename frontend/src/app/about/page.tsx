@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/about/page
  * @description About page to prevent 404 errors during OAuth flow
- * @sdlc SDLC 5.2.0 Framework
+ * @sdlc SDLC 6.0.6 Framework
  * @status Sprint 105 - OAuth Fix
  */
 
@@ -33,13 +33,13 @@ export default function AboutPage() {
               <li>4-Gate Quality Pipeline for AI code validation</li>
               <li>Evidence Vault with immutable audit trail</li>
               <li>Multi-provider AI integration (Ollama, Claude, GPT-4o)</li>
-              <li>SDLC 5.2.0 Framework compliance</li>
+              <li>SDLC 6.0.6 Framework compliance</li>
               <li>Vietnamese SME focus with domain-specific templates</li>
             </ul>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4">Framework</h2>
             <p>
-              Built on SDLC 5.2.0 with 7-Pillar Architecture and AI Governance Principles.
+              Built on SDLC 6.0.6 with 7-Pillar Architecture and AI Governance Principles.
               We don&apos;t compete with AI coding tools - we orchestrate them.
             </p>
           </div>

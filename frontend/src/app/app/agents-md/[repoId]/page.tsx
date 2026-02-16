@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/agents-md/[repoId]/page
  * @description Single repo AGENTS.md editor with dynamic context (TRUE MOAT)
- * @sdlc SDLC 5.1.3 Framework - Sprint 85 (AGENTS.md UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 85 (AGENTS.md UI)
  * @status Sprint 85 - CTO APPROVED (January 20, 2026)
  */
 

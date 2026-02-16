@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/checkout/failed/page
  * @description VNPay payment failure handling
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - i18n Localization
  */
 

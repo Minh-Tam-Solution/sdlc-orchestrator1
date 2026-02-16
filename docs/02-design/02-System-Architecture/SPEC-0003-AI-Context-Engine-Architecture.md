@@ -1,8 +1,4 @@
-# SPEC-0003: AI Context Engine Architecture
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0003
 title: AI Context Engine Architecture (ADR-007)
 version: 1.0.0
@@ -23,9 +19,9 @@ related_specs:
   - SPEC-0006  # Multi-Provider Codegen
 epic: EP-02 AI Context Engine
 sprint: Sprint 20-25 (Nov-Dec 2025)
-```
-
 ---
+
+# SPEC-0003: AI Context Engine Architecture
 
 ## 1. Overview
 

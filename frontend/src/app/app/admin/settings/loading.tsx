@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/admin/settings/loading
  * @description Loading state for Admin System Settings page
- * @sdlc SDLC 5.1.3 Framework - Sprint 86 Phase 2 (ADR-027)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 86 Phase 2 (ADR-027)
  */
 
 export default function AdminSettingsLoading() {

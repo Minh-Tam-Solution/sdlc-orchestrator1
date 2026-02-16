@@ -4,7 +4,7 @@
  *
  * @module frontend/landing/src/hooks/useSAST
  * @description React Query hooks for SAST Scanning API
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - CTO Go-Live Requirements
  */
 

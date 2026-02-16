@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/sprints/components
  * @description Export all sprint-related components for reuse
- * @sdlc SDLC 5.1.3 Framework - Sprint 93 (Planning Hierarchy Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 93 (Planning Hierarchy Part 2)
  */
 
 export { PlanningHierarchyTree } from "./PlanningHierarchyTree";

@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/[id]/page
  * @description Sprint detail view with gate status, items, metrics, and charts
- * @sdlc SDLC 5.1.3 Framework - Sprint 93 (Planning Hierarchy Part 2)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 93 (Planning Hierarchy Part 2)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 93 - Charts & Backlog Integration
  */
 

@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/components/auth/AuthGuard
  * @description Protects routes requiring authentication
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 61 - Frontend Platform Consolidation
  */
 

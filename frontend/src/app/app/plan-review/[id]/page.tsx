@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/plan-review/[id]/page
  * @description Single planning session review with approval workflow
- * @sdlc SDLC 5.2.0 Framework - Sprint 99 (Planning Sub-agent Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 99 (Planning Sub-agent Part 2)
  * @reference ADR-034 Planning Sub-agent Orchestration
  * @status Sprint 99 - Implementation
  */

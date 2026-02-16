@@ -14,7 +14,7 @@
  *
  * Reference:
  * - RFC-SDLC-602-E2E-API-TESTING
- * - SDLC Framework 6.0.5
+ * - SDLC Framework 6.0.6
  * - Skill: e2e-api-testing (6-phase workflow)
  *
  * CTO Requirements (Non-Negotiable):
@@ -535,7 +535,7 @@ function showCrossRefResultsPanel(result) {
     const outputChannel = vscode.window.createOutputChannel('SDLC Cross-Reference Validation');
     outputChannel.clear();
     outputChannel.appendLine('═'.repeat(70));
-    outputChannel.appendLine('  SDLC 6.0.5 STAGE CROSS-REFERENCE VALIDATION');
+    outputChannel.appendLine('  SDLC 6.0.6 STAGE CROSS-REFERENCE VALIDATION');
     outputChannel.appendLine('═'.repeat(70));
     outputChannel.appendLine('');
     // Summary

@@ -43,7 +43,7 @@ def lite_tier_project(project_structure):
             f"This stage covers important aspects of the project lifecycle. "
             f"Please refer to the documents in this folder for more details."
         )
-    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.5)
+    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.6)
     archive_path = docs_root / "10-archive"
     archive_path.mkdir(exist_ok=True)
     (archive_path / "README.md").write_text(
@@ -72,7 +72,7 @@ def standard_tier_project(project_structure):
             f"Documentation for stage {stage_id}. "
             f"This stage covers important aspects of the project lifecycle."
         )
-    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.5)
+    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.6)
     archive_path = docs_root / "10-archive"
     archive_path.mkdir(exist_ok=True)
     (archive_path / "README.md").write_text(
@@ -102,7 +102,7 @@ def professional_tier_project(project_structure):
             f"This stage covers important aspects of the project lifecycle. "
             f"Please refer to the documents in this folder for more details."
         )
-    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.5)
+    # Create centralized 10-archive with stage-aligned Legacy (RFC-001, SDLC 6.0.6)
     archive_path = docs_root / "10-archive"
     archive_path.mkdir(exist_ok=True)
     (archive_path / "README.md").write_text(

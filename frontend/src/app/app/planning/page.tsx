@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/planning/page
  * @description Full Planning Hierarchy visualization (Roadmap → Phase → Sprint)
- * @sdlc SDLC 5.1.3 Framework - Sprint 92 (Planning Hierarchy CRUD)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 92 (Planning Hierarchy CRUD)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 92 - Roadmap & Phase CRUD Implementation
  */
 
@@ -297,7 +297,7 @@ export default function PlanningPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Planning Hierarchy</h1>
           <p className="text-sm text-gray-500">
-            SDLC 5.1.3 - Roadmap → Phase → Sprint Visualization
+            SDLC 6.0.6 - Roadmap → Phase → Sprint Visualization
           </p>
         </div>
         <LoadingSkeleton />
@@ -432,7 +432,7 @@ export default function PlanningPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Planning Hierarchy</h1>
             <p className="text-sm text-gray-500">
-              SDLC 5.1.3 - {firstProject.name}
+              SDLC 6.0.6 - {firstProject.name}
             </p>
           </div>
         </div>
@@ -488,7 +488,7 @@ export default function PlanningPage() {
 
       {/* Help Text */}
       <div className="mt-6 rounded-lg bg-gray-50 p-4">
-        <h4 className="text-sm font-medium text-gray-900">SDLC 5.1.3 Planning Hierarchy</h4>
+        <h4 className="text-sm font-medium text-gray-900">SDLC 6.0.6 Planning Hierarchy</h4>
         <p className="mt-1 text-xs text-gray-500">
           <strong>Roadmap</strong> (12-month vision) → <strong>Phase</strong> (4-8 weeks) →{" "}
           <strong>Sprint</strong> (5-10 days) → <strong>Backlog Items</strong> (individual tasks).

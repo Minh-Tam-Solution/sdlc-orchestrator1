@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/checkout/success/page
  * @description VNPay payment success confirmation
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 58 - Registration + VNPay
  */
 

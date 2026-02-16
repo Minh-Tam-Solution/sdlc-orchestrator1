@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/useGitHubChecks
  * @description TanStack Query hooks for GitHub Check Run management (P0 Blocker)
- * @sdlc SDLC 5.1.3 Framework - Sprint 86 (GitHub Check Run UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 86 (GitHub Check Run UI)
  * @status Sprint 86 - CTO APPROVED (January 20, 2026)
  */
 

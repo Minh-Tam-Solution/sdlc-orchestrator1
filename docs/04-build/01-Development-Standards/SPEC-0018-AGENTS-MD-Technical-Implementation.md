@@ -1,8 +1,4 @@
-# SPEC-0018: AGENTS.md Technical Implementation
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0018
 title: AGENTS.md Technical Implementation Specification
 version: 2.0.0
@@ -25,9 +21,9 @@ related_specs:
 epic: EP-07 AGENTS.md Framework
 sprint: Sprint 80-85
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/AGENTS-MD-Technical-Design.md"
-```
-
 ---
+
+# SPEC-0018: AGENTS.md Technical Implementation
 
 ---
 

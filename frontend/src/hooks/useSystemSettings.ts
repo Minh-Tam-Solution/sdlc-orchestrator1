@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/useSystemSettings
  * @description TanStack Query hooks for System Settings Admin UI
- * @sdlc SDLC 5.1.3 Framework - Sprint 86 Phase 2 (ADR-027)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 86 Phase 2 (ADR-027)
  * @status Sprint 86 - System Settings Admin UI
  */
 

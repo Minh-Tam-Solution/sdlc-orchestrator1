@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/app/projects/page
  * @description Project list and management page
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - New Project Modal
  */
 

@@ -1,8 +1,4 @@
-# SPEC-0017: Feedback Learning Service
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0017
 title: Feedback Learning Service - Code Review Loop Closure
 version: 2.0.0
@@ -23,9 +19,9 @@ related_specs:
 epic: Continuous Improvement Loop
 sprint: Sprint 85-90
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Feedback-Learning-Service-Design.md"
-```
-
 ---
+
+# SPEC-0017: Feedback Learning Service
 
 ## Executive Summary
 

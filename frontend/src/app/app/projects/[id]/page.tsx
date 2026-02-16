@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/app/projects/[id]/page
  * @description Project detail with gates list and SDLC stage timeline
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 64 - Route Group Migration
  */
 
@@ -33,7 +33,7 @@ interface ProjectGate {
 // =============================================================================
 
 /**
- * SDLC 5.1.3 Stage Definitions (10 Stages: 00-09 + Archive)
+ * SDLC 6.0.6 Stage Definitions (10 Stages: 00-09 + Archive)
  */
 const SDLC_STAGES = [
   { code: "00", name: "FOUNDATION", description: "Strategic Discovery & Validation" },
@@ -252,7 +252,7 @@ function ProjectContent({ projectId }: { projectId: string }) {
       {/* SDLC Stage Timeline */}
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="p-6 border-b">
-          <h2 className="text-lg font-semibold">SDLC 5.1.3 Stage Timeline</h2>
+          <h2 className="text-lg font-semibold">SDLC 6.0.6 Stage Timeline</h2>
           <p className="text-sm text-gray-500 mt-1">Track progress through all 10 stages</p>
         </div>
         <div className="p-6">

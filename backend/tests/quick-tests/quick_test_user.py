@@ -247,8 +247,9 @@ def test_jwt_generation():
     # Tokens should be generated
     assert access_token is not None
     assert refresh_token is not None
-    assert access_token.startswith("mock_jwt_")
-    assert refresh_token.startswith("mock_jwt_")
+    # Real JWT tokens are Base64url-encoded with 3 dot-separated segments (header.payload.signature)
+    assert access_token.count(".") == 2, f"Access token not valid JWT format: {access_token[:40]}..."
+    assert refresh_token.count(".") == 2, f"Refresh token not valid JWT format: {refresh_token[:40]}..."
 
     # Access and refresh tokens should be different
     assert access_token != refresh_token

@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/usePlanningHierarchy
  * @description TanStack Query hooks for Planning Hierarchy (Roadmap → Phase → Sprint → Backlog)
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Sprint Governance UI)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Sprint Governance UI)
  * @status Sprint 87 - Core Feature Implementation
  */
 

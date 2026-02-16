@@ -3,8 +3,8 @@
  *
  * @module frontend/src/hooks/useSprintGovernance
  * @description TanStack Query hooks for Sprint Governance (G-Sprint & G-Sprint-Close Gates)
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Sprint Governance UI)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Sprint Governance UI)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 87 - Core Feature Implementation
  */
 

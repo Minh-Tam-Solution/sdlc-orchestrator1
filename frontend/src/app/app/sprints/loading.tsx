@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/sprints/loading
  * @description Loading skeleton for Sprint Governance dashboard
- * @sdlc SDLC 5.1.3 Framework - Sprint 87
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87
  */
 
 export default function SprintGovernanceLoading() {

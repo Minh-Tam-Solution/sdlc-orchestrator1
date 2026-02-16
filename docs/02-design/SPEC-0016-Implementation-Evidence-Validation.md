@@ -1,11 +1,16 @@
-# SPEC-0016: Implementation Evidence Validation
-
-**Status**: 🟡 PROPOSED  
-**Created**: February 1, 2026  
-**Owner**: CTO  
-**Priority**: P0 - Critical Meta-Problem  
-
 ---
+spec_id: SPEC-0016
+title: Implementation Evidence Validation
+version: 1.0.0
+status: PROPOSED
+tier: PROFESSIONAL
+owner: CTO
+last_updated: 2026-02-01
+created: 2026-02-01
+priority: P0 - Critical Meta-Problem
+---
+
+# SPEC-0016: Implementation Evidence Validation
 
 ## 🎯 Executive Summary
 

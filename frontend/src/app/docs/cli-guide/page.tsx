@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/docs/cli-guide/page
  * @description CLI tool (sdlcctl) documentation
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - Documentation
  */
 
@@ -40,7 +40,7 @@ sdlcctl init --template e-commerce-vi`
     },
     {
       command: "sdlcctl validate",
-      description: "Validate project structure against SDLC 5.1.2",
+      description: "Validate project structure against SDLC 6.0.6",
       example: `sdlcctl validate
 # Validate specific directory
 sdlcctl validate ./docs

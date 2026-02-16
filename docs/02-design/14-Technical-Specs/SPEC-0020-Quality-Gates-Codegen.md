@@ -1,8 +1,4 @@
-# SPEC-0020: Quality Gates for Generated Code
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0020
 title: Quality Gates for Generated Code
 version: 2.0.0
@@ -25,9 +21,9 @@ related_specs:
 epic: EP-06 IR-Based Codegen Engine
 sprint: Sprint 48 (Feb 17-28, 2026)
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Quality-Gates-Codegen-Specification.md"
-```
-
 ---
+
+# SPEC-0020: Quality Gates for Generated Code
 
 ## 1. Overview
 

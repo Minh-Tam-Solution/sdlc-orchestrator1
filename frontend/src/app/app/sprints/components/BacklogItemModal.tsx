@@ -3,8 +3,8 @@
  *
  * @module frontend/src/app/app/sprints/components/BacklogItemModal
  * @description Modal dialog for creating and editing backlog items
- * @sdlc SDLC 5.1.3 Framework - Sprint 93 (Planning Hierarchy Part 2)
- * @reference SDLC 5.1.3 Pillar 2: Sprint Planning Governance
+ * @sdlc SDLC 6.0.6 Framework - Sprint 93 (Planning Hierarchy Part 2)
+ * @reference SDLC 6.0.6 Pillar 2: Sprint Planning Governance
  * @status Sprint 93 - Sprint CRUD & Charts
  */
 
@@ -543,9 +543,9 @@ Then [expected result]
             </p>
           </div>
 
-          {/* SDLC 5.1.3 Info */}
+          {/* SDLC 6.0.6 Info */}
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
-            <p className="font-medium text-gray-700">SDLC 5.1.3 Guidelines:</p>
+            <p className="font-medium text-gray-700">SDLC 6.0.6 Guidelines:</p>
             <ul className="mt-1 list-inside list-disc space-y-1">
               <li>P0 items must be addressed within the current sprint</li>
               <li>Story points should follow Fibonacci sequence (1, 2, 3, 5, 8, 13)</li>

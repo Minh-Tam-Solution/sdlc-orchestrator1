@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/app/settings/page
  * @description User settings, integrations, and API key management
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 64 - Route Group Migration
  */
 

@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/app/codegen/page
  * @description EP-06 IR-Based Code Generation interface
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 69 - Zero Mock Policy Compliance
  */
 

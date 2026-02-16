@@ -549,7 +549,7 @@ class ApiClient {
      * Get SDLC structure template for a tier
      */
     async getSDLCTemplate(tier) {
-        return this.get(`/api/v1/templates/sdlc-structure?tier=${tier}&version=6.0.5`);
+        return this.get(`/api/v1/templates/sdlc-structure?tier=${tier}&version=6.0.6`);
     }
     // ============================================
     // AGENTS.md Context Overlay APIs (Sprint 81)

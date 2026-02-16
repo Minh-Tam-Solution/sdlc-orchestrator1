@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/(dashboard)/gates/page
  * @description Gate management and evaluation page
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 62 - Route Group Migration (Real API)
  */
 

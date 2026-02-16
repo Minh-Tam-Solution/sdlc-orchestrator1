@@ -1,13 +1,16 @@
-# SPEC-0016: Implementation Evidence Validation
-
-**Version**: 1.0.0
-**Date**: February 1, 2026
-**Status**: IMPLEMENTED
-**Sprint**: Sprint 132 - Go-Live Preparation
-**Author**: Backend Team
-**Approver**: CTO
-
 ---
+spec_id: SPEC-0016
+title: Implementation Evidence Validation
+version: 1.0.0
+status: IMPLEMENTED
+tier: PROFESSIONAL
+owner: Backend Team
+last_updated: 2026-02-01
+sprint: Sprint 132 - Go-Live Preparation
+approver: CTO
+---
+
+# SPEC-0016: Implementation Evidence Validation
 
 ## Problem Statement
 

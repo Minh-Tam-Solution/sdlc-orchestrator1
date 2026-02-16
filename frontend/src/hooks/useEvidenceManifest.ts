@@ -3,7 +3,7 @@
  *
  * @module frontend/src/hooks/useEvidenceManifest
  * @description TanStack Query hooks for Evidence Hash Chain (P0 Blocker)
- * @sdlc SDLC 5.1.3 Framework - Sprint 87 (Evidence Hash Chain v1)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 87 (Evidence Hash Chain v1)
  * @status Sprint 87 - CTO APPROVED (January 20, 2026)
  */
 

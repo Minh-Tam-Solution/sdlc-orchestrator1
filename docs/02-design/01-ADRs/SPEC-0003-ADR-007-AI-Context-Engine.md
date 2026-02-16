@@ -2,8 +2,8 @@
 
 ---
 spec_id: SPEC-0003
-spec_name: "AI Context Engine Architecture"
-spec_version: "1.0.0"
+title: "AI Context Engine Architecture"
+version: "1.0.0"
 status: approved
 tier: ALL
 stage: "02"

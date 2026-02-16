@@ -1,7 +1,7 @@
 """
-SDLC 6.0.5 Specification Validator CLI (sdlcctl)
+SDLC 6.0.6 Specification Validator CLI (sdlcctl)
 
-A CLI tool for validating SDLC 6.0.5 folder structure and specification compliance.
+A CLI tool for validating SDLC 6.0.6 folder structure and specification compliance.
 Supports 4-Tier Classification: LITE, STANDARD, PROFESSIONAL, ENTERPRISE.
 Includes YAML frontmatter validation, BDD requirements checking, and OpenSpec conversion.
 
@@ -14,13 +14,13 @@ Usage:
     sdlcctl spec convert --from openspec --path .openspec/
 
 Version: 1.7.0
-Framework: SDLC 6.0.5
-Sprint: 172 - SDLC 6.0.5 Enhancement
+Framework: SDLC 6.0.6
+Sprint: 172 - SDLC 6.0.6 Enhancement
 """
 
 __version__ = "1.7.0"
 __author__ = "SDLC Orchestrator Team"
-__framework__ = "SDLC 6.0.5"
+__framework__ = "SDLC 6.0.6"
 
 from .validation.engine import SDLCValidator, ValidationResult
 from .validation.tier import Tier, TierDetector

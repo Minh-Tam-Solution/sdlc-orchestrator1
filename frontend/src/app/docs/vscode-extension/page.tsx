@@ -3,7 +3,7 @@
  *
  * @module frontend/landing/src/app/docs/vscode-extension/page
  * @description VS Code extension documentation and features
- * @sdlc SDLC 5.1.2 Universal Framework
+ * @sdlc SDLC 6.0.6 Universal Framework
  * @status Sprint 60 - Documentation
  */
 

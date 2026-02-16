@@ -1,8 +1,4 @@
-# SPEC-0006: Multi-Provider Codegen Architecture
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0006
 title: Multi-Provider Codegen Architecture (ADR-022)
 version: 1.0.0
@@ -26,9 +22,9 @@ related_specs:
 epic: EP-06 IR-Based Codegen Engine
 sprint: Sprint 45 (Jan 6-17, 2026)
 implementation_ref: "SDLC-Orchestrator/docs/02-design/03-ADRs/ADR-022-Multi-Provider-Codegen-Architecture.md"
-```
-
 ---
+
+# SPEC-0006: Multi-Provider Codegen Architecture
 
 ## Executive Summary
 

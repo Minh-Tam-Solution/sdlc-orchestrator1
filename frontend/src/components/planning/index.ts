@@ -3,7 +3,7 @@
  *
  * @module frontend/src/components/planning
  * @description Export all planning sub-agent UI components
- * @sdlc SDLC 5.2.0 Framework - Sprint 99 (Planning Sub-agent Part 2)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 99 (Planning Sub-agent Part 2)
  */
 
 export { ConformanceScoreBadge } from "./ConformanceScoreBadge";

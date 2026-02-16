@@ -1,8 +1,4 @@
-# SPEC-0019: Conformance Testing Specification
-
-## Frontmatter
-
-```yaml
+---
 spec_id: SPEC-0019
 title: Conformance Testing & Plan Approval Specification
 version: 2.0.0
@@ -22,9 +18,9 @@ related_specs:
 epic: Pattern Conformance Automation
 sprint: Sprint 92-95
 implementation_ref: "SDLC-Orchestrator/docs/02-design/14-Technical-Specs/Conformance-Testing-Design.md"
-```
-
 ---
+
+# SPEC-0019: Conformance Testing Specification
 
 ## 1. Overview
 

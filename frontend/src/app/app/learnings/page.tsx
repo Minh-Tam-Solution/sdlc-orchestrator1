@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/learnings/page
  * @description EP-11 Feedback Learning dashboard for PR review insights
- * @sdlc SDLC 5.1.3 Framework - Sprint 100 (Feedback Learning Service)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 100 (Feedback Learning Service)
  * @status Sprint 100 - EP-11 Implementation
  */
 

@@ -3,7 +3,7 @@
  *
  * @module frontend/src/app/app/planning/components/RoadmapModal
  * @description Modal for creating/editing Roadmaps (12-month vision with quarterly milestones)
- * @sdlc SDLC 5.1.3 Framework - Sprint 92 (Planning Hierarchy Part 1)
+ * @sdlc SDLC 6.0.6 Framework - Sprint 92 (Planning Hierarchy Part 1)
  * @status Sprint 92 - Roadmap CRUD UI Implementation
  */
 
