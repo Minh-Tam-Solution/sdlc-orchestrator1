@@ -569,7 +569,11 @@
       "Bash(DATABASE_URL=\"postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:15432/sdlc_orchestrator\" timeout 15 python -m pytest:*)",
       "Bash(DATABASE_URL=\"postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:15432/sdlc_orchestrator\" timeout 25 python -m pytest:*)",
       "Bash(DATABASE_URL=\"postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:15432/sdlc_orchestrator\" timeout 45 python -m pytest:*)",
-      "Bash(DATABASE_URL=\"postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:15432/sdlc_orchestrator\" timeout 40 python -m pytest:*)"
+      "Bash(DATABASE_URL=\"postgresql+asyncpg://sdlc_user:changeme_secure_password@localhost:15432/sdlc_orchestrator\" timeout 40 python -m pytest:*)",
+      "Bash(npx @vscode/vsce publish:*)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(sed:*)",
+      "Bash(tr:*)"
     ],
     "deny": [],
     "ask": []

@@ -128,7 +128,7 @@ export default function AppBuilderPage() {
     if (generatedBlueprint) {
       sessionStorage.setItem("appBlueprint", JSON.stringify(generatedBlueprint));
       sessionStorage.setItem("blueprintStats", JSON.stringify(generatedStats));
-      router.push("/app/code-generation");
+      router.push("/app/codegen");
     }
   };
 
