@@ -1,11 +1,51 @@
-# Current Sprint: Sprint 175 - TBD (Planning Phase)
+# Current Sprint: Sprint 175 - Frontend Feature Completion
 
 **Sprint Duration**: March 3-14, 2026 (10 working days)
-**Sprint Goal**: TBD - Awaiting CTO direction
-**Status**: PLANNING
-**Priority**: TBD
+**Sprint Goal**: Complete 6 hidden production pages — sidebar integration, hook wiring, UI polish
+**Status**: PLANNED
+**Priority**: P1 (User-Facing Feature Gaps)
 **Framework**: SDLC 6.0.6 (7-Pillar + AI Governance Principles)
 **Previous Sprint**: [Sprint 174 COMPLETE - Anthropic Best Practices](SPRINT-174-COMPLETION-REPORT.md)
+**Detailed Plan**: [SPRINT-175-FRONTEND-COMPLETION.md](SPRINT-175-FRONTEND-COMPLETION.md)
+
+---
+
+## Sprint 175 Overview
+
+**Problem**: Frontend audit (Sprint 174) identified 6 production-ready pages that are fully coded with hooks and backend APIs but **hidden from sidebar navigation**, making them inaccessible to users.
+
+**Target Pages**:
+
+| Page | LOC | Hooks Used/Available | Status |
+|------|-----|---------------------|--------|
+| CEO Dashboard | 763 | 5/13 | Hidden, partial hooks |
+| MCP Analytics | 557 | 3/6 | Hidden, hardcoded cost data |
+| Planning | 553 | 4/28 | Hidden, partial CRUD |
+| Plan Review | 1,167 | 2/8 | Hidden, partial detail page |
+| Learnings | 627 | 4/20 | Hidden, missing sub-pages |
+| SASE Templates | 841 | 0/0 | In sidebar, no backend API |
+
+**Daily Schedule**:
+
+| Day | Deliverable | Priority |
+|-----|-------------|----------|
+| Day 1 | Sidebar integration (5 new entries) + MCP Analytics hooks | P0 |
+| Day 2 | MCP Analytics time-range + CEO Dashboard hooks (8) | P0 |
+| Day 3 | CEO Dashboard drill-down, export, auto-refresh | P0 |
+| Day 4 | Learnings — wire 16 remaining hooks + tabs | P1 |
+| Day 5 | Learnings export + Plan Review list enhancement | P1 |
+| Day 6 | Plan Review detail page — full implementation | P1 |
+| Day 7 | Planning — wire 24 hierarchy CRUD hooks | P1 |
+| Day 8 | Planning detail views + backlog management | P1 |
+| Day 9 | SASE Templates polish + cross-page polish | P2 |
+| Day 10 | TypeScript check + build + manual QA all 6 pages | P0 |
+
+**Success Criteria**:
+- All 6 pages accessible from sidebar
+- >90% hooks connected to UI
+- Zero hardcoded mock data
+- `npx tsc --noEmit` passes
+- `npm run build` passes
 
 ---
 
@@ -19,6 +59,7 @@
 - Context cache service (L1 Redis + L2 Anthropic) — **8x cost reduction**
 - MCP client service (AsyncExitStack pattern)
 - ADR-055: Governed autonomous codegen design (558 lines)
+- Frontend audit: 2,032 LOC archived to 99-Legacy, 6 production pages identified
 
 **Metrics**: 8/8 PASS (2 exceeded targets), Framework-First compliance 4/4 PASS, Grade A+
 
@@ -26,13 +67,14 @@
 
 ---
 
-## Sprint 175 Planning Notes
+## Sprint 176 Lookahead
 
-**Recommended Focus Areas** (from Sprint 174 handoffs):
-1. **Tier 2 Anthropic Patterns**: Test generation workflow + MRP automation
-2. **Vietnamese SME Pilot Preparation**: Use CLAUDE.md PRO tier for onboarding
-3. **Cost Monitoring Dashboard**: Grafana panels for context cache metrics
-4. **ADR-055 Implementation Decision**: Proceed (Sprint 175-177) or defer to post-pilot
+**Recommended Focus Areas** (deferred from Sprint 175):
+1. **SASE Templates Backend API**: Create persistence endpoints (8+ days)
+2. **Tier 2 Anthropic Patterns**: Test generation workflow + MRP automation
+3. **Vietnamese SME Pilot Preparation**: Use CLAUDE.md PRO tier for onboarding
+4. **ADR-055 Implementation Decision**: Proceed (Sprint 176-178) or defer to post-pilot
+5. **Mobile Responsive**: Make 6 pages responsive for tablet/mobile
 
 **Gate G3 Readiness**: 98.2% → Target 99% (final polish sprint)
 
