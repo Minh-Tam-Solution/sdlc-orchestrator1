@@ -95,21 +95,71 @@
 
 ---
 
-## Sprint 177-178 Lookahead
+## Sprint 177 — "Coding Agent Loop" (Mar 31 - Apr 11)
 
-**Sprint 177** (Apr 7-18): Coding Agent Loop + Gates G2/G3 (ADR-055 Phase 2)
-- Coding Agent iterates `feature_list.json` → generates code per feature
-- Gate G2 (Security): Semgrep SAST scan per feature
-- Gate G3 (Tests): Automated test execution via Browser Agent
-- Retry logic: max_retries=3 with deterministic feedback
+**Status**: PLANNED
+**Detailed Plan**: [SPRINT-177-CODING-AGENT-LOOP.md](SPRINT-177-CODING-AGENT-LOOP.md)
 
-**Sprint 178** (Apr 21-May 2): Full E2E Autonomous Codegen Pilot
-- End-to-end pilot with SDLC Orchestrator project (dogfooding)
-- Evidence State Machine integration (8-state lifecycle)
-- Vietnamese SME pilot launch (5 founding customers)
-- Mobile responsive for 6 Sprint 175 pages
+**Sprint Goal**: Implement ADR-055 Phase 2 (Coding Agent + Gates G2/G3), enable auto-correction loop for codegen quality, add Django/React code templates with 80%+ test coverage patterns.
 
-**Gate G3 Readiness**: 98.2% → Target 99% (final polish)
+**Key Deliverables** (15 files):
+- **Backend Services** (5): `coding_agent_service.py`, `auto_correction_service.py`, `template_service.py`, `code_quality_service.py`, `test_execution_service.py`
+- **OPA Policies** (2): `g2_coding_review.rego`, `g3_testing.rego`
+- **Code Templates** (4): Django model + DRF API + React component + pytest patterns
+- **Tests** (3): Unit tests (coding_agent, auto_correction, template service), E2E test (1 full workflow)
+- **CLI Update** (1): `sdlcctl codegen run` command
+
+**10-Day Schedule**:
+| Days | Focus | Deliverables |
+|------|-------|--------------|
+| 1-3 | Coding Agent core | Service + iterative loop + template engine |
+| 4-5 | Gate G2 (Coding Review) | Semgrep SAST + Pylint >7.0 + ESLint 0 errors |
+| 6-7 | Gate G3 (Testing) | pytest ≥80% coverage + Playwright E2E |
+| 8-9 | Browser Agent + Templates | Auto-correction + Django/React patterns |
+| 10 | Integration + Docs | E2E test + CLAUDE.md update |
+
+**Success Metrics**:
+- ✅ >60% code generation success on 1st attempt
+- ✅ >85% success after auto-correction (max 3 retries)
+- ✅ <10 min end-to-end workflow (spec → runnable code)
+- ✅ >95% Browser Agent reliability (screenshot-on-failure)
+
+**Auto-Correction Process**: Parse Semgrep/pytest errors → inject context → regenerate → retry (5s, 10s, 20s exponential backoff)
+
+---
+
+## Sprint 178 — "Autonomous Codegen Pilot" (Apr 14-25)
+
+**Status**: PLANNED
+**Detailed Plan**: [SPRINT-178-AUTONOMOUS-CODEGEN-PILOT.md](SPRINT-178-AUTONOMOUS-CODEGEN-PILOT.md)
+
+**Sprint Goal**: Launch ADR-055 Phase 3 with Vietnamese SME pilot (5 founding customers), implement Gate G4 deployment, add production observability with Grafana dashboards, make 6 Sprint 175 pages mobile responsive.
+
+**Key Deliverables** (12 files):
+- **Backend** (3): `g4_deployment.rego`, `deployment_service.py`, manual approval endpoint
+- **DevOps** (4): Docker staging, blue-green deploy, 3 Grafana dashboards, Slack alert rules
+- **Frontend** (5): 6 pages mobile responsive (768px, 1024px, 1440px breakpoints)
+- **Pilot Docs** (2): Vietnamese onboarding runbook, ADR-055 completion report
+
+**Vietnamese SME Pilot**:
+- **5 Founding Customers**: Pre-screened via LinkedIn + Product Hunt (Django/React shops)
+- **Onboarding**: Pre-setup (5 min) → Guided session (15 min) → First feature (10 min) → Feedback (5 min)
+- **Support**: Slack channel #pilot-vietnamese-sme, daily check-ins 9am-5pm VN time, <15 min critical response
+- **Value Delivery**: <30 min onboarding, <1 hour first value (working Django model + API endpoint)
+
+**Production Observability**:
+- **3 Grafana Dashboards**: Codegen Metrics (success rate, avg time, retry rate) + Gate Analytics (G1-G4 pass rates, evidence submissions) + Pilot Customer Health (active users, feature usage, NPS)
+- **Alert Rules**: Slack critical (G4 deployment failure), warnings (success rate <60%, G2 pass <50%), info (new customer onboarded)
+
+**Mobile Responsive**: 6 Sprint 175 pages (CEO Dashboard, MCP Analytics, Planning, Plan Review, Learnings, SASE Templates) — Tailwind responsive utilities, 3 breakpoints
+
+**Success Metrics**:
+- ✅ 100% customer activation (5/5 complete onboarding)
+- ✅ >75% codegen success rate (end-to-end)
+- ✅ >90% G4 staging pass rate
+- ✅ NPS >50 (4+ out of 5 customers would recommend)
+
+**ADR-055 3-Sprint Arc**: Sprint 176 (Initializer+G1) → Sprint 177 (Coding Agent+G2/G3) → Sprint 178 (Vietnamese Pilot+G4) = Complete autonomous codegen system
 
 ---
 
