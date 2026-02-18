@@ -1,57 +1,45 @@
-# Sprint 178: "Autonomous Codegen Pilot + Multi-Agent Integration" — Vietnamese SME Launch
+# Sprint 178: "Autonomous Codegen Pilot" — Vietnamese SME Launch
 
 **Sprint Duration**: April 14-25, 2026 (10 working days)
 **Status**: PLANNED
-**Phase**: Stage 04 (BUILD) → Stage 06 (DEPLOY) — Autonomous Codegen Pilot + Multi-Agent P1
+**Phase**: Stage 04 (BUILD) → Stage 06 (DEPLOY) — Autonomous Codegen Pilot Launch
 **Framework**: SDLC 6.0.6 (7-Pillar + AI Governance Principles)
-**Priority**: P0 (Vietnamese SME Pilot Launch + ADR-056 P1 Integration)
-**Previous Sprint**: [Sprint 177 — Coding Agent Loop + Multi-Agent Core](SPRINT-177-CODING-AGENT-LOOP.md)
-**ADR References**:
-- [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
-- [ADR-056 — Multi-Agent Team Engine](../../02-design/ADR-056-Multi-Agent-Team-Engine.md)
-**Epic**: [EP-07 — Multi-Agent Team Engine](../../01-planning/02-Epics/EP-07-Multi-Agent-Team-Engine.md)
+**Priority**: P0 (Vietnamese SME Pilot Launch — 5 Founding Customers)
+**Previous Sprint**: [Sprint 177 — Coding Agent Loop](SPRINT-177-CODING-AGENT-LOOP.md)
+**ADR Reference**: [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
 **Framework Reference**: [11-AUTONOMOUS-CODEGEN-PATTERNS.md](../../../SDLC-Enterprise-Framework/03-AI-GOVERNANCE/11-AUTONOMOUS-CODEGEN-PATTERNS.md)
-**Archived**: Pre-ADR-056 version → docs/10-archive/04-Legacy/02-Sprint-Plans/
 
 ---
 
 ## Sprint Goal
 
-Launch **Vietnamese SME Pilot** with 5 founding customers using the complete ADR-055 autonomous codegen workflow (Gates G1-G4), implement **ADR-056 P1** (team orchestrator, evidence collector, OTT Gateway scaffold with Telegram NOTIFY-ONLY plugin, 14 integration tests), add **Gate G4 (Deployment)**, implement **production observability** (Grafana dashboards + alert rules), and close **Sprint 175 mobile responsive** deferral. This sprint transitions from development to production pilot with multi-agent collaboration capabilities.
+Launch **Vietnamese SME Pilot** with 5 founding customers using the complete ADR-055 autonomous codegen workflow (Gates G1-G4), add **Gate G4 (Deployment)** for staging/production deployments, implement **production observability** (Grafana dashboards + alert rules), and close **Sprint 175 mobile responsive** deferral. This sprint transitions from development to production pilot.
 
 ---
 
 ## Sprint Context
 
-**ADR-055 + ADR-056 3-Sprint Arc — COMPLETION**:
+**ADR-055 3-Sprint Arc — COMPLETION**:
 ```
-Sprint 176: ADR-056 Foundation + Initializer Agent + Gate G1     ✅ COMPLETE
-Sprint 177: ADR-056 P0 Services + Coding Agent Loop + G2/G3     ✅ COMPLETE
-Sprint 178: ADR-056 P1 + Full E2E Pilot + Vietnamese SME        ← YOU ARE HERE
-            → Team orchestrator + evidence collector
-            → OTT Gateway scaffold (Telegram NOTIFY-ONLY)
-            → 14 integration tests (lane queue + multi-agent E2E)
+Sprint 176: Initializer Agent + Gate G1        ✅ COMPLETE
+            ↓ Spec parsing → feature_list.json
+            
+Sprint 177: Coding Agent Loop + Gates G2/G3    ✅ COMPLETE
+            ↓ Iterative code generation
+            ↓ Auto-correction loop (max 3 retries)
+            
+Sprint 178: Full E2E Pilot + Vietnamese SME    ← YOU ARE HERE
             → 5 founding customers
-            → Production observability + Gate G4
+            → Production observability
+            → Gate G4 (Deployment)
 ```
 
-**Sprint 177 Deliverables** (dependencies for Sprint 178):
-- 3 DB tables (agent_definitions, agent_conversations, agent_messages)
-- 12 service files in `backend/app/services/agent_team/`
-- 5 P0 API endpoints
-- 73 unit tests passing
+**Sprint 177 Deliverables** (dependencies):
 - Coding Agent service with auto-correction loop
 - Gates G2 (Coding Review) + G3 (Testing) integrated
-
-**ADR-056 Sprint 178 Scope** (NEW):
-
-| Day | ADR-056 P1 Deliverable |
-|-----|------------------------|
-| 1-2 | `team_orchestrator.py` (queue modes: queue/steer/interrupt) + `evidence_collector.py` |
-| 3 | Human-in-the-loop interrupt endpoint + 5 P1 API endpoints |
-| 4-5 | OTT Gateway scaffold (plugin architecture) + Telegram plugin (NOTIFY-ONLY) |
-| 6-7 | Integration tests: 8 lane queue + 6 multi-agent E2E |
-| 8 | 3 minimum viable traces (message lifecycle, provider invocation, budget consumption) |
+- Django + React templates (80%+ test coverage)
+- Browser Agent E2E validation
+- End-to-end workflow: `sdlcctl codegen run --spec spec.yaml`
 
 **Sprint 175 Deferrals** (must close):
 - Mobile responsive design for 6 pages (CEO Dashboard, MCP Analytics, Planning, Plan Review, Learnings, SASE Templates)

@@ -1,23 +1,13 @@
 # API Specification (OpenAPI 3.0)
 ## Complete REST + GraphQL Endpoints
 
-**Version**: 3.6.0
-**Date**: February 18, 2026
-**Status**: PROPOSED - Multi-Agent Team Engine (Sprint 176, ADR-056)
+**Version**: 3.5.0
+**Date**: February 15, 2026
+**Status**: ACTIVE - Governance Loop Completion (Sprint 173)
 **Authority**: Backend Lead + CTO Review (✅ APPROVED)
-**Foundation**: FRD v3.2.0, Data Model ERD v3.4.0, Roadmap v5.0.0
+**Foundation**: FRD v3.2.0, Data Model ERD v3.3.0, Roadmap v5.0.0
 **Stage**: Stage 01 (WHAT - Planning & Analysis)
 **Framework**: SDLC 6.0.6 Complete Lifecycle (10 Stages)
-
-**Changelog v3.6.0** (Feb 18, 2026):
-- **Multi-Agent Team Engine** (Sprint 176 — ADR-056, EP-07):
-  - P0 Endpoints (6): definitions CRUD, conversations start, messages send/get
-  - P1 Endpoints (5): conversation state, complete, interrupt, events/feed, evidence/batch
-  - New auth scope: `agent_team:write`, `agent_team:read`, `agent_team:admin`
-  - Pydantic v2 schemas: `backend/app/schemas/agent_team.py`
-  - Total endpoints: 80 → 91 endpoints
-  - Reference: ADR-056, FR-037 to FR-041
-  - Archived: v3.5.0 → docs/10-archive/01-Legacy/05-API-Design/
 
 **Changelog v3.5.0** (Feb 15, 2026):
 - **Governance Loop Endpoints** (Sprint 173 — ADR-053):
@@ -2624,166 +2614,11 @@ GET /projects?limit=20&cursor=eyJpZCI6IjU1MGU4NDAwLWUyOWItNDFkNC1hNzE2LTQ0NjY1NT
 
 ---
 
----
-
-## Multi-Agent Team Engine Endpoints (EP-07, ADR-056)
-
-> **NEW (Sprint 176)**: 11 endpoints for Multi-Agent infrastructure.
-> Auth scope: `agent_team:write` (mutations), `agent_team:read` (queries), `agent_team:admin` (dead-letter replay).
-
-### P0 Endpoints (Sprint 177) — 6 endpoints
-
-#### POST /api/v1/agent-team/definitions
-
-Create a new agent definition (template).
-
-**Request** (`AgentDefinitionCreate`):
-```json
-{
-  "project_id": "uuid",
-  "team_id": "uuid | null",
-  "agent_name": "coder-agent",
-  "sdlc_role": "coder",
-  "provider": "ollama",
-  "model": "qwen3-coder:30b",
-  "system_prompt": "You are a coding agent...",
-  "queue_mode": "queue",
-  "session_scope": "per-sender",
-  "max_delegation_depth": 1,
-  "allowed_tools": ["*"],
-  "denied_tools": [],
-  "can_spawn_subagent": false,
-  "allowed_paths": ["/project/src/"],
-  "reflect_frequency": 1
-}
-```
-
-**Response** (201): `AgentDefinitionResponse`
-**Errors**: 400 (validation), 403 (scope), 409 (duplicate name)
-**Scope**: `agent_team:write`
-
-#### GET /api/v1/agent-team/definitions
-
-List agent definitions (paginated).
-
-**Query Params**: `project_id` (required), `page`, `page_size`, `sdlc_role` (filter)
-**Response** (200): `AgentDefinitionListResponse`
-**Scope**: `agent_team:read`
-
-#### PATCH /api/v1/agent-team/definitions/{id}
-
-Update agent definition.
-
-**Request** (`AgentDefinitionUpdate`): Partial update, any field nullable.
-**Response** (200): `AgentDefinitionResponse`
-**Note**: Changes do NOT affect existing conversations (Snapshot Precedence — Decision 1)
-**Scope**: `agent_team:write`
-
-#### POST /api/v1/agent-team/conversations
-
-Start a new agent conversation.
-
-**Request** (`ConversationCreate`):
-```json
-{
-  "agent_definition_id": "uuid",
-  "project_id": "uuid",
-  "parent_conversation_id": "uuid | null",
-  "initiator_type": "user",
-  "initiator_id": "user-123",
-  "channel": "web"
-}
-```
-
-**Response** (201): `ConversationResponse` with snapshotted fields
-**Side Effects**: Snapshots max_messages, max_budget_cents, queue_mode, session_scope from definition
-**Scope**: `agent_team:write`
-
-#### POST /api/v1/agent-team/conversations/{id}/messages
-
-Send a message to a conversation.
-
-**Request** (`MessageSend`):
-```json
-{
-  "conversation_id": "uuid",
-  "content": "Implement the login feature",
-  "sender_type": "user",
-  "sender_id": "user-123",
-  "message_type": "request",
-  "mentions": ["@reviewer"],
-  "dedupe_key": "optional-idempotency-key"
-}
-```
-
-**Response** (201): `MessageResponse` with processing_lane, correlation_id
-**Side Effects**: Message enters lane queue, InputSanitizer checks applied
-**Errors**: 409 (dedupe conflict → silent drop), 422 (conversation max_reached)
-**Scope**: `agent_team:write`
-
-#### GET /api/v1/agent-team/conversations/{id}/messages
-
-Get messages in a conversation (paginated).
-
-**Query Params**: `page`, `page_size`, `sender_type` (filter), `processing_status` (filter)
-**Response** (200): `MessageListResponse`
-**Scope**: `agent_team:read`
-
-### P1 Endpoints (Sprint 178) — 5 endpoints
-
-#### GET /api/v1/agent-team/conversations/{id}
-
-Get conversation state with budget and token tracking.
-
-**Response** (200): `ConversationResponse`
-**Scope**: `agent_team:read`
-
-#### POST /api/v1/agent-team/conversations/{id}/complete
-
-Complete a conversation.
-
-**Response** (200): `ConversationResponse` with status=completed
-**Scope**: `agent_team:write`
-
-#### POST /api/v1/agent-team/conversations/{id}/interrupt
-
-Human-in-the-loop interrupt (Non-Negotiable #14).
-
-**Request** (`ConversationInterrupt`):
-```json
-{
-  "reason": "Budget review needed before continuing",
-  "interrupted_by": "cto-user-id"
-}
-```
-
-**Response** (200): `ConversationResponse` with status=paused_by_human
-**Scope**: `agent_team:write`
-
-#### GET /api/v1/agent-team/conversations/{id}/events
-
-Server-Sent Events feed for real-time conversation updates.
-
-**Response**: SSE stream with events: `msg_created`, `msg_completed`, `msg_failed`, `budget_warning`, `conversation_completed`
-**Scope**: `agent_team:read`
-
-#### POST /api/v1/agent-team/evidence/batch
-
-Batch evidence capture with correlation_id.
-
-**Request**: Array of evidence items linked to conversation messages
-**Response** (201): Array of evidence IDs
-**Scope**: `agent_team:write`
-
----
-
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-02-08
 **Owner**: Backend Lead + CTO
-**Status**: PROPOSED (Sprint 176 - Multi-Agent Team Engine)
+**Status**: ✅ APPROVED (Sprint 147 - Product Truth Layer)
 
 **Version History**:
-- v3.6.0 (Feb 18, 2026): Added 11 Multi-Agent Team Engine endpoints (91 total, ADR-056, EP-07)
-- v3.5.0 (Feb 15, 2026): Added 5 Governance Loop endpoints (80 total, ADR-053)
 - v3.4.0 (Feb 8, 2026): Added 3 Product Truth Layer telemetry endpoints (75 total)
 - v3.3.0 (Jan 30, 2026): Added 5 Team Invitation endpoints (72 total)
 - v3.2.0 (Dec 30, 2025): Added 3 Password Reset endpoints (67 total)

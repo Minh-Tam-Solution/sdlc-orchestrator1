@@ -1,66 +1,46 @@
-# Sprint 177: "Coding Agent Loop + Multi-Agent Core Services" — ADR-055 Phase 2 + ADR-056 P0 Implementation
+# Sprint 177: "Coding Agent Loop" — ADR-055 Phase 2 + Gates G2/G3
 
 **Sprint Duration**: March 31 - April 11, 2026 (10 working days)
 **Status**: PLANNED
-**Phase**: Stage 04 (BUILD) — Autonomous Codegen Phase 2 + Multi-Agent Core Implementation
+**Phase**: Stage 04 (BUILD) — Autonomous Codegen Phase 2
 **Framework**: SDLC 6.0.6 (7-Pillar + AI Governance Principles)
-**Priority**: P0 (ADR-055 Phase 2 + ADR-056 P0 Services)
-**Previous Sprint**: [Sprint 176 — Autonomous Codegen & Multi-Agent Foundation](SPRINT-176-AUTONOMOUS-CODEGEN-PILOT-PREP.md)
-**ADR References**:
-- [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
-- [ADR-056 — Multi-Agent Team Engine](../../02-design/ADR-056-Multi-Agent-Team-Engine.md)
-**Epic**: [EP-07 — Multi-Agent Team Engine](../../01-planning/02-Epics/EP-07-Multi-Agent-Team-Engine.md)
+**Priority**: P0 (ADR-055 Phase 2 Critical Path)
+**Previous Sprint**: [Sprint 176 — Autonomous Codegen & Pilot Prep](SPRINT-176-AUTONOMOUS-CODEGEN-PILOT-PREP.md)
+**ADR Reference**: [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
 **Framework Reference**: [11-AUTONOMOUS-CODEGEN-PATTERNS.md](../../../SDLC-Enterprise-Framework/03-AI-GOVERNANCE/11-AUTONOMOUS-CODEGEN-PATTERNS.md)
-**Archived**: Pre-ADR-056 version → docs/10-archive/04-Legacy/02-Sprint-Plans/
 
 ---
 
 ## Sprint Goal
 
-Implement **ADR-055 Phase 2** (Coding Agent Loop with Gates G2/G3) AND **ADR-056 P0 Core Services** (12 service files, 3 DB tables, 5 P0 API endpoints, 73 unit tests). This sprint builds the multi-agent infrastructure that the coding agent loop depends on for agent-to-agent delegation, provider failover, and security guards.
+Implement **ADR-055 Phase 2** — the **Coding Agent Loop** with iterative code generation, Browser Agent for E2E validation, **Gates G2 (Coding Review)** and **G3 (Testing)** integration, and close the autonomous codegen feedback loop. This sprint completes the core autonomous codegen engine before Sprint 178 pilot launch.
 
 ---
 
 ## Sprint Context
 
-**ADR-055 + ADR-056 3-Sprint Arc**:
+**ADR-055 3-Sprint Arc**:
 ```
-Sprint 176: ADR-056 Foundation + Initializer Agent + Gate G1     ✅ COMPLETE
-            ↓ Design docs, schemas, design contracts
+Sprint 176: Initializer Agent + Gate G1        ✅ COMPLETE
             ↓ Spec parsing → feature_list.json
-
-Sprint 177: ADR-056 P0 Services + Coding Agent Loop + G2/G3     ← YOU ARE HERE
-            ↓ 3 DB tables (agent_definitions, conversations, messages)
-            ↓ 12 service files (registry, queue, tracker, invoker, etc.)
-            ↓ 5 P0 API endpoints + 73 unit tests
-            ↓ Coding Agent iterative generation + Browser Agent
-
-Sprint 178: Multi-Agent E2E + OTT Scaffold + Codegen Pilot
-            → Integration tests + Vietnamese SME Launch
+            
+Sprint 177: Coding Agent Loop + Gates G2/G3    ← YOU ARE HERE
+            ↓ Iterative code generation
+            ↓ Browser Agent E2E validation
+            ↓ Auto-correction loop
+            
+Sprint 178: Full E2E Autonomous Codegen Pilot  
+            → Vietnamese SME Launch
 ```
 
-**Sprint 176 Deliverables** (dependencies for Sprint 177):
-- ADR-056 design documents (BC-056, EP-07, FR-037 to FR-041, STM-056, TP-056)
-- Updated Data Model ERD v3.4.0, API Spec v3.6.0
-- Design contracts: ConversationLimits, FailoverClassifier, InputSanitizer, ShellGuard, ToolContext, ReflectStep
-- Pydantic schemas: `backend/app/schemas/agent_team.py`
+**Sprint 176 Deliverables** (dependencies):
 - Initializer Agent service (`feature_list.json` generation)
 - Gate G1 (Spec Review) with OPA policy
-
-**ADR-056 Sprint 177 Scope** (NEW):
-
-| Day | ADR-056 Deliverable | LOC |
-|-----|---------------------|-----|
-| 1 | Alembic migration: 3 tables (agent_definitions, agent_conversations, agent_messages) | ~140 |
-| 2 | `agent_registry.py` + `mention_parser.py` | ~230 |
-| 3 | `message_queue.py` (lane-based, SKIP LOCKED + Redis notify) | ~250 |
-| 4 | `conversation_tracker.py` (6 guards + parent-child + budget) | ~200 |
-| 5 | `agent_invoker.py` (failover + cooldowns + error-as-string) | ~250 |
-| 6 | 5 P0 API endpoints in `routes/agent_team.py` | ~300 |
-| 7-8 | Unit tests: 73 test cases across 6 modules | ~500 |
+- Browser Agent v2 (screenshot + retry logic)
+- Evidence Vault integration
+- 6 E2E Playwright tests for validation patterns
 
 **Sprint 177 Builds On**:
-- ADR-056 design contracts from Sprint 176
 - `feature_list.json` from Initializer Agent
 - Gate state machine from Sprint 173
 - Browser Agent from Sprint 176

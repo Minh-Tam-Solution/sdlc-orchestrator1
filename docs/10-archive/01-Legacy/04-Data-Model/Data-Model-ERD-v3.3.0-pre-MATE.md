@@ -1,24 +1,15 @@
 # Data Model & Entity-Relationship Diagram
 ## Database Schema and Relationships
 
-**Version**: 3.4.0
-**Date**: February 18, 2026
-**Status**: PROPOSED - Multi-Agent Team Engine (Sprint 176, ADR-056)
+**Version**: 3.3.0
+**Date**: February 15, 2026
+**Status**: IMPLEMENTED - Governance Loop State Machine (Sprint 173)
 **Authority**: CTO + Backend Lead ✅ APPROVED
-**Foundation**: FRD v3.2.0, Vision v4.0.0, EP-04/05/06/07 Data Requirements
+**Foundation**: FRD v3.2.0, Vision v4.0.0, EP-04/05/06 Data Requirements
 **Stage**: Stage 04 (BUILD)
 **Framework**: SDLC 6.0.6 Complete Lifecycle (10 Stages)
 
 **Changelog**:
-- v3.4.0 (Feb 18, 2026): Sprint 176 Multi-Agent Team Engine (ADR-056, EP-07):
-  - New table: `agent_definitions` — agent templates with SDLC roles, tool permissions, provider config
-  - New table: `agent_conversations` — conversation state with snapshot precedence, budget tracking
-  - New table: `agent_messages` — lane-based queue with dead-letter, dedupe, failover tracking
-  - New columns: tool permissions (allowed_tools, denied_tools, can_spawn_subagent, allowed_paths)
-  - New columns: provider failover (failover_reason, provider_used, processing_lane)
-  - New columns: dead-letter (failed_count, last_error, next_retry_at)
-  - Reference: ADR-056-Multi-Agent-Team-Engine.md, EP-07-Multi-Agent-Team-Engine.md
-  - Archived: v3.3.0 → docs/10-archive/01-Legacy/04-Data-Model/
 - v3.3.0 (Feb 15, 2026): Sprint 173 Governance Loop schema changes (ADR-053):
   - `gates` table: Added `evaluated_at` (TIMESTAMP), `exit_criteria_version` (UUID) columns
   - `gates` table: Status values changed: PENDING_APPROVAL → SUBMITTED, IN_PROGRESS removed, EVALUATED + EVALUATED_STALE added
@@ -1162,158 +1153,9 @@ CREATE INDEX ON daily_activation_metrics(date);
 
 ---
 
-## Multi-Agent Team Engine Tables (EP-07, ADR-056)
-
-> **NEW (Sprint 176)**: 3 tables for Multi-Agent Team Engine infrastructure.
-> Pattern sources: OpenClaw (lane queue, failover), TinyClaw (@mention, loop guards), Nanobot (tool context, shell guard).
-
-### agent_definitions
-
-Agent templates/defaults. Snapshot Precedence: these values become defaults for new conversations.
-
-```sql
-CREATE TABLE agent_definitions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID NOT NULL REFERENCES projects(id),
-    team_id UUID REFERENCES teams(id),
-    agent_name VARCHAR(50) NOT NULL,
-    sdlc_role VARCHAR(20) NOT NULL,           -- pm/architect/coder/reviewer/tester/devops
-    provider VARCHAR(20) NOT NULL,
-    model VARCHAR(100) NOT NULL,
-    system_prompt TEXT,
-    working_directory VARCHAR(500),
-    max_tokens INTEGER DEFAULT 4096,
-    temperature FLOAT DEFAULT 0.7,
-    queue_mode VARCHAR(20) DEFAULT 'queue',    -- P0: queue/steer/interrupt (3 of 7)
-    session_scope VARCHAR(20) DEFAULT 'per-sender', -- P0: per-sender/global (2)
-    max_delegation_depth INTEGER DEFAULT 1,    -- Nanobot N2: prevent infinite chains
-    allowed_tools JSONB DEFAULT '["*"]',       -- Tool whitelist
-    denied_tools JSONB DEFAULT '[]',           -- Tool blacklist
-    can_spawn_subagent BOOLEAN DEFAULT false,  -- Explicit spawn permission
-    allowed_paths JSONB DEFAULT '[]',          -- Workspace restriction paths
-    reflect_frequency INTEGER DEFAULT 1,       -- Nanobot: reflect-after-tools frequency
-    is_active BOOLEAN DEFAULT true,
-    config JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_agent_definitions_project ON agent_definitions(project_id);
-CREATE INDEX idx_agent_definitions_team ON agent_definitions(team_id);
-CREATE INDEX idx_agent_definitions_role ON agent_definitions(sdlc_role);
-```
-
-**Relationships**: `project_id → projects.id`, `team_id → teams.id` (nullable)
-
-### agent_conversations
-
-Conversation state with snapshotted fields and budget tracking.
-
-```sql
-CREATE TABLE agent_conversations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id UUID NOT NULL REFERENCES projects(id),
-    agent_definition_id UUID NOT NULL REFERENCES agent_definitions(id),
-    parent_conversation_id UUID REFERENCES agent_conversations(id), -- Subagent inheritance
-    delegation_depth INTEGER DEFAULT 0,        -- Current depth in delegation chain
-    initiator_type VARCHAR(20) NOT NULL,       -- user/agent/gate_event/ott_channel
-    initiator_id VARCHAR(100) NOT NULL,
-    channel VARCHAR(20) NOT NULL,              -- web/cli/extension/telegram/discord
-    session_scope VARCHAR(20) NOT NULL,        -- Snapshotted from definition
-    status VARCHAR(20) DEFAULT 'active',       -- active/completed/max_reached/paused_by_human/error
-    total_messages INTEGER DEFAULT 0,
-    max_messages INTEGER DEFAULT 50,           -- Snapshotted from definition
-    branch_count INTEGER DEFAULT 0,
-    input_tokens INTEGER DEFAULT 0,
-    output_tokens INTEGER DEFAULT 0,
-    total_tokens INTEGER DEFAULT 0,
-    current_cost_cents INTEGER DEFAULT 0,      -- Budget circuit breaker
-    max_budget_cents INTEGER DEFAULT 1000,     -- Snapshotted from definition
-    metadata JSONB DEFAULT '{}',
-    started_at TIMESTAMP DEFAULT NOW(),
-    completed_at TIMESTAMP
-);
-
-CREATE INDEX idx_agent_conv_project ON agent_conversations(project_id);
-CREATE INDEX idx_agent_conv_definition ON agent_conversations(agent_definition_id);
-CREATE INDEX idx_agent_conv_parent ON agent_conversations(parent_conversation_id);
-CREATE INDEX idx_agent_conv_status ON agent_conversations(status);
-```
-
-**Relationships**: `project_id → projects.id`, `agent_definition_id → agent_definitions.id`, `parent_conversation_id → agent_conversations.id` (self-reference)
-
-### agent_messages
-
-Lane-based message queue with dead-letter and deduplication.
-
-```sql
-CREATE TABLE agent_messages (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    conversation_id UUID NOT NULL REFERENCES agent_conversations(id),
-    parent_message_id UUID REFERENCES agent_messages(id),  -- Thread support
-    sender_type VARCHAR(20) NOT NULL,          -- user/agent/system
-    sender_id VARCHAR(100) NOT NULL,
-    recipient_id VARCHAR(100),
-    content TEXT NOT NULL,
-    mentions JSONB DEFAULT '[]',               -- TinyClaw @mention routing
-    message_type VARCHAR(20) DEFAULT 'request', -- request/response/mention/system/interrupt
-    queue_mode VARCHAR(20) DEFAULT 'queue',
-    processing_status VARCHAR(20) DEFAULT 'pending', -- pending/processing/completed/failed/dead_letter
-    processing_lane VARCHAR(50) NOT NULL,      -- Lane-based concurrency control
-    dedupe_key VARCHAR(100),                   -- Idempotency (UNIQUE constraint)
-    correlation_id UUID DEFAULT gen_random_uuid(), -- Request tracing
-    token_count INTEGER,
-    latency_ms INTEGER,
-    provider_used VARCHAR(20),
-    failover_reason VARCHAR(20),               -- auth/format/rate_limit/billing/timeout/unknown
-    failed_count INTEGER DEFAULT 0,            -- Dead-letter tracking
-    last_error TEXT,
-    next_retry_at TIMESTAMP,                   -- Exponential backoff (30s, 60s, 120s)
-    evidence_id UUID REFERENCES gate_evidence(id),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE UNIQUE INDEX idx_agent_msg_dedupe ON agent_messages(dedupe_key) WHERE dedupe_key IS NOT NULL;
-CREATE INDEX idx_agent_msg_conversation ON agent_messages(conversation_id);
-CREATE INDEX idx_agent_msg_lane_status ON agent_messages(processing_lane, processing_status, created_at);
-CREATE INDEX idx_agent_msg_retry ON agent_messages(next_retry_at) WHERE processing_status = 'pending';
-CREATE INDEX idx_agent_msg_correlation ON agent_messages(correlation_id);
-```
-
-**Relationships**: `conversation_id → agent_conversations.id`, `parent_message_id → agent_messages.id` (self-reference), `evidence_id → gate_evidence.id` (nullable)
-
-### Multi-Agent ERD Diagram
-
-```
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│ agent_definitions │     │agent_conversations│     │  agent_messages   │
-│──────────────────│     │──────────────────│     │──────────────────│
-│ id (PK)          │←────│ agent_def_id (FK)│     │ id (PK)          │
-│ project_id (FK)  │     │ id (PK)          │←────│ conversation_id  │
-│ team_id (FK)     │     │ project_id (FK)  │     │ parent_msg_id    │
-│ agent_name       │     │ parent_conv_id   │───→ │ sender_type      │
-│ sdlc_role        │     │ delegation_depth │     │ content          │
-│ provider         │     │ session_scope    │     │ processing_lane  │
-│ model            │     │ status           │     │ processing_status│
-│ queue_mode       │     │ total_messages   │     │ dedupe_key (UQ)  │
-│ session_scope    │     │ max_messages     │     │ correlation_id   │
-│ max_deleg_depth  │     │ current_cost_¢   │     │ failover_reason  │
-│ allowed_tools    │     │ max_budget_¢     │     │ failed_count     │
-│ denied_tools     │     │ metadata         │     │ last_error       │
-│ can_spawn        │     │ started_at       │     │ next_retry_at    │
-│ allowed_paths    │     │ completed_at     │     │ evidence_id (FK) │
-│ reflect_frequency│     └──────────────────┘     │ created_at       │
-│ config           │                               └──────────────────┘
-└──────────────────┘
-```
-
----
-
 ## Document Control
 
 **Version History**:
-- v3.4.0 (February 18, 2026): Added 3 Multi-Agent Team Engine tables (Sprint 176, ADR-056, EP-07)
-- v3.3.0 (February 15, 2026): Sprint 173 Governance Loop schema changes (ADR-053)
 - v3.2.0 (February 8, 2026): Added product_events table (Sprint 147 - Product Truth Layer)
 - v3.1.0 (December 23, 2025): Added 6 EP-06 Codegen tables (ir_modules, codegen_*, vcr_requests)
 - v2.0.0 (November 29, 2025): Updated to reflect 24 implemented tables, NQH Portfolio seed data

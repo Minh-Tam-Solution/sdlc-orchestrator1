@@ -1,41 +1,30 @@
-# Sprint 176: "Autonomous Codegen & Pilot Prep" — ADR-055 Phase 1 + ADR-056 Foundation + SASE Backend
+# Sprint 176: "Autonomous Codegen & Pilot Prep" — ADR-055 Phase 1 + SASE Backend
 
 **Sprint Duration**: March 17-28, 2026 (10 working days)
 **Status**: PLANNED
-**Phase**: Stage 04 (BUILD) — Autonomous Codegen + Multi-Agent Foundation + Pilot Preparation
+**Phase**: Stage 04 (BUILD) — Autonomous Codegen Implementation + Pilot Preparation
 **Framework**: SDLC 6.0.6 (7-Pillar + AI Governance Principles)
-**Priority**: P0 (ADR-055 + ADR-056 Foundation + Vietnamese SME Pilot Readiness)
+**Priority**: P0 (ADR-055 Implementation + Vietnamese SME Pilot Readiness)
 **Previous Sprint**: [Sprint 175 — Frontend Feature Completion](SPRINT-175-FRONTEND-COMPLETION.md)
-**ADR References**:
-- [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
-- [ADR-056 — Multi-Agent Team Engine](../../02-design/ADR-056-Multi-Agent-Team-Engine.md)
-**Epic**: [EP-07 — Multi-Agent Team Engine](../../01-planning/02-Epics/EP-07-Multi-Agent-Team-Engine.md)
+**ADR Reference**: [ADR-055 — Autonomous Codegen with 4-Gate Validation](../../02-design/ADR-055-Autonomous-Codegen-4-Gate-Validation.md)
 **Framework Reference**: [11-AUTONOMOUS-CODEGEN-PATTERNS.md](../../../SDLC-Enterprise-Framework/03-AI-GOVERNANCE/11-AUTONOMOUS-CODEGEN-PATTERNS.md)
-**Archived**: Pre-ADR-056 version → docs/10-archive/04-Legacy/02-Sprint-Plans/
 
 ---
 
 ## Sprint Goal
 
-Implement **ADR-055 Phase 1** (Initializer Agent with Gate G1), build **ADR-056 Multi-Agent Foundation** (SDLC design docs + design contracts + Pydantic schemas), close the Sprint 175 **SASE Templates backend gap** with a lightweight static API, add **E2E tests** for the 6 newly-visible pages, and prepare **Vietnamese SME pilot onboarding** materials. This sprint bridges frontend completion (Sprint 175) with the autonomous codegen roadmap (Sprint 177-178), while establishing the Multi-Agent infrastructure that ADR-055 depends on.
+Implement **ADR-055 Phase 1** (Initializer Agent with Gate G1), close the Sprint 175 **SASE Templates backend gap** with a lightweight static API, add **E2E tests** for the 6 newly-visible pages, and prepare **Vietnamese SME pilot onboarding** materials. This sprint bridges frontend completion (Sprint 175) with the autonomous codegen roadmap (Sprint 177-178).
 
 ---
 
 ## Sprint Context
 
-**ADR-055 + ADR-056 Roadmap** (3-sprint arc):
+**ADR-055 Roadmap** (3-sprint arc):
 ```
-Sprint 176: ADR-056 Design Docs + Design Contracts + Initializer Agent + Gate G1  ← YOU ARE HERE
-Sprint 177: ADR-056 Core Services (12 files) + Coding Agent Loop + Gates G2/G3
-Sprint 178: Multi-Agent E2E + OTT Gateway Scaffold + Full Autonomous Codegen Pilot
+Sprint 176: Initializer Agent + Gate G1        ← YOU ARE HERE
+Sprint 177: Coding Agent Loop + Gates G2/G3
+Sprint 178: Full E2E Autonomous Codegen Pilot
 ```
-
-**ADR-056 Multi-Agent Deliverables in Sprint 176**:
-- SDLC compliance docs: Business Case (BC-056), Epic (EP-07), FRs (FR-037 to FR-041)
-- Updated: Data Model ERD (v3.4.0), API Specification (v3.6.0)
-- New: Security Threat Model (STM-056), Test Plan (TP-056), Integration Guide (IG-056)
-- Design contracts: ConversationLimits, FailoverClassifier, InputSanitizer, ShellGuard, ToolContext, ReflectStep
-- Pydantic schemas: `backend/app/schemas/agent_team.py` (~300 LOC)
 
 **Sprint 175 Deferrals** (must close):
 - SASE Templates backend API (originally estimated 8 days, **reduced to 2 days** via Static Template Service approach)
@@ -51,30 +40,13 @@ Sprint 178: Multi-Agent E2E + OTT Gateway Scaffold + Full Autonomous Codegen Pil
 
 ## Success Criteria
 
-**ADR-056 Multi-Agent Foundation** (NEW):
-- [x] ADR-056 document created with 4 locked decisions + 14 non-negotiables
-- [x] SDLC Stage 00: Business Case (BC-056) created
-- [x] SDLC Stage 01: Epic EP-07 + 5 Functional Requirements (FR-037 to FR-041) created
-- [x] SDLC Stage 01: Data Model ERD updated to v3.4.0 (3 new tables)
-- [x] SDLC Stage 01: API Specification updated to v3.6.0 (11 new endpoints)
-- [x] SDLC Stage 02: Security Threat Model (STM-056) + Test Plan (TP-056) created
-- [x] SDLC Stage 03: Integration Guide (IG-056) created
-- [x] Design contracts: 6 Python modules in `backend/app/services/agent_team/`
-- [x] Pydantic schemas: `backend/app/schemas/agent_team.py` (~300 LOC)
-- [ ] Sprint Plans 176-178 updated with Multi-Agent scope
-
-**ADR-055 Autonomous Codegen** (original):
 - [ ] Initializer Agent service created with spec parsing + `feature_list.json` generation
 - [ ] Gate G1 (Spec Review) integrated — blocks coding if spec incomplete
-
-**Deferred Items** (from Sprint 175):
 - [ ] SASE Templates served via backend API (static service, no database)
 - [ ] Frontend SASE Templates page connected to backend API (replace hardcoded data)
 - [ ] E2E Playwright tests for 6 Sprint 175 pages (all passing)
 - [ ] Browser Agent hardened for production (retry logic, screenshot-on-failure)
 - [ ] Pilot onboarding runbook created (Vietnamese SME specific)
-
-**Quality Gates**:
 - [ ] All existing tests pass (`python -m pytest backend/tests/ -v`)
 - [ ] TypeScript + build still passing after Sprint 175 changes
 
