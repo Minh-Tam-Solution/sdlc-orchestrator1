@@ -41,13 +41,12 @@ MTS-SDLC-Lite (methodology)    TinySDLC (tool)
        └────────────┬───────────────┘
                     │
             SDLC 6.1.0 Framework
-                    │
-                    ▼
-          SDLC Orchestrator (enterprise)
-              "Governance at scale"
+         (both are complete, standalone)
 ```
 
-**Key narrative**: TinySDLC is the code. MTS-SDLC-Lite is the playbook. Together they give any team — from solo developer to 50-person engineering org — a governance foundation. When you outgrow them, SDLC Orchestrator is the enterprise upgrade path.
+**Key narrative**: TinySDLC is the code. MTS-SDLC-Lite is the playbook. Together they give any team — from solo developer to 50-person engineering org — a governance foundation. Both are standalone, complete, and production-ready. SDLC Orchestrator is a separate commercial product — only mention it when directly asked.
+
+**Launch positioning rule** (first 4 weeks): Do NOT position Orchestrator as "upgrade path." Earn community trust first. Frame: "TinySDLC is a minimal extract from a larger internal system." Orchestrator details only in response to direct questions.
 
 ---
 
@@ -125,6 +124,7 @@ Both repos need these before any post goes live:
 
 - [ ] Clear 1-sentence description at top of README
 - [ ] "What is this?" section (3-4 sentences max)
+- [ ] "Why this exists / What problem it solves / What it does NOT solve" section
 - [ ] "How it relates to [other repo]" section
 - [ ] Quickstart (≤5 min to first governance loop for TinySDLC)
 - [ ] Architecture diagram (text-based, no external images)
@@ -133,6 +133,52 @@ Both repos need these before any post goes live:
 - [ ] Demo GIF or screenshot placeholder
 - [ ] GitHub Topics/Tags set correctly
 - [ ] Pinned repo on org profile
+
+---
+
+## Contributor Surface Area (P0 — Must Complete Before Week 2)
+
+Without contributor mechanisms, the repo will flatline after initial interest. These are required to sustain momentum:
+
+### C-01: Good First Issues (Owner: CTO/DevOps — 10+ issues before Week 2)
+
+Label `good-first-issue` on at least 10 issues across both repos:
+- TinySDLC: Add channel adapter, improve error messages, add tests, documentation gaps
+- MTS-SDLC-Lite: Template improvements, case study additions, translation PRs
+
+### C-02: Public Roadmap (Owner: CEO/CTO)
+
+- [ ] Create `ROADMAP.md` in TinySDLC root (30-day + 90-day milestones)
+- [ ] Pin as GitHub Discussion: "What should we build next?"
+- [ ] Include "Community decides" items (not just internal roadmap)
+
+### C-03: Community Ownership Narrative (Owner: CEO)
+
+Every post and README must signal: **"This is yours now."**
+
+- [ ] GitHub Discussion: "Why we open-sourced this" (pinned, CEO-authored)
+- [ ] CONTRIBUTING.md includes "Why contribute?" section explaining community value
+- [ ] README ends with: "Built by MTS. Maintained by the community. MIT — use it, fork it, improve it."
+
+### C-04: "Why Contribute?" Section (in CONTRIBUTING.md)
+
+```markdown
+## Why Contribute?
+
+TinySDLC is community-owned. We built it from internal pain — but its future
+belongs to everyone building with AI coding agents.
+
+What you get:
+- Direct influence on the roadmap
+- Credit in CONTRIBUTORS.md and release notes
+- A governance tool shaped by real production experience, not theory
+
+What we need:
+- Channel adapters (Slack, MS Teams, etc.)
+- Translations (especially CJK languages)
+- Security audit from fresh eyes
+- Templates and playbooks for different team sizes
+```
 
 ---
 
@@ -182,6 +228,8 @@ These are verified, authentic numbers from the SDLC Orchestrator journey:
 | Enterprise confusion | Every post clearly states: TinySDLC = free OSS. Orchestrator = separate commercial product. |
 | Cultural misread (CEO story) | Tet coding story works on LinkedIn/GitHub. May not resonate on HN — keep it minimal there. |
 | Feature conflation (TinySDLC vs Orchestrator) | All posts clearly distinguish: TinySDLC = agent orchestrator with role discipline. Orchestrator = automated gates, OPA policies, evidence vault. Never claim Orchestrator features for TinySDLC. |
+| "Open core" funnel perception | HN/Reddit will downvote if they sense TinySDLC is marketing for Orchestrator. First 4 weeks: NEVER say "upgrade path." Only say "minimal extract from internal system." Orchestrator only in Q&A responses. |
+| Repo flatline after Week 1 | Without contributor surface area, stars don't convert to community. Must have 10+ good-first-issues, public roadmap, and pinned "Why we open-sourced this" Discussion before Week 2. |
 
 ---
 

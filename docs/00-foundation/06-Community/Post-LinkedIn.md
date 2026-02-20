@@ -27,7 +27,7 @@ I brought in experts. Ran a Claude Code workshop. But the team was still resista
 
 And honestly? I didn't fully understand what they were doing either. Or exactly how AI tools would help. My team was polite but unconvinced — the boss isn't a real software engineer.
 
-But maybe that was my advantage. No legacy habits. No "this is how we've always done it." Everything was new — so I was ready to learn everything new.
+**But maybe that was my advantage.** No legacy habits. No "this is how we've always done it." Everything was new — so I was ready to learn everything new.
 
 I saw other teams, other companies succeeding. So I made a decision that surprised everyone:
 
@@ -88,7 +88,7 @@ Tôi mời chuyên gia về. Tổ chức workshop Claude Code. Nhưng team vẫn
 
 Và thành thật? Tôi cũng không hiểu rõ họ đang làm gì. Hay AI tools sẽ giúp được gì cụ thể. Team lịch sự nhưng không tin — sếp đâu phải dân làm phần mềm chuyên nghiệp.
 
-Nhưng có lẽ đó lại là lợi thế. Không có lối mòn. Không có "trước giờ mình làm thế này." Mọi thứ đều mới — nên tôi sẵn sàng học hỏi tất cả.
+**Nhưng có lẽ đó lại là lợi thế.** Không có lối mòn. Không có "trước giờ mình làm thế này." Mọi thứ đều mới — nên tôi sẵn sàng học hỏi tất cả.
 
 Xung quanh đã có nhiều team, nhiều công ty thành công. Nên tôi quyết định một điều khiến ai cũng ngạc nhiên:
 

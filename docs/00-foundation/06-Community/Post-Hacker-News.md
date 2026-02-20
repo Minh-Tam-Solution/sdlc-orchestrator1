@@ -19,15 +19,17 @@ Show HN: TinySDLC – Agent orchestrator with SDLC role discipline for AI coding
 
 ---
 
-I built TinySDLC to solve a specific problem: when multiple AI coding agents collaborate (Claude Code, Cursor, Copilot), there's no structure — no separation of duties, no handoff discipline, no traceability.
+Problem: when multiple AI coding agents collaborate, there's no structure — no separation of duties, no handoff discipline, no traceability.
 
-TinySDLC is a minimal agent orchestrator that adds SDLC role discipline to AI coding. 8 roles (researcher, architect, coder, reviewer, tester, etc.), each with isolated workspaces, scoped tool permissions, and enforced separation of duties. Coder can't self-approve. Reviewer can't be bypassed. Multi-channel (Discord, Telegram, WhatsApp, Zalo). File-based queue — zero external dependencies.
+TinySDLC is a minimal agent orchestrator that adds SDLC role discipline to AI coding. 8 roles (researcher, architect, coder, reviewer, tester, etc.), each with isolated workspaces, scoped tool permissions, and enforced separation of duties. Coder can't self-approve. Reviewer can't be bypassed.
 
-The companion repo MTS-SDLC-Lite contains the governance methodology (Spec → Gate → Evidence → Approval) — templates, playbooks, and processes. TinySDLC provides the structure; the methodology defines what to govern. Both MIT.
+Design constraints: file-based queue (zero external dependencies), multi-channel (Discord, Telegram, WhatsApp, Zalo), security hardening (7 credential scrubbing patterns, 12 injection patterns blocked, 8 shell deny patterns).
 
-This emerged from debugging real multi-agent production failures — one project ended up with 679 mock implementations and 78% production failure. We tested five multi-agent tools (TinyClaw, OpenClaw, NanoBot, PicoClaw, ZeroClaw). Fast — but without role discipline, same issues every time: no audit trail, inconsistent quality, no traceability. TinySDLC is the result of 12 iterations across 5 production projects.
+Protocol-first: roles are contracts, AI providers are swappable.
 
-Protocol-first design: roles are contracts, AI providers are swappable.
+Companion repo MTS-SDLC-Lite contains the governance methodology (Spec → Gate → Evidence → Approval) — templates, playbooks, processes. Both MIT.
+
+Result of 12 iterations across 5 production projects.
 
 GitHub: https://github.com/Minh-Tam-Solution/tinysdlc
 

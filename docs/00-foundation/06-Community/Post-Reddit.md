@@ -154,7 +154,7 @@ Key architectural decisions:
 - **Security hardening**: Credential scrubbing (7 patterns), environment variable scrubbing, input sanitization (12 injection patterns), shell guards (8 deny patterns + path traversal). Learned from testing ZeroClaw.
 - **Multi-channel routing**: Discord, Telegram, WhatsApp, Zalo — `@agent: message` mention parsing routes to the right role regardless of channel.
 
-This emerged from building an enterprise platform (SDLC Orchestrator) and extracting the minimal viable agent orchestration layer into an OSS tool. The full governance pipeline (automated gates, OPA policy enforcement, SHA256 evidence vault) lives in Orchestrator. TinySDLC is the starting point — role discipline with zero infrastructure.
+This emerged from extracting the minimal viable agent orchestration layer from a larger internal system into a standalone OSS tool. TinySDLC is a complete, self-contained tool — role discipline with zero infrastructure.
 
 MIT licensed: https://github.com/Minh-Tam-Solution/tinysdlc
 
@@ -173,3 +173,13 @@ Would love feedback on the architecture choices, especially around the protocol-
 - [x] No link-only posts — substantial body text
 - [x] Follows each subreddit's posting guidelines
 - [x] Account should have prior engagement (not a fresh account posting links)
+
+## Pre-Engagement Requirement (CRITICAL — Do NOT Skip)
+
+Reddit will shadow-remove posts from accounts without prior engagement. Before posting to any subreddit:
+
+1. **2-3 weeks before launch**: Comment genuinely on 3-4 threads about AI governance, multi-agent tools, or coding agents in each target subreddit
+2. **1 week before**: Upvote and reply to existing discussions (build karma in the subreddit)
+3. **After posting**: Reply to >10 comments within the first 6 hours. Reddit's algorithm rewards active discussion.
+
+If the CEO account has no prior Reddit history, consider having a team member with established Reddit presence post instead (with CEO credited in the body text).

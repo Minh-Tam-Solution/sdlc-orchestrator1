@@ -108,11 +108,23 @@ TinySDLC enforces this loop through **role constraints**, not automated gates:
 
 **Structured handoffs**: Agents communicate through `@agent: message` mentions. Work flows from researcher → architect → coder → reviewer → tester with explicit handoff points. No silent pass-through.
 
-**Event logging**: Every agent action is logged as a JSON event with correlation IDs — which agent did what, when, in response to what request. This gives you traceability, not just chat history.
+**Event logging**: Every agent action is logged as a JSON event with correlation IDs — which agent did what, when, in response to what request. This gives you traceability, not just chat history:
+
+```json
+{
+  "event": "handoff",
+  "from_role": "coder",
+  "to_role": "reviewer",
+  "correlation_id": "conv-a1b2c3",
+  "action": "submit_for_review",
+  "timestamp": "2026-02-18T14:32:01Z",
+  "message": "@reviewer: Auth service implementation ready for review"
+}
+```
 
 **Human checkpoints**: The methodology defines when a human should review. TinySDLC provides the structure; your team provides the judgment.
 
-> **Important distinction**: TinySDLC is a minimal agent orchestrator. It provides structure and role discipline. The full governance pipeline (automated SAST gates, SHA256 evidence vault, OPA policy enforcement) lives in [SDLC Orchestrator](https://github.com/Minh-Tam-Solution/SDLC-Orchestrator), the enterprise platform. TinySDLC is the starting point — real governance with zero infrastructure.
+> **Important distinction**: TinySDLC is a minimal agent orchestrator extracted from a larger internal system. It provides structure and role discipline — real governance with zero infrastructure. It's a complete, standalone tool, not a crippled version of something else.
 
 ---
 
