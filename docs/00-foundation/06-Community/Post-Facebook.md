@@ -111,7 +111,7 @@ But AI is not the competitive advantage. Discipline is.
 - Post Friday morning VN time (8-10 AM) — catches weekend browsing
 - Reply to every comment personally (Facebook rewards conversation)
 - If friends/colleagues comment, ask them to share (Facebook reach depends on shares)
-- Consider adding a personal photo (CEO at desk during Tet, or code screenshot) — photos boost engagement 2-3x on Facebook
+- **STRONGLY RECOMMENDED**: Attach a real photo (CEO coding during Tet, or TinySDLC terminal screenshot). Facebook is a visual platform — posts with images get 2-3x higher engagement. This is not optional for reaching 100+ reactions target.
 - DO NOT cross-post the LinkedIn version — Facebook audience reads differently
 - Vietnamese version gets priority; English version 2-3 days later as separate post
 - Tag close friends/colleagues in comments (not in post) to boost initial reach

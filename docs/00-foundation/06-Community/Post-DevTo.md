@@ -203,6 +203,19 @@ After 12 iterations of the framework and 5 production projects, here are our key
 
 ---
 
+## What TinySDLC Does NOT Solve
+
+Transparency matters more than polish. Here's what TinySDLC intentionally does not do:
+
+- **It does not guarantee code quality.** It structures the workflow — the quality of output still depends on your AI provider and your prompts.
+- **It does not replace CI/CD or SAST.** No automated test execution, no static analysis. Those belong in your pipeline, not your orchestrator.
+- **It does not eliminate bad architecture decisions.** If your spec is wrong, governed agents will build the wrong thing — just more traceably.
+- **It adds structure, not intelligence.** The agents are still AI. TinySDLC constrains how they interact, not what they think.
+
+Governance is a constraint system, not a magic layer. TinySDLC makes multi-agent workflows auditable and disciplined — nothing more, nothing less.
+
+---
+
 ## Get Started
 
 ```bash

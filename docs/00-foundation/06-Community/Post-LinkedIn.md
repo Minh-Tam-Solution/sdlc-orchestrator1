@@ -59,6 +59,9 @@ Here's what I've realized: we are always programming in our lives. With AI today
 AI is not the competitive advantage.
 **Discipline is.**
 
+This is not about me learning to code.
+This is about redesigning how teams work with AI.
+
 If your team is using AI coding tools without structure or role discipline — these are for you.
 
 #OpenSource #AIGovernance #SDLC #SoftwareEngineering #Leadership #MIT
@@ -116,6 +119,9 @@ Tôi nhận ra: chúng ta luôn lập trình trong cuộc đời. Với AI hiệ
 
 AI không phải lợi thế cạnh tranh.
 **Kỷ luật mới là lợi thế cạnh tranh.**
+
+Đây không phải chuyện tôi học lại code.
+Đây là chuyện thiết kế lại cách team làm việc với AI.
 
 Nếu team bạn đang dùng AI coding tools mà chưa có cấu trúc hay phân quyền vai trò — đây là dành cho bạn.
 

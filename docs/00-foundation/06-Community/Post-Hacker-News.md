@@ -25,7 +25,9 @@ TinySDLC is a minimal agent orchestrator that adds SDLC role discipline to AI co
 
 The companion repo MTS-SDLC-Lite contains the governance methodology (Spec → Gate → Evidence → Approval) — templates, playbooks, and processes. TinySDLC provides the structure; the methodology defines what to govern. Both MIT.
 
-Background: I manage a team that builds enterprise software in Vietnam. We tested five multi-agent tools (TinyClaw, OpenClaw, NanoBot, PicoClaw, ZeroClaw). Fast — but without role discipline, we kept hitting the same issues: no audit trail, inconsistent quality, one project ended up with 679 mock implementations. TinySDLC emerged from 12 iterations of our SDLC framework across 5 production projects.
+This emerged from debugging real multi-agent production failures — one project ended up with 679 mock implementations and 78% production failure. We tested five multi-agent tools (TinyClaw, OpenClaw, NanoBot, PicoClaw, ZeroClaw). Fast — but without role discipline, same issues every time: no audit trail, inconsistent quality, no traceability. TinySDLC is the result of 12 iterations across 5 production projects.
+
+Protocol-first design: roles are contracts, AI providers are swappable.
 
 GitHub: https://github.com/Minh-Tam-Solution/tinysdlc
 

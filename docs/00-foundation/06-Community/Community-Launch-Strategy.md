@@ -80,7 +80,7 @@ MTS-SDLC-Lite (methodology)    TinySDLC (tool)
 |-----|----------|-----------|--------|
 | Mon | Dev.to | `Post-DevTo.md` | Long-form technical breakdown (2000 words) |
 | Tue | Vietnam CTO Community | — | CTO Summit Slack, VietGlobal Founders |
-| Wed | Reddit | `Post-Reddit.md` | r/devops, r/softwarearchitecture |
+| Wed | X (Twitter) | `Post-X-Thread.md` | Thread 10-15 tweets — "679 mocks. 78% failure. Here's what we built." |
 | Thu | LinkedIn | — | Follow-up post: technical architecture deep-dive |
 | Fri | — | — | Cross-compile engagement data, plan Week 3 |
 
@@ -97,10 +97,19 @@ MTS-SDLC-Lite (methodology)    TinySDLC (tool)
 | Day | Action | Details |
 |-----|--------|---------|
 | Mon | OSS contributor onboarding | Label `good-first-issue` on 10+ issues across both repos |
-| Tue | r/selfhosted, r/opensource | Cross-post with community-appropriate angle |
+| Tue | Reddit r/devops | `Post-Reddit.md` Post 2 — architecture-focused angle |
 | Wed | GitHub Discussions AMA | "Ask the CEO who re-learned coding at 55" |
-| Thu | Contributor spotlight | Thank and highlight first external contributors |
+| Thu | Reddit r/softwarearchitecture | `Post-Reddit.md` Post 3 — protocol-first design discussion |
 | Fri | Product Hunt prep | Only if ≥300 stars + 3 testimonials — DO NOT launch prematurely |
+
+**Week 4 (Sustained)**:
+
+| Day | Action | Details |
+|-----|--------|---------|
+| Mon | r/selfhosted, r/opensource | Cross-post with community-appropriate angle |
+| Tue | Contributor spotlight | Thank and highlight first external contributors |
+| Wed | Technical Deep Dive #1 | Follow-up Dev.to or blog post (architecture decisions) |
+| Fri | Week 4 review | Compile all metrics, plan Q2 community roadmap |
 
 **Success Metrics (Week 3)**:
 - 500+ cumulative GitHub stars
@@ -138,6 +147,7 @@ Both repos need these before any post goes live:
 | 5 | `Post-LinkedIn.md` | LinkedIn personal | EN+VI | Tech leadership / CTO |
 | 6 | `Post-DevTo.md` | Dev.to | EN | SEO long-form technical |
 | 7 | `Post-Facebook.md` | Facebook personal | VI+EN | VN tech community / founders |
+| 8 | `Post-X-Thread.md` | X (Twitter) | EN | AI dev ecosystem / OSS community |
 
 ---
 
@@ -227,16 +237,16 @@ Weekly check-in (every Friday):
 
 ```
 Feb 20 (Fri) ─── Week 1 Start ─── Core Devs
-  └─ GitHub, HN, Reddit, LinkedIn, Facebook
+  └─ GitHub, HN, Reddit (r/programming only), LinkedIn, Facebook
 
 Mar 3 (Mon)  ─── Week 2 Start ─── Tech Leadership
-  └─ Dev.to, Vietnam CTO, Reddit (devops/arch)
+  └─ Dev.to, Vietnam CTO, X/Twitter thread
 
-Mar 10 (Mon) ─── Week 3 Start ─── Amplification
-  └─ Contributors, AMA, Product Hunt prep
+Mar 10 (Mon) ─── Week 3 Start ─── Amplification + Reddit Spread
+  └─ r/devops (Tue), AMA (Wed), r/softwarearchitecture (Thu)
 
-Mar 17 (Mon) ─── Review & Iterate
-  └─ Compile results, plan Q2 community roadmap
+Mar 17 (Mon) ─── Week 4 ─── Sustained + Review
+  └─ r/selfhosted, r/opensource, Deep Dive #1, Q2 plan
 ```
 
 ---

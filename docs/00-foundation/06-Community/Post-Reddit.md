@@ -1,7 +1,8 @@
 # Reddit Posts — Multi-Subreddit Strategy
 
 **Platform**: Reddit
-**Timing**: Week 1 Wednesday (r/programming), Week 2 Wednesday (r/devops, r/softwarearchitecture)
+**Timing**: Week 1 Wednesday (r/programming), Week 3 Tuesday (r/devops), Week 3 Thursday (r/softwarearchitecture)
+**Important**: Spread across weeks to avoid Reddit link-spam detection. Never cross-post multiple subreddits the same day.
 **Target**: Developer community, DevOps engineers, software architects
 
 ---
@@ -27,7 +28,19 @@ They were incredibly fast. But we kept hitting the same wall:
 
 The root issue wasn't the AI tools. It was the lack of governance around them.
 
-So we built **TinySDLC** — a minimal agent orchestrator that adds SDLC role discipline to AI coding. It doesn't replace AI tools. It structures how they collaborate:
+So we built **TinySDLC** — a minimal agent orchestrator that adds SDLC role discipline to AI coding.
+
+**What TinySDLC is NOT:**
+- Not a new AI model
+- Not a replacement for Claude/Cursor/Copilot
+- Not a CI/CD system or SAST scanner
+
+**What TinySDLC is:**
+- A role-constrained multi-agent protocol
+- A local-first orchestrator with zero infrastructure
+- A structural enforcement layer for AI workflows
+
+It doesn't replace AI tools. It structures how they collaborate:
 
 - 8 agent roles (researcher, pm, architect, coder, reviewer, tester, devops, pjm)
 - Separation of duties (coder can't self-approve, reviewer can't be bypassed)
