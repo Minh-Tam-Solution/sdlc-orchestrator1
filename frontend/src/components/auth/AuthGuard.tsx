@@ -119,13 +119,15 @@ export function AdminGuard({
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
 
+  const isAdmin = user?.is_superuser || user?.is_platform_admin;
+
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (!user.is_superuser) {
+      if (!isAdmin) {
         router.push(fallbackPath);
       }
     }
-  }, [isLoading, isAuthenticated, user, router, fallbackPath]);
+  }, [isLoading, isAuthenticated, user, isAdmin, router, fallbackPath]);
 
   if (isLoading) {
     return <AuthLoadingSkeleton />;
@@ -135,7 +137,7 @@ export function AdminGuard({
     return null;
   }
 
-  if (!user.is_superuser) {
+  if (!isAdmin) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50">
         <div className="text-center">

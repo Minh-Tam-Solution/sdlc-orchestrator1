@@ -94,6 +94,9 @@ setuptools==80.9.0
 dnspython==2.7.0
 exceptiongroup==1.2.2
 
+# Retry logic
+tenacity==8.2.3
+
 # Monitoring
 prometheus_client==0.22.1
 psutil==6.1.1

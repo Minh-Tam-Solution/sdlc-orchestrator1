@@ -40,13 +40,27 @@ async function fetchWithAuth<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Include Bearer token from localStorage (Sprint 192 fix)
+  if (typeof window !== "undefined") {
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+  }
+
+  // Merge caller-provided headers (allow overrides)
+  if (options?.headers) {
+    Object.assign(headers, options.headers);
+  }
+
   const response = await fetch(`${API_BASE}${url}`, {
     ...options,
-    credentials: "include", // httpOnly cookies (Sprint 63)
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
+    credentials: "include",
+    headers,
   });
 
   if (!response.ok) {

@@ -36,7 +36,13 @@ import hashlib
 import logging
 from enum import Enum
 
-from mixpanel import Mixpanel
+try:
+    from mixpanel import Mixpanel
+    _MIXPANEL_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _MIXPANEL_AVAILABLE = False
+    Mixpanel = None  # type: ignore[assignment,misc]
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -88,7 +94,10 @@ class AnalyticsService:
                 "Set ANALYTICS_USER_SALT environment variable with a strong random value."
             )
 
-        if not settings.MIXPANEL_TOKEN:
+        if not _MIXPANEL_AVAILABLE:
+            logger.warning("mixpanel package not installed - analytics disabled")
+            self.mp = None
+        elif not settings.MIXPANEL_TOKEN:
             logger.warning("MIXPANEL_TOKEN not configured - analytics disabled")
             self.mp = None
         else:

@@ -327,13 +327,13 @@ class TierGateMiddleware:
             async with AsyncSessionLocal() as db:
                 from sqlalchemy import select as sa_select
 
-                # Check if user is superuser — superusers get ENTERPRISE
+                # Check if user is superuser or platform admin — both get ENTERPRISE
                 from app.models.user import User
                 user_result = await db.execute(
-                    sa_select(User.is_superuser).where(User.id == user_id)
+                    sa_select(User.is_superuser, User.is_platform_admin).where(User.id == user_id)
                 )
-                is_superuser = user_result.scalar_one_or_none()
-                if is_superuser:
+                row = user_result.one_or_none()
+                if row and (row[0] or row[1]):
                     return "ENTERPRISE"
 
                 # Check subscription plan

@@ -327,7 +327,7 @@ def require_superuser(current_user: User = Depends(get_current_active_user)) -> 
         - Checks user.is_superuser flag
         - Returns 403 Forbidden if user is not a superuser
     """
-    if not current_user.is_superuser:
+    if not (current_user.is_superuser or getattr(current_user, "is_platform_admin", False)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Superuser access required",
