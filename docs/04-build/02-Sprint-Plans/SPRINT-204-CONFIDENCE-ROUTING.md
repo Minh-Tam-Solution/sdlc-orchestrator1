@@ -2,10 +2,10 @@
 
 **Sprint Duration**: May 19 – May 30, 2026 (10 working days)
 **Sprint Goal**: Add confidence scoring to `query_classifier.py` and implement human escalation path for low-confidence agent queries via Magic Link approval flow
-**Status**: PLANNED
+**Status**: CLOSED — All 4 Tracks Complete ✅ (Feb 25, 2026)
 **Priority**: P3 (Confidence-Based Routing)
 **Framework**: SDLC 6.1.1
-**CTO Score (Sprint 203)**: TBD
+**CTO Score (Sprint 203)**: 9.5/10
 **Previous Sprint**: [Sprint 203 — Formal Evaluator-Optimizer + Evals Expansion](SPRINT-203-EVALUATOR-OPTIMIZER-EVALS-EXPANSION.md)
 
 ---
@@ -29,6 +29,66 @@ Sprint 203 delivers the Evaluator-Optimizer with rubric scoring and expands eval
 - Human escalation reuses existing `magic_link_service.py` (HMAC-SHA256 OOB auth)
 
 **Source**: CTO-approved Anthropic Best Practices Applicability Analysis (9.2/10) — Gap 3 (P3).
+
+---
+
+## Pre-Sprint Blocker Resolution (Feb 25, 2026)
+
+CTO Sprint 204 readiness review identified 4 blockers. All resolved:
+
+### Blocker 1: `MODEL_ROUTE_HINTS` location ✅ RESOLVED
+
+**CTO finding**: grep of `app/core/config.py` found nothing.
+**Resolution**: `MODEL_ROUTE_HINTS` is in `app/services/agent_team/config.py:118` (agent_team-scoped config, not app-global config). Current structure:
+```python
+MODEL_ROUTE_HINTS = {
+    "code":      {"*": ("ollama", "qwen3-coder:30b")},
+    "reasoning": {"*": ("ollama", "deepseek-r1:32b")},
+    "fast":      {"*": ("ollama", "qwen3:8b")},
+}
+```
+Sprint 204 will add: `"governance": {"*": ("__command_router__", "")}` — see Blocker 3 for routing fork design.
+
+### Blocker 2: All `classify()` callers ✅ RESOLVED (only 1)
+
+**CTO concern**: Signature change `str | None` → `ClassificationResult` may have hidden callers.
+**Resolution**: Only **one caller** for `query_classifier.classify()`: `team_orchestrator.py:313`. The three `error_classifier.classify()` callers in codegen pipeline (`error_classifier.py`, `retry_strategy.py`) are a completely different function — unaffected.
+
+**Day 1 action**: Update `team_orchestrator.py:313` from:
+```python
+model_hint = classify(DEFAULT_CLASSIFICATION_RULES, message.content)
+# …
+invoker = self._build_invoker(definition, model_hint=model_hint)
+```
+to:
+```python
+classification = classify(DEFAULT_CLASSIFICATION_RULES, message.content)
+if classification.hint == "governance":
+    return await self._dispatch_governance_command(message, conversation)
+invoker = self._build_invoker(definition, model_hint=classification.hint,
+                               confidence=classification.confidence)
+```
+
+### Blocker 3: `governance` hint routing target ✅ DESIGN DECIDED
+
+**CTO concern**: `MODEL_ROUTE_HINTS` maps hint → `(provider, model)` — governance doesn't map to a model but to `command_router.py`. These are architecturally different.
+**Resolution**: `governance` hint is a **pre-router interceptor**, not a `MODEL_ROUTE_HINTS` entry:
+- In `team_orchestrator._process()`, BEFORE calling `_build_invoker()`, check `if hint == "governance"` → `await self._dispatch_governance_command()`
+- `_dispatch_governance_command()` delegates to `command_registry.dispatch()` (existing mechanism)
+- `MODEL_ROUTE_HINTS` stays clean — no fake `("__command_router__", "")` sentinel needed
+- This is architecturally equivalent to the existing `@mention` intercept path (same pre-LLM branch)
+
+### Blocker 4: `run_evals.py` routing schema ✅ DESIGN DECIDED
+
+**CTO concern**: `EvalTestCase` has no `expected_hint` or `expected_min_confidence` fields. Routing eval cases need different schema.
+**Resolution**: Extend `EvalTestCase` (in `eval_rubric.py`) with two **optional** fields:
+```python
+class EvalTestCase(BaseModel):
+    # existing fields ...
+    expected_hint: Optional[str] = None          # NEW: for routing eval cases
+    expected_min_confidence: Optional[float] = None  # NEW: for routing eval cases
+```
+This is additive and backward-compatible — all 15 existing cases omit these fields (default `None`). The `run_evals.py` runner will check `if case.expected_hint: assert result.hint == case.expected_hint`. Track C-05 (B-01 in eval expansion) adds 5 routing YAML cases that use these fields.
 
 ---
 
@@ -387,8 +447,143 @@ Next: Sprint 205+ — Vietnam SME Pilot execution OR SKILL.md standard (CTO deci
 
 ---
 
-**Last Updated**: February 23, 2026
+---
+
+## Locked Architecture Decisions (Feb 25, 2026 — CTO Pre-Sprint Review)
+
+Pre-sprint codebase verified. All 4 blockers resolved with locked design decisions. **Do not deviate without CTO approval.**
+
+### AD-1: `ClassificationResult` lives in `query_classifier.py` (not `schemas/`)
+
+It's the return type of `classify()`, an internal service object. `schemas/agent_team.py` is only modified if this is surfaced via a new API endpoint — currently not required.
+
+```python
+@dataclass(frozen=True)
+class ClassificationResult:
+    hint: str | None
+    confidence: float
+    method: str = "substring"   # "substring" | "llm" | "llm_failed" | "timeout_fallback" | "none"
+    matches: int = 0
+
+    def __bool__(self) -> bool:
+        """True if a hint was found — preserves `if model_hint:` caller pattern."""
+        return self.hint is not None
+```
+
+### AD-2: `governance` hint is a pre-router interceptor, NOT a `MODEL_ROUTE_HINTS` entry
+
+In `team_orchestrator._process()`, after `classify()`, BEFORE `_build_invoker()`:
+```python
+classification = classify(DEFAULT_CLASSIFICATION_RULES, message.content)
+model_hint = classification.hint   # str | None — preserved for _build_invoker()
+
+# Step 5.6 (Sprint 204): Governance intercept
+if classification.hint == "governance":
+    return await self._dispatch_governance_command(message, conversation, definition)
+
+# Step 5.7: LLM fallback for low-confidence non-governance
+if classification.confidence < 0.6 and classification.hint != "governance":
+    classification = await self._llm_classify(message.content, classification)
+    model_hint = classification.hint
+    if classification.confidence < 0.6:
+        return await self._escalate_for_classification(message, conversation, classification)
+
+invoker = self._build_invoker(definition, model_hint=model_hint)
+```
+
+`MODEL_ROUTE_HINTS` stays unchanged (3 entries: code/reasoning/fast). No `governance` entry.
+
+### AD-3: `_llm_classify()` is a method on `TeamOrchestrator` (not query_classifier)
+
+Async, needs `self._ollama`, `asyncio.wait_for(timeout=1.0)`. 1s hard cap — fail fast. On failure, returns prior `ClassificationResult` unchanged.
+
+```python
+_VALID_HINTS = frozenset({"code", "reasoning", "governance", "fast"})  # query_classifier.py constant
+```
+
+### AD-4: `governance` rules — multiple single-keyword rules at priority=8
+
+`ClassificationRule.keywords` is ALL-must-match, so one rule per governance trigger keyword:
+```python
+ClassificationRule(hint="governance", priority=8, keywords=("approve",), patterns=(), max_length=200),
+ClassificationRule(hint="governance", priority=8, keywords=("gate",), patterns=(), max_length=200),
+ClassificationRule(hint="governance", priority=8, keywords=("submit evidence",), patterns=()),
+ClassificationRule(hint="governance", priority=8, keywords=("export audit",), patterns=()),
+ClassificationRule(hint="governance", priority=8, keywords=("close sprint",), patterns=()),
+```
+`priority=8` is between `code` (10) and `reasoning` (5) — governance beats reasoning for governance intents.
+
+### AD-5: `MagicLinkPayload` discriminated union — `payload_type` discriminator field
+
+Add optional fields with defaults. `gate_id: str` stays required (caller-compat). Classification tokens pass `gate_id=""` (empty sentinel — pragmatic 0-caller-change approach).
+
+```python
+payload_type: str = "gate_approval"          # "gate_approval" | "classification"
+classification_query: str | None = None
+classification_options: tuple[str, ...] = field(default_factory=tuple)
+conversation_id: str | None = None
+```
+
+**Caller check before modifying**: `grep -n "MagicLinkPayload(" backend/app/ -r` — confirm all existing callers pass `gate_id` positionally or as keyword.
+
+### AD-6: `EvalTestCase` — additive optional fields, backward-compat with 15 existing cases
+
+```python
+expected_hint: str | None = Field(None)
+expected_min_confidence: float | None = Field(None, ge=0.0, le=1.0)
+expected_max_confidence: float | None = Field(None, ge=0.0, le=1.0)
+expected_method: str | None = Field(None)
+```
+`tool_name` and `expected_behavior` get `default=""` so routing YAML cases don't need to supply them.
+
+Also: `run_evals.py` must be updated to check routing fields when present:
+```python
+if case.expected_hint:
+    assert result.hint == case.expected_hint, f"Expected hint {case.expected_hint}, got {result.hint}"
+if case.expected_min_confidence:
+    assert result.confidence >= case.expected_min_confidence
+```
+
+### AD-7: Baseline path (Sprint 203 carry-forward)
+
+`baseline.json` is at `tests/evals/reference_answers/baseline.json` (Sprint 203 delivery path). All Sprint 204 Track C references use this path. The Files Summary below is corrected.
+
+### AD-8: Risk flags
+
+| Risk | Line | Mitigation |
+|------|------|------------|
+| `_build_invoker()` L636 `if model_hint in MODEL_ROUTE_HINTS` | `team_orchestrator.py:636` | `governance` intercept fires before L636 — safe. If somehow reached, `"governance" not in MODEL_ROUTE_HINTS` → condition False → role default model. No crash. |
+| Circular import between `query_classifier.py` ↔ `config.py` | — | `query_classifier.py` currently imports nothing from project. `config.py` imports `ClassificationRule` from `query_classifier`. The `governance` rules added to `config.py` don't require `config.py` to import anything new. Safe. |
+| `frozen=True` `MagicLinkPayload` field order | `magic_link_service.py:62` | Adding fields with defaults to a frozen dataclass is valid Python. Verify all callers use keyword args before modifying. |
+
+### AD-9: Day-by-day Implementation Order
+
+```
+Day 1:  query_classifier.py — ClassificationResult + _compute_confidence() + classify() return change
+        team_orchestrator.py L313 — call site update
+Day 2:  agent_team/config.py — 5 governance ClassificationRules
+        team_orchestrator.py — governance intercept + _dispatch_governance_command() skeleton
+Day 3:  team_orchestrator.py — _llm_classify() (A-03)
+        magic_link_service.py — MagicLinkPayload extension (B-02)
+Day 4:  escalation_service.py — NEW file, full escalation flow (B-01/B-03)
+        team_orchestrator.py — _escalate_for_classification() wiring
+Day 5:  escalation_service.py — B-04 timeout fallback + B-05 training log
+        A-05/A-06 confidence logging + metrics in conversation.config
+Day 6:  eval_rubric.py — EvalTestCase schema update (C-01 prerequisite)
+        5 routing YAML eval cases + run_evals.py routing schema support
+        reference_answers/baseline.json — 5 routing entries appended (20 total)
+Day 7:  test_sprint204_confidence_routing.py — classes 1-4 (TestClassificationResult, TestConfidenceScoring, TestClassifyReturnType, TestGovernanceRules)
+Day 8:  test_sprint204_confidence_routing.py — classes 5-9 (TestLLMFallback, TestEscalationService, TestTeamOrchestratorRouting, TestEvalTestCaseRouting, TestRoutingEvalCases)
+        test_sprint204_escalation.py — 25 dedicated escalation tests
+Day 9:  D-05 regression: 15 existing eval cases + existing classify() behavior unchanged
+        D-06 full 950+ regression suite
+Day 10: Documentation + G-Sprint-Close
+```
+
+---
+
+**Last Updated**: February 25, 2026
 **Created By**: PM + AI Development Partner — Sprint 204 Planning (Anthropic Best Practices Roadmap)
 **Framework Version**: SDLC 6.1.1
-**Previous State**: Sprint 203 PLANNED
+**Previous State**: Sprint 203 CLOSED (9.5/10)
 **Source**: CTO-approved Applicability Analysis (9.2/10, Feb 23 2026)

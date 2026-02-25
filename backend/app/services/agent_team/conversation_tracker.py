@@ -657,6 +657,73 @@ class ConversationTracker:
             )
         return conversation
 
+    async def record_reflect_iteration(
+        self,
+        conversation_id: UUID,
+        batch_index: int,
+        iteration: int,
+        rubric_score: float | None,
+        early_stopped: bool,
+        feedback: str,
+    ) -> None:
+        """Record a single Evaluator-Optimizer iteration in conversation metadata.
+
+        Maintains a circular buffer of max 20 entries in
+        ``metadata_["reflect_iterations"]``. Non-fatal — errors are logged but
+        never raised so a telemetry failure cannot interrupt agent execution.
+
+        Sprint 203 A-04: Telemetry for the Evaluator-Optimizer loop.
+
+        Args:
+            conversation_id: Target conversation UUID.
+            batch_index:      Tool batch number (0-indexed).
+            iteration:        Current iteration within the batch (1-indexed).
+            rubric_score:     EvalRubric.total_score, or None on evaluator failure.
+            early_stopped:    True if score >= EARLY_STOP_THRESHOLD (8.0).
+            feedback:         Short feedback string injected into messages.
+        """
+        _MAX_REFLECT_ENTRIES = 20
+
+        try:
+            conversation = await self._get_conversation(conversation_id)
+            metadata = dict(conversation.metadata_ or {})
+
+            entries: list[dict] = list(metadata.get("reflect_iterations", []))
+            entry = {
+                "batch": batch_index,
+                "iter": iteration,
+                "score": round(rubric_score, 1) if rubric_score is not None else None,
+                "early_stopped": early_stopped,
+                "feedback": feedback[:200],  # truncate for storage
+                "ts": datetime.now(timezone.utc).isoformat(),
+            }
+            entries.append(entry)
+
+            # Circular buffer — keep only the latest entries
+            if len(entries) > _MAX_REFLECT_ENTRIES:
+                entries = entries[-_MAX_REFLECT_ENTRIES:]
+
+            metadata["reflect_iterations"] = entries
+            conversation.metadata_ = metadata
+            await self.db.flush()
+
+            logger.debug(
+                "REFLECT_ITER: conv=%s batch=%d iter=%d score=%s early=%s",
+                conversation_id,
+                batch_index,
+                iteration,
+                rubric_score,
+                early_stopped,
+            )
+
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "REFLECT_ITER: Failed to record iteration (non-fatal): "
+                "conv=%s, error=%s",
+                conversation_id,
+                exc,
+            )
+
     async def _set_status(
         self, conversation: AgentConversation, new_status: str
     ) -> None:

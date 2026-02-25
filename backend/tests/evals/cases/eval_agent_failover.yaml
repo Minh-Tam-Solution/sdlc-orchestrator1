@@ -1,0 +1,14 @@
+id: "agent_failover_01"
+tool_name: "invoke_with_failover"
+prompt: "Invoke the coder agent but the primary Ollama provider is rate-limited."
+expected_behavior: >
+  Detects rate limit error from Ollama (HTTP 429 or similar), classifies it as
+  FALLBACK action (not ABORT), sets a cooldown (60s TTL in Redis), and falls over
+  to the Anthropic provider. Returns a successful InvocationResult from Anthropic
+  with failover_reason='rate_limit'. Must NOT abort the conversation or expose
+  the rate limit error to the end user as an agent response.
+ground_truth: null
+tags:
+  - multi-agent
+  - failover
+  - provider-chain

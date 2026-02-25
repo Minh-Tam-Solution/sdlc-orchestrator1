@@ -60,7 +60,32 @@ _COMMAND_REPLIES: dict[str, str] = {
         "\u2705 Webhook: Active\n"
         "\u2705 Channel: Telegram OTT Gateway\n"
         "\U0001f4ca Framework: SDLC 6.1.1\n\n"
-        "Gửi /help để xem các lệnh governance."
+        "G\u1eedi /help \u0111\u1ec3 xem c\u00e1c l\u1ec7nh governance."
+    ),
+    # Sprint 207: Governance slash commands — static info + guidance
+    "/sprint": (
+        "\U0001f4ca Sprint Management\n\n"
+        "Framework: SDLC 6.1.1\n\n"
+        "\U0001f539 Sprint commands (g\u1eedi b\u1eb1ng text, kh\u00f4ng c\u1ea7n /):\n"
+        "  update sprint <project_id> \u2014 C\u1eadp nh\u1eadt CURRENT-SPRINT.md\n"
+        "  close sprint <project_id> \u2014 \u0110\u00f3ng sprint hi\u1ec7n t\u1ea1i\n"
+        "  export audit <project_id> \u2014 Xu\u1ea5t audit log\n\n"
+        "\U0001f539 Quality Gates:\n"
+        "  gate status \u2014 Xem danh s\u00e1ch gates\n"
+        "  approve gate <gate_id> \u2014 Duy\u1ec7t gate\n\n"
+        "\U0001f310 Dashboard: https://sdlc.nhatquangholding.com"
+    ),
+    "/sprint_status": (
+        "\U0001f4ca Sprint Status\n\n"
+        "Xem tr\u1ea1ng th\u00e1i sprint:\n\n"
+        "\U0001f539 G\u1eedi b\u1eb1ng text (kh\u00f4ng c\u1ea7n /):\n"
+        "  gate status \u2014 Xem quality gates\n"
+        "  update sprint <project_id> \u2014 C\u1eadp nh\u1eadt sprint\n"
+        "  close sprint <project_id> \u2014 \u0110\u00f3ng sprint\n"
+        "  export audit <project_id> \u2014 Xu\u1ea5t audit log\n\n"
+        "\U0001f4a1 Tip: G\u1eedi l\u1ec7nh b\u1eb1ng ti\u1ebfng Vi\u1ec7t ho\u1eb7c English.\n"
+        "VD: 'tr\u1ea1ng th\u00e1i gate', 'duy\u1ec7t gate <id>'\n\n"
+        "\U0001f310 Dashboard: https://sdlc.nhatquangholding.com"
     ),
 }
 

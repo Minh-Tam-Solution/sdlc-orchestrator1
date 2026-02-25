@@ -1,0 +1,14 @@
+id: "agent_budget_01"
+tool_name: "check_conversation_budget"
+prompt: "The agent has used $9.50 of the $10 LITE tier monthly budget. What happens next?"
+expected_behavior: >
+  Returns BudgetStatus.WARNING (not EXCEEDED) because usage is at 95% which
+  is above the 80% warning threshold but below 100%. The response must include
+  the warning message with current/max amounts, send an OTT warning notification
+  to the organization admin, and continue allowing agent invocations. Must NOT
+  pause the conversation at 95%.
+ground_truth: null
+tags:
+  - multi-agent
+  - budget
+  - circuit-breaker

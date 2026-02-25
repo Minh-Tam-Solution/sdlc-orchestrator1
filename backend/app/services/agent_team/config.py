@@ -28,6 +28,8 @@ Zero Mock Policy: Production-ready configuration constants
 
 from __future__ import annotations
 
+import os
+
 from app.schemas.agent_team import SDLCRole, SE4H_ROLES
 from app.services.agent_team.query_classifier import ClassificationRule
 
@@ -85,6 +87,52 @@ DEFAULT_CLASSIFICATION_RULES: list[ClassificationRule] = [
         priority=10,
         keywords=(),             # Any message is eligible; code block presence is the signal
         patterns=("```",),       # Presence of a code block → code task
+        min_length=0,
+        max_length=0,
+    ),
+    # Sprint 204 (AD-4): Governance rules at priority=8.
+    # Each keyword is a SEPARATE rule so that a single match fires (AND logic
+    # requires ALL keywords in a rule to be present — single-keyword rules
+    # ensure any one governance keyword is sufficient).
+    # max_length=200 prevents false positives on long messages that happen
+    # to mention "gate" in a different context.
+    ClassificationRule(
+        hint="governance",
+        priority=8,
+        keywords=("approve",),
+        patterns=(),
+        min_length=0,
+        max_length=200,
+    ),
+    ClassificationRule(
+        hint="governance",
+        priority=8,
+        keywords=("gate",),
+        patterns=(),
+        min_length=0,
+        max_length=200,
+    ),
+    ClassificationRule(
+        hint="governance",
+        priority=8,
+        keywords=("submit evidence",),
+        patterns=(),
+        min_length=0,
+        max_length=0,
+    ),
+    ClassificationRule(
+        hint="governance",
+        priority=8,
+        keywords=("export audit",),
+        patterns=(),
+        min_length=0,
+        max_length=0,
+    ),
+    ClassificationRule(
+        hint="governance",
+        priority=8,
+        keywords=("close sprint",),
+        patterns=(),
         min_length=0,
         max_length=0,
     ),
@@ -156,3 +204,19 @@ def get_se4h_overrides() -> dict[str, object]:
     enforced regardless of what the caller provides.
     """
     return dict(SE4H_CONSTRAINTS)
+
+
+# =========================================================================
+# LangChain Provider Settings (Sprint 205, ADR-066)
+# =========================================================================
+# Feature flag: set LANGCHAIN_ENABLED=true in env to activate the LangChain
+# provider branch in AgentInvoker._call_provider().
+# When false (default): provider="langchain" raises AgentInvokerError.
+# LANGCHAIN_DEFAULT_MODEL controls which Ollama model is used when no explicit
+# model is specified in a LangChain ProviderConfig.
+
+LANGCHAIN_ENABLED: bool = os.environ.get("LANGCHAIN_ENABLED", "false").lower() == "true"
+
+LANGCHAIN_DEFAULT_MODEL: str = os.environ.get(
+    "LANGCHAIN_DEFAULT_MODEL", "qwen3-coder:30b"
+)

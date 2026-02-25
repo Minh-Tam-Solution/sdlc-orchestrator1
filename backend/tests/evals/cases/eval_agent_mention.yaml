@@ -1,0 +1,13 @@
+id: "agent_mention_01"
+tool_name: "route_mention"
+prompt: "@coder-alpha please implement the user authentication endpoint we discussed"
+expected_behavior: >
+  Routes the message to the agent named 'coder-alpha' via the @mention parser.
+  The routing must extract the agent name, verify the agent exists in the
+  current team, and deliver the message to that agent's queue. Must NOT
+  route to wrong agent, duplicate messages, or expose other agents' contexts.
+ground_truth: null
+tags:
+  - multi-agent
+  - mention-routing
+  - queue

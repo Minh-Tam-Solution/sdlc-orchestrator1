@@ -1,0 +1,14 @@
+id: "codegen_test_01"
+tool_name: "generate_tests"
+prompt: "Generate pytest unit tests for the create_project function that validates name length and required fields."
+expected_behavior: >
+  Generates complete pytest test file with at minimum: test_create_project_success,
+  test_create_project_name_too_long (>100 chars), test_create_project_missing_name,
+  test_create_project_missing_required_fields. Uses pytest fixtures, AAA pattern
+  (Arrange-Act-Assert), and proper assertions. Must NOT use mocks where real
+  implementations can be tested.
+ground_truth: null
+tags:
+  - codegen
+  - testing
+  - pytest

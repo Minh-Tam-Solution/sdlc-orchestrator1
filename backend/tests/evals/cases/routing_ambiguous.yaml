@@ -1,0 +1,21 @@
+id: "routing_ambiguous_01"
+tool_name: "classify"
+prompt: "review the latest changes and tell me what you think about the overall approach"
+expected_behavior: >
+  This query is ambiguous — no substring rule matches.
+  No code fence (```), no governance keywords, length > 20 chars (not fast),
+  and not all 6 required reasoning keywords are present.
+  The pure classifier returns hint=None with confidence=0.3 (no-match sentinel).
+  TeamOrchestrator detects confidence < 0.6 and calls _llm_classify() (Step 5.7),
+  routing to qwen3:8b for intent disambiguation.
+  The LLM may classify this as 'reasoning' (deep reflection on design decisions)
+  or return a context-specific classification.
+  This case documents the low-confidence → LLM fallback pipeline path.
+  Agents should NOT block or error — the non-fatal contract always produces a result.
+ground_truth: null
+tags:
+  - routing
+  - ambiguous
+  - llm-fallback
+  - classification
+  - sprint204

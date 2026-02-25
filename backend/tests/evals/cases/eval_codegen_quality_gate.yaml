@@ -1,0 +1,13 @@
+id: "codegen_quality_01"
+tool_name: "run_quality_pipeline"
+prompt: "Run the 4-gate quality pipeline on the generated authentication module."
+expected_behavior: >
+  Executes all 4 quality gates in order: Gate 1 (syntax check via ast.parse/ruff),
+  Gate 2 (security scan via Semgrep OWASP rules), Gate 3 (context validation —
+  imports exist, dependencies valid), Gate 4 (smoke tests). Reports pass/fail
+  per gate with actionable error messages. Must NOT skip gates or ignore failures.
+ground_truth: null
+tags:
+  - codegen
+  - quality-pipeline
+  - security

@@ -1,0 +1,14 @@
+id: "agent_reflect_01"
+tool_name: "reflect_and_score"
+prompt: "The agent completed a tool batch reading 3 files. Evaluate the quality of its response."
+expected_behavior: >
+  Calls the Evaluator-Optimizer evaluator model (deepseek-r1:32b, temperature=0)
+  to score the agent's response on correctness/completeness/safety dimensions.
+  If avg score >= 8.0, returns ReflectResult with early_stopped=True and does NOT
+  inject a reflection prompt. If avg < 8.0, injects reflection prompt and returns
+  early_stopped=False. Must NOT skip scoring or always inject reflection.
+ground_truth: null
+tags:
+  - multi-agent
+  - reflect
+  - evaluator-optimizer

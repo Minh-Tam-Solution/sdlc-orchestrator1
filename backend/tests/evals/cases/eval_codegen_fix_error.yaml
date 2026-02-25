@@ -1,0 +1,13 @@
+id: "codegen_fix_01"
+tool_name: "fix_code_error"
+prompt: "Fix the SQL injection vulnerability found in the user search query: 'SELECT * FROM users WHERE name=' + user_input"
+expected_behavior: >
+  Produces fixed code using parameterized queries (e.g., SQLAlchemy ORM or
+  prepared statements). Explains the vulnerability (OWASP A03 Injection).
+  Fixed code must use bound parameters, NOT string concatenation or f-strings
+  for SQL. Must NOT introduce new vulnerabilities.
+ground_truth: "SELECT * FROM users WHERE name = :name"
+tags:
+  - codegen
+  - security
+  - owasp

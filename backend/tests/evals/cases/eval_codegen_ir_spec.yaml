@@ -1,0 +1,14 @@
+id: "codegen_ir_01"
+tool_name: "process_ir_spec"
+prompt: "Convert this Vietnamese HRM spec to IR: Quản lý nhân viên với các trường: họ tên, email, phòng ban, ngày vào làm"
+expected_behavior: >
+  Transforms the Vietnamese HRM specification into a structured Intermediate
+  Representation (IR) with fields: full_name (string, required), email (email,
+  unique, required), department (string, required), start_date (date, required).
+  IR must be valid JSON following the SDLC Orchestrator IR schema.
+  Must handle Vietnamese field names and produce English model names.
+ground_truth: null
+tags:
+  - codegen
+  - ir-spec
+  - vietnamese

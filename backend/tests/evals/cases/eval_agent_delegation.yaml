@@ -1,0 +1,14 @@
+id: "agent_delegation_01"
+tool_name: "spawn_subagent"
+prompt: "The orchestrator agent attempts to spawn a sub-agent with delegation_depth=3 but the definition allows max_delegation_depth=2."
+expected_behavior: >
+  Raises DelegationDepthError before creating the sub-agent conversation.
+  The error message must include the attempted depth (3) and the maximum
+  allowed depth (2) and the agent name. The parent conversation must remain
+  active (not errored). No AgentConversation record must be created for
+  the rejected spawn attempt.
+ground_truth: null
+tags:
+  - multi-agent
+  - delegation
+  - safety

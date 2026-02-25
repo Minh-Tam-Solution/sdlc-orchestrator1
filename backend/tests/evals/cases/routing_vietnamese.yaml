@@ -1,0 +1,22 @@
+id: "routing_vietnamese_01"
+tool_name: "classify"
+prompt: "tại sao gate G2 bị reject? hãy close sprint 204 sau khi hoàn thành"
+expected_behavior: >
+  Correctly classifies this Vietnamese-language message as 'governance' with
+  confidence >= 0.85. Despite the message being primarily Vietnamese, English
+  governance keywords 'gate' and 'close sprint' are present and match two
+  separate governance rules (both priority=8, max_length=200 and unlimited).
+  Same-hint deduplication: both rules share hint='governance' → confidence = 0.90.
+  Returns ClassificationResult(hint='governance', confidence=0.90, method='substring').
+  This validates that SDLC governance commands embedded in Vietnamese user messages
+  are still correctly intercepted via English keyword matching.
+  The governance pre-router interceptor handles this before any LLM invocation.
+ground_truth: null
+expected_hint: "governance"
+expected_min_confidence: 0.85
+tags:
+  - routing
+  - vietnamese
+  - governance
+  - classification
+  - sprint204

@@ -11,6 +11,7 @@ boundaries defined in agent_definitions.
 
 Sprint 177 Day 6 implementation.
 Sprint 202 addition: save_note / recall_note internal tools for agent memory.
+Sprint 205 addition: ToolPermissionDenied + authorize_tool_call() for LangChain tools (ADR-066 B2).
 """
 
 from __future__ import annotations
@@ -130,3 +131,53 @@ class ToolContext(BaseModel):
             f"Path '{file_path}' not in allowed_paths: "
             f"{self.permissions.allowed_paths}"
         )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Sprint 205 — LangChain tool authorization guard (ADR-066 B2)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class ToolPermissionDenied(Exception):
+    """
+    Raised when authorize_tool_call() denies a LangChain tool invocation.
+
+    Defined in tool_context.py (not langchain_tool_registry.py) so it is
+    importable without the optional LangChain packages installed.
+    """
+
+
+# Convenience alias — FR-045 test specs reference "PermissionDenied"
+PermissionDenied = ToolPermissionDenied
+
+
+def authorize_tool_call(
+    tool_name: str,
+    tool_context: "ToolContext | None",
+) -> None:
+    """
+    Centralized guard for LangChain StructuredTool calls (ADR-066 B2).
+
+    Called by every tool implementation function in langchain_tool_registry.py
+    before executing any action.  Raises ToolPermissionDenied when the
+    ToolContext denies the tool.  If tool_context is None the check is
+    skipped — the orchestrator layer handles permission enforcement in that case.
+
+    Args:
+        tool_name:    Name of the LangChain tool being invoked.
+        tool_context: Active ToolContext with agent permissions, or None.
+
+    Raises:
+        ToolPermissionDenied: When tool_context is set and tool is not allowed.
+    """
+    if tool_context is None:
+        return  # No context → no restriction (test mode or integration layer)
+
+    allowed, reason = tool_context.check_tool_permission(tool_name)
+    if not allowed:
+        logger.warning(
+            "LangChain tool call denied: tool=%s reason=%s",
+            tool_name,
+            reason,
+        )
+        raise ToolPermissionDenied(f"Tool '{tool_name}' not authorized: {reason}")

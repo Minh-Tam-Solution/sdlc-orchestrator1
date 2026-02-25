@@ -1,0 +1,19 @@
+id: "routing_governance_01"
+tool_name: "classify"
+prompt: "approve gate G2 for project alpha — all security checks passed"
+expected_behavior: >
+  Correctly classifies this message as a 'governance' task with confidence >= 0.85.
+  The 'approve' keyword fires one governance rule (priority=8, max_length=200).
+  The 'gate' keyword fires a second governance rule (priority=8, max_length=200).
+  Both rules share hint='governance' — same-hint deduplication applies.
+  Best priority = 8 (>= 8 tier) → confidence = 0.90.
+  Returns ClassificationResult(hint='governance', confidence=0.90, method='substring').
+  This triggers the governance pre-router interceptor in TeamOrchestrator (Step 5.6).
+ground_truth: null
+expected_hint: "governance"
+expected_min_confidence: 0.85
+tags:
+  - routing
+  - governance
+  - classification
+  - sprint204

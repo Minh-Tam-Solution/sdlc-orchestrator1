@@ -63,7 +63,7 @@ from app.services.agent_team.evidence_collector import (
 # Sprint 179 — ZeroClaw Security Hardening (ADR-058)
 from app.services.agent_team.output_scrubber import OutputScrubber
 from app.services.agent_team.history_compactor import HistoryCompactor
-from app.services.agent_team.query_classifier import classify, ClassificationRule
+from app.services.agent_team.query_classifier import classify, ClassificationRule, ClassificationResult
 from app.services.agent_team.config import DEFAULT_CLASSIFICATION_RULES, MODEL_ROUTE_HINTS
 
 # Sprint 189 — Chat-First Governance Loop (ADR-064)
@@ -142,6 +142,7 @@ __all__ = [
     "HistoryCompactor",
     "classify",
     "ClassificationRule",
+    "ClassificationResult",
     "DEFAULT_CLASSIFICATION_RULES",
     "MODEL_ROUTE_HINTS",
     # Sprint 189 — Chat-First Governance Loop (ADR-064)

@@ -1,0 +1,17 @@
+id: "routing_code_01"
+tool_name: "classify"
+prompt: "```python\ndef calculate_total(items):\n    return sum(items)\n```\nFix this function to handle empty list and return 0"
+expected_behavior: >
+  Correctly classifies this message as a 'code' task with high confidence.
+  The code fence (```) pattern triggers the highest-priority code rule (priority=10).
+  Since this is a single-match pattern rule, confidence = 0.95 (pattern tier).
+  Returns ClassificationResult(hint='code', confidence=0.95, method='substring').
+  The classifier fires immediately on the code fence without needing keywords.
+ground_truth: null
+expected_hint: "code"
+expected_min_confidence: 0.9
+tags:
+  - routing
+  - code
+  - classification
+  - sprint204

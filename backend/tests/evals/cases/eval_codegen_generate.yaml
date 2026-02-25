@@ -1,0 +1,13 @@
+id: "codegen_generate_01"
+tool_name: "generate_code"
+prompt: "Generate a FastAPI endpoint for user registration with JWT token response."
+expected_behavior: >
+  Generates production-ready Python FastAPI code for POST /auth/register endpoint.
+  Must include: Pydantic request schema, password hashing (bcrypt), database insert,
+  JWT token generation, and proper HTTP status codes (201 created, 422 validation error).
+  Must NOT include hardcoded secrets, TODOs, or placeholder implementations.
+ground_truth: null
+tags:
+  - codegen
+  - fastapi
+  - security

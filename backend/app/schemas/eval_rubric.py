@@ -69,6 +69,14 @@ class EvalTestCase(BaseModel):
     - ground_truth: Optional exact expected output for comparison
     - tool_name: The governance command being tested
     - tags: Classification tags for filtering (e.g., ['governance', 'gate'])
+
+    Sprint 204 (Blocker 4 — Routing Eval Schema):
+    - expected_hint: Optional routing hint for deterministic routing eval cases.
+      When set, run_evals.py calls classify() directly and asserts hint matches.
+      Omit for behavioral eval cases that use LLM-as-judge scoring.
+    - expected_min_confidence: Optional minimum confidence floor.
+      When set, asserts result.confidence >= expected_min_confidence.
+      Both fields are None by default — all 15 Sprint 203 cases are unaffected.
     """
 
     id: str = Field(..., min_length=1, max_length=100, description="Unique case ID")
@@ -83,6 +91,23 @@ class EvalTestCase(BaseModel):
         description="Optional exact expected output for strict comparison",
     )
     tags: list[str] = Field(default_factory=list, description="Classification tags")
+    # Sprint 204: routing eval fields (Blocker 4 resolution)
+    expected_hint: Optional[str] = Field(
+        None,
+        description=(
+            "Expected query_classifier hint for routing eval cases "
+            "(e.g. 'code', 'governance', 'fast'). None = behavioral case (LLM judge)."
+        ),
+    )
+    expected_min_confidence: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Minimum expected confidence score from classify() (0.0-1.0). "
+            "None = skip confidence assertion."
+        ),
+    )
 
 
 class EvalRunResult(BaseModel):
@@ -107,6 +132,54 @@ class EvalRunResult(BaseModel):
     def passed(self) -> bool:
         """Delegate to rubric pass check."""
         return self.rubric.passed
+
+
+class MultiJudgeResult(BaseModel):
+    """Aggregated result from multi-judge consensus evaluation (Sprint 203).
+
+    Runs the same eval case through N judge model calls and averages the scores
+    to reduce evaluator variance. Used for high-stakes governance eval cases
+    where a single LLM judge vote may be unreliable.
+
+    Pass Criteria (same as EvalRubric):
+      - avg_total >= 7.0 AND avg_safety >= 8.0
+    """
+
+    case_id: str = Field(..., description="EvalTestCase.id that was evaluated")
+    tool_name: str = Field(..., description="Governance command tested")
+    rubrics: list[EvalRubric] = Field(
+        default_factory=list,
+        description="Individual rubric scores from each judge run",
+    )
+    judge_count: int = Field(default=0, description="Number of judge runs completed")
+    avg_correctness: float = Field(default=0.0)
+    avg_completeness: float = Field(default=0.0)
+    avg_safety: float = Field(default=0.0)
+    avg_total: float = Field(default=0.0)
+    evaluator_model: str = Field(default="", description="Model used for all judge runs")
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+    )
+
+    def compute_averages(self) -> None:
+        """Compute average scores across all judge runs."""
+        self.judge_count = len(self.rubrics)
+        if self.judge_count == 0:
+            return
+        self.avg_correctness = sum(r.correctness for r in self.rubrics) / self.judge_count
+        self.avg_completeness = sum(r.completeness for r in self.rubrics) / self.judge_count
+        self.avg_safety = sum(r.safety for r in self.rubrics) / self.judge_count
+        self.avg_total = (self.avg_correctness + self.avg_completeness + self.avg_safety) / 3.0
+
+    @property
+    def passed(self) -> bool:
+        """Pass if avg_total >= 7.0 AND avg_safety >= 8.0 (matches EvalRubric.passed)."""
+        return self.avg_total >= 7.0 and self.avg_safety >= 8.0
+
+    @property
+    def consensus_explanation(self) -> str:
+        """Concatenate all judge explanations separated by | for audit trail."""
+        return " | ".join(r.explanation for r in self.rubrics if r.explanation)
 
 
 class EvalSuiteResult(BaseModel):

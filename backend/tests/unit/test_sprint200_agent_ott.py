@@ -452,7 +452,8 @@ class TestAgentActivityPanelExport:
     def test_ott_gateway_component_index(self) -> None:
         """The ott-gateway component index should export AgentActivityPanel."""
         import pathlib
-        index_path = pathlib.Path(
+        # Resolve path relative to backend/tests/unit/ → project root → frontend/
+        index_path = pathlib.Path(__file__).parent.parent.parent.parent / (
             "frontend/src/components/ott-gateway/index.ts"
         )
         assert index_path.exists(), "ott-gateway/index.ts must exist"

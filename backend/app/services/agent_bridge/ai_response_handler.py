@@ -97,7 +97,61 @@ _GOVERNANCE_KEYWORDS: tuple[str, ...] = (
     "export audit", "xuất báo cáo", "compliance report",
     # Sprint actions
     "update sprint", "cập nhật sprint",
+    "close sprint", "đóng sprint",
+    # Team actions
+    "invite member", "mời thành viên",
+    # Eval actions
+    "run evals", "chạy đánh giá",
+    "list notes", "xem ghi chú",
 )
+
+# ── Sprint 207: Slash command → governance text mapping ──
+# Bridges Telegram /commands to the governance pipeline by transforming
+# slash commands into natural language that chat_command_router can parse
+# via LLM function calling. Commands handled by telegram_responder
+# (/start, /help, /status, /sprint, /sprint_status) are NOT listed here
+# because they return True before reaching ai_response_handler.
+_SLASH_TO_GOVERNANCE: dict[str, str] = {
+    "/gates": "gate status",
+    "/gate_status": "gate status",
+    "/approve": "approve gate",
+    "/reject": "reject gate",
+    "/evidence": "submit evidence",
+    "/upload": "upload evidence",
+    "/update_sprint": "update sprint",
+    "/close_sprint": "close sprint",
+    "/invite": "invite member",
+    "/run_evals": "run evals",
+    "/list_notes": "list notes",
+    "/export_audit": "export audit",
+    "/create_project": "create project",
+}
+
+
+def _transform_slash_command(text: str) -> str | None:
+    """
+    Transform a Telegram slash command to natural language for governance
+    routing (Sprint 207).
+
+    Maps /gate_status <id> → "gate status <id>", /approve <id> →
+    "approve gate <id>", etc. Returns None if not a recognized governance
+    slash command.
+
+    Args:
+        text: Raw message text (e.g., "/approve abc-123").
+
+    Returns:
+        Transformed natural language string, or None if not a match.
+    """
+    if not text.startswith("/"):
+        return None
+    parts = text.split(maxsplit=1)
+    command = parts[0].split("@")[0].lower()
+    args = parts[1] if len(parts) > 1 else ""
+    mapped = _SLASH_TO_GOVERNANCE.get(command)
+    if mapped:
+        return f"{mapped} {args}".strip() if args else mapped
+    return None
 
 
 def _is_governance_intent(text: str) -> bool:
@@ -436,10 +490,26 @@ async def handle_ai_response(
             str(exc),
         )
 
+    # ── Sprint 207: Slash command → governance routing ──
+    # Transform /gates, /approve <id>, etc. into natural language so the
+    # governance pipeline (chat_command_router → governance_action_handler)
+    # can parse them via LLM function calling.
+    governance_text = text
+    slash_mapped = _transform_slash_command(text)
+    if slash_mapped:
+        governance_text = slash_mapped
+        logger.info(
+            "ai_response_handler: slash command transformed chat_id=%s '%s' -> '%s'",
+            chat_id,
+            text[:30],
+            governance_text,
+        )
+
     # ── Sprint 199 A-04: Governance intent detection ──
     # Route governance commands through chat_command_router → action handler
     # instead of free-text AI. This enables real gate actions from chat.
-    if _is_governance_intent(text):
+    # Sprint 207: Also triggers when a slash command was transformed above.
+    if slash_mapped or _is_governance_intent(governance_text):
         try:
             from app.services.agent_team.chat_command_router import route_chat_command
             from app.services.agent_bridge.governance_action_handler import (
@@ -447,7 +517,7 @@ async def handle_ai_response(
             )
 
             result = await route_chat_command(
-                message=text,
+                message=governance_text,
                 user_id=sender_id,
             )
 
@@ -462,7 +532,7 @@ async def handle_ai_response(
                 logger.info(
                     "ai_response_handler: governance intent handled chat_id=%s text=%s",
                     chat_id,
-                    text[:50],
+                    governance_text[:50],
                 )
                 return True
 

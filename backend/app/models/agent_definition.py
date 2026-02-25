@@ -200,6 +200,14 @@ class AgentDefinition(Base):
         doc="Reflect after every N tool calls (0=disabled, 1=every call)",
     )
 
+    max_reflect_iterations: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=1,
+        server_default="1",
+        doc="Max Evaluator-Optimizer iterations per tool batch (1-3). Sprint 203.",
+    )
+
     # ── Status ───────────────────────────────────────────────────────────
     is_active: Mapped[bool] = mapped_column(
         Boolean,

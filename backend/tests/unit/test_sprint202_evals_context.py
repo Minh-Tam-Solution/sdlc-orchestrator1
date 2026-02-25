@@ -284,12 +284,14 @@ class TestYamlCaseLoading:
     """A-03: YAML eval test case loading — 4 tests."""
 
     def test_load_cases_from_yaml_directory(self):
-        """Loads all 5 YAML cases from the cases/ directory."""
+        """Loads at least the 5 original Sprint 202 governance YAML cases.
+        Sprint 203 added 10 more cases — guard uses >= to stay forward-compatible.
+        """
         from app.services.agent_team.eval_scorer import EvalScorer
 
         cases_dir = Path(__file__).parent.parent / "evals" / "cases"
         cases = EvalScorer.load_cases_from_yaml(cases_dir)
-        assert len(cases) == 5
+        assert len(cases) >= 5
 
     def test_yaml_case_has_required_fields(self):
         """Each case has id, tool_name, prompt, expected_behavior."""
@@ -304,7 +306,9 @@ class TestYamlCaseLoading:
             assert case.expected_behavior, f"Case {case.id} missing expected_behavior"
 
     def test_yaml_cases_cover_five_governance_tools(self):
-        """5 cases cover 5 distinct governance tools."""
+        """Original 5 Sprint 202 governance tools are present in the case set.
+        Sprint 203 added 10 more — guard uses issuperset() to stay forward-compatible.
+        """
         from app.services.agent_team.eval_scorer import EvalScorer
 
         cases_dir = Path(__file__).parent.parent / "evals" / "cases"
@@ -312,7 +316,9 @@ class TestYamlCaseLoading:
         tool_names = {c.tool_name for c in cases}
         expected = {"get_gate_status", "request_approval", "create_project",
                     "submit_evidence", "export_audit"}
-        assert tool_names == expected
+        assert tool_names.issuperset(expected), (
+            f"Missing original governance tools: {expected - tool_names}"
+        )
 
     def test_load_from_nonexistent_dir_returns_empty(self):
         """Returns empty list for nonexistent directory."""

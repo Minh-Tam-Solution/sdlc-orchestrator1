@@ -42,6 +42,8 @@ Zero Mock Policy: Production-ready orchestration with real service calls.
 
 from __future__ import annotations
 
+import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -49,6 +51,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.models.agent_conversation import AgentConversation
 from app.models.agent_definition import AgentDefinition
@@ -74,11 +77,34 @@ from app.services.agent_team.config import (
     DEFAULT_CLASSIFICATION_RULES,
     MODEL_ROUTE_HINTS,
 )
+from app.services.agent_team.chat_command_router import (
+    route_chat_command,
+    ChatCommandResult,
+)
 from app.services.agent_team.history_compactor import HistoryCompactor
 from app.services.agent_team.note_service import NoteService
-from app.services.agent_team.query_classifier import classify
+from app.services.agent_team.escalation_service import EscalationService
+from app.services.agent_team.query_classifier import classify, ClassificationResult
+from app.services.ollama_service import OllamaError, get_ollama_service
 
 logger = logging.getLogger(__name__)
+
+# Sprint 204 (AD-3): LLM fallback prompt for ambiguous queries.
+# Used by _llm_classify() when substring confidence < 0.6.
+# Capped at 500 chars to bound LLM latency; qwen3:8b returns ~50 tokens.
+_LLM_CLASSIFY_PROMPT = """\
+Classify this user message into exactly one category.
+
+Categories:
+- code: Request to write, fix, generate, debug, or review code
+- reasoning: Request requiring deep analysis, explanation, or multi-step thinking
+- governance: Request for gate approval, evidence submission, sprint/audit management
+- fast: Simple greeting, short acknowledgment, confirmation, or trivial query
+
+Message: "{user_message}"
+
+Respond with JSON only, no extra text: {{"hint": "category", "confidence": 0.0}}
+confidence must be a float between 0.0 and 1.0."""
 
 
 @dataclass
@@ -309,17 +335,100 @@ class TeamOrchestrator:
                 current_message=message,
             )
 
-            # Step 5.5 (Pattern E): Classify message for model routing hint
-            model_hint = classify(DEFAULT_CLASSIFICATION_RULES, message.content)
-            if model_hint:
+            # Step 5.5 (Sprint 179 Pattern E / Sprint 204 Confidence Routing):
+            # Classify message for model routing hint + confidence score.
+            # classify() returns ClassificationResult; backward compat via
+            # __bool__() (True iff hint is not None).
+            # NOTE: governance pre-router interceptor (AD-2) added Day 2.
+            classification: ClassificationResult = classify(
+                DEFAULT_CLASSIFICATION_RULES, message.content
+            )
+            if classification:
                 logger.debug(
-                    "TRACE_ORCHESTRATOR: Query classified — hint=%s, conv=%s",
-                    model_hint,
+                    "TRACE_ORCHESTRATOR: Query classified — hint=%s, "
+                    "confidence=%.2f, method=%s, matches=%d, conv=%s",
+                    classification.hint,
+                    classification.confidence,
+                    classification.method,
+                    classification.matches,
+                    conversation.id,
+                )
+            else:
+                logger.debug(
+                    "TRACE_ORCHESTRATOR: Query unclassified — "
+                    "confidence=%.2f, conv=%s",
+                    classification.confidence,
                     conversation.id,
                 )
 
+            # Step 5.6 (Sprint 204 AD-2): Governance pre-router interceptor.
+            # If the message is classified as governance, dispatch directly to
+            # the chat_command_router (LLM function calling) instead of the
+            # generic LLM invocation path. This ensures governance commands
+            # are handled by the bounded tool allowlist, not free-form LLM.
+            if classification.hint == "governance":
+                logger.info(
+                    "TRACE_ORCHESTRATOR: Governance intercepted — "
+                    "dispatching to chat_command_router, conv=%s, "
+                    "confidence=%.2f",
+                    conversation.id,
+                    classification.confidence,
+                )
+                return await self._dispatch_governance_command(
+                    message=message,
+                    conversation=conversation,
+                    definition=definition,
+                )
+
+            # Step 5.7 (Sprint 204 AD-3): LLM fallback for low-confidence queries.
+            # When substring matching yields confidence < 0.6, delegate to
+            # qwen3:8b for fast reclassification (1s timeout, non-fatal).
+            # If LLM reclassifies as governance, re-run the governance intercept.
+            # If LLM still yields confidence < 0.6 — Track B escalation (Day 5-6).
+            if classification.confidence < 0.6:
+                classification = await self._llm_classify(
+                    content=message.content,
+                    original=classification,
+                )
+                logger.debug(
+                    "TRACE_ORCHESTRATOR: Post-LLM classification — "
+                    "hint=%s, confidence=%.2f, method=%s, conv=%s",
+                    classification.hint,
+                    classification.confidence,
+                    classification.method,
+                    conversation.id,
+                )
+                if classification.hint == "governance":
+                    logger.info(
+                        "TRACE_ORCHESTRATOR: LLM reclassified as governance — "
+                        "dispatching to chat_command_router, conv=%s",
+                        conversation.id,
+                    )
+                    return await self._dispatch_governance_command(
+                        message=message,
+                        conversation=conversation,
+                        definition=definition,
+                    )
+
+                # Track B (Sprint 204): LLM still low-confidence → human escalation.
+                # Block on BLPOP until reviewer classifies via Magic Link or timeout.
+                if classification.confidence < 0.6:
+                    classification = await self._escalate_for_classification(
+                        message=message,
+                        conversation=conversation,
+                        original=classification,
+                    )
+                    logger.info(
+                        "TRACE_ORCHESTRATOR: Post-escalation classification — "
+                        "hint=%s, confidence=%.2f, method=%s, conv=%s",
+                        classification.hint,
+                        classification.confidence,
+                        classification.method,
+                        conversation.id,
+                    )
+
             # Step 6: Invoke provider chain
-            invoker = self._build_invoker(definition, model_hint=model_hint)
+            invoker = self._build_invoker(definition, model_hint=classification.hint)
             try:
                 result = await invoker.invoke(
                     messages=context_messages,
@@ -550,7 +659,7 @@ class TeamOrchestrator:
 
         return system_prompt, context_messages
 
-    async def _get_sprint_context(self, project_id: UUID) -> Optional[str]:
+    async def _get_sprint_context(self, project_id: UUID) -> str | None:
         """
         Get formatted sprint context for agent prompt injection.
 
@@ -666,6 +775,345 @@ class TeamOrchestrator:
             )
 
         return AgentInvoker(provider_chain=chain)
+
+    # -----------------------------------------------------------------
+    # Sprint 204 (AD-2): Governance Pre-Router Dispatch
+    # -----------------------------------------------------------------
+
+    async def _dispatch_governance_command(
+        self,
+        message: AgentMessage,
+        conversation: AgentConversation,
+        definition: AgentDefinition,
+    ) -> ProcessingResult:
+        """
+        Dispatch a governance-classified message to the chat command router.
+
+        Sprint 204 (AD-2): When ``classify()`` returns hint="governance",
+        this method routes the message through ``route_chat_command()``
+        (LLM function calling with bounded tool allowlist) instead of the
+        generic LLM invocation path.
+
+        The chat command router determines the specific governance action
+        (approve gate, submit evidence, export audit, etc.) and returns
+        a ``ChatCommandResult`` with the tool call or text response.
+
+        Args:
+            message: The incoming agent message.
+            conversation: Active conversation.
+            definition: Agent definition for context.
+
+        Returns:
+            ProcessingResult with governance routing outcome.
+        """
+        try:
+            # Route through LLM function calling (chat_command_router)
+            sender_id = message.sender_id or "unknown"
+            cmd_result: ChatCommandResult = await route_chat_command(
+                message=message.content,
+                user_id=sender_id,
+            )
+
+            # Build response text from command result
+            if cmd_result.is_error:
+                response_text = (
+                    f"Governance command error: {cmd_result.error}"
+                )
+            elif cmd_result.is_tool_call:
+                response_text = (
+                    f"[governance:{cmd_result.tool_name}] "
+                    f"{cmd_result.response_text or 'Command dispatched.'}"
+                )
+            else:
+                response_text = (
+                    cmd_result.response_text
+                    or "I understood your governance request but could not "
+                    "determine the specific action. Please clarify."
+                )
+
+            # Complete the original message
+            await self.queue.complete(
+                message_id=message.id,
+                provider_used="chat_command_router",
+                token_count=0,
+                latency_ms=0,
+            )
+
+            await self.tracker.increment_message_count(conversation.id)
+
+            # Enqueue governance response
+            response_msg = await self.queue.enqueue(
+                conversation_id=conversation.id,
+                content=response_text,
+                sender_type="agent",
+                sender_id=definition.agent_name,
+                processing_lane=message.processing_lane,
+                queue_mode=conversation.queue_mode,
+                message_type="response",
+                parent_message_id=message.id,
+            )
+
+            # Capture evidence
+            on_behalf_of = f"{message.sender_type}:{message.sender_id}"
+            evidence = await self.evidence_collector.capture_message(
+                message=response_msg,
+                agent_name=definition.agent_name,
+                on_behalf_of=on_behalf_of,
+            )
+
+            # Sprint activity log
+            if conversation.project_id:
+                tool_label = cmd_result.tool_name or "governance"
+                await self._log_sprint_activity(
+                    conversation_id=conversation.id,
+                    project_id=conversation.project_id,
+                    summary=(
+                        f"{definition.agent_name} handled governance "
+                        f"command: {tool_label}"
+                    ),
+                )
+
+            logger.info(
+                "TRACE_ORCHESTRATOR: Governance command dispatched — "
+                "msg=%s, tool=%s, is_error=%s, conv=%s",
+                message.id,
+                cmd_result.tool_name,
+                cmd_result.is_error,
+                conversation.id,
+            )
+
+            return ProcessingResult(
+                message_id=message.id,
+                conversation_id=conversation.id,
+                success=not cmd_result.is_error,
+                provider_used="chat_command_router",
+                model_used="governance",
+                response_message_id=response_msg.id,
+                evidence_id=evidence.id if evidence else None,
+                error=cmd_result.error,
+            )
+
+        except Exception as e:
+            logger.error(
+                "TRACE_ORCHESTRATOR: Governance dispatch failed — "
+                "msg=%s, error=%s",
+                message.id,
+                e,
+                exc_info=True,
+            )
+            # Fall through: mark message failed and return error result
+            try:
+                await self.queue.fail(
+                    message.id,
+                    error=f"Governance dispatch error: {str(e)[:500]}",
+                )
+            except Exception:
+                logger.error(
+                    "TRACE_ORCHESTRATOR: Failed to mark message as failed: %s",
+                    message.id,
+                    exc_info=True,
+                )
+
+            return ProcessingResult(
+                message_id=message.id,
+                conversation_id=conversation.id,
+                success=False,
+                error=f"Governance dispatch error: {str(e)[:500]}",
+            )
+
+    async def _escalate_for_classification(
+        self,
+        message: AgentMessage,
+        conversation: AgentConversation,
+        original: ClassificationResult,
+    ) -> ClassificationResult:
+        """
+        Block on human classification for a low-confidence query (Sprint 204 Track B).
+
+        When the LLM fallback still yields confidence < 0.6, this method delegates
+        to ``EscalationService.escalate()`` which:
+          1. Generates 4 Magic Link tokens (code / reasoning / governance / fast).
+          2. Sends a Telegram notification to the configured reviewer.
+          3. Blocks on Redis BLPOP ``escalation_result:{conversation_id}`` until
+             the reviewer clicks a link or ``ESCALATION_TIMEOUT_SECONDS`` elapses.
+
+        After escalation resolves, the caller (``_process()``) continues with the
+        resolved ``ClassificationResult`` at Step 6 (provider invocation).
+
+        Args:
+            message: The incoming agent message (provides the query text).
+            conversation: Active conversation (provides ``conversation_id``).
+            original: Pre-escalation ``ClassificationResult`` — used as the
+                      timeout fallback hint.
+
+        Returns:
+            ``ClassificationResult`` with method="human" (reviewer clicked) or
+            method="timeout_fallback" (300 s elapsed, preserving original hint).
+        """
+        logger.info(
+            "TRACE_ORCHESTRATOR: Escalating for human classification — "
+            "conv=%s, original_hint=%s, confidence=%.2f",
+            conversation.id,
+            original.hint,
+            original.confidence,
+        )
+
+        escalation_service = EscalationService()
+        try:
+            result = await escalation_service.escalate(
+                conversation_id=str(conversation.id),
+                query=message.content,
+                original=original,
+            )
+        except Exception as exc:
+            logger.error(
+                "TRACE_ORCHESTRATOR: EscalationService failed — "
+                "conv=%s, error=%s — using timeout_fallback",
+                conversation.id,
+                exc,
+            )
+            result = ClassificationResult(
+                hint=original.hint,
+                confidence=original.confidence,
+                method="timeout_fallback",
+                matches=original.matches,
+            )
+
+        if result.method == "timeout_fallback":
+            logger.warning(
+                "TRACE_ORCHESTRATOR: Classification escalation timed out — "
+                "conv=%s, fallback_hint=%s (unconfirmed)",
+                conversation.id,
+                result.hint,
+            )
+
+        return result
+
+    async def _llm_classify(
+        self,
+        content: str,
+        original: ClassificationResult,
+    ) -> ClassificationResult:
+        """
+        LLM-based fallback classifier for ambiguous messages.
+
+        Sprint 204 (AD-3): When ``classify()`` returns confidence < 0.6,
+        this method asks ``qwen3:8b`` to classify the message via a
+        structured JSON prompt. qwen3:8b is the fastest available model
+        (~60-80 tok/s) and is used exclusively for this classification
+        task to bound latency.
+
+        Timeout is 1.0 s (``asyncio.wait_for``). Ollama's ``generate()``
+        is synchronous; it is wrapped with ``run_in_threadpool`` so it
+        does not block the event loop.
+
+        Non-fatal contract: any failure (timeout, parse error, invalid
+        category, OllamaError) returns the original ``ClassificationResult``
+        with ``method`` updated to ``"timeout_fallback"`` or
+        ``"llm_failed"``. The caller proceeds with reduced confidence and
+        may escalate to a human (Track B, Day 5-6).
+
+        Args:
+            content: Raw message text (truncated to 500 chars for the prompt).
+            original: The ``ClassificationResult`` from substring matching.
+
+        Returns:
+            Updated ``ClassificationResult`` with ``method="llm"`` on
+            success, ``method="timeout_fallback"`` on timeout, or
+            ``method="llm_failed"`` on parse/network error. Confidence
+            and hint are preserved from original on failure.
+        """
+        _VALID_HINTS = frozenset({"code", "reasoning", "governance", "fast"})
+        prompt = _LLM_CLASSIFY_PROMPT.format(
+            # Cap at 500 chars to bound token count; trailing context is
+            # less discriminative than the opening intent.
+            user_message=content[:500].replace('"', '\\"')
+        )
+        try:
+            ollama = get_ollama_service()
+            response = await asyncio.wait_for(
+                run_in_threadpool(
+                    ollama.generate,
+                    prompt,       # positional: prompt
+                    "qwen3:8b",   # positional: model (fastest)
+                    None,         # system (none needed)
+                    0.0,          # temperature — deterministic
+                    64,           # max_tokens — JSON fits in <50 tokens
+                ),
+                timeout=1.0,
+            )
+
+            raw = response.response.strip()
+            # Strip any markdown code fences Ollama might add
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+                raw = raw.strip()
+            if raw.endswith("```"):
+                raw = raw[: raw.rfind("```")].strip()
+
+            data: dict = json.loads(raw)
+            hint_raw = data.get("hint", "")
+            hint: str | None = hint_raw if hint_raw in _VALID_HINTS else None
+            confidence = float(data.get("confidence", 0.5))
+            confidence = max(0.0, min(1.0, confidence))
+
+            logger.debug(
+                "TRACE_ORCHESTRATOR: _llm_classify result — "
+                "hint=%s, confidence=%.2f, raw=%r",
+                hint,
+                confidence,
+                raw[:120],
+            )
+            return ClassificationResult(
+                hint=hint,
+                confidence=confidence,
+                method="llm",
+                matches=0,
+            )
+
+        except asyncio.TimeoutError:
+            logger.warning(
+                "TRACE_ORCHESTRATOR: _llm_classify timed out (>1s) — "
+                "falling back to original classification, original_hint=%s",
+                original.hint,
+            )
+            return ClassificationResult(
+                hint=original.hint,
+                confidence=original.confidence,
+                method="timeout_fallback",
+                matches=original.matches,
+            )
+
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            logger.warning(
+                "TRACE_ORCHESTRATOR: _llm_classify parse error — "
+                "%s: %s, original_hint=%s",
+                type(exc).__name__,
+                exc,
+                original.hint,
+            )
+            return ClassificationResult(
+                hint=original.hint,
+                confidence=original.confidence,
+                method="llm_failed",
+                matches=original.matches,
+            )
+
+        except OllamaError as exc:
+            logger.warning(
+                "TRACE_ORCHESTRATOR: _llm_classify OllamaError — "
+                "%s, original_hint=%s",
+                exc,
+                original.hint,
+            )
+            return ClassificationResult(
+                hint=original.hint,
+                confidence=original.confidence,
+                method="llm_failed",
+                matches=original.matches,
+            )
 
     async def _route_mentions(
         self,

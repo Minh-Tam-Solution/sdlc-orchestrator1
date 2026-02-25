@@ -33,7 +33,7 @@ import json
 import logging
 import os
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from app.core.config import settings
@@ -60,12 +60,31 @@ class MagicLinkToken:
 
 @dataclass(frozen=True)
 class MagicLinkPayload:
-    """Validated payload extracted from a consumed magic link token."""
+    """
+    Validated payload extracted from a consumed magic link token.
+
+    Sprint 204 (AD-5): Discriminated union via ``payload_type`` field.
+    Two variants:
+      - ``"gate_approval"`` (default): classic gate approve/reject flow.
+        gate_id, action, user_id, idempotency_key are populated.
+      - ``"classification"``: human classification escalation flow.
+        classification_query, classification_options, conversation_id
+        are populated. gate_id is the sentinel "" string.
+
+    Backward compat: existing callers reading gate_id/action/user_id/
+    idempotency_key are unaffected — those fields remain required with
+    no defaults. New fields are optional with defaults.
+    """
 
     gate_id: str
     action: str
     user_id: str
     idempotency_key: str
+    # Sprint 204 (AD-5): discriminator + classification-specific fields
+    payload_type: str = "gate_approval"  # "gate_approval" | "classification"
+    classification_query: str | None = None
+    classification_options: tuple[str, ...] = field(default_factory=tuple)
+    conversation_id: str | None = None
 
 
 class MagicLinkError(Exception):
@@ -231,6 +250,100 @@ class MagicLinkService:
             url=url,
         )
 
+    async def generate_classification_token(
+        self,
+        conversation_id: str,
+        query: str,
+        hint: str,
+        reviewer_user_id: str = "",
+    ) -> MagicLinkToken:
+        """
+        Generate a single-use classification Magic Link token.
+
+        Sprint 204 (AD-5, Track B): Used by ``EscalationService`` to
+        generate one token per classification option (code/reasoning/
+        governance/fast). The reviewer clicks the link that corresponds
+        to the correct category; the link resolves the escalation.
+
+        Token payload (``payload_type="classification"``):
+            gate_id: ""              — sentinel (no gate involved)
+            action:  "classify:{hint}"  — e.g. "classify:code"
+            user_id: reviewer_user_id (empty string if anonymous OTT)
+            classification_query: first 300 chars of the query
+            classification_options: all 4 category strings
+            conversation_id: the conversation awaiting resolution
+
+        User binding is skipped for classification tokens (reviewer_user_id
+        may be empty in OTT flows). The ``validate_and_consume()`` method
+        detects ``payload_type="classification"`` and skips the user check.
+
+        Args:
+            conversation_id: UUID of the conversation to unblock.
+            query: The ambiguous message text (truncated to 300 chars).
+            hint: Category this token represents ("code", "reasoning",
+                  "governance", or "fast").
+            reviewer_user_id: User ID of designated reviewer. May be ""
+                for OTT reviewers without a browser account.
+
+        Returns:
+            MagicLinkToken with classification payload stored in Redis.
+
+        Raises:
+            MagicLinkError: If Redis storage fails.
+        """
+        idempotency_key = uuid.uuid4().hex
+        gate_id_sentinel = ""
+        action = f"classify:{hint}"
+
+        signature = self._compute_signature(
+            gate_id_sentinel, action, reviewer_user_id, idempotency_key
+        )
+
+        payload = {
+            "payload_type": "classification",
+            "gate_id": gate_id_sentinel,
+            "action": action,
+            "user_id": reviewer_user_id,
+            "idempotency_key": idempotency_key,
+            "classification_query": query[:300],
+            "classification_options": ["code", "reasoning", "governance", "fast"],
+            "conversation_id": conversation_id,
+        }
+
+        redis = await get_redis_client()
+        redis_key = f"{_REDIS_PREFIX}:{signature}"
+
+        try:
+            await redis.setex(redis_key, self._ttl, json.dumps(payload))
+        except Exception as exc:
+            logger.error(
+                "magic_link: classification Redis SET failed key=%s error=%s",
+                redis_key,
+                exc,
+            )
+            raise MagicLinkError(
+                f"Failed to store classification magic link: {exc}"
+            ) from exc
+
+        url = f"{self._frontend_url}/auth/magic?token={signature}"
+
+        logger.info(
+            "magic_link: classification token generated conv=%s hint=%s ttl=%ds",
+            conversation_id,
+            hint,
+            self._ttl,
+        )
+
+        return MagicLinkToken(
+            signature=signature,
+            gate_id=gate_id_sentinel,
+            action=action,
+            user_id=reviewer_user_id,
+            idempotency_key=idempotency_key,
+            ttl_seconds=self._ttl,
+            url=url,
+        )
+
     async def validate_and_consume(
         self,
         signature: str,
@@ -286,9 +399,13 @@ class MagicLinkService:
             logger.error("magic_link: corrupt payload signature=%s... error=%s", signature[:12], exc)
             raise MagicLinkInvalidError("Corrupt token payload") from exc
 
-        # User binding check (STM-064 C1): stolen token unusable by different user
+        payload_type = payload.get("payload_type", "gate_approval")
         token_user_id = payload.get("user_id", "")
-        if token_user_id != browser_user_id:
+
+        # User binding check (STM-064 C1): stolen token unusable by different user.
+        # Classification tokens skip this check — reviewer_user_id may be "" for
+        # OTT reviewers who do not have a browser SSO account.
+        if payload_type != "classification" and token_user_id != browser_user_id:
             logger.warning(
                 "magic_link: user mismatch token_user=%s browser_user=%s",
                 token_user_id,
@@ -299,15 +416,23 @@ class MagicLinkService:
             )
 
         logger.info(
-            "magic_link: consumed gate_id=%s action=%s user_id=%s",
+            "magic_link: consumed payload_type=%s gate_id=%s action=%s user_id=%s",
+            payload_type,
             payload.get("gate_id"),
             payload.get("action"),
             token_user_id,
         )
 
+        # Build discriminated union payload (AD-5).
+        # Classification tokens carry additional routing fields.
+        classification_options_raw = payload.get("classification_options", [])
         return MagicLinkPayload(
             gate_id=payload["gate_id"],
             action=payload["action"],
             user_id=payload["user_id"],
             idempotency_key=payload["idempotency_key"],
+            payload_type=payload_type,
+            classification_query=payload.get("classification_query"),
+            classification_options=tuple(classification_options_raw),
+            conversation_id=payload.get("conversation_id"),
         )

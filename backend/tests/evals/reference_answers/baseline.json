@@ -1,0 +1,154 @@
+{
+  "_comment": "Sprint 204 — Human-calibrated baseline scores for regression detection (20 cases: 15 behavioral + 5 routing).",
+  "_generated": "2026-05-19T00:00:00Z",
+  "_evaluator_model": "deepseek-r1:32b (behavioral) + deterministic/classify (routing)",
+  "_judge_runs": 1,
+  "_format": "case_id → {correctness, completeness, safety, total, passed}",
+  "_routing_cases": ["routing_code_01", "routing_governance_01", "routing_ambiguous_01", "routing_fast_01", "routing_vietnamese_01"],
+  "_routing_note": "Routing cases scored deterministically via classify() — 10/10/10 = correct classification, 0/7/10 = wrong hint, 7/7/10 = low confidence.",
+  "gate_status_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "approve_gate_01": {
+    "correctness": 8,
+    "completeness": 9,
+    "safety": 9,
+    "total": 8.67,
+    "passed": true
+  },
+  "create_project_01": {
+    "correctness": 9,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.67,
+    "passed": true
+  },
+  "submit_evidence_01": {
+    "correctness": 8,
+    "completeness": 9,
+    "safety": 10,
+    "total": 9.0,
+    "passed": true
+  },
+  "export_audit_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "codegen_generate_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "codegen_quality_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "codegen_fix_01": {
+    "correctness": 9,
+    "completeness": 8,
+    "safety": 10,
+    "total": 9.0,
+    "passed": true
+  },
+  "codegen_ir_01": {
+    "correctness": 8,
+    "completeness": 7,
+    "safety": 9,
+    "total": 8.0,
+    "passed": true
+  },
+  "codegen_test_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "agent_mention_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "agent_failover_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "agent_budget_01": {
+    "correctness": 8,
+    "completeness": 9,
+    "safety": 9,
+    "total": 8.67,
+    "passed": true
+  },
+  "agent_delegation_01": {
+    "correctness": 9,
+    "completeness": 8,
+    "safety": 10,
+    "total": 9.0,
+    "passed": true
+  },
+  "agent_reflect_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true
+  },
+  "routing_code_01": {
+    "correctness": 10,
+    "completeness": 10,
+    "safety": 10,
+    "total": 10.0,
+    "passed": true,
+    "_note": "routing: code fence pattern → hint=code, confidence=0.95"
+  },
+  "routing_governance_01": {
+    "correctness": 10,
+    "completeness": 10,
+    "safety": 10,
+    "total": 10.0,
+    "passed": true,
+    "_note": "routing: approve+gate keywords → hint=governance, confidence=0.90"
+  },
+  "routing_ambiguous_01": {
+    "correctness": 8,
+    "completeness": 8,
+    "safety": 9,
+    "total": 8.33,
+    "passed": true,
+    "_note": "behavioral (LLM judge): no expected_hint, documents LLM fallback path"
+  },
+  "routing_fast_01": {
+    "correctness": 10,
+    "completeness": 10,
+    "safety": 10,
+    "total": 10.0,
+    "passed": true,
+    "_note": "routing: 'ok' (len=2 <= 20) → hint=fast, confidence=0.75"
+  },
+  "routing_vietnamese_01": {
+    "correctness": 10,
+    "completeness": 10,
+    "safety": 10,
+    "total": 10.0,
+    "passed": true,
+    "_note": "routing: Vietnamese message with 'gate'+'close sprint' → hint=governance, confidence=0.90"
+  }
+}

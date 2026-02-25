@@ -49,6 +49,7 @@ from app.schemas.eval_rubric import (
     EvalRunResult,
     EvalSuiteResult,
     EvalTestCase,
+    MultiJudgeResult,
 )
 from app.services.ollama_service import OllamaModel, OllamaService
 
@@ -192,6 +193,112 @@ class EvalScorer:
             raise EvalScorerError(
                 f"Evaluation failed for case '{case_id}': {e}"
             ) from e
+
+    def multi_judge_eval(
+        self,
+        case_id: str,
+        tool_name: str,
+        prompt: str,
+        actual_response: str,
+        expected_behavior: str,
+        ground_truth: Optional[str] = None,
+        judge_runs: int = 3,
+    ) -> MultiJudgeResult:
+        """Run multiple judge calls and aggregate scores for consensus evaluation.
+
+        Sprint 203: Multi-judge consensus reduces evaluator variance for
+        high-stakes governance decisions. Runs the same eval case N times
+        (default 3) through the evaluator model and averages the scores.
+
+        Partial results are kept — if 2/3 judges succeed, a 2-judge result
+        is returned rather than raising an error.
+
+        Args:
+            case_id:           Unique identifier for this eval case.
+            tool_name:         Governance command name being tested.
+            prompt:            The user input that triggered the response.
+            actual_response:   The agent's actual output.
+            expected_behavior: Natural language description of expected behavior.
+            ground_truth:      Optional exact expected output for comparison.
+            judge_runs:        Number of judge calls to run (default 3, min 1).
+
+        Returns:
+            MultiJudgeResult with averaged scores across all completed runs.
+
+        Raises:
+            EvalScorerError: If ALL judge runs fail (0 successes).
+        """
+        eval_prompt = self._build_eval_prompt(
+            prompt=prompt,
+            actual_response=actual_response,
+            expected_behavior=expected_behavior,
+            ground_truth=ground_truth,
+        )
+
+        rubrics: list[EvalRubric] = []
+        errors: list[str] = []
+
+        for run_idx in range(max(1, judge_runs)):
+            try:
+                response = self.ollama.generate(
+                    prompt=eval_prompt,
+                    model=self.evaluator_model,
+                    system=EVALUATOR_SYSTEM_PROMPT,
+                    temperature=0.0,
+                    max_tokens=1024,
+                )
+                rubric = self._parse_rubric(response.response.strip())
+                rubrics.append(rubric)
+
+                logger.debug(
+                    "TRACE_MULTI_JUDGE: case=%s run=%d/%d scores=(%d,%d,%d) total=%.1f",
+                    case_id,
+                    run_idx + 1,
+                    judge_runs,
+                    rubric.correctness,
+                    rubric.completeness,
+                    rubric.safety,
+                    rubric.total_score,
+                )
+
+            except Exception as e:
+                errors.append(str(e))
+                logger.warning(
+                    "TRACE_MULTI_JUDGE: case=%s run=%d/%d failed: %s",
+                    case_id,
+                    run_idx + 1,
+                    judge_runs,
+                    e,
+                )
+
+        if not rubrics:
+            raise EvalScorerError(
+                f"All {judge_runs} judge runs failed for case '{case_id}': "
+                + "; ".join(errors)
+            )
+
+        result = MultiJudgeResult(
+            case_id=case_id,
+            tool_name=tool_name,
+            rubrics=rubrics,
+            evaluator_model=self.evaluator_model,
+        )
+        result.compute_averages()
+
+        logger.info(
+            "TRACE_MULTI_JUDGE: case=%s, runs=%d/%d, "
+            "avg=(%.1f,%.1f,%.1f), total=%.1f, passed=%s",
+            case_id,
+            len(rubrics),
+            judge_runs,
+            result.avg_correctness,
+            result.avg_completeness,
+            result.avg_safety,
+            result.avg_total,
+            result.passed,
+        )
+
+        return result
 
     def run_suite(
         self,

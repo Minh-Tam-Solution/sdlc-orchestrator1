@@ -135,9 +135,33 @@ class FailoverClassifier:
 
     @staticmethod
     def classify_exception(error: Exception) -> FailoverReason:
-        """Classify Python exceptions into FailoverReasons."""
-        error_msg = str(error)
+        """Classify Python exceptions into FailoverReasons.
 
+        Sprint 205 (ADR-066): Added LangChain exception class name matching.
+        LangChain is an optional dependency — we match on type.__name__ strings
+        to avoid importing langchain_core unconditionally.
+        """
+        error_msg = str(error)
+        # Check exception class name for LangChain-specific types first (no import needed)
+        error_class = type(error).__name__
+
+        # LangChain auth exceptions → ABORT (LC-09)
+        if "AuthenticationError" in error_class or "AuthError" in error_class:
+            return FailoverReason.AUTH
+
+        # LangChain rate limit exceptions → FALLBACK
+        if "RateLimitError" in error_class:
+            return FailoverReason.RATE_LIMIT
+
+        # LangChain timeout exceptions → FALLBACK
+        if "APITimeoutError" in error_class:
+            return FailoverReason.TIMEOUT
+
+        # LangChain bad request / invalid format → RETRY
+        if "BadRequestError" in error_class or "InvalidRequestError" in error_class:
+            return FailoverReason.FORMAT
+
+        # Message-based classification (covers all providers including LangChain)
         if _TIMEOUT_PATTERNS.search(error_msg):
             return FailoverReason.TIMEOUT
 

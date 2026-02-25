@@ -157,6 +157,10 @@ class Settings(BaseSettings):
     MAGIC_LINK_SECRET: str = secrets.token_urlsafe(32)  # Auto-generate if not set
     MAGIC_LINK_TTL_SECONDS: int = 300  # 5-minute expiry (STM-064 C1)
 
+    # Sprint 204 — Human escalation for low-confidence classification
+    ESCALATION_TIMEOUT_SECONDS: int = 300  # 5-minute reviewer window
+    ESCALATION_REVIEWER_CHAT_ID: str = ""  # Telegram chat_id; empty = notify disabled
+
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     MICROSOFT_CLIENT_ID: Optional[str] = None

@@ -345,6 +345,9 @@ class AgentInvoker:
             return await self._call_ollama(config, messages, system_prompt, max_tokens, temperature)
         elif config.provider == "anthropic":
             return await self._call_anthropic(config, messages, system_prompt, max_tokens, temperature)
+        elif config.provider == "langchain":
+            # Sprint 205 — ADR-066: LangChain provider plugin (feature-flagged)
+            return await self._call_langchain(config, messages, system_prompt, max_tokens, temperature)
         else:
             raise AgentInvokerError(f"Unknown provider: {config.provider}")
 
@@ -444,6 +447,42 @@ class AgentInvoker:
 
         return content, input_tokens, output_tokens
 
+    async def _call_langchain(
+        self,
+        config: ProviderConfig,
+        messages: list[dict[str, Any]],
+        system_prompt: str | None,
+        max_tokens: int,
+        temperature: float,
+    ) -> tuple[str, int, int]:
+        """
+        Call LangChain provider plugin (ChatOllama / ChatAnthropic / ChatOpenAI).
+
+        Sprint 205 — ADR-066 (LangChain Multi-Agent Orchestration).
+        Feature-flagged by LANGCHAIN_ENABLED env var (default=false).
+        When disabled or langchain packages absent: raises AgentInvokerError.
+
+        Model backend selected by config.model:
+          - "claude-*" → ChatAnthropic
+          - "gpt-*"    → ChatOpenAI
+          - else        → ChatOllama (default)
+
+        Returns:
+            (content, input_tokens, output_tokens) — same interface as other providers.
+
+        Raises:
+            AgentInvokerError: LANGCHAIN_ENABLED=false or packages not installed.
+        """
+        from app.services.agent_team.langchain_provider import LangChainProvider
+
+        provider = LangChainProvider(config)
+        return await provider.invoke(
+            messages=messages,
+            system_prompt=system_prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
     @staticmethod
     def _estimate_cost(provider: str, input_tokens: int, output_tokens: int) -> int:
         """
@@ -461,6 +500,119 @@ class AgentInvoker:
             output_cost = (output_tokens / 1_000_000) * 1500  # $15/1M = 1500 cents/1M
             return max(1, int(input_cost + output_cost))
         return 0
+
+    async def run_reflect_loop(
+        self,
+        messages: list[dict[str, Any]],
+        tool_results: list[dict[str, Any]],
+        reflect_step: Any,
+        ollama_client: Any,
+        batch_index: int = 0,
+        conversation_tracker: Any = None,
+        conversation_id: Any = None,
+    ) -> list[Any]:
+        """Drive the Evaluator-Optimizer reflect loop for a single tool batch.
+
+        Sprint 203 A-05: Replaces direct ``inject_reflection()`` calls in the
+        agent execution loop. Callers (team_orchestrator) pass the tool results
+        and this method handles the bounded iteration.
+
+        Flow (per batch):
+          1. If max_iterations == 1 (default): call ``inject_reflection()``
+             directly — preserves exact Sprint 202 behavior, no extra LLM calls.
+          2. If max_iterations > 1: call ``reflect_and_score()`` in a loop up to
+             ``reflect_step.max_iterations``, stopping early when
+             ``early_stopped=True``.
+          3. Each completed iteration is recorded via ``conversation_tracker``
+             (if provided) for audit telemetry — non-fatal on failure.
+
+        Args:
+            messages:             Conversation messages (modified in-place when
+                                  reflection is injected).
+            tool_results:         Results from the most recent tool batch.
+            reflect_step:         ReflectStep instance (frequency, max_iterations,
+                                  evaluator_model).
+            ollama_client:        OllamaService for evaluator calls.
+            batch_index:          Tool batch number (0-indexed, for logging).
+            conversation_tracker: Optional ConversationTracker for telemetry.
+            conversation_id:      Optional UUID of the active conversation.
+
+        Returns:
+            List of ReflectResult objects (one per completed iteration).
+            Empty list when reflection is skipped (frequency=0 or not scheduled).
+        """
+        from app.services.agent_team.reflect_step import ReflectResult
+
+        reflect_results: list[ReflectResult] = []
+
+        # Check if reflection is scheduled for this batch
+        if not reflect_step.should_reflect(tool_results, batch_index):
+            logger.debug(
+                "REFLECT_LOOP: skipping reflection at batch=%d (frequency=%d)",
+                batch_index,
+                reflect_step.frequency,
+            )
+            return reflect_results
+
+        # ── Sprint 202 compatibility: max_iterations == 1 ────────────────────
+        # Fall through to simple inject_reflection() with no scoring overhead.
+        if reflect_step.max_iterations <= 1:
+            reflect_step.inject_reflection(messages, tool_results)
+            logger.debug(
+                "REFLECT_LOOP: simple reflection injected (max_iterations=1) "
+                "at batch=%d",
+                batch_index,
+            )
+            return reflect_results
+
+        # ── Sprint 203: Evaluator-Optimizer loop (max_iterations 2-3) ────────
+        for iteration in range(1, reflect_step.max_iterations + 1):
+            reflect_result = await reflect_step.reflect_and_score(
+                messages=messages,
+                tool_results=tool_results,
+                batch_index=batch_index,
+                ollama_client=ollama_client,
+                iteration=iteration,
+            )
+            reflect_results.append(reflect_result)
+
+            # Record iteration telemetry (non-fatal)
+            if conversation_tracker is not None and conversation_id is not None:
+                try:
+                    rubric_score = (
+                        reflect_result.rubric.total_score
+                        if reflect_result.rubric is not None
+                        else None
+                    )
+                    await conversation_tracker.record_reflect_iteration(
+                        conversation_id=conversation_id,
+                        batch_index=batch_index,
+                        iteration=iteration,
+                        rubric_score=rubric_score,
+                        early_stopped=reflect_result.early_stopped,
+                        feedback=reflect_result.feedback,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "REFLECT_LOOP: telemetry record failed (non-fatal): %s", exc
+                    )
+
+            if reflect_result.early_stopped:
+                logger.info(
+                    "REFLECT_LOOP: early stop at batch=%d iter=%d/%d",
+                    batch_index,
+                    iteration,
+                    reflect_step.max_iterations,
+                )
+                break
+
+        logger.info(
+            "REFLECT_LOOP: completed %d/%d iterations at batch=%d",
+            len(reflect_results),
+            reflect_step.max_iterations,
+            batch_index,
+        )
+        return reflect_results
 
     async def _is_on_cooldown(self, key: ProviderProfileKey) -> bool:
         """Check if provider is on cooldown via Redis."""

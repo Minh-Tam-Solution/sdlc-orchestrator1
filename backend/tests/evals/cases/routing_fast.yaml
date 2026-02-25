@@ -1,0 +1,18 @@
+id: "routing_fast_01"
+tool_name: "classify"
+prompt: "ok"
+expected_behavior: >
+  Correctly classifies this 2-character message as 'fast' with confidence >= 0.7.
+  The fast rule (priority=1, max_length=20) fires since len("ok") = 2 <= 20.
+  No other rule matches (no code fence, no governance keywords, no reasoning keywords).
+  Single-match with priority < 5 (fast tier) → confidence = 0.75.
+  Returns ClassificationResult(hint='fast', confidence=0.75, method='substring').
+  This routes to qwen3:8b (fastest model) for quick acknowledgment responses.
+ground_truth: null
+expected_hint: "fast"
+expected_min_confidence: 0.7
+tags:
+  - routing
+  - fast
+  - classification
+  - sprint204
