@@ -1,28 +1,100 @@
-# Current Sprint: Sprint 208 — Pre-Release Hardening
+# Current Sprint: Sprint 209 — OTT Identity + Team Collaboration
 
-**Sprint Duration**: Feb 26, 2026 (1 working day)
-**Sprint Goal**: Fix P0 tier gate bypass (TG-41), clean dead code, implement 3 overdue stub commands, register WorkflowResumer in lifespan
-**Status**: CLOSED — PM APPROVED ✅ (Feb 26, 2026)
-**Priority**: P0 (Release blocker) + P1 (Tech debt)
+**Sprint Duration**: Feb 26–28, 2026 (3 working days)
+**Sprint Goal**: Enable team collaboration via Telegram group chat with identity-linked permissions — `/link`, `/verify`, `/unlink` commands + identity resolver integration
+**Status**: IN PROGRESS
+**Priority**: P0 (Identity blocker) + P1 (Security + UX)
 **Framework**: SDLC 6.1.1
-**CTO Score (Sprint 207)**: Pending (Trend: 200→9.2 | 201→9.3 | 202→9.4 | 203→9.5 ↑)
-**Previous Sprint**: [Sprint 207 — OTT Workspace Context Management](SPRINT-207-OTT-WORKSPACE.md)
-**Detailed Plan**: [SPRINT-208-RELEASE-HARDENING.md](SPRINT-208-RELEASE-HARDENING.md)
-**Release Target**: v1.1.0 — Post-GA Hardening
+**CTO Score (Sprint 208)**: Pending (Trend: 200→9.2 | 201→9.3 | 202→9.4 | 203→9.5 ↑)
+**Previous Sprint**: [Sprint 208 — Pre-Release Hardening](SPRINT-208-RELEASE-HARDENING.md)
+**Detailed Plan**: [SPRINT-209-OTT-IDENTITY-TEAM-COLLAB.md](SPRINT-209-OTT-IDENTITY-TEAM-COLLAB.md)
+**ADR**: [ADR-068 — OTT Identity Linking](../../02-design/01-ADRs/ADR-068-OTT-Identity-Linking.md)
+**FR**: [FR-050 — OTT Identity Linking](../../01-planning/03-Functional-Requirements/FR-050-OTT-Identity-Linking.md)
+**Release Target**: v1.2.0 — Team Collaboration via OTT
 
 ---
 
-## Sprint 208 Goal
+## Sprint 209 Goal
 
-Sprint 207 closed the OTT Workspace feature. Full codebase review (PM + Architect) identified 1 P0 blocker and several P1 hygiene items that must be addressed before the next release.
+Sprint 208 closed Pre-Release Hardening. Dogfooding on Telegram revealed a **Day 1 blocker**: Telegram numeric `sender_id` never resolves to internal User UUID → all permission-gated OTT commands fail silently.
 
-**P0 Blocker**: TG-41 Tier Gate bypass — `/api/v1/magic-link` and `/api/v1/workflows` skip tier enforcement.
-**P1 Hygiene**: 3 stub commands (8 sprints overdue), 3 dead code modules.
-**P2 Structural**: WorkflowResumer not registered in lifespan.
+**P0 Blockers**: Identity linking (`/link` + `/verify`), Alembic migration (access_token nullable + UniqueConstraint), identity resolver fix (import + DB session).
+**P1 Security**: Deny unlinked workspace access, rate limiting.
+**P1 UX**: `/unlink` command, 60-min identity cache.
 
 ---
 
-## Sprint 208 Backlog
+## Sprint 209 Backlog
+
+### Track A-DB — P0: Alembic Migration ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| ADB1 | `access_token` nullable + default '' | ⏳ |
+| ADB2 | UniqueConstraint on (provider, provider_account_id) | ⏳ |
+
+### Track A — P0: OTT Link Handler ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| A1 | `/link <email>` — code generation + email send | ⏳ |
+| A2 | `/verify <code>` — oauth_accounts upsert | ⏳ |
+| A3 | `/unlink` — account removal | ⏳ |
+| A4 | Rate limiting (5 per 15 min) | ⏳ |
+| A5 | Route in ai_response_handler.py | ⏳ |
+
+### Track B — P0: Identity Resolver Integration ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| B1 | Fix import path + TTL upgrade | ⏳ |
+| B2 | AsyncSessionLocal DB session in ai_response_handler.py | ⏳ |
+| B3 | effective_user_id passthrough to handlers | ⏳ |
+| B4 | Unlinked user guard message | ⏳ |
+
+### Track C — P0: Deny Unlinked Workspace Access ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| C1 | Verify resolve_project_by_name() denies non-UUID | ⏳ |
+
+### Track D — P1: Group Chat Setup ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| D1 | BotFather Group Privacy = OFF | ⏳ |
+
+### Track E — P0: Tests ⏳
+
+| ID | Item | Status |
+|----|------|--------|
+| E1-E13 | 13 test cases (link/verify/unlink/identity/group) | ⏳ |
+
+---
+
+## Definition of Done — Sprint 209
+
+- [ ] Alembic migration `s209_001` — access_token nullable + UniqueConstraint
+- [ ] `ott_link_handler.py` — /link, /verify, /unlink with rate limiting
+- [ ] `ott_identity_resolver.py` — import fix + TTL 60 min
+- [ ] `ai_response_handler.py` — identity resolution with AsyncSessionLocal
+- [ ] Unlinked users denied workspace + governance access
+- [ ] 13/13 Sprint 209 tests passing
+- [ ] 310+ regression guards passing | 0 regressions
+- [ ] BotFather Group Privacy OFF
+- [ ] CURRENT-SPRINT.md updated
+
+---
+
+## Sprint 208 Close Summary
+
+**Status**: CLOSED — PM APPROVED ✅ (Feb 26, 2026)
+**Tests**: 8 new tests | 310 regression guards passing | 0 regressions
+**Key deliverables**: TG-41 fix, 3 stub commands replaced with real implementations, dead code cleanup, WorkflowResumer lifespan registration.
+
+---
+
+## Sprint 208 Backlog (Archived)
 
 ### Track A — P0: TG-41 Tier Gate Fix ✅
 

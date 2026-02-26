@@ -172,6 +172,11 @@ def _is_governance_intent(text: str) -> bool:
     return any(kw in text_lower for kw in _GOVERNANCE_KEYWORDS)
 
 
+def _is_uuid_format(value: str) -> bool:
+    """Quick check if string is UUID format (36 chars, 4 hyphens)."""
+    return len(value) == 36 and value.count("-") == 4
+
+
 async def _check_rate_limit(chat_id: str | int) -> bool:
     """
     Token bucket rate limiter per chat_id (DN-03).
@@ -439,6 +444,72 @@ async def handle_ai_response(
     if channel == "telegram":
         await _send_typing_indicator(bot_token, chat_id)
 
+    # ── Sprint 209: OTT Identity Resolution (ADR-068 D-068-01) ──
+    # Resolve OTT sender_id → internal User UUID ONCE per message.
+    # Must happen before any governance/workspace routing.
+    effective_user_id = sender_id
+    try:
+        from app.services.agent_bridge.ott_identity_resolver import resolve_ott_user_id
+        from app.db.session import AsyncSessionLocal
+
+        redis = await get_redis_client()
+        async with AsyncSessionLocal() as identity_db:
+            resolved = await resolve_ott_user_id(
+                channel, sender_id, redis, db=identity_db,
+            )
+        if resolved:
+            effective_user_id = resolved
+    except Exception as exc:
+        logger.warning(
+            "ai_response_handler: identity resolution failed chat_id=%s error=%s",
+            chat_id, str(exc),
+        )
+
+    # ── Sprint 209: /link, /verify, /unlink routing (ADR-068) ──
+    # Identity linking commands handled before governance — no identity needed.
+    text_lower_stripped = text.lower().strip()
+    if text_lower_stripped.startswith("/link") or text_lower_stripped.startswith("/verify") or text_lower_stripped.startswith("/unlink"):
+        try:
+            from app.services.agent_bridge.ott_link_handler import (
+                handle_link_command,
+                handle_verify_command,
+                handle_unlink_command,
+            )
+            from app.db.session import AsyncSessionLocal as _LinkSessionLocal
+
+            link_redis = await get_redis_client()
+            async with _LinkSessionLocal() as link_db:
+                if text_lower_stripped.startswith("/link"):
+                    args = text.strip()[5:].strip()  # strip "/link" prefix
+                    reply = await handle_link_command(
+                        args, channel, sender_id, link_redis, link_db,
+                    )
+                elif text_lower_stripped.startswith("/verify"):
+                    args = text.strip()[7:].strip()  # strip "/verify" prefix
+                    reply = await handle_verify_command(
+                        args, channel, sender_id, link_redis, link_db,
+                    )
+                else:  # /unlink
+                    reply = await handle_unlink_command(
+                        channel, sender_id, link_redis, link_db,
+                    )
+            await _send_reply(channel, bot_token, chat_id, reply)
+            return True
+        except Exception as exc:
+            logger.error(
+                "ai_response_handler: link command failed chat_id=%s error=%s",
+                chat_id, str(exc),
+            )
+            await _send_reply(
+                channel, bot_token, chat_id,
+                "❌ Link command failed. Please try again.",
+            )
+            return True
+
+    # ── Sprint 209: Deny unlinked users for governance commands (D-068-05) ──
+    # If identity resolution returned None (no mapping), block governance.
+    _is_unlinked = (effective_user_id == sender_id and not _is_uuid_format(sender_id))
+
     # ── Sprint 200 A-04: Interrupt detection ──
     # "stop" / "cancel" → pause active agent team conversation
     text_lower = text.lower().strip()
@@ -468,11 +539,17 @@ async def handle_ai_response(
             handle_agent_team_request,
         )
         if is_multi_agent_intent(text):
+            if _is_unlinked:
+                await _send_reply(
+                    channel, bot_token, chat_id,
+                    "⚠️ Account not linked. Send /link <email> in private chat to connect your Telegram.",
+                )
+                return True
             handled = await handle_agent_team_request(
                 chat_id=chat_id,
                 text=text,
                 bot_token=bot_token,
-                sender_id=sender_id,
+                sender_id=effective_user_id,
                 channel=channel,
             )
             if handled:
@@ -530,7 +607,7 @@ async def handle_ai_response(
                 args_text=ws_args,
                 bot_token=bot_token,
                 chat_id=chat_id,
-                user_id=sender_id,
+                user_id=effective_user_id,
                 channel=channel,
             )
             if handled:
@@ -550,6 +627,13 @@ async def handle_ai_response(
     # instead of free-text AI. This enables real gate actions from chat.
     # Sprint 207: Also triggers when a slash command was transformed above.
     if slash_mapped or _is_governance_intent(governance_text):
+        # Sprint 209: Block unlinked users from governance commands
+        if _is_unlinked:
+            await _send_reply(
+                channel, bot_token, chat_id,
+                "⚠️ Account not linked. Send /link <email> in private chat to connect your Telegram.",
+            )
+            return True
         try:
             from app.services.agent_team.chat_command_router import route_chat_command
             from app.services.agent_bridge.governance_action_handler import (
@@ -558,14 +642,14 @@ async def handle_ai_response(
 
             result = await route_chat_command(
                 message=governance_text,
-                user_id=sender_id,
+                user_id=effective_user_id,
             )
 
             handled = await execute_governance_action(
                 result=result,
                 bot_token=bot_token,
                 chat_id=chat_id,
-                user_id=sender_id,
+                user_id=effective_user_id,
                 channel=channel,
             )
             if handled:

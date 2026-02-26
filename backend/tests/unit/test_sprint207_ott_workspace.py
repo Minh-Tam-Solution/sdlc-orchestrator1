@@ -271,9 +271,12 @@ async def test_touch_workspace_ttl_swallows_error():
 
 
 def test_telegram_responder_workspace_commands():
-    """telegram_responder has all 4 workspace slash commands."""
+    """Sprint 209 moved workspace commands from static _COMMAND_REPLIES to
+    dynamic routing via execute_workspace_command() in governance_action_handler.
+    Verify they are NOT in static dict (would short-circuit the real handler)."""
     from app.services.agent_bridge.telegram_responder import _COMMAND_REPLIES
 
     for cmd in ("/workspace", "/workspace_set", "/workspace_list", "/workspace_clear"):
-        assert cmd in _COMMAND_REPLIES, f"Missing {cmd} in _COMMAND_REPLIES"
-        assert "Workspace" in _COMMAND_REPLIES[cmd]
+        assert cmd not in _COMMAND_REPLIES, (
+            f"{cmd} should NOT be in _COMMAND_REPLIES — Sprint 209 routes dynamically"
+        )
