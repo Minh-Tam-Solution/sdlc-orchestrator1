@@ -49,13 +49,34 @@ _DEPRECATED_TABLES = [
 def upgrade() -> None:
     """Add DEPRECATED comment to unused tables (non-destructive)."""
     for table_name, context in _DEPRECATED_TABLES:
+        # Use DO block to safely skip tables that may not exist
         op.execute(
-            f"COMMENT ON TABLE IF EXISTS {table_name} IS "
-            f"'DEPRECATED Sprint 190 — {context}. See ADR-064.'"
+            f"""
+            DO $$ BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_tables
+                    WHERE schemaname = 'public' AND tablename = '{table_name}'
+                ) THEN
+                    COMMENT ON TABLE {table_name} IS
+                    'DEPRECATED Sprint 190 — {context}. See ADR-064.';
+                END IF;
+            END $$;
+            """
         )
 
 
 def downgrade() -> None:
     """Remove deprecation comments (restore to no comment)."""
     for table_name, _ in _DEPRECATED_TABLES:
-        op.execute(f"COMMENT ON TABLE IF EXISTS {table_name} IS NULL")
+        op.execute(
+            f"""
+            DO $$ BEGIN
+                IF EXISTS (
+                    SELECT 1 FROM pg_tables
+                    WHERE schemaname = 'public' AND tablename = '{table_name}'
+                ) THEN
+                    COMMENT ON TABLE {table_name} IS NULL;
+                END IF;
+            END $$;
+            """
+        )

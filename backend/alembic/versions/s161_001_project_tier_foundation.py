@@ -109,9 +109,9 @@ def upgrade() -> None:
         sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
 
         # Functional role (PM/CTO/CEO/QA_LEAD/COMPLIANCE_OFFICER)
-        sa.Column('functional_role', sa.Enum(
+        sa.Column('functional_role', postgresql.ENUM(
             'PM', 'CTO', 'CEO', 'QA_LEAD', 'COMPLIANCE_OFFICER',
-            name='functional_role'
+            name='functional_role', create_type=False
         ), nullable=False),
 
         # Audit
@@ -148,9 +148,9 @@ def upgrade() -> None:
         sa.Column('project_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('projects.id', ondelete='CASCADE'), nullable=False),
 
         # Decision metadata
-        sa.Column('action', sa.Enum(
+        sa.Column('action', postgresql.ENUM(
             'REQUEST', 'APPROVE', 'REJECT', 'ESCALATE', 'COMMENT',
-            name='decision_action'
+            name='decision_action', create_type=False
         ), nullable=False),
         sa.Column('actor_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=False),
 
@@ -160,7 +160,7 @@ def upgrade() -> None:
         sa.Column('required_roles', postgresql.ARRAY(sa.String()), nullable=False),
 
         # Status
-        sa.Column('status', sa.Enum('PENDING', 'COMPLETED', 'CANCELLED', name='decision_status'), server_default='PENDING'),
+        sa.Column('status', postgresql.ENUM('PENDING', 'COMPLETED', 'CANCELLED', name='decision_status', create_type=False), server_default='PENDING'),
 
         # Evidence
         sa.Column('comments', sa.Text),
@@ -206,7 +206,7 @@ def upgrade() -> None:
     # =====================================================================
 
     op.add_column('projects',
-        sa.Column('tier', sa.Enum('FREE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE', name='project_tier'),
+        sa.Column('tier', postgresql.ENUM('FREE', 'STANDARD', 'PROFESSIONAL', 'ENTERPRISE', name='project_tier', create_type=False),
                   nullable=False, server_default='FREE')
     )
 

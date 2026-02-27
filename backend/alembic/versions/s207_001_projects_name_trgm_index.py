@@ -19,10 +19,10 @@ depends_on = None
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     op.execute(
-        "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_projects_name_trgm "
+        "CREATE INDEX IF NOT EXISTS idx_projects_name_trgm "
         "ON projects USING GIN (name gin_trgm_ops)"
     )
 
 
 def downgrade() -> None:
-    op.execute("DROP INDEX CONCURRENTLY IF EXISTS idx_projects_name_trgm")
+    op.execute("DROP INDEX IF EXISTS idx_projects_name_trgm")

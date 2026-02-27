@@ -1,9 +1,124 @@
 # API Endpoints - SDLC Orchestrator
 
-**Updated**: 2026-02-26 23:13
+**Updated**: 2026-02-27 (test results added)
 **Base URL**: http://localhost:8300
 **Total Endpoints**: 590
 **Total Route Modules**: 77
+
+---
+
+## 🧪 Test Results (2026-02-27)
+
+**Test Account**: `admin@sdlc-orchestrator.io` (LITE tier)
+**Environment**: Docker Compose (PostgreSQL 15 + Redis + OPA + MinIO)
+**Migration Status**: 137 tables created via `alembic upgrade head` (5 migrations fixed)
+
+### Summary
+
+| Status | Count | Description |
+|--------|-------|-------------|
+| ✅ 200 OK | ~18 endpoints tested | Working correctly |
+| ⚠️ 422 Unprocessable | ~5 endpoints | Missing required query params |
+| 🔒 402 Payment Required | 3 endpoints | LITE tier restriction |
+| ❌ 404 Not Found | ~12 endpoints | Route not registered or missing |
+| 🚫 405 Method Not Allowed | 1 endpoint | Wrong HTTP method |
+| 💥 500 Server Error | 1 endpoint | UUID/int type mismatch bug |
+
+### ✅ Working Endpoints (200 OK)
+
+| Endpoint | Notes |
+|----------|-------|
+| `POST /api/v1/auth/login` | Seeded admin: `admin@sdlc-orchestrator.io` / `Admin@123` |
+| `GET /api/v1/auth/me` | Returns user profile + organization |
+| `GET /api/v1/admin/stats` | System stats (users, projects, gates) |
+| `GET /api/v1/admin/users` | User list with pagination |
+| `GET /api/v1/admin/settings` | System settings list |
+| `GET /api/v1/admin/settings/{key}` | Single setting by key |
+| `GET /api/v1/projects` | Project list (empty on fresh DB) |
+| `POST /api/v1/projects` | Create project ✓ |
+| `GET /api/v1/gates` | Gate list (requires project_id param) |
+| `GET /api/v1/evidence` | Evidence list |
+| `GET /api/v1/policies` | Policy list |
+| `GET /api/v1/organizations` | Organization list |
+| `GET /api/v1/teams` | Team list |
+| `GET /api/v1/codegen/sessions` | Codegen session list |
+| `GET /api/v1/codegen/providers` | Provider list (Ollama, Claude, etc.) |
+| `GET /api/v1/compliance/frameworks` | Compliance framework list |
+| `GET /api/v1/notifications` | Notification list |
+| `GET /api/v1/planning/roadmaps?project_id={uuid}` | Requires `project_id` query param |
+| `GET /api/v1/agent-team/definitions?project_id={uuid}` | Requires `project_id` query param |
+
+### ⚠️ Require Query Params (422 Unprocessable Entity)
+
+| Endpoint | Missing Param | Fix |
+|----------|---------------|-----|
+| `GET /api/v1/planning/roadmaps` | `project_id` (required) | Add `?project_id={uuid}` |
+| `GET /api/v1/planning/phases` | `project_id` (required) | Add `?project_id={uuid}` |
+| `GET /api/v1/planning/sprints` | `project_id` (required) | Add `?project_id={uuid}` |
+| `GET /api/v1/agent-team/definitions` | `project_id` (required) | Add `?project_id={uuid}` |
+| `GET /api/v1/agent-team/conversations/stats` | Route collision: `/conversations/stats` matches `/conversations/{conversation_id}` | Fix route ordering in router |
+
+### 🔒 Tier-Restricted Endpoints (402 Payment Required)
+
+These endpoints require STANDARD or higher tier. Test with PROFESSIONAL/ENTERPRISE account to verify.
+
+| Endpoint | Required Tier | Module |
+|----------|---------------|--------|
+| `GET /api/v1/mrp/list` | STANDARD+ | MRP (Sprint 160) |
+| `GET /api/v1/crp/list` | STANDARD+ | CRP (Sprint 160) |
+| `GET /api/v1/governance/metrics` | STANDARD+ | Governance Metrics |
+| `GET /api/v1/sast/scans` | PROFESSIONAL+ | SAST Integration |
+| `GET /api/v1/compliance-validation/frameworks` | PROFESSIONAL+ | Compliance Validation |
+
+### ❌ Not Found / Not Registered (404)
+
+These routes appear in code but are either not registered in the router or were deleted in Sprint 190.
+
+| Endpoint | Likely Cause |
+|----------|--------------|
+| `GET /api/v1/admin/policy-packs` | Route not registered in `admin` router |
+| `GET /api/v1/admin/policy-packs/templates` | Route not registered |
+| `GET /api/v1/planning/backlogs` | Possibly missing `project_id` filter or route not mounted |
+| `GET /api/v1/codegen/providers/stats` | Route not mounted or path mismatch |
+| `GET /api/v1/codegen/queue/status` | Route not mounted |
+| `GET /api/v1/ai-requests` | Route deleted Sprint 190 (returns 410) |
+| `GET /api/v1/ai-providers` | Routes are under `/api/v1/admin/ai-providers/config`, not standalone |
+| `GET /api/v1/webhooks` | Route path may differ (check `webhooks.py`) |
+| `GET /api/v1/audit-logs` | Route path may differ (check `audit_trail.py`) |
+| `GET /api/v1/usage` | Route not registered or path mismatch |
+| `GET /api/v1/compliance/scans` | Tier-restricted or path differs |
+
+### 🚫 Method Not Allowed (405)
+
+| Endpoint | Issue | Fix |
+|----------|-------|-----|
+| `PATCH /api/v1/admin/settings` | `PATCH /settings` not defined — only `GET /settings` and `PATCH /settings/{key}` exist | Use `PATCH /api/v1/admin/settings/{key}` |
+
+### 💥 Server Errors (500)
+
+| Endpoint | Error | Fix Required |
+|----------|-------|--------------|
+| `GET /api/v1/projects/{project_id}/evidence/status` | Route expects `int` project_id but all IDs are UUID. `DataError: invalid input syntax for type integer: "{uuid}"` | Change route param type from `int` to `UUID` in `evidence_timeline.py` |
+
+### 🔧 Migration Fixes Applied (2026-02-27)
+
+The following Alembic migration files were fixed to unblock `alembic upgrade head`:
+
+| File | Problem | Fix |
+|------|---------|-----|
+| `s206_001_workflow_metadata_index.py` | `down_revision='s203_001'` (underscore) vs actual `revision='s203001'` (no underscore) | Changed to `down_revision='s203001'` |
+| `s206_001_workflow_metadata_index.py` | `CREATE INDEX CONCURRENTLY` inside Alembic transaction | Removed `CONCURRENTLY` |
+| `s206_001_workflow_metadata_index.py` | Column `metadata_` typo (should be `metadata`) | Fixed column name |
+| `s161_001_project_tier_foundation.py` | `sa.Enum(create_type=True)` re-created types already in `op.execute("CREATE TYPE ...")` → `DuplicateObject` | Replaced all `sa.Enum(...)` with `postgresql.ENUM(..., create_type=False)` |
+| `s190_001_deprecate_unused_tables.py` | `COMMENT ON TABLE IF EXISTS` — PostgreSQL doesn't support `IF EXISTS` here | Wrapped in `DO $$ BEGIN IF EXISTS (...) THEN ... END IF; END $$` |
+| `s207_001_projects_name_trgm_index.py` | `CREATE INDEX CONCURRENTLY` inside Alembic transaction | Removed `CONCURRENTLY` |
+| `s209_002_eu_ai_act_columns.py` | **NEW** — `eu_ai_act_*` columns existed in `Project` model but had no migration | Created new migration `s209_002` (revises `s209_001`) |
+
+### 🐛 Runtime Bug Fixes Applied (2026-02-27)
+
+| File | Problem | Fix |
+|------|---------|-----|
+| `backend/app/api/routes/evidence.py` | `Project.organization_id` — attribute doesn't exist on `Project` model; scoped via `team_id → teams.organization_id` | Added `Team` join: `.join(Team, Project.team_id == Team.id).where(Team.organization_id == ...)` |
 
 ---
 

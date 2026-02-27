@@ -29,6 +29,7 @@ from app.api.dependencies import get_db, get_current_user
 from app.models.gate import Gate
 from app.models.gate_evidence import GateEvidence
 from app.models.project import Project
+from app.models.team import Team
 from app.models.user import User
 from app.core.config import settings
 
@@ -109,9 +110,10 @@ async def list_evidence(
         select(GateEvidence)
         .join(Gate, GateEvidence.gate_id == Gate.id)
         .join(Project, Gate.project_id == Project.id)
+        .join(Team, Project.team_id == Team.id)
         .where(
             GateEvidence.deleted_at.is_(None),
-            Project.organization_id == current_user.organization_id,
+            Team.organization_id == current_user.organization_id,
         )
     )
 
