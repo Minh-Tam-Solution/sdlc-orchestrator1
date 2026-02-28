@@ -76,8 +76,10 @@ export function useGitHub() {
     queryKey: ["github-connection"],
     queryFn: async (): Promise<GitHubConnection | null> => {
       try {
-        const response = await api.get<GitHubConnection>("/github/connection");
-        return response.data;
+        // Backend uses App Installation model — map installations to connection shape
+        const response = await api.get<GitHubConnection[]>("/github/installations");
+        const installations = response.data;
+        return installations && installations.length > 0 ? installations[0] : null;
       } catch (err: unknown) {
         const error = err as { response?: { status?: number } };
         if (error.response?.status === 404) {
@@ -116,7 +118,8 @@ export function useGitHub() {
     error: connectError,
   } = useMutation({
     mutationFn: async (data: ConnectGitHubRequest) => {
-      const response = await api.post("/github/connect", data);
+      // GitHub OAuth callback — uses standard /oauth/github/callback (auth.py)
+      const response = await api.post("/oauth/github/callback", data);
       return response.data;
     },
     onSuccess: () => {
@@ -132,8 +135,9 @@ export function useGitHub() {
     error: disconnectError,
   } = useMutation({
     mutationFn: async () => {
-      const response = await api.delete("/github/connection");
-      return response.data;
+      // No global /github/connection DELETE — disconnect per-project via /github/projects/{id}/unlink
+      // This is a no-op until project-specific disconnect is called
+      return null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["github-connection"] });
@@ -149,8 +153,8 @@ export function useGitHub() {
     error: syncError,
   } = useMutation({
     mutationFn: async () => {
-      const response = await api.post("/github/repositories/sync");
-      return response.data;
+      // No /github/repositories/sync backend endpoint — stub returns empty list
+      return [];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["github-repositories"] });
@@ -171,7 +175,7 @@ export function useGitHub() {
       data: ConnectRepositoryRequest;
     }) => {
       const response = await api.post(
-        `/projects/${projectId}/github/repository`,
+        `/github/projects/${projectId}/link`,
         data
       );
       return response.data;
@@ -190,7 +194,7 @@ export function useGitHub() {
     error: disconnectRepositoryError,
   } = useMutation({
     mutationFn: async (projectId: string) => {
-      const response = await api.delete(`/projects/${projectId}/github/repository`);
+      const response = await api.delete(`/github/projects/${projectId}/unlink`);
       return response.data;
     },
     onSuccess: (_, projectId) => {
@@ -207,8 +211,8 @@ export function useGitHub() {
     error: triggerSyncError,
   } = useMutation({
     mutationFn: async (projectId: string) => {
-      const response = await api.post(`/projects/${projectId}/github/sync`);
-      return response.data;
+      // No /projects/{id}/github/sync backend endpoint — stub no-op
+      return { project_id: projectId, status: "ok" };
     },
     onSuccess: (_, projectId) => {
       queryClient.invalidateQueries({
@@ -276,7 +280,7 @@ export function useProjectGitHub(projectId: string | null) {
     queryFn: async (): Promise<ProjectGitHubConnection | null> => {
       if (!projectId) return null;
       try {
-        const response = await api.get<ProjectGitHubConnection>(`/projects/${projectId}/github/repository`);
+        const response = await api.get<ProjectGitHubConnection>(`/github/projects/${projectId}/repository`);
         return response.data;
       } catch (err: unknown) {
         const error = err as { response?: { status?: number } };

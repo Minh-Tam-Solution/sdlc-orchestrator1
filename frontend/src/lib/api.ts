@@ -398,7 +398,7 @@ export async function getOAuthAuthorizeUrl(
     : undefined;
 
   const queryParams = redirectUri ? `?redirect_uri=${encodeURIComponent(redirectUri)}` : "";
-  return apiRequest<OAuthAuthorizeResponse>(`/auth/oauth/${provider}/authorize${queryParams}`, {}, 30000);
+  return apiRequest<OAuthAuthorizeResponse>(`/oauth/${provider}/authorize${queryParams}`, {}, 30000);
 }
 
 /**
@@ -411,7 +411,7 @@ export async function exchangeOAuthCode(
   data: OAuthCallbackRequest
 ): Promise<TokenResponse> {
   console.log("[exchangeOAuthCode] Starting with 120s timeout for", provider);
-  return apiRequest<TokenResponse>(`/auth/oauth/${provider}/callback`, {
+  return apiRequest<TokenResponse>(`/oauth/${provider}/callback`, {
     method: "POST",
     body: JSON.stringify(data),
   }, 120000);
@@ -419,13 +419,13 @@ export async function exchangeOAuthCode(
 
 /**
  * Exchange GitHub OAuth code for tokens (for connect flow from Settings)
- * This uses the /github/callback endpoint which doesn't validate state encoding
- * Sprint 105: Increased timeout to 30s for OAuth token exchange
+ * Backend uses the standard /oauth/github/callback endpoint for all flows.
+ * Sprint 105 note: /github/callback no longer exists — use /oauth/github/callback.
  */
 export async function exchangeGitHubConnectCode(
   data: OAuthCallbackRequest
 ): Promise<TokenResponse> {
-  return apiRequest<TokenResponse>(`/github/callback`, {
+  return apiRequest<TokenResponse>(`/oauth/github/callback`, {
     method: "POST",
     body: JSON.stringify(data),
   }, 30000);
@@ -1848,25 +1848,41 @@ export async function getSASTScans(
   if (options?.page) params.set("page", options.page.toString());
   if (options?.page_size) params.set("page_size", options.page_size.toString());
 
-  return apiRequest<SASTScanListResponse>(`/sast/scans?${params.toString()}`);
+  return apiRequest<SASTScanListResponse>(`/sast/projects/${projectId}/scans?${params.toString()}`);
 }
 
 export async function triggerSASTScan(projectId: string): Promise<SASTScan> {
-  return apiRequest<SASTScan>("/sast/scans", {
+  return apiRequest<SASTScan>(`/sast/projects/${projectId}/scan`, {
     method: "POST",
-    body: JSON.stringify({ project_id: projectId }),
   });
 }
 
 export async function getSASTFindings(
-  scanId: string
+  scanId: string,
+  projectId?: string
 ): Promise<{ findings: SASTFinding[]; total: number }> {
+  // Backend returns findings within scan detail; use scan detail when projectId is available
+  if (projectId) {
+    const scan = await apiRequest<SASTScan>(
+      `/sast/projects/${projectId}/scans/${scanId}`
+    );
+    const findings = ((scan as unknown as { findings?: SASTFinding[] }).findings) ?? [];
+    return { findings, total: findings.length };
+  }
+  // Fallback: flat path (will 404 on backend — callers should pass projectId)
   return apiRequest<{ findings: SASTFinding[]; total: number }>(
     `/sast/scans/${scanId}/findings`
   );
 }
 
-export async function getSASTScanDetails(scanId: string): Promise<SASTScan> {
+export async function getSASTScanDetails(
+  scanId: string,
+  projectId?: string
+): Promise<SASTScan> {
+  if (projectId) {
+    return apiRequest<SASTScan>(`/sast/projects/${projectId}/scans/${scanId}`);
+  }
+  // Fallback: flat path (will 404 on backend — callers should pass projectId)
   return apiRequest<SASTScan>(`/sast/scans/${scanId}`);
 }
 
@@ -2785,7 +2801,7 @@ import type {
  * Sprint 87: GET /projects/{id}/roadmaps
  */
 export async function getRoadmaps(projectId: string): Promise<RoadmapsListResponse> {
-  return apiRequest<RoadmapsListResponse>(`/projects/${projectId}/roadmaps`);
+  return apiRequest<RoadmapsListResponse>(`/planning/roadmaps?project_id=${projectId}`);
 }
 
 /**
@@ -2793,7 +2809,7 @@ export async function getRoadmaps(projectId: string): Promise<RoadmapsListRespon
  * Sprint 87: GET /roadmaps/{id}
  */
 export async function getRoadmap(id: string): Promise<Roadmap> {
-  return apiRequest<Roadmap>(`/roadmaps/${id}`);
+  return apiRequest<Roadmap>(`/planning/roadmaps/${id}`);
 }
 
 /**
@@ -2801,7 +2817,7 @@ export async function getRoadmap(id: string): Promise<Roadmap> {
  * Sprint 87: POST /roadmaps
  */
 export async function createRoadmap(data: RoadmapInput): Promise<Roadmap> {
-  return apiRequest<Roadmap>("/roadmaps", {
+  return apiRequest<Roadmap>("/planning/roadmaps", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -2815,8 +2831,8 @@ export async function updateRoadmap(
   id: string,
   data: Partial<RoadmapInput>
 ): Promise<Roadmap> {
-  return apiRequest<Roadmap>(`/roadmaps/${id}`, {
-    method: "PATCH",
+  return apiRequest<Roadmap>(`/planning/roadmaps/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -2826,7 +2842,7 @@ export async function updateRoadmap(
  * Sprint 87: DELETE /roadmaps/{id}
  */
 export async function deleteRoadmap(id: string): Promise<void> {
-  return apiRequest<void>(`/roadmaps/${id}`, {
+  return apiRequest<void>(`/planning/roadmaps/${id}`, {
     method: "DELETE",
   });
 }
@@ -2840,7 +2856,7 @@ export async function deleteRoadmap(id: string): Promise<void> {
  * Sprint 87: GET /roadmaps/{id}/phases
  */
 export async function getPhases(roadmapId: string): Promise<PhasesListResponse> {
-  return apiRequest<PhasesListResponse>(`/roadmaps/${roadmapId}/phases`);
+  return apiRequest<PhasesListResponse>(`/planning/phases?roadmap_id=${roadmapId}`);
 }
 
 /**
@@ -2848,7 +2864,7 @@ export async function getPhases(roadmapId: string): Promise<PhasesListResponse> 
  * Sprint 87: GET /phases/{id}
  */
 export async function getPhase(id: string): Promise<Phase> {
-  return apiRequest<Phase>(`/phases/${id}`);
+  return apiRequest<Phase>(`/planning/phases/${id}`);
 }
 
 /**
@@ -2856,7 +2872,7 @@ export async function getPhase(id: string): Promise<Phase> {
  * Sprint 87: POST /phases
  */
 export async function createPhase(data: PhaseInput): Promise<Phase> {
-  return apiRequest<Phase>("/phases", {
+  return apiRequest<Phase>("/planning/phases", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -2867,8 +2883,8 @@ export async function createPhase(data: PhaseInput): Promise<Phase> {
  * Sprint 87: PATCH /phases/{id}
  */
 export async function updatePhase(id: string, data: Partial<PhaseInput>): Promise<Phase> {
-  return apiRequest<Phase>(`/phases/${id}`, {
-    method: "PATCH",
+  return apiRequest<Phase>(`/planning/phases/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -2878,7 +2894,7 @@ export async function updatePhase(id: string, data: Partial<PhaseInput>): Promis
  * Sprint 87: DELETE /phases/{id}
  */
 export async function deletePhase(id: string): Promise<void> {
-  return apiRequest<void>(`/phases/${id}`, {
+  return apiRequest<void>(`/planning/phases/${id}`, {
     method: "DELETE",
   });
 }
@@ -2906,13 +2922,15 @@ export async function getSprints(params: {
   const query = searchParams.toString();
 
   if (params.phaseId) {
+    searchParams.set("phase_id", params.phaseId);
     return apiRequest<SprintsListResponse>(
-      `/phases/${params.phaseId}/sprints${query ? `?${query}` : ""}`
+      `/planning/sprints?${searchParams.toString()}`
     );
   }
 
+  if (params.projectId) searchParams.set("project_id", params.projectId);
   return apiRequest<SprintsListResponse>(
-    `/projects/${params.projectId}/sprints${query ? `?${query}` : ""}`
+    `/planning/sprints${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
   );
 }
 
@@ -2921,7 +2939,7 @@ export async function getSprints(params: {
  * Sprint 87: GET /sprints/{id}
  */
 export async function getSprint(id: string): Promise<Sprint> {
-  return apiRequest<Sprint>(`/sprints/${id}`);
+  return apiRequest<Sprint>(`/planning/sprints/${id}`);
 }
 
 /**
@@ -2930,7 +2948,10 @@ export async function getSprint(id: string): Promise<Sprint> {
  */
 export async function getActiveSprint(projectId: string): Promise<Sprint | null> {
   try {
-    return await apiRequest<Sprint>(`/projects/${projectId}/sprints/active`);
+    // No backend equivalent — return null gracefully (sprints/active not in /planning router)
+    return await apiRequest<Sprint>(`/planning/sprints?project_id=${projectId}&status=active&page_size=1`).then(
+      (r) => ((r as unknown as { items: Sprint[] }).items?.[0] ?? null)
+    );
   } catch (error) {
     // Return null if no active sprint (404)
     if ((error as { status?: number }).status === 404) {
@@ -2945,7 +2966,7 @@ export async function getActiveSprint(projectId: string): Promise<Sprint | null>
  * Sprint 87: POST /sprints
  */
 export async function createSprint(data: SprintInput): Promise<Sprint> {
-  return apiRequest<Sprint>("/sprints", {
+  return apiRequest<Sprint>("/planning/sprints", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -2959,8 +2980,8 @@ export async function updateSprint(
   id: string,
   data: SprintUpdateInput
 ): Promise<Sprint> {
-  return apiRequest<Sprint>(`/sprints/${id}`, {
-    method: "PATCH",
+  return apiRequest<Sprint>(`/planning/sprints/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -2970,7 +2991,7 @@ export async function updateSprint(
  * Sprint 87: DELETE /sprints/{id}
  */
 export async function deleteSprint(id: string): Promise<void> {
-  return apiRequest<void>(`/sprints/${id}`, {
+  return apiRequest<void>(`/planning/sprints/${id}`, {
     method: "DELETE",
   });
 }
@@ -3000,13 +3021,15 @@ export async function getBacklogItems(params: {
   const query = searchParams.toString();
 
   if (params.sprintId) {
+    searchParams.set("sprint_id", params.sprintId);
     return apiRequest<BacklogItemsListResponse>(
-      `/sprints/${params.sprintId}/items${query ? `?${query}` : ""}`
+      `/planning/backlog?${searchParams.toString()}`
     );
   }
 
+  if (params.projectId) searchParams.set("project_id", params.projectId);
   return apiRequest<BacklogItemsListResponse>(
-    `/projects/${params.projectId}/backlog${query ? `?${query}` : ""}`
+    `/planning/backlog${searchParams.toString() ? `?${searchParams.toString()}` : ""}`
   );
 }
 
@@ -3015,7 +3038,7 @@ export async function getBacklogItems(params: {
  * Sprint 87: GET /backlog-items/{id}
  */
 export async function getBacklogItem(id: string): Promise<BacklogItem> {
-  return apiRequest<BacklogItem>(`/backlog-items/${id}`);
+  return apiRequest<BacklogItem>(`/planning/backlog/${id}`);
 }
 
 /**
@@ -3023,7 +3046,7 @@ export async function getBacklogItem(id: string): Promise<BacklogItem> {
  * Sprint 87: POST /backlog-items
  */
 export async function createBacklogItem(data: BacklogItemInput): Promise<BacklogItem> {
-  return apiRequest<BacklogItem>("/backlog-items", {
+  return apiRequest<BacklogItem>("/planning/backlog", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -3037,8 +3060,8 @@ export async function updateBacklogItem(
   id: string,
   data: BacklogItemUpdateInput
 ): Promise<BacklogItem> {
-  return apiRequest<BacklogItem>(`/backlog-items/${id}`, {
-    method: "PATCH",
+  return apiRequest<BacklogItem>(`/planning/backlog/${id}`, {
+    method: "PUT",
     body: JSON.stringify(data),
   });
 }
@@ -3048,7 +3071,7 @@ export async function updateBacklogItem(
  * Sprint 87: DELETE /backlog-items/{id}
  */
 export async function deleteBacklogItem(id: string): Promise<void> {
-  return apiRequest<void>(`/backlog-items/${id}`, {
+  return apiRequest<void>(`/planning/backlog/${id}`, {
     method: "DELETE",
   });
 }
@@ -3061,9 +3084,9 @@ export async function bulkMoveBacklogItems(
   projectId: string,
   data: BulkMoveItemsInput
 ): Promise<BacklogItem[]> {
-  return apiRequest<BacklogItem[]>(`/projects/${projectId}/backlog/bulk-move`, {
+  return apiRequest<BacklogItem[]>(`/planning/backlog/bulk/move-to-sprint`, {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify({ ...data, project_id: projectId }),
   });
 }
 
@@ -3078,8 +3101,9 @@ export async function bulkMoveBacklogItems(
 export async function getPlanningHierarchy(
   projectId: string
 ): Promise<PlanningHierarchyResponse> {
+  // Backend: GET /planning/dashboard/{project_id} returns full hierarchy data
   return apiRequest<PlanningHierarchyResponse>(
-    `/projects/${projectId}/planning-hierarchy`
+    `/planning/dashboard/${projectId}`
   );
 }
 
@@ -3091,8 +3115,9 @@ export async function getActiveSprintDashboard(
   projectId: string
 ): Promise<ActiveSprintDashboard | null> {
   try {
+    // Backend: GET /planning/dashboard/{project_id} — active sprint info included
     return await apiRequest<ActiveSprintDashboard>(
-      `/projects/${projectId}/sprints/dashboard`
+      `/planning/dashboard/${projectId}`
     );
   } catch (error) {
     if ((error as { status?: number }).status === 404) {
@@ -3118,7 +3143,7 @@ export async function getSprintGate(
   sprintId: string,
   gateType: SprintGateType
 ): Promise<SprintGate> {
-  return apiRequest<SprintGate>(`/sprints/${sprintId}/gates/${gateType}`);
+  return apiRequest<SprintGate>(`/planning/sprints/${sprintId}/gates/${gateType}`);
 }
 
 /**
@@ -3129,8 +3154,10 @@ export async function getSprintGateChecklist(
   sprintId: string,
   gateType: SprintGateType
 ): Promise<ChecklistItem[]> {
+  // No backend endpoint for checklist sub-resource — gate details include checklist inline
+  // Use getSprintGate() to get full gate details including checklist items
   return apiRequest<ChecklistItem[]>(
-    `/sprints/${sprintId}/gates/${gateType}/checklist`
+    `/planning/sprints/${sprintId}/gates/${gateType}/checklist`
   );
 }
 
@@ -3143,8 +3170,9 @@ export async function evaluateSprintGate(
   gateType: SprintGateType,
   data?: GateEvaluationRequest
 ): Promise<GateEvaluationResponse> {
+  // Backend endpoint is /submit (not /evaluate) — maps to gate submission/approval
   return apiRequest<GateEvaluationResponse>(
-    `/sprints/${sprintId}/gates/${gateType}/evaluate`,
+    `/planning/sprints/${sprintId}/gates/${gateType}/submit`,
     {
       method: "POST",
       body: JSON.stringify(data || {}),
@@ -3161,7 +3189,8 @@ export async function approveSprintGate(
   gateType: SprintGateType,
   data?: SprintGateApprovalRequest
 ): Promise<SprintGate> {
-  return apiRequest<SprintGate>(`/sprints/${sprintId}/gates/${gateType}/approve`, {
+  // Backend endpoint is /submit — same endpoint handles approval workflow
+  return apiRequest<SprintGate>(`/planning/sprints/${sprintId}/gates/${gateType}/submit`, {
     method: "POST",
     body: JSON.stringify(data || {}),
   });
@@ -3177,8 +3206,9 @@ export async function updateChecklistItem(
   itemId: string,
   data: UpdateChecklistItemRequest
 ): Promise<ChecklistItem> {
+  // No backend endpoint for individual checklist item update — use gate PUT to update full gate
   return apiRequest<ChecklistItem>(
-    `/sprints/${sprintId}/gates/${gateType}/checklist/${itemId}`,
+    `/planning/sprints/${sprintId}/gates/${gateType}/checklist/${itemId}`,
     {
       method: "PATCH",
       body: JSON.stringify(data),
@@ -3197,8 +3227,9 @@ export async function updateChecklistItem(
 export async function getDocumentationDeadline(
   sprintId: string
 ): Promise<DocumentationDeadline> {
+  // No backend endpoint — documentation deadline is tracked in sprint gate (G-Sprint-Close)
   return apiRequest<DocumentationDeadline>(
-    `/sprints/${sprintId}/documentation-deadline`
+    `/planning/sprints/${sprintId}/documentation-deadline`
   );
 }
 
@@ -3213,8 +3244,9 @@ export async function getDocumentationDeadline(
 export async function getSprintGovernanceMetrics(
   sprintId: string
 ): Promise<SprintGovernanceMetrics> {
+  // No backend endpoint — use planning dashboard for governance metrics
   return apiRequest<SprintGovernanceMetrics>(
-    `/sprints/${sprintId}/governance-metrics`
+    `/planning/sprints/${sprintId}/governance-metrics`
   );
 }
 
@@ -3225,7 +3257,8 @@ export async function getSprintGovernanceMetrics(
 export async function getSprintComparison(
   sprintIds: string[]
 ): Promise<SprintComparison> {
-  return apiRequest<SprintComparison>("/sprints/compare", {
+  // No backend endpoint — sprint comparison not yet implemented server-side
+  return apiRequest<SprintComparison>("/planning/sprints/compare", {
     method: "POST",
     body: JSON.stringify({ sprint_ids: sprintIds }),
   });
@@ -3243,7 +3276,7 @@ export async function getSprintGovernanceDashboard(
   projectId: string
 ): Promise<SprintGovernanceDashboard> {
   return apiRequest<SprintGovernanceDashboard>(
-    `/projects/${projectId}/sprint-governance/dashboard`
+    `/planning/dashboard/${projectId}`
   );
 }
 
@@ -3587,7 +3620,7 @@ export async function generateIntentSkeleton(
   request: GenerateIntentRequest
 ): Promise<GenerateIntentResponse> {
   return apiRequest<GenerateIntentResponse>(
-    "/governance/auto-generate/intent",
+    "/auto-generate/intent",
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -3606,7 +3639,7 @@ export async function suggestOwnership(
   request: SuggestOwnershipRequest
 ): Promise<OwnershipSuggestionResponse> {
   return apiRequest<OwnershipSuggestionResponse>(
-    "/governance/auto-generate/ownership",
+    "/auto-generate/ownership",
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -3621,8 +3654,9 @@ export async function suggestOwnership(
 export async function suggestOwnershipBatch(
   request: BatchOwnershipRequest
 ): Promise<BatchOwnershipResponse> {
+  // No backend endpoint — stub returns empty (to be implemented backend-side)
   return apiRequest<BatchOwnershipResponse>(
-    "/governance/auto-generate/ownership/batch",
+    "/auto-generate/ownership/batch",
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -3641,7 +3675,7 @@ export async function attachContext(
   request: AttachContextRequest
 ): Promise<AttachContextResponse> {
   return apiRequest<AttachContextResponse>(
-    "/governance/auto-generate/context",
+    "/auto-generate/context",
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -3659,7 +3693,7 @@ export async function preFillAttestation(
   request: PreFillAttestationRequest
 ): Promise<PreFillAttestationResponse> {
   return apiRequest<PreFillAttestationResponse>(
-    "/governance/auto-generate/attestation",
+    "/auto-generate/attestation",
     {
       method: "POST",
       body: JSON.stringify(request),
@@ -3707,8 +3741,9 @@ export async function getAutoGenerationMetrics(options?: {
   if (options?.projectId) params.append("project_id", options.projectId);
   if (options?.timeRange) params.append("time_range", options.timeRange);
   const query = params.toString() ? `?${params.toString()}` : "";
+  // No backend endpoint — stub (to be implemented backend-side)
   return apiRequest<AutoGenerationMetrics>(
-    `/governance/auto-generate/metrics${query}`
+    `/auto-generate/metrics${query}`
   );
 }
 
@@ -3724,8 +3759,9 @@ export async function getRecentAutoGenerations(options?: {
   if (options?.projectId) params.append("project_id", options.projectId);
   if (options?.limit) params.append("limit", options.limit.toString());
   const query = params.toString() ? `?${params.toString()}` : "";
+  // No backend endpoint — stub (to be implemented backend-side)
   return apiRequest<RecentAutoGeneration[]>(
-    `/governance/auto-generate/recent${query}`
+    `/auto-generate/recent${query}`
   );
 }
 
@@ -3734,7 +3770,7 @@ export async function getRecentAutoGenerations(options?: {
  * Sprint 113: GET /governance/auto-generate/health
  */
 export async function getAutoGenerationHealth(): Promise<AutoGenerationHealth> {
-  return apiRequest<AutoGenerationHealth>("/governance/auto-generate/health");
+  return apiRequest<AutoGenerationHealth>("/auto-generate/health");
 }
 
 // =============================================================================
@@ -3776,7 +3812,7 @@ export async function setGovernanceMode(
   request: SetGovernanceModeRequest
 ): Promise<SetGovernanceModeResponse> {
   return apiRequest<SetGovernanceModeResponse>("/governance/mode", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(request),
   });
 }

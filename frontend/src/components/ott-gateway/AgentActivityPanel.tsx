@@ -54,7 +54,7 @@ function useAgentActivity() {
   return useQuery<AgentActivityData>({
     queryKey: ["ott", "agent-activity"],
     queryFn: async () => {
-      const res = await fetch("/api/v1/ott/gateway/agent-activity", {
+      const res = await fetch("/api/v1/admin/ott-channels/telegram/conversations?page=1&page_size=20", {
         credentials: "include",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
