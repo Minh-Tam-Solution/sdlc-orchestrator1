@@ -25,7 +25,7 @@ stage: "01 - Planning"
 
 ### 1.1 Purpose
 
-Protect agent execution from prompt injection, shell command injection, and workspace escape. Implements 12 input sanitization patterns (OpenClaw Pattern 9) and 8 shell deny patterns (Nanobot N6). All external input is wrapped in safety tags before entering agent context.
+Protect agent execution from prompt injection, shell command injection, and workspace escape. Implements 12 input sanitization patterns (MTS-OpenClaw Pattern 9) and 8 shell deny patterns (Nanobot N6). All external input is wrapped in safety tags before entering agent context.
 
 ### 1.2 Business Value
 
@@ -89,4 +89,4 @@ Protect agent execution from prompt injection, shell command injection, and work
 
 - `InputSanitizer` class (`input_sanitizer.py`)
 - `ReflectStep` class (`reflect_step.py`)
-- OpenClaw source: `src/security/external-content.ts` (12 patterns)
+- MTS-OpenClaw source: `src/security/external-content.ts` (12 patterns)

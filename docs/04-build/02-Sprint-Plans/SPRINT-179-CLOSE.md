@@ -241,7 +241,7 @@ This check takes 30 seconds and prevents the class of bug found in F-179-01.
 | Lesson | Sprint 180 Action |
 |--------|------------------|
 | `__init__.py` export check | Added to Sprint 180 DoD template |
-| ZeroClaw patterns proven effective | ADR-059 references ZeroClaw as 4th pattern source (alongside OpenClaw, TinyClaw, Nanobot) |
+| ZeroClaw patterns proven effective | ADR-059 references ZeroClaw as 4th pattern source (alongside MTS-OpenClaw, TinyClaw, Nanobot) |
 | Pattern-source attribution required | ADR-059 Appendix C includes Sprint 181 registration plan with test coverage requirements |
 
 ---

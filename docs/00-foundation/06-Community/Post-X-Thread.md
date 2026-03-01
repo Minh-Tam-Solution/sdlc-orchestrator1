@@ -44,7 +44,7 @@ When production broke, we couldn't trace which agent made which decision.
 5 multi-agent tools tested in 8 months:
 
 • TinyClaw — @mention routing
-• OpenClaw — lane-based queue + failover
+• MTS-OpenClaw — lane-based queue + failover
 • NanoBot — tool isolation + shell guards
 • PicoClaw — single-agent wrapper
 • ZeroClaw — output scrubbing + classification

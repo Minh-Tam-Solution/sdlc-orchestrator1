@@ -67,7 +67,7 @@ The governance methodology (Spec → Gate → Evidence → Approval) lives in MT
 
 ### Born from the multi-agent ecosystem
 
-Along the way, my team experimented with TinyClaw, OpenClaw, NanoBot, PicoClaw, and ZeroClaw. These tools accelerated development enormously. But I saw the risk:
+Along the way, my team experimented with TinyClaw, MTS-OpenClaw, NanoBot, PicoClaw, and ZeroClaw. These tools accelerated development enormously. But I saw the risk:
 
 > Multi-agents work incredibly fast. But without governance, speed only amplifies mistakes.
 
@@ -202,7 +202,7 @@ Phương pháp luận governance (Spec → Gate → Evidence → Approval) nằm
 
 ### Đến từ hệ sinh thái multi-agents
 
-Trên hành trình đó, team đã thử nghiệm TinyClaw, OpenClaw, NanoBot, PicoClaw, và ZeroClaw. Các công cụ này tăng tốc rất mạnh. Nhưng tôi nhìn thấy rủi ro:
+Trên hành trình đó, team đã thử nghiệm TinyClaw, MTS-OpenClaw, NanoBot, PicoClaw, và ZeroClaw. Các công cụ này tăng tốc rất mạnh. Nhưng tôi nhìn thấy rủi ro:
 
 > Multi-agents làm việc rất nhanh. Nhưng nếu không có governance, tốc độ chỉ khuếch đại lỗi.
 

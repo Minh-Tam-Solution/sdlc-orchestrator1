@@ -209,7 +209,7 @@ These are verified, authentic numbers from the SDLC Orchestrator journey:
 | API endpoints | 91 (FastAPI) | API-Specification.md v3.6.0 |
 | Test coverage | 94% | CLAUDE.md |
 | OPA policies | 110+ | Policy packs |
-| Claw tools tested | TinyClaw, OpenClaw, NanoBot, PicoClaw, ZeroClaw | ADR-058 |
+| Claw tools tested | TinyClaw, MTS-OpenClaw, NanoBot, PicoClaw, ZeroClaw | ADR-058 |
 | CEO age | 55 | CEO bio |
 | Years since last coding | 30 | CEO bio |
 | Build duration | 3+ months (Nov 2025 → Feb 2026) | Sprint history |

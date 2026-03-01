@@ -27,7 +27,7 @@ stage: "02 - Design"
 
 ### 1.1 Problem Statement
 
-ADR-056 absorbed 24 patterns from OpenClaw (11), TinyClaw (7), and Nanobot (6). Research identified 7 additional patterns from ZeroClaw that fill security and architecture gaps:
+ADR-056 absorbed 24 patterns from MTS-OpenClaw (11), TinyClaw (7), and Nanobot (6). Research identified 7 additional patterns from ZeroClaw that fill security and architecture gaps:
 
 | Gap | Current State | ZeroClaw Pattern |
 |-----|--------------|-----------------|

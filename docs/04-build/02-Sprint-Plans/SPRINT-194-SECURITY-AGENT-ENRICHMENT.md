@@ -28,7 +28,7 @@ reviewer_audit: "Sprint 193 CTO Review (9.1/10) + Sprint 192 Carried Findings"
 - Sprint 192 carried 5 findings (F-192-03 through F-192-07). **Investigation found 2 already resolved**:
   - F-192-03 (deferred import in `_verify_zalo_signature`): **NO ACTION** — intentional lazy-load pattern, best practice.
   - F-192-04 (PA-69 empty-timestamp test): **NO ACTION** — test already exists at `test_zalo_normalizer.py:141-154`, comprehensive (2 assertions).
-- Feature parity gaps GAP-01 and GAP-02 from OpenClaw comparison remain open.
+- Feature parity gaps GAP-01 and GAP-02 from MTS-OpenClaw comparison remain open.
 - `ROLE_MODEL_DEFAULTS` in `agent_team/config.py:38-54` provides 12 role defaults ready for seeding.
 - Command registry has 5/10 slots used — room for `update_sprint` (slot 6).
 

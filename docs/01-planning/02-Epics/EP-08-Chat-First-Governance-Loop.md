@@ -107,7 +107,7 @@ Add a thin LLM Function Calling chat interface on top of the existing Enterprise
 
 ## 4. Out of Scope
 
-- OpenClaw rebuild (Option C) — deferred unless Phase 0 PoC fails
+- MTS-OpenClaw rebuild (Option C) — deferred unless Phase 0 PoC fails
 - New DB schema for chat (reuses existing tables)
 - LangChain or external LLM orchestration framework (T-02: native Ollama only)
 - Dashboard redesign (just feature-flag, not rebuild)

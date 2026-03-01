@@ -76,7 +76,7 @@ Over the next months, we experimented with different multi-agent orchestration a
 | Tool | What It Did | Why It Wasn't Enough |
 |------|------------|---------------------|
 | TinyClaw | @mention-based agent routing | No governance loop, just routing |
-| OpenClaw | Lane-based message queue + failover | Great infra, no quality gates |
+| MTS-OpenClaw | Lane-based message queue + failover | Great infra, no quality gates |
 | NanoBot | Tool-context isolation + shell guards | Security focused, not governance focused |
 | PicoClaw | Lightweight single-agent wrapper | Too simple for team workflows |
 | ZeroClaw | Output scrubbing + query classification | Post-hoc safety, not pre-hoc governance |

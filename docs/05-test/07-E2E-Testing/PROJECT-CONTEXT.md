@@ -55,23 +55,30 @@
 - **Total Paths**: 617
 - **Total Operations**: 704 (GET: 375, POST: 266, PUT: 27, DELETE: 26, PATCH: 10)
 
-## Latest E2E Test Results (2026-02-21)
+## Latest E2E Test Results (2026-02-28)
+
+- **Report**: [E2E-API-REPORT-2026-02-28.md](reports/E2E-API-REPORT-2026-02-28.md)
+- **Tested**: 579/585 operations (6 skipped)
+- **API Health Score**: 94.5% (non-5xx responses)
+- **Direct Pass Rate**: 24.9% (auto-generated bodies — manual tests confirm endpoints work)
+- **Server Errors**: 31 endpoints (5.4%) — categorized in report
+- **p95 Latency**: 11.4ms (well under 100ms budget)
+- **Sprint 214 Manual Pass Rate**: 14/15 (93.3%)
+- **SHA256**: `7158fbaca16a8d65d2987f284e3a4d6d759e87cba7ffb1fe033941a87c609496`
+
+### Previous Results (2026-02-21)
 
 - **Report**: [E2E-API-REPORT-2026-02-21.md](reports/E2E-API-REPORT-2026-02-21.md)
-- **Tested**: 698/704 operations (6 skipped)
-- **API Health Score**: 94.7% (non-5xx responses)
-- **Direct Pass Rate**: 25.4% (auto-generated bodies — manual tests would be higher)
-- **Server Errors**: 36 endpoints (5.2%) — needs investigation
-- **Avg Response Time**: fast (<100ms p95)
+- **Tested**: 698/704 operations
+- **API Health Score**: 94.7%
 
-## Key Finding — Staging Build Gap
+## Key Finding — GDPR DSAR List 500
 
-The staging environment runs an older build. The following Sprint 181-188 code is in the repo (committed in `8d02dfe`) but **NOT deployed to staging**:
-- Sprint 181: NIST routes, templates route, compliance framework
-- Sprint 182-183: Enterprise SSO routes
-- Sprint 185: SOC2 pack generation (audit logs are deployed ✅)
-- Sprint 186: Data residency, GDPR routes
-- Sprint 176-179: Multi-agent team engine routes
-- Sprint 188: `/api/v1/payments/subscriptions/me`
+`GET /api/v1/gdpr/dsar` returns 500 Internal Server Error. The POST endpoint (create DSAR) works with `requester_email` field. This is **P0 for Sprint 215**.
 
-**Action**: Deploy latest `main` branch to staging to complete Sprint 181-188 validation.
+## Staging Build Status
+
+As of 2026-02-28, staging is running latest build with Sprint 209-214 code deployed:
+- Sprint 209-213: All routes deployed and tested
+- Sprint 214: GDPR, Data Residency, Compliance dashboard — deployed
+- 31 endpoints return 5xx (GitHub webhooks, MCP, Invitations — config/infra issues)

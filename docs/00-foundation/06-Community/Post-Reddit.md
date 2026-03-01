@@ -17,7 +17,7 @@ We tested 5 multi-agent AI coding tools. They were fast — but without structur
 
 ### Body
 
-My team builds enterprise software in Vietnam. Over the past 8 months, we tested five multi-agent tools for AI-assisted development: TinyClaw, OpenClaw, NanoBot, PicoClaw, and ZeroClaw.
+My team builds enterprise software in Vietnam. Over the past 8 months, we tested five multi-agent tools for AI-assisted development: TinyClaw, MTS-OpenClaw, NanoBot, PicoClaw, and ZeroClaw.
 
 They were incredibly fast. But we kept hitting the same wall:
 

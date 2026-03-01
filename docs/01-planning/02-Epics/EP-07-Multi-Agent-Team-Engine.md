@@ -29,7 +29,7 @@ stage: "01 - Planning"
 
 ## 1. Epic Summary
 
-Build foundational multi-agent infrastructure for SDLC Orchestrator by absorbing production-proven patterns from OpenClaw (36-channel gateway), TinyClaw (file-based queue), Nanobot (tool isolation), and ZeroClaw (Rust agent runtime). Enables agent-to-agent delegation, lane-based message queue, provider failover classification, security guards, and output credential scrubbing.
+Build foundational multi-agent infrastructure for SDLC Orchestrator by absorbing production-proven patterns from MTS-OpenClaw (36-channel gateway), TinyClaw (file-based queue), Nanobot (tool isolation), and ZeroClaw (Rust agent runtime). Enables agent-to-agent delegation, lane-based message queue, provider failover classification, security guards, and output credential scrubbing.
 
 **Dependency**: EP-06 Autonomous Codegen (ADR-055) requires MATE for Initializer → Coder → Reviewer agent chain.
 
@@ -135,8 +135,8 @@ Build foundational multi-agent infrastructure for SDLC Orchestrator by absorbing
 
 | Pattern | Source | Files |
 |---------|--------|-------|
-| Lane-based concurrency | OpenClaw `command-queue.ts` | `message_queue.py` |
-| FailoverError (6 reasons) | OpenClaw `failover-error.ts` | `failover_classifier.py` |
+| Lane-based concurrency | MTS-OpenClaw `command-queue.ts` | `message_queue.py` |
+| FailoverError (6 reasons) | MTS-OpenClaw `failover-error.ts` | `failover_classifier.py` |
 | @mention routing | TinyClaw `routing.ts` | `mention_parser.py` |
 | 50-msg loop prevention | TinyClaw `queue-processor.ts` | `conversation_tracker.py` |
 | Shell deny patterns | Nanobot `tools/shell.py` | `shell_guard.py` |
@@ -189,7 +189,7 @@ Stores active conversations with snapshotted fields.
 | id | UUID PK | |
 | project_id | UUID FK → projects | |
 | agent_definition_id | UUID FK → agent_definitions | |
-| parent_conversation_id | UUID FK → self | nullable, OpenClaw subagent inheritance |
+| parent_conversation_id | UUID FK → self | nullable, MTS-OpenClaw subagent inheritance |
 | delegation_depth | INTEGER DEFAULT 0 | Nanobot N2 |
 | initiator_type | VARCHAR(20) | user/agent/gate_event/ott_channel |
 | initiator_id | VARCHAR(100) | |
@@ -199,9 +199,9 @@ Stores active conversations with snapshotted fields.
 | total_messages | INTEGER DEFAULT 0 | |
 | max_messages | INTEGER DEFAULT 50 | Snapshotted from definition |
 | branch_count | INTEGER DEFAULT 0 | TinyClaw |
-| input_tokens | INTEGER DEFAULT 0 | OpenClaw |
-| output_tokens | INTEGER DEFAULT 0 | OpenClaw |
-| total_tokens | INTEGER DEFAULT 0 | OpenClaw |
+| input_tokens | INTEGER DEFAULT 0 | MTS-OpenClaw |
+| output_tokens | INTEGER DEFAULT 0 | MTS-OpenClaw |
+| total_tokens | INTEGER DEFAULT 0 | MTS-OpenClaw |
 | current_cost_cents | INTEGER DEFAULT 0 | Budget circuit breaker |
 | max_budget_cents | INTEGER DEFAULT 1000 | Snapshotted from definition |
 | metadata | JSONB | |
@@ -222,9 +222,9 @@ Stores messages with lane contract + dead-letter fields.
 | content | TEXT | |
 | mentions | JSONB | TinyClaw @mention |
 | message_type | VARCHAR(20) | request/response/mention/system/interrupt |
-| queue_mode | VARCHAR(20) | OpenClaw |
+| queue_mode | VARCHAR(20) | MTS-OpenClaw |
 | processing_status | VARCHAR(20) | pending/processing/completed/failed/dead_letter |
-| processing_lane | VARCHAR(50) | OpenClaw lane concurrency |
+| processing_lane | VARCHAR(50) | MTS-OpenClaw lane concurrency |
 | dedupe_key | VARCHAR(100) UNIQUE | Idempotency |
 | correlation_id | UUID | Request tracing |
 | token_count | INTEGER | |

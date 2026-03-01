@@ -486,7 +486,7 @@ Apache 2.0 License — See [LICENSE](../LICENSE) file
 
 **Author**: AI Architect + CTO Nguyen Quoc Huy
 **Framework**: SDLC 6.1.0
-**Pattern Sources**: OpenClaw, TinyClaw, Nanobot, ZeroClaw
+**Pattern Sources**: MTS-OpenClaw, TinyClaw, Nanobot, ZeroClaw
 **Technology**: LangChain, LangGraph, Ollama, FastAPI
 
 ---

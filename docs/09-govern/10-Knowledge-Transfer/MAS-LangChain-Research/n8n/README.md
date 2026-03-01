@@ -621,7 +621,7 @@ exit 1
 ### Related Projects
 
 - [LangChain MAS](../README.md) — Code-first alternative với Python
-- [OpenClaw](https://github.com/OpenClaw/openclaw) — Lane-based queue pattern
+- [MTS-OpenClaw](https://github.com/MTS-OpenClaw/openclaw) — Lane-based queue pattern
 - [TinyClaw](https://github.com/TinyClaw/tinyclaw) — @mention routing pattern
 - [Nanobot](https://github.com/Nanobot/nanobot) — Tool context restrictions
 
@@ -699,7 +699,7 @@ Apache 2.0 License — See [LICENSE](../../LICENSE) file
 
 **Author**: AI Architect + CTO Nguyen Quoc Huy
 **Framework**: SDLC 6.1.0
-**Pattern Sources**: OpenClaw, TinyClaw, Nanobot, ZeroClaw
+**Pattern Sources**: MTS-OpenClaw, TinyClaw, Nanobot, ZeroClaw
 **Technology**: n8n, PostgreSQL, Redis, Ollama, FastAPI
 
 ---

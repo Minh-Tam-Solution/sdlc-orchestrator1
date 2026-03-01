@@ -1,7 +1,7 @@
 # Sprint 198 — OTT Gateway Dashboard + Bidirectional AI + Go-Live Validation
 
 **Sprint Duration**: February 24 – March 7, 2026 (10 working days)
-**Sprint Goal**: Build web-based OTT Gateway Dashboard (OpenClaw-inspired), implement bidirectional AI response loop (Telegram → Ollama → Telegram), and resolve Sprint 197 carry-forwards
+**Sprint Goal**: Build web-based OTT Gateway Dashboard (MTS-OpenClaw-inspired), implement bidirectional AI response loop (Telegram → Ollama → Telegram), and resolve Sprint 197 carry-forwards
 **Status**: PLANNED
 **Priority**: P0 (OTT Real Integration + Go-Live)
 **Framework**: SDLC 6.1.1
@@ -17,7 +17,7 @@ Sprint 197 delivered 7/7 technical debt items and 676 tests (9.3/10) but deferre
 **CEO directive**: OTT bots serve as **Human Coach (SE4H)** interfaces for AI-human governance interaction. The Gateway Dashboard enables platform admins to monitor and manage all OTT channels from the web app.
 
 **Four pillars**:
-1. **OTT Gateway Dashboard** — Web-based admin UI for OTT channel monitoring (OpenClaw-inspired)
+1. **OTT Gateway Dashboard** — Web-based admin UI for OTT channel monitoring (MTS-OpenClaw-inspired)
 2. **Bidirectional AI Loop** — Message → Ollama AI → Telegram reply (SE4H Human Coach pattern)
 3. **Carry-Forward Resolution** — CF-01/02/03 from Sprint 197
 4. **OTT Integration Testing** — E2E validation of real Telegram bot + AI response flow
@@ -30,9 +30,9 @@ Sprint 197 delivered 7/7 technical debt items and 676 tests (9.3/10) but deferre
 
 ### Track A — OTT Gateway Dashboard: Web App (Day 1-5) — @pm
 
-**Goal**: Build an OpenClaw-inspired Gateway Dashboard at `/app/ott-gateway` for platform admins to monitor OTT channels, view conversations, and manage channel configuration.
+**Goal**: Build an MTS-OpenClaw-inspired Gateway Dashboard at `/app/ott-gateway` for platform admins to monitor OTT channels, view conversations, and manage channel configuration.
 
-**Design Reference**: OpenClaw Gateway at `localhost:18789` — adapted for SDLC Orchestrator's Next.js + shadcn/ui stack.
+**Design Reference**: MTS-OpenClaw Gateway at `localhost:18789` — adapted for SDLC Orchestrator's Next.js + shadcn/ui stack.
 
 #### A1 — Backend: Gateway Admin API (~200 LOC)
 

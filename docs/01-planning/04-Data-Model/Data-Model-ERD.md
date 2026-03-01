@@ -1174,7 +1174,7 @@ CREATE INDEX ON daily_activation_metrics(date);
 ## Multi-Agent Team Engine Tables (EP-07, ADR-056)
 
 > **NEW (Sprint 176)**: 3 tables for Multi-Agent Team Engine infrastructure.
-> Pattern sources: OpenClaw (lane queue, failover), TinyClaw (@mention, loop guards), Nanobot (tool context, shell guard).
+> Pattern sources: MTS-OpenClaw (lane queue, failover), TinyClaw (@mention, loop guards), Nanobot (tool context, shell guard).
 
 ### agent_definitions
 

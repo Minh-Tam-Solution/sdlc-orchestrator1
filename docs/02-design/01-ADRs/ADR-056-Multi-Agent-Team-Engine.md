@@ -8,7 +8,7 @@ tier: "PROFESSIONAL"
 stage: "02 - Design"
 ---
 
-# ADR-056: Multi-Agent Team Engine — Strategic Upgrade from TinyClaw + OpenClaw + Nanobot
+# ADR-056: Multi-Agent Team Engine — Strategic Upgrade from TinyClaw + MTS-OpenClaw + Nanobot
 
 **Status**: PROPOSED (Sprint 176 Day 6, implementation Sprint 176-178)
 **Date**: February 2026
@@ -39,11 +39,11 @@ Three production codebases were analyzed for absorbable patterns:
 
 | Codebase | Tech Stack | Scale | Patterns Extracted |
 |----------|-----------|-------|-------------------|
-| **OpenClaw** | Node.js 22+, TypeScript 5.9, WebSocket | 36 channels, 50+ skills, 900 tests | 7 core + 4 CTO-discovered |
+| **MTS-OpenClaw** | Node.js 22+, TypeScript 5.9, WebSocket | 36 channels, 50+ skills, 900 tests | 7 core + 4 CTO-discovered |
 | **TinyClaw** | Node.js, file-based queue, CLI | 6 SDLC roles, @mention routing | 7 patterns |
 | **Nanobot** | Python 3.11+, LiteLLM, asyncio | ~3,663 core LOC, 9 channels | 6 patterns (5 P0) |
 
-**CTO Verification**: Every OpenClaw claim verified against source code. 3 factual errors corrected (session scope 2 not 4, queue modes 7 not 5, failover reasons 6 not 5).
+**CTO Verification**: Every MTS-OpenClaw claim verified against source code. 3 factual errors corrected (session scope 2 not 4, queue modes 7 not 5, failover reasons 6 not 5).
 
 ### 1.3 CEO Vision
 
@@ -252,7 +252,7 @@ CREATE TABLE agent_conversations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     project_id UUID NOT NULL REFERENCES projects(id),
     agent_definition_id UUID NOT NULL REFERENCES agent_definitions(id),
-    parent_conversation_id UUID REFERENCES agent_conversations(id),  -- OpenClaw: subagent inheritance
+    parent_conversation_id UUID REFERENCES agent_conversations(id),  -- MTS-OpenClaw: subagent inheritance
     delegation_depth INTEGER NOT NULL DEFAULT 0,    -- Nanobot: current depth in chain
     initiator_type VARCHAR(20) NOT NULL,            -- user/agent/gate_event/ott_channel
     initiator_id VARCHAR(100) NOT NULL,
@@ -262,7 +262,7 @@ CREATE TABLE agent_conversations (
     total_messages INTEGER NOT NULL DEFAULT 0,
     max_messages INTEGER NOT NULL DEFAULT 50,       -- TinyClaw: loop prevention
     branch_count INTEGER NOT NULL DEFAULT 0,        -- TinyClaw: branch tracking
-    -- Token budget (OpenClaw)
+    -- Token budget (MTS-OpenClaw)
     input_tokens INTEGER NOT NULL DEFAULT 0,
     output_tokens INTEGER NOT NULL DEFAULT 0,
     total_tokens INTEGER NOT NULL DEFAULT 0,
@@ -320,7 +320,7 @@ CREATE INDEX idx_agent_messages_dead_letter ON agent_messages(processing_status)
 
 ## 5. Pattern Absorption Matrix
 
-### 5.1 OpenClaw Patterns (7 core + 4 CTO-discovered)
+### 5.1 MTS-OpenClaw Patterns (7 core + 4 CTO-discovered)
 
 | # | Pattern | Source | P0/P1/P2 | Target |
 |---|---------|--------|----------|--------|
@@ -371,7 +371,7 @@ CREATE INDEX idx_agent_messages_dead_letter ON agent_messages(processing_status)
 
 **#3 2FA-like OTT Approval** (P2): `APPROVE G3 #12345` confirmation message required for gate-level actions from OTT channels.
 
-**#4 External Content Sanitization**: All OTT input wrapped before agent context injection. `input_sanitizer.py` applies 12 injection regex patterns (from OpenClaw `src/security/external-content.ts`). Patterns include:
+**#4 External Content Sanitization**: All OTT input wrapped before agent context injection. `input_sanitizer.py` applies 12 injection regex patterns (from MTS-OpenClaw `src/security/external-content.ts`). Patterns include:
 - System prompt override: `r"(?i)(ignore|forget|disregard)\s+(previous|above|all)\s+(instructions|prompts)"`
 - Role injection: `r"(?i)you\s+are\s+(now|a)\s+"`
 - Delimiter escape: `r"(```|<\|im_sep\|>|<\|system\|>)"`
@@ -440,15 +440,15 @@ Every P0 endpoint MUST emit these 3 traces:
 
 | File | LOC | Source Pattern | Key Responsibility |
 |------|-----|---------------|-------------------|
-| `agent_registry.py` | ~150 | OpenClaw session scope | Agent CRUD, session scoping (per-sender/global) |
-| `message_queue.py` | ~250 | OpenClaw lane queue | Lane-based SKIP LOCKED + Redis notify + dead-letter |
+| `agent_registry.py` | ~150 | MTS-OpenClaw session scope | Agent CRUD, session scoping (per-sender/global) |
+| `message_queue.py` | ~250 | MTS-OpenClaw lane queue | Lane-based SKIP LOCKED + Redis notify + dead-letter |
 | `mention_parser.py` | ~80 | TinyClaw routing | Parse `[@agent: message]` tags, leader delegation |
-| `conversation_tracker.py` | ~200 | TinyClaw + OpenClaw | Parent-child inheritance, 6 loop guards, token budget |
-| `agent_invoker.py` | ~250 | OpenClaw failover + Nanobot N3 | Provider chain, error-as-string, cooldowns |
-| `team_orchestrator.py` | ~250 | OpenClaw queue modes | P0: queue/steer/interrupt (3 of 7) |
+| `conversation_tracker.py` | ~200 | TinyClaw + MTS-OpenClaw | Parent-child inheritance, 6 loop guards, token budget |
+| `agent_invoker.py` | ~250 | MTS-OpenClaw failover + Nanobot N3 | Provider chain, error-as-string, cooldowns |
+| `team_orchestrator.py` | ~250 | MTS-OpenClaw queue modes | P0: queue/steer/interrupt (3 of 7) |
 | `evidence_collector.py` | ~120 | Both | Auto-capture with correlation_id |
-| `failover_classifier.py` | ~100 | OpenClaw | 6 error reasons + abort matrix routing |
-| `input_sanitizer.py` | ~60 | OpenClaw Pattern 9 | 12 injection regex patterns for OTT input |
+| `failover_classifier.py` | ~100 | MTS-OpenClaw | 6 error reasons + abort matrix routing |
+| `input_sanitizer.py` | ~60 | MTS-OpenClaw Pattern 9 | 12 injection regex patterns for OTT input |
 | `shell_guard.py` | ~80 | Nanobot N6 | 8 deny patterns, path traversal, output truncation |
 | `tool_context.py` | ~50 | Nanobot N2 | Tool permission checking, workspace restriction |
 | `reflect_step.py` | ~40 | Nanobot | Reflect-after-tools prompt injection, self-correction |
@@ -457,7 +457,7 @@ Every P0 endpoint MUST emit these 3 traces:
 
 ## 8. OTT Gateway -- Plugin Architecture
 
-Adopted from OpenClaw's plugin pattern. NOT 4 hardcoded channel adapters.
+Adopted from MTS-OpenClaw's plugin pattern. NOT 4 hardcoded channel adapters.
 
 ```typescript
 interface ChannelPlugin {
@@ -500,7 +500,7 @@ interface ChannelPlugin {
 
 ## 10. Nanobot Addendum -- 5 P0 Micro-Patterns
 
-These patterns add **+170 LOC across 3 new files** without changing the core architecture. Expert consensus: "Nanobot patterns are defensive layers that complement the OpenClaw foundation."
+These patterns add **+170 LOC across 3 new files** without changing the core architecture. Expert consensus: "Nanobot patterns are defensive layers that complement the MTS-OpenClaw foundation."
 
 ### 10.1 Tool Context Routing (`tool_context.py` ~50 LOC)
 
@@ -600,7 +600,7 @@ def inject_reflection(messages: list[dict], tool_results: list[dict]) -> list[di
 
 ---
 
-## 11. CTO Corrections Applied (8 from OpenClaw Review)
+## 11. CTO Corrections Applied (8 from MTS-OpenClaw Review)
 
 | # | Issue | Before | After |
 |---|-------|--------|-------|

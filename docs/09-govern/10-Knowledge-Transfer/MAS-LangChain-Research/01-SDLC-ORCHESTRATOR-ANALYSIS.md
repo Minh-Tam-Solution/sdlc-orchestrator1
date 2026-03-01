@@ -30,7 +30,7 @@ L1: Infrastructure (PostgreSQL, Redis, OPA) ← OSS components
 
 | Source | Tech | Scale | Patterns |
 |--------|------|-------|----------|
-| **OpenClaw** | Node.js, TypeScript | 36 channels, 50+ skills | Lane queue, failover (6 reasons), session scope |
+| **MTS-OpenClaw** | Node.js, TypeScript | 36 channels, 50+ skills | Lane queue, failover (6 reasons), session scope |
 | **TinyClaw** | Node.js, file queue | 6 SDLC roles | @mention routing, loop prevention (50 msg) |
 | **Nanobot** | Python 3.11, LiteLLM | 3,663 LOC | Shell guard (8 patterns), tool context, reflect-after-tools |
 | **ZeroClaw** | Rust | Agent runtime | Credential scrub (6 patterns), history compaction, env scrub |

@@ -57,7 +57,7 @@ Build the **Multi-Agent Team Engine (MATE)** as a foundational service layer in 
 
 | Source | Patterns Absorbed | LOC Reference |
 |--------|------------------|---------------|
-| OpenClaw (36 channels, Node.js) | Lane queue, failover classification, session scoping | 7 patterns |
+| MTS-OpenClaw (36 channels, Node.js) | Lane queue, failover classification, session scoping | 7 patterns |
 | TinyClaw (file-based queue, Python) | @mention routing, loop guards, SDLC roles | 7 patterns |
 | Nanobot (~3,663 LOC, Python) | Tool context, shell guard, reflect step, error-as-string | 5 patterns |
 | ZeroClaw (Rust, 12.5K stars, MIT) | Credential scrubbing, env scrubbing, history compaction, query classification | 4 patterns |

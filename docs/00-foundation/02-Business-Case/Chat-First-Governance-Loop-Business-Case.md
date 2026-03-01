@@ -56,7 +56,7 @@ After 188 sprints and GA launch (v2.0.0-ga), the SDLC Orchestrator has **strong 
 
 Build the **Chat-First Governance Loop** as a thin LLM Function Calling facade (~500 LOC new) on top of the existing Enterprise Control Plane, then aggressively clean up ~18.3K LOC of dead code.
 
-**Architecture Decision**: Option D+ (Chat-First Facade) — chosen unanimously by 7/7 expert panel. Approved over Option C (OpenClaw rebuild, $60-90K, 12-18 sprints).
+**Architecture Decision**: Option D+ (Chat-First Facade) — chosen unanimously by 7/7 expert panel. Approved over Option C (MTS-OpenClaw rebuild, $60-90K, 12-18 sprints).
 
 **Key Insight**: The problem is UX/focus, not architecture. Existing infrastructure (agent_team services, OTT gateway, OPA, audit logs, tier enforcement) is production-ready. A chat command router + cleanup fixes it.
 
@@ -160,7 +160,7 @@ Build the **Chat-First Governance Loop** as a thin LLM Function Calling facade (
 ### 4.3 ROI Calculation
 
 - **Investment**: ~$22,000 (one-time) + $840/yr (incremental infra)
-- **Comparison**: Option C (OpenClaw rebuild) would cost $60-90K over 12-18 sprints
+- **Comparison**: Option C (MTS-OpenClaw rebuild) would cost $60-90K over 12-18 sprints
 - **Savings vs Option C**: $38-68K saved + 7-13 sprints saved
 - **CEO Time Recovery**: 3-7 hrs/week × 52 weeks × $200/hr = $31,200-72,800/yr
 - **Codebase Maintenance Savings**: -18.3K LOC × estimated $2/LOC/yr = ~$36,600/yr reduced maintenance

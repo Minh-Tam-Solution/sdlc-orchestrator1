@@ -27,7 +27,7 @@ Sprint 191 delivers the **Unified Command Registry** — a shared command defini
 **CEO Direction**: "CLI and OTT share the same commands. No feature parity drift."
 
 **Design References**:
-- **OpenClaw** (`/home/nqh/shared/openclaw`): 56 skills, declarative SKILL.md registration, `commands-registry.data.ts`, 7-channel abstraction, per-channel command name overrides
+- **MTS-OpenClaw** (`/home/nqh/shared/MTS-OpenClaw`): 56 skills, declarative SKILL.md registration, `commands-registry.data.ts`, 7-channel abstraction, per-channel command name overrides
 - **TinySDLC** (`/home/nqh/shared/tinysdlc`): In-chat regex commands, @mention routing, plugin-based channel architecture
 
 ---
@@ -56,7 +56,7 @@ Sprint 191 delivers the **Unified Command Registry** — a shared command defini
 
 **New File**: `backend/app/services/agent_team/command_registry.py` (~200 LOC)
 
-**Design** (OpenClaw-inspired):
+**Design** (MTS-OpenClaw-inspired):
 ```python
 # Declarative command definitions — single source of truth
 GOVERNANCE_COMMANDS = [

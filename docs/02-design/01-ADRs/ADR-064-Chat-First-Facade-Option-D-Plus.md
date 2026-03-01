@@ -51,8 +51,8 @@ The CEO currently manually oversees CEO/CPO/CTO roles across multiple repos (Bfl
 | Option | Description | Cost | Timeline | Expert Vote |
 |--------|-------------|------|----------|-------------|
 | **A** | Continue incrementally | $0 | Ongoing | 0/7 |
-| **B** | Full rewrite on OpenClaw | $60-90K | 12-18 sprints | 0/7 |
-| **C** | OpenClaw-First rebuild | $60-90K | 12-18 sprints | 3.5/7 (initial) |
+| **B** | Full rewrite on MTS-OpenClaw | $60-90K | 12-18 sprints | 0/7 |
+| **C** | MTS-OpenClaw-First rebuild | $60-90K | 12-18 sprints | 3.5/7 (initial) |
 | **D+ (CHOSEN)** | Chat-First Facade + Cleanup | ~$24K | 5 sprints | **7/7 (final)** |
 
 ### 1.4 What Already Exists (Re-Audit)
