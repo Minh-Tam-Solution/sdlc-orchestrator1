@@ -246,15 +246,30 @@ async def validation_exception_handler(request, exc):
     """
     Custom handler for Pydantic validation errors (422).
     Logs detailed error information for debugging.
+
+    Sprint 213: Sanitize Pydantic v2 error dicts — ctx.error contains raw
+    ValueError/TypeError objects that are not JSON-serializable. Convert to
+    string to prevent TypeError crash in JSONResponse serialization.
     """
     logger.error(f"Validation error on {request.method} {request.url}")
     logger.error(f"Errors: {exc.errors()}")
     logger.error(f"Body: {exc.body}")
-    
+
+    # Sanitize errors: Pydantic v2 ctx.error can contain non-serializable objects
+    sanitized_errors = []
+    for err in exc.errors():
+        clean = dict(err)
+        if "ctx" in clean and isinstance(clean["ctx"], dict):
+            clean["ctx"] = {
+                k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
+                for k, v in clean["ctx"].items()
+            }
+        sanitized_errors.append(clean)
+
     return JSONResponse(
         status_code=422,
         content={
-            "detail": exc.errors(),
+            "detail": sanitized_errors,
             "body": str(exc.body) if exc.body else None,
         }
     )

@@ -1,6 +1,6 @@
 """
 =========================================================================
-Rate Limiting Middleware - Redis-Based
+Rate Limiting Middleware - Redis-Based (Pure ASGI)
 SDLC Orchestrator - Week 5 Day 1 (P1 Features)
 
 Purpose:
@@ -13,18 +13,24 @@ Requirements:
 - 100 req/min per authenticated user
 - 1000 req/hour per IP address
 - Graceful degradation (fail-open if Redis unavailable)
+
+Architecture:
+- Pure ASGI (NOT BaseHTTPMiddleware) — avoids FastAPI 0.100+ hang bug
+  (Starlette BaseHTTPMiddleware event loop conflict on unhandled exceptions;
+  see CLAUDE.md Module 1 Debugging section)
+- Sprint 213: Converted from BaseHTTPMiddleware to pure ASGI to prevent
+  indefinite request hangs when downstream route handlers raise exceptions
 =========================================================================
 """
 
+import json
 import logging
 import time
-from typing import Callable, Optional
+from typing import Optional
+from uuid import UUID
 
-from fastapi import Request, status
-from fastapi.responses import JSONResponse
 from jose import JWTError
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.security import decode_token
 from app.utils.redis import get_redis_client
@@ -38,9 +44,9 @@ USER_WINDOW = 60  # seconds
 IP_WINDOW = 3600  # seconds (1 hour)
 
 
-class RateLimiterMiddleware(BaseHTTPMiddleware):
+class RateLimiterMiddleware:
     """
-    Rate limiting middleware using Redis sliding window.
+    Pure ASGI rate limiting middleware using Redis sliding window.
 
     Algorithm:
     1. Check user rate limit (if authenticated): 100 req/min
@@ -52,96 +58,111 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         app.add_middleware(RateLimiterMiddleware)
     """
 
-    def __init__(self, app: ASGIApp):
-        super().__init__(app)
-        self.redis_available = True
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        request = Request(scope, receive)
+        path: str = scope.get("path", "")
 
         # Skip rate limiting for health checks
-        if request.url.path in ["/health", "/health/ready", "/"]:
+        if path in ("/health", "/health/ready", "/"):
             await self.app(scope, receive, send)
             return
 
+        # Rate limit check (fail-open: any exception → allow request)
+        # IMPORTANT: Do NOT wrap self.app() in this try/except — if the downstream
+        # app raises an exception, it must propagate cleanly. Catching it and
+        # re-calling self.app() corrupts ASGI state (response already started).
+        rate_limited = False
+        limit_type = ""
         try:
-            # Get rate limit identifiers
-            user_id = self._get_user_id(request)
-            ip_address = self._get_ip_address(request)
+            user_id = self._get_user_id(scope)
+            ip_address = self._get_ip_address(scope)
 
-            # Check user rate limit (if authenticated)
             if user_id:
                 if await self._check_rate_limit(
                     identifier=f"user:{user_id}",
                     limit=USER_RATE_LIMIT,
                     window=USER_WINDOW,
                 ):
-                    await self._rate_limit_response(send, "user")
-                    return
+                    rate_limited = True
+                    limit_type = "user"
 
-            # Check IP rate limit
-            if await self._check_rate_limit(
-                identifier=f"ip:{ip_address}",
-                limit=IP_RATE_LIMIT,
-                window=IP_WINDOW,
-            ):
-                await self._rate_limit_response(send, "ip")
-                return
-
-            # Rate limit passed, continue request
-            await self.app(scope, receive, send)
-
+            if not rate_limited:
+                if await self._check_rate_limit(
+                    identifier=f"ip:{ip_address}",
+                    limit=IP_RATE_LIMIT,
+                    window=IP_WINDOW,
+                ):
+                    rate_limited = True
+                    limit_type = "ip"
         except Exception as e:
             # Fail-open: if Redis unavailable, allow request (log warning)
             logger.warning(f"Rate limit check failed (allowing request): {e}")
-            self.redis_available = False
-            await self.app(scope, receive, send)
 
-    def _get_user_id(self, request: Request) -> Optional[str]:
+        if rate_limited:
+            await self._send_rate_limit_response(scope, receive, send, limit_type)
+            return
+
+        # Rate limit passed — forward to downstream app
+        # Exceptions from downstream MUST propagate (not caught here)
+        await self.app(scope, receive, send)
+
+    def _get_user_id(self, scope: Scope) -> Optional[str]:
         """
-        Extract user ID from JWT token (header or cookie).
+        Extract user ID from JWT token in Authorization header or cookie.
 
         Sprint 105: Support both Authorization header and httpOnly cookies.
 
         Args:
-            request: FastAPI request object
+            scope: ASGI connection scope
 
         Returns:
             User ID string or None if not authenticated
         """
+        headers: dict[bytes, bytes] = dict(scope.get("headers", []))
         token = None
 
-        # Priority 1: Check httpOnly cookie (Sprint 63 preferred method)
-        from app.core.cookies import ACCESS_TOKEN_COOKIE_NAME
-        cookie_token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
-        if cookie_token:
-            token = cookie_token
+        # Priority 1: Check httpOnly cookie
+        try:
+            from app.core.cookies import ACCESS_TOKEN_COOKIE_NAME
+            raw_cookie: bytes = headers.get(b"cookie", b"")
+            cookie_str = raw_cookie.decode("utf-8", errors="replace")
+            if cookie_str:
+                for part in cookie_str.split(";"):
+                    part = part.strip()
+                    if part.startswith(f"{ACCESS_TOKEN_COOKIE_NAME}="):
+                        token = part[len(ACCESS_TOKEN_COOKIE_NAME) + 1:]
+                        break
+        except Exception:
+            pass
 
         # Priority 2: Check Authorization header for JWT token
         if not token:
-            auth_header = request.headers.get("Authorization")
-            if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.split(" ")[1]
+            raw_auth: bytes = headers.get(b"authorization", b"")
+            auth_str: str = raw_auth.decode("utf-8", errors="replace").strip()
+            if auth_str.lower().startswith("bearer "):
+                token = auth_str[7:].strip()
 
         if token:
             try:
                 # Decode JWT token to extract user_id
                 payload = decode_token(token)
-                
+
                 # Extract user ID from token (sub claim)
                 user_id = payload.get("sub")
                 token_type = payload.get("type")
-                
+
                 # Only use access tokens for rate limiting
                 if user_id and token_type == "access":
                     return str(user_id)
-                    
+
             except JWTError:
-                # Invalid or expired token - treat as unauthenticated (will use IP rate limiting)
+                # Invalid or expired token - treat as unauthenticated
                 logger.debug("Invalid JWT token in rate limiter (treating as unauthenticated)")
                 return None
             except Exception as e:
@@ -151,32 +172,36 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
 
         return None
 
-    def _get_ip_address(self, request: Request) -> str:
+    def _get_ip_address(self, scope: Scope) -> str:
         """
-        Extract client IP address from request.
+        Extract client IP address from ASGI scope.
 
         Handles proxies/load balancers (X-Forwarded-For header).
 
         Args:
-            request: FastAPI request object
+            scope: ASGI connection scope
 
         Returns:
             IP address string
         """
+        headers: dict[bytes, bytes] = dict(scope.get("headers", []))
+
         # Check X-Forwarded-For header (from proxies/load balancers)
-        forwarded_for = request.headers.get("X-Forwarded-For")
+        forwarded_for = headers.get(b"x-forwarded-for", b"").decode("utf-8", errors="replace")
         if forwarded_for:
             # Take first IP (original client)
             return forwarded_for.split(",")[0].strip()
 
         # Check X-Real-IP header (from nginx)
-        real_ip = request.headers.get("X-Real-IP")
+        real_ip = headers.get(b"x-real-ip", b"").decode("utf-8", errors="replace")
         if real_ip:
             return real_ip.strip()
 
-        # Fallback to direct client IP
-        client_host = request.client.host if request.client else "unknown"
-        return client_host
+        # Fallback to direct client IP from ASGI scope
+        client = scope.get("client")
+        if client:
+            return client[0]  # (host, port) tuple
+        return "unknown"
 
     async def _check_rate_limit(
         self, identifier: str, limit: int, window: int
@@ -236,22 +261,35 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             logger.warning(f"Rate limit check failed (Redis error): {e}")
             return False
 
-    async def _rate_limit_response(self, send: Callable, limit_type: str):
+    async def _send_rate_limit_response(
+        self, scope: Scope, receive: Receive, send: Send, limit_type: str
+    ) -> None:
         """
-        Send 429 Too Many Requests response.
+        Send 429 Too Many Requests response via raw ASGI protocol.
 
         Args:
+            scope: ASGI scope
+            receive: ASGI receive callable
             send: ASGI send callable
             limit_type: Type of rate limit ("user" or "ip")
         """
-        response = JSONResponse(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            content={
-                "error": "rate_limit_exceeded",
-                "message": f"{limit_type.title()} rate limit exceeded",
-                "retry_after": USER_WINDOW if limit_type == "user" else IP_WINDOW,
-            },
-        )
+        retry_after = USER_WINDOW if limit_type == "user" else IP_WINDOW
+        body = json.dumps({
+            "error": "rate_limit_exceeded",
+            "message": f"{limit_type.title()} rate limit exceeded",
+            "retry_after": retry_after,
+        }).encode("utf-8")
 
-        await response(scope=None, receive=None, send=send)
-
+        await send({
+            "type": "http.response.start",
+            "status": 429,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+                (b"retry-after", str(retry_after).encode()),
+            ],
+        })
+        await send({
+            "type": "http.response.body",
+            "body": body,
+        })

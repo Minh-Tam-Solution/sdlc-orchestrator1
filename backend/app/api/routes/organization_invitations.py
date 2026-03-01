@@ -13,7 +13,12 @@ Security Features:
 
 Reference: ADR-047-Organization-Invitation-System.md
 Sprint: 146
+Sprint 213: Fixed sync/async Session mismatch — routes now use sync Session
+  via get_sync_db() + def handlers (FastAPI threadpool execution).
+  Previously used async def + get_db() (AsyncSession) but service layer
+  calls db.query() which is a synchronous ORM method, causing 500 errors.
 """
+import logging
 from typing import Optional
 from uuid import UUID
 
@@ -21,7 +26,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
-from app.db.session import get_db
+from app.db.session import get_sync_db
 from app.models.user import User
 from app.models.organization import Organization, UserOrganization
 from app.models.organization_invitation import OrganizationInvitation
@@ -35,6 +40,8 @@ from app.schemas.organization_invitation import (
 )
 from app.services import organization_invitation_service
 from app.services.email_service import send_invitation_email
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["organization-invitations"])
 
@@ -69,12 +76,12 @@ router = APIRouter(tags=["organization-invitations"])
     - 429: Rate limit exceeded
     """,
 )
-async def send_invitation(
+def send_invitation(
     organization_id: UUID,
     data: OrgInvitationCreate,
     request: Request,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> OrgInvitationResponse:
     """
     Send organization invitation with secure token.
@@ -84,7 +91,7 @@ async def send_invitation(
         data: Invitation creation data
         request: FastAPI request (for IP/user agent)
         current_user: Authenticated user sending invitation
-        db: Database session
+        db: Database session (sync — service layer uses db.query())
 
     Returns:
         OrgInvitationResponse with invitation_id, email, status, expires_at
@@ -103,19 +110,18 @@ async def send_invitation(
         user_agent=user_agent,
     )
 
-    # Send invitation email (async)
+    # Send invitation email
     try:
         send_invitation_email(
             to_email=response.invited_email,
             invitation_token=raw_token,
-            team_name=response.organization_name,  # Reuse team_name parameter for org
+            team_name=response.organization_name,
             inviter_name=response.invited_by["display_name"],
             expires_at=response.expires_at,
             message=data.message,
         )
     except Exception as e:
-        import logging
-        logging.error(f"Failed to send organization invitation email: {str(e)}")
+        logger.error(f"Failed to send organization invitation email: {str(e)}")
 
     return response
 
@@ -136,10 +142,10 @@ async def send_invitation(
     - Organization owner/admin only
     """,
 )
-async def resend_invitation(
+def resend_invitation(
     invitation_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> OrgInvitationResent:
     """
     Resend organization invitation email with new token.
@@ -195,8 +201,7 @@ async def resend_invitation(
             message=None,
         )
     except Exception as e:
-        import logging
-        logging.error(f"Failed to resend organization invitation email: {str(e)}")
+        logger.error(f"Failed to resend organization invitation email: {str(e)}")
 
     return response
 
@@ -217,9 +222,9 @@ async def resend_invitation(
     - Constant-time token verification (prevents timing attacks)
     """,
 )
-async def get_invitation_by_token(
+def get_invitation_by_token(
     token: str,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> OrgInvitationDetails:
     """
     Get organization invitation details by token (public endpoint).
@@ -240,10 +245,10 @@ async def get_invitation_by_token(
     - One-time use (status change prevents replay)
     """,
 )
-async def accept_invitation(
+def accept_invitation(
     token: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> OrgInvitationAccepted:
     """
     Accept organization invitation and create membership.
@@ -268,9 +273,9 @@ async def accept_invitation(
     - One-time use (status change prevents replay)
     """,
 )
-async def decline_invitation(
+def decline_invitation(
     token: str,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> OrgInvitationDeclined:
     """
     Decline organization invitation (polite rejection).
@@ -293,7 +298,7 @@ async def decline_invitation(
     - Organization owner/admin only
 
     **Filters** (query params):
-    - status: Filter by status (pending, accepted, declined, expired, cancelled)
+    - invitation_status: Filter by status (pending, accepted, declined, expired, cancelled)
     - email: Filter by invited email
 
     **Pagination**:
@@ -301,14 +306,14 @@ async def decline_invitation(
     - offset: Skip N results (default: 0)
     """,
 )
-async def list_org_invitations(
+def list_org_invitations(
     organization_id: UUID,
-    status: Optional[str] = None,
+    invitation_status: Optional[str] = None,
     email: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> list[OrgInvitationResponse]:
     """
     List organization invitations with optional filters.
@@ -329,7 +334,7 @@ async def list_org_invitations(
     return organization_invitation_service.list_org_invitations(
         organization_id=organization_id,
         db=db,
-        status_filter=status,
+        status_filter=invitation_status,
         email_filter=email,
         limit=limit,
         offset=offset
@@ -351,10 +356,10 @@ async def list_org_invitations(
     - Invitation token invalidated
     """,
 )
-async def cancel_invitation(
+def cancel_invitation(
     invitation_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_sync_db),
 ) -> None:
     """
     Cancel pending organization invitation (admin action).
