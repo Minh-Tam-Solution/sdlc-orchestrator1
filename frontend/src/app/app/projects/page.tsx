@@ -806,7 +806,7 @@ export default function ProjectsPage() {
         onConfirm={() => {
           if (deleteProjectId) {
             deleteProject.mutate(deleteProjectId, {
-              onSuccess: () => setDeleteProjectId(null),
+              onSettled: () => setDeleteProjectId(null),
             });
           }
         }}

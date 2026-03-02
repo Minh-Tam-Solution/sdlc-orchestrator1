@@ -114,7 +114,12 @@ async function apiRequest<T>(
       throw error;
     }
 
-    return response.json();
+    // Handle empty responses (e.g. 204 No Content from DELETE endpoints)
+    const text = await response.text();
+    if (!text) {
+      return undefined as T;
+    }
+    return JSON.parse(text) as T;
   } catch (err) {
     clearTimeout(timeoutId);
     const elapsed = Date.now() - startTime;

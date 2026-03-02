@@ -182,7 +182,9 @@ class CacheService:
         """
         try:
             redis = await get_redis_client()
-            full_pattern = f"{CACHE_PREFIX}{pattern}"
+            # _make_key joins [CACHE_PREFIX, prefix, ...] with ":", producing
+            # "sdlc:cache::projects:list:..." (double colon). Match that here.
+            full_pattern = f"{CACHE_PREFIX}:{pattern}"
             keys = []
 
             # Use SCAN for large keyspaces (non-blocking)
