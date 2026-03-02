@@ -246,6 +246,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Middleware Stack (Sprint 213 Update) ---
+# IMPORTANT: All custom middleware MUST use pure ASGI pattern.
+# BaseHTTPMiddleware causes indefinite request hangs on exceptions
+# in FastAPI 0.100+ (Starlette event loop conflict).
+#
+# Middleware order (LIFO — last added = first executed):
+#   1. ConversationFirstGuard  (pure ASGI - admin-only write paths)
+#   2. UsageLimitsMiddleware   (pure ASGI - per-resource limits)
+#   3. TierGateMiddleware      (pure ASGI - tier enforcement)
+#   4. CacheHeadersMiddleware  (pure ASGI - cache-control headers)
+#   5. GZipMiddleware          (Starlette built-in)
+#   6. CORSMiddleware          (Starlette built-in)
+#   7. PrometheusMetricsMiddleware (pure ASGI - request metrics)
+#   8. RateLimiterMiddleware   (pure ASGI - IP/user rate limits)
+#   9. SecurityHeadersMiddleware (pure ASGI - CSP, HSTS, etc.)
+#
+# Pattern for custom middleware:
+#   class MyMiddleware:
+#       def __init__(self, app: ASGIApp): self.app = app
+#       async def __call__(self, scope, receive, send):
+#           async def send_wrapper(message):
+#               if message["type"] == "http.response.start":
+#                   # modify headers here
+#               await send(message)
+#           await self.app(scope, receive, send_wrapper)
+#
+# BANNED: class MyMiddleware(BaseHTTPMiddleware)  ← causes hangs
+
 # Routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(projects_router, prefix="/api/v1/projects", tags=["projects"])
@@ -257,6 +285,28 @@ app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"])
 # GraphQL
 from strawberry.fastapi import GraphQLRouter
 app.include_router(GraphQLRouter(schema), prefix="/graphql")
+```
+
+**Database Session Pattern** (Sprint 213 Errata):
+
+Routes MUST match the session type used by their service layer:
+
+| Service method style | Route handler | Dependency |
+|---------------------|--------------|------------|
+| `db.execute()` (async) | `async def` | `get_db()` → `AsyncSession` |
+| `db.query()` (sync ORM) | `def` (threadpool) | `get_sync_db()` → `Session` |
+
+Mixing causes `AttributeError` at runtime (e.g., `AsyncSession has no attribute 'query'`).
+FastAPI runs sync `def` handlers in a threadpool automatically.
+
+```python
+# CORRECT: async service → async route
+async def list_projects(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Project))
+
+# CORRECT: sync service → sync route (FastAPI threadpool)
+def send_invitation(db: Session = Depends(get_sync_db)):
+    invitation = invitation_service.create(db, data)  # uses db.query()
 ```
 
 **2. Gate Engine Service**:

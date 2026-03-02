@@ -556,56 +556,81 @@ export const useUIStore = create<UIStore>()(
 
 ## 5. API Integration
 
-### Axios Instance Configuration
+### apiRequest — Central HTTP Client
+
+The frontend uses a custom `fetch`-based HTTP client (`apiRequest` in `lib/api.ts`),
+not Axios. This function is **module-private** — page components consume exported
+wrapper functions (e.g., `getProjects`, `deleteProject`, `createGate`).
 
 ```typescript
-// lib/api.ts
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { useAuthStore } from "@/stores/authStore";
+// lib/api.ts (module-private, not exported)
+async function apiRequest<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  timeout: number = 10000,
+  isRetry: boolean = false
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+  // ... auth header injection from localStorage ...
+  // ... AbortController timeout ...
 
-export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1",
-  timeout: 30000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+  const response = await fetch(url, { ...options, credentials: "include" });
 
-// Request interceptor (add auth token)
-api.interceptors.request.use(
-  (config) => {
-    const token = useAuthStore.getState().token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor (handle errors)
-api.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    // Handle 401 Unauthorized (token expired)
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = "/login";
-    }
-
-    // Handle 403 Forbidden
-    if (error.response?.status === 403) {
-      console.error("Permission denied");
-    }
-
-    // Handle 429 Rate Limit
-    if (error.response?.status === 429) {
-      console.error("Rate limit exceeded");
-    }
-
-    return Promise.reject(error);
+  // Auto-refresh on 401 (single retry)
+  if (response.status === 401 && !isRetry) {
+    // attempt refresh, then retry original request
   }
-);
+
+  if (!response.ok) {
+    throw { detail: errorData.detail, status: response.status } as APIError;
+  }
+
+  // IMPORTANT: Handle empty responses (204 No Content from DELETE endpoints)
+  // response.json() crashes on empty body — use text() + JSON.parse()
+  const text = await response.text();
+  if (!text) return undefined as T;
+  return JSON.parse(text) as T;
+}
+
+// Exported wrapper functions (one per API operation)
+export async function deleteProject(projectId: string): Promise<void> {
+  return apiRequest<void>(`/projects/${projectId}`, { method: "DELETE" });
+}
+```
+
+### Design Rules (Sprint 213 Lessons)
+
+| Rule | Rationale |
+|------|-----------|
+| **Always use `response.text()` + `JSON.parse()`**, never `response.json()` | DELETE endpoints return 204 No Content (empty body). `response.json()` throws SyntaxError on empty body, causing TanStack Query mutations to fail silently. |
+| **Use `onSettled` (not `onSuccess`) for modal close** | `onSettled` fires on both success AND error. If the API call fails for any reason, the modal still closes instead of trapping the user. |
+| **TanStack Query invalidation must match key factory** | `queryClient.invalidateQueries({ queryKey: projectKeys.all })` must use the same key prefix as the query hook. Mismatched keys = stale UI after mutations. |
+
+### TanStack Query Hook Pattern
+
+```typescript
+// hooks/useProjects.ts
+export const projectKeys = {
+  all: ["projects"] as const,
+  lists: () => [...projectKeys.all, "list"] as const,
+  list: (opts?) => [...projectKeys.lists(), opts] as const,
+  detail: (id: string) => [...projectKeys.all, "detail", id] as const,
+};
+
+export function useDeleteProject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (projectId: string) => deleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.all });
+    },
+  });
+}
+
+// In page component — use onSettled for UI cleanup:
+deleteProject.mutate(id, {
+  onSettled: () => setModalOpen(false),  // always close modal
+});
 ```
 
 ---

@@ -780,4 +780,49 @@ async def startup_cache_warming():
 
 ---
 
-*"Cache aggressively, invalidate wisely"* 🚀
+*"Cache aggressively, invalidate wisely"*
+
+---
+
+## Errata: Sprint 213 — Cache Key Pattern Mismatch (March 2026)
+
+### Bug
+
+`CacheService._make_key()` and `invalidate_pattern()` produced **different key formats**, causing cache invalidation to silently fail for all cache layers (projects, gates, evidence, policies).
+
+### Root Cause
+
+```python
+# _make_key joins list elements with ":"
+CACHE_PREFIX = "sdlc:cache:"   # ends with ":"
+key_parts = [CACHE_PREFIX, prefix]  # ["sdlc:cache:", "projects:list"]
+":".join(key_parts)  # → "sdlc:cache::projects:list"  (DOUBLE COLON)
+
+# invalidate_pattern uses f-string concatenation
+full_pattern = f"{CACHE_PREFIX}{pattern}"  # → "sdlc:cache:projects:*"  (SINGLE COLON)
+# ↑ NEVER matches the double-colon keys → cache never invalidated
+```
+
+### Impact
+
+- Project list returned stale data after create/update/delete operations
+- Cache only expired via 60-second TTL, not via explicit invalidation
+- All `invalidate_*_cache()` functions were silently no-ops
+
+### Fix
+
+Changed `invalidate_pattern()` to use the same join pattern as `_make_key()`:
+
+```python
+# BEFORE (broken):
+full_pattern = f"{CACHE_PREFIX}{pattern}"
+
+# AFTER (fixed):
+full_pattern = f"{CACHE_PREFIX}:{pattern}"
+```
+
+### Design Lesson
+
+**Key construction and invalidation MUST share the same code path.** When a prefix already contains a delimiter, joining with that same delimiter produces double-delimiters. Either:
+- Strip trailing delimiters from the prefix, OR
+- Use a single `build_pattern()` helper for both set and invalidation
