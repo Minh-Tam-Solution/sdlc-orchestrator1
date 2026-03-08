@@ -2225,3 +2225,83 @@ async def trigger_evidence_purge(
     result["message"] = "Evidence purge completed"
 
     return result
+
+
+# ============================================================================
+# DB Migration Endpoint (superuser only)
+# ============================================================================
+
+@router.post(
+    "/admin/migrate",
+    summary="Run Alembic DB migrations (superuser only)",
+    tags=["Admin"],
+)
+async def run_db_migrations(
+    request: Request,
+    admin: User = Depends(require_superuser),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Run `alembic upgrade head` to apply all pending DB migrations.
+    Idempotent — safe to call multiple times.
+    Requires superuser role.
+    """
+    import subprocess
+    import time
+
+    start = time.time()
+    try:
+        # Get current revision before
+        rev_before = subprocess.run(
+            ["alembic", "current"], capture_output=True, text=True, timeout=30
+        )
+        current_rev = rev_before.stdout.strip()
+
+        # Run upgrade
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True, text=True, timeout=120,
+        )
+        elapsed = round(time.time() - start, 2)
+
+        # Get revision after
+        rev_after = subprocess.run(
+            ["alembic", "current"], capture_output=True, text=True, timeout=30
+        )
+        new_rev = rev_after.stdout.strip()
+
+        success = result.returncode == 0
+        audit_service = get_audit_service(db)
+        await audit_service.log(
+            action="DB_MIGRATION_RUN",
+            user_id=admin.id,
+            resource_type="system",
+            resource_id=None,
+            details={
+                "triggered_by": admin.email,
+                "success": success,
+                "revision_before": current_rev,
+                "revision_after": new_rev,
+                "elapsed_s": elapsed,
+                "stdout": result.stdout[-500:] if result.stdout else "",
+                "stderr": result.stderr[-500:] if result.stderr else "",
+            },
+            request=request,
+        )
+
+        return {
+            "success": success,
+            "triggered_by": admin.email,
+            "revision_before": current_rev,
+            "revision_after": new_rev,
+            "elapsed_s": elapsed,
+            "stdout": result.stdout[-1000:] if result.stdout else "",
+            "stderr": result.stderr[-500:] if result.stderr else "",
+            "message": "Migrations applied successfully" if success else "Migration failed — see stderr",
+        }
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="alembic upgrade timed out (>120s)")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Migration error: {str(e)}")
+    return result

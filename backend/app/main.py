@@ -94,6 +94,21 @@ async def lifespan(app: FastAPI):
     print(f"🚪 Gates endpoints: http://{api_host}:{api_port}/api/v1/gates")
     # Sprint 190: SOP Generator banner removed (route deleted)
 
+    # Run Alembic migrations on startup (idempotent — safe to run every restart)
+    # Ensures production DB is always at head revision without manual SSH access
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["alembic", "upgrade", "head"],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode == 0:
+            print(f"✅ DB migrations applied (alembic upgrade head)")
+        else:
+            print(f"⚠️  DB migration warning: {result.stderr[:200]}")
+    except Exception as e:
+        print(f"⚠️  DB migration skipped: {e}")
+
     startup_errors = []
 
     # Initialize Redis connection (Week 5 Day 1 - P1 Features)
