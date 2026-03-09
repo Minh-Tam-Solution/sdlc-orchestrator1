@@ -47,13 +47,15 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 
 
 class SDLCRole(str, Enum):
-    """SDLC role templates per SDLC 6.1.0 Enterprise tier (12 roles, 3 types).
+    """SDLC role templates per SDLC 6.1.2 (17 roles, 4 types).
 
-    SE4A (8): Autonomous AI agents in Agent Execution Environment (AEE).
+    SE4A (9): Autonomous AI agents in Agent Execution Environment (AEE).
     SE4H (3): Agent Coaches — humans with AI advisory support (ACE).
+    Support (4): Optional support roles — NOT auto-seeded, read-only advisory tools.
     Router (1): Guides users to correct agent/workflow.
 
     Reference: ADR-056 §12.5 SASE Role Classification (arXiv:2509.06216v2)
+    Updated: Sprint 225 — Framework 6.1.2 alignment (+5 roles)
     """
 
     # SE4A — autonomous AI agents (AEE: Agent Execution Environment)
@@ -65,17 +67,29 @@ class SDLCRole(str, Enum):
     REVIEWER = "reviewer"
     TESTER = "tester"
     DEVOPS = "devops"
+    FULLSTACK = "fullstack"  # Sprint 225: Framework 6.1.2 alignment
     # SE4H — Agent Coaches: human + AI advisory support (ACE: Agent Command Environment)
     CEO = "ceo"
     CPO = "cpo"
     CTO = "cto"
+    # Support — optional roles (Sprint 225: NOT auto-seeded, require explicit creation)
+    WRITER = "writer"
+    SALES = "sales"
+    CS = "cs"
+    ITADMIN = "itadmin"
     # Router — guides users to correct agent/workflow
     ASSISTANT = "assistant"
 
 
 SE4H_ROLES: frozenset[SDLCRole] = frozenset({SDLCRole.CEO, SDLCRole.CPO, SDLCRole.CTO})
 ROUTER_ROLES: frozenset[SDLCRole] = frozenset({SDLCRole.ASSISTANT})
-SE4A_ROLES: frozenset[SDLCRole] = frozenset(set(SDLCRole) - SE4H_ROLES - ROUTER_ROLES)
+# Sprint 225 (CTO B3): SUPPORT_ROLES excluded from SE4A to prevent full executor permissions
+SUPPORT_ROLES: frozenset[SDLCRole] = frozenset({
+    SDLCRole.WRITER, SDLCRole.SALES, SDLCRole.CS, SDLCRole.ITADMIN,
+})
+SE4A_ROLES: frozenset[SDLCRole] = frozenset(
+    set(SDLCRole) - SE4H_ROLES - ROUTER_ROLES - SUPPORT_ROLES
+)
 
 
 class QueueMode(str, Enum):

@@ -195,7 +195,7 @@ class Settings(BaseSettings):
     # ADR-007: Cost optimization - $50/month vs $1,000/month cloud APIs
     # EP-06: Company GPU server for Mode B (Native OSS Codegen)
     # Ollama AI Service (set via OLLAMA_URL env var)
-    OLLAMA_URL: str = ""  # Must be set via environment variable
+    OLLAMA_URL: str = "http://localhost:11434"  # Local Ollama (same server)
     OLLAMA_MODEL: str = "qwen3:14b"  # Model Strategy v3.0 - Vietnamese excellent
     OLLAMA_TIMEOUT: int = 30
     
@@ -206,7 +206,7 @@ class Settings(BaseSettings):
     # Docs: /home/nqh/shared/models/core/docs/admin/MODEL_LINEUP_STRATEGY.md
     #
     # NOTE: Set via CODEGEN_OLLAMA_URL env var based on deployment environment
-    CODEGEN_OLLAMA_URL: str = ""  # Must be set via environment variable
+    CODEGEN_OLLAMA_URL: str = "http://localhost:11434"  # Local Ollama (same server)
     CODEGEN_MODEL_PRIMARY: str = "qwen3-coder:30b"  # NEW: 1.8x faster (14.5s vs 26.7s), 256K context, 18GB
     CODEGEN_MODEL_FAST: str = "qwen3:8b"  # Fast draft (<3s)
     CODEGEN_MODEL_VIETNAMESE: str = "qwen3:14b"  # Excellent Vietnamese support
@@ -258,6 +258,11 @@ class Settings(BaseSettings):
 
     # Break-Glass Approve (Sprint 192 — feature-flagged, default OFF)
     BREAK_GLASS_WEB_ENABLED: bool = False
+
+    # Framework Submodule Path (Sprint 225 — SOUL Template Integration)
+    # Relative to repository root. Used by SOULLoaderService and TeamCharterLoader
+    # to find SOUL/TEAM templates in the Framework submodule.
+    FRAMEWORK_SUBMODULE_PATH: str = "SDLC-Enterprise-Framework"
 
     @property
     def allowed_origins_list(self) -> list[str]:

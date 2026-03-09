@@ -147,19 +147,65 @@ async def create_agent_definition(
 async def seed_agent_definitions(
     project_id: UUID,
     team_id: Optional[UUID] = None,
+    tier: Optional[str] = Query(
+        None,
+        description="Policy pack tier: LITE, STANDARD, PROFESSIONAL, ENTERPRISE. "
+        "None = seeds all 12 core roles (backward-compatible).",
+    ),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[AgentDefinitionResponse]:
-    """Seed 12 default agent definitions (Sprint 194 GAP-01)."""
+    """Seed default agent definitions with SOUL templates (Sprint 225)."""
     from app.services.agent_team.agent_seed_service import AgentSeedService
 
-    logger.info("Seeding agent definitions for project=%s, user=%s", project_id, current_user.id)
+    logger.info(
+        "Seeding agent definitions for project=%s, tier=%s, user=%s",
+        project_id, tier, current_user.id,
+    )
     svc = AgentSeedService(db)
-    created = await svc.seed_project_agents(project_id, team_id=team_id)
+    created = await svc.seed_project_agents(project_id, team_id=team_id, tier=tier)
     await db.commit()
     for d in created:
         await db.refresh(d)
     logger.info("Seeded %d agent definitions for project=%s", len(created), project_id)
+    return [AgentDefinitionResponse.model_validate(d) for d in created]
+
+
+@router.post(
+    "/definitions/reseed",
+    response_model=list[AgentDefinitionResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Re-seed agents with SOUL templates",
+    description="Re-seed agent definitions with SOUL templates for existing projects. "
+    "Skips roles that already have an active definition. "
+    "Use this to upgrade agents from basic prompts to SOUL templates.",
+)
+async def reseed_agent_definitions(
+    project_id: UUID,
+    team_id: Optional[UUID] = None,
+    tier: Optional[str] = Query(
+        None,
+        description="Policy pack tier: LITE, STANDARD, PROFESSIONAL, ENTERPRISE. "
+        "None = seeds all 12 core roles.",
+    ),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[AgentDefinitionResponse]:
+    """Re-seed agents with SOUL templates for existing projects (Sprint 225)."""
+    from app.services.agent_team.agent_seed_service import AgentSeedService
+
+    logger.info(
+        "Re-seeding agent definitions for project=%s, tier=%s, user=%s",
+        project_id, tier, current_user.id,
+    )
+    svc = AgentSeedService(db)
+    created = await svc.seed_project_agents(
+        project_id, team_id=team_id, tier=tier, skip_existing=True,
+    )
+    await db.commit()
+    for d in created:
+        await db.refresh(d)
+    logger.info("Re-seeded %d agent definitions for project=%s", len(created), project_id)
     return [AgentDefinitionResponse.model_validate(d) for d in created]
 
 

@@ -19,10 +19,11 @@ Zero Mock Policy: Pure logic tests, no DB needed
 
 import pytest
 
-from app.schemas.agent_team import SDLCRole, SE4H_ROLES, ROUTER_ROLES, SE4A_ROLES
+from app.schemas.agent_team import SDLCRole, SE4H_ROLES, ROUTER_ROLES, SE4A_ROLES, SUPPORT_ROLES
 from app.services.agent_team.config import (
     ROLE_MODEL_DEFAULTS,
     SE4H_CONSTRAINTS,
+    SUPPORT_CONSTRAINTS,
     get_model_defaults,
     is_se4h_role,
     get_se4h_overrides,
@@ -32,13 +33,13 @@ from app.services.agent_team.config import (
 class TestRoleModelDefaults:
     """Tests for ROLE_MODEL_DEFAULTS configuration."""
 
-    def test_all_12_roles_have_defaults(self):
-        """Every SDLCRole value must have a model default entry."""
+    def test_all_17_roles_have_defaults(self):
+        """Every SDLCRole value must have a model default entry (17 roles in 6.1.2)."""
         for role in SDLCRole:
             assert role.value in ROLE_MODEL_DEFAULTS, (
                 f"Role '{role.value}' missing from ROLE_MODEL_DEFAULTS"
             )
-        assert len(ROLE_MODEL_DEFAULTS) == 12
+        assert len(ROLE_MODEL_DEFAULTS) == 17
 
     def test_each_default_has_provider_and_model(self):
         """Each entry must have 'provider' and 'model' keys."""
@@ -149,11 +150,16 @@ class TestRoleClassification:
         assert len(ROUTER_ROLES) == 1
 
     def test_se4a_roles_count(self):
-        assert len(SE4A_ROLES) == 8
+        """SE4A has 9 roles (8 original + fullstack from Sprint 225)."""
+        assert len(SE4A_ROLES) == 9
+
+    def test_support_roles_count(self):
+        """Support has 4 optional roles (Sprint 225)."""
+        assert len(SUPPORT_ROLES) == 4
 
     def test_all_roles_classified(self):
         """Every role must be in exactly one classification set."""
-        all_classified = SE4H_ROLES | ROUTER_ROLES | SE4A_ROLES
+        all_classified = SE4H_ROLES | ROUTER_ROLES | SE4A_ROLES | SUPPORT_ROLES
         assert all_classified == set(SDLCRole)
 
     def test_no_overlap(self):
@@ -161,3 +167,29 @@ class TestRoleClassification:
         assert len(SE4H_ROLES & ROUTER_ROLES) == 0
         assert len(SE4H_ROLES & SE4A_ROLES) == 0
         assert len(ROUTER_ROLES & SE4A_ROLES) == 0
+        assert len(SUPPORT_ROLES & SE4A_ROLES) == 0
+        assert len(SUPPORT_ROLES & SE4H_ROLES) == 0
+        assert len(SUPPORT_ROLES & ROUTER_ROLES) == 0
+
+    def test_support_roles_not_in_se4a(self):
+        """CTO B3: Support roles must NOT be in SE4A (prevents full executor permissions)."""
+        for role in SUPPORT_ROLES:
+            assert role not in SE4A_ROLES, (
+                f"Support role '{role.value}' must not be in SE4A_ROLES"
+            )
+
+    def test_fullstack_in_se4a(self):
+        """Fullstack is an SE4A executor role."""
+        assert SDLCRole.FULLSTACK in SE4A_ROLES
+
+
+class TestSupportConstraints:
+    """Tests for Support role behavioral constraints (Sprint 225)."""
+
+    def test_support_constraints_readonly(self):
+        assert SUPPORT_CONSTRAINTS["can_spawn_subagent"] is False
+        assert SUPPORT_CONSTRAINTS["max_delegation_depth"] == 0
+
+    def test_support_denied_tools(self):
+        assert "write_file" in SUPPORT_CONSTRAINTS["denied_tools"]
+        assert "execute_command" in SUPPORT_CONSTRAINTS["denied_tools"]

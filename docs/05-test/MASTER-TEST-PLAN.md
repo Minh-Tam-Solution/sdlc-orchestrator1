@@ -2,14 +2,14 @@
 
 ```yaml
 document_type: "Master Test Plan"
-version: "2.3.0"
-date: "2026-03-06"
-framework: "SDLC 6.1.1"
+version: "2.4.0"
+date: "2026-03-09"
+framework: "SDLC 6.1.2"
 status: "ACTIVE"
 author: "@tester"
 reviewer: "@cto (APPROVED 9.5/10 — 2026-03-06)"
 authority: "CTO + QA Lead"
-traceability: "MTP v1.0.0 (Sprint 198 skeleton) → MTP v2.0.0 (Sprint 213 comprehensive) → MTP v2.1.0 (Sprint 221 S218-S221 coverage) → MTP v2.2.0 (Sprint 222 OTT @mention routing) → MTP v2.3.0 (Sprint 223-224 gate content quality + auto-gen quality gates)"
+traceability: "MTP v1.0.0 (Sprint 198 skeleton) → MTP v2.0.0 (Sprint 213 comprehensive) → MTP v2.1.0 (Sprint 221 S218-S221 coverage) → MTP v2.2.0 (Sprint 222 OTT @mention routing) → MTP v2.3.0 (Sprint 223-224 gate content quality + auto-gen quality gates) → MTP v2.4.0 (Sprint 225 SOUL template integration + tier-aware seeding)"
 ```
 
 ---
@@ -35,26 +35,28 @@ This means OTT and CLI test coverage is **P0** — not an afterthought.
     /______________________\
 ```
 
-### Current Metrics (Sprint 224)
+### Current Metrics (Sprint 225)
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
 | Backend route modules | 76 | — | Baselined |
-| API endpoints | 578 | — | +1 (validate-content endpoint, S223) |
+| API endpoints | 579 | — | +1 (reseed endpoint, S225) |
 | CLI command files (sub-commands) | 22 (41+) | — | Baselined |
 | Extension command files (registered IDs) | 17 (13+) | — | Baselined |
-| OTT governance commands | 10 (MAX capacity) | — | Baselined (dispatch-only: +2 handlers, no registry change) |
+| OTT governance commands | 10 (MAX capacity) | — | Baselined |
 | Frontend pages | 40+ | — | Baselined |
-| Total test files | 269+ | — | Baselined (+10 sprint test files S216-S224) |
-| Unit tests (functions) | 3,155+ | 95% coverage | On track |
+| Total test files | 273+ | — | +4 sprint test files S225 (test_soul_loader, test_team_charter_loader, test_agent_seed_service rewrite, test_agent_team_config update) |
+| Unit tests (functions) | 3,245+ | 95% coverage | On track |
 | Integration tests | 993+ | 90% coverage | On track |
 | E2E scenarios | 85+ | 10 critical paths | Exceeds |
-| Sprint cumulative tests (S216-S224) | 326 | — | 36+38+57+61+30+45+21+22+16 |
-| MTP test cases (this document) | ~208 | — | v2.3.0 (+18 new, Sprint 223-224) |
-| Multi-Agent test cases (TP-056) | 121 | — | Cross-referenced |
+| Sprint cumulative tests (S216-S225) | 416 | — | 36+38+57+61+30+45+21+22+16+90 |
+| MTP test cases (this document) | ~208 | — | v2.4.0 (no new MTP test cases — Sprint 225 is infrastructure/backend only) |
+| Multi-Agent test cases (TP-056) | 155 | — | +34 Sprint 225 (SL/TCL/TAS/TC) |
 | New DB tables (S218-S221) | +4 | — | skill_agent_grants, shared_workspace_items, consensus_sessions, consensus_votes |
 | New OPA policies (S223) | +2 | — | tier_artifacts.rego, content_quality.rego |
-| New modules (S223-S224) | +5 | — | gate_artifact_matrix, content_validator, placeholder_detector, content_quality.rego, tier_artifacts.rego |
+| New modules (S225) | +2 | — | soul_loader.py, team_charter_loader.py |
+| Modified modules (S225) | 5 | — | agent_seed_service.py, config.py, agent_team.py (schema), team_orchestrator.py, routes/agent_team.py |
+| SDLCRole enum values | 17 | — | +5 Sprint 225 (fullstack, writer, sales, cs, itadmin) |
 | p95 API latency | 14.0ms | <100ms | PASS |
 | OWASP ASVS L2 | 98.4% | Level 2 (264/264) | ACHIEVED |
 
@@ -1092,6 +1094,7 @@ Planned Documents:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.4.0 | 2026-03-09 | @tester | Sprint 225 SOUL Template Integration: +2 new modules (soul_loader.py, team_charter_loader.py), 5 modified modules, SDLCRole enum 12→17 (+fullstack/writer/sales/cs/itadmin), 4-type taxonomy (SE4A=9/SE4H=3/Support=4/Router=1), tier-aware seeding (LITE=3/STANDARD=6/PRO=10/ENTERPRISE=13), SOUL template loading with max_chars=6000 truncation, ContextInjector wired into TeamOrchestrator, SUPPORT_CONSTRAINTS (CTO B3), 90 Sprint 225 tests (416 cumulative S216-S225), TP-056 updated to 155 test cases (+34 S225) |
 | 2.3.0 | 2026-03-06 | @tester | Sprint 223-224 coverage: +3 features (F-30 Tier-Artifact Matrix, F-31 Content Quality Validation, F-32 Auto-Gen Quality Gates), 32-feature matrix, +18 MTP test cases (~208 total), 326 cumulative sprint tests (S216-S224), +2 OPA policies (tier_artifacts.rego, content_quality.rego), +5 new modules, CTO revisions R1-R4 documented, content quality advisory INVARIANT, cross-project review (EndiorBot S80) traceability |
 | 2.2.0 | 2026-03-05 | @tester | Sprint 222 coverage: F-29 OTT @mention routing, MTP-MENTION-* (12 cases), WF-09 mention workflow, routing precedence documented |
 | 2.1.0 | 2026-03-05 | @tester | Sprint 218-221 coverage: +5 features (F-24 Skills, F-25 Heartbeat, F-26 Workspace, F-27 Feedback, F-28 Consensus), 28-feature matrix, WF-08 consensus workflow, +30 MTP test cases (~175 total), 267 cumulative sprint tests (S216-S221), +4 DB tables, ADR-070 traceability, consensus advisory INVARIANT documented |

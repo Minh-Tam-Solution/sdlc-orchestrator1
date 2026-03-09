@@ -1,8 +1,8 @@
 ---
-sdlc_version: "6.1.1"
+sdlc_version: "6.1.2"
 document_type: "Test Plan"
 status: "PROPOSED"
-sprint: "176-206"
+sprint: "176-225"
 spec_id: "TP-056"
 tier: "PROFESSIONAL"
 stage: "02 - Design"
@@ -10,11 +10,11 @@ stage: "02 - Design"
 
 # Multi-Agent Team Engine — Test Plan
 
-**Status**: PROPOSED (Sprint 176-206, companion to ADR-056 + ADR-058 + ADR-066)
-**Date**: February 2026
+**Status**: PROPOSED (Sprint 176-225, companion to ADR-056 + ADR-058 + ADR-066)
+**Date**: March 2026
 **Author**: CTO Nguyen Quoc Huy
-**Framework**: SDLC 6.1.1 (pytest + pytest-asyncio, 95%+ coverage target)
-**References**: ADR-056 (4 locked decisions + 14 non-negotiables), ADR-058 (ZeroClaw patterns), ADR-066 (LangChain, 6 locked decisions), STM-056 (16 threat surfaces)
+**Framework**: SDLC 6.1.2 (pytest + pytest-asyncio, 95%+ coverage target)
+**References**: ADR-056 (4 locked decisions + 14 non-negotiables, 4-type taxonomy), ADR-058 (ZeroClaw patterns), ADR-066 (LangChain, 6 locked decisions), STM-056 (16 threat surfaces)
 
 ---
 
@@ -38,6 +38,10 @@ stage: "02 - Design"
 | Unit: LangChainTools | 100% | 205 | `test_langchain_tools.py` |
 | Unit: ReflectionGraph | 100% | 206 | `test_reflection_graph.py` |
 | Unit: WorkflowResumer | 100% | 206 | `test_workflow_resumer.py` |
+| Unit: SOULLoader | 100% | 225 | `test_soul_loader.py` |
+| Unit: TeamCharterLoader | 100% | 225 | `test_team_charter_loader.py` |
+| Unit: TierAwareSeeding | 100% | 225 | `test_agent_seed_service.py` (rewrite) |
+| Unit: TeamConfig17Roles | 100% | 225 | `test_agent_team_config.py` (update) |
 
 ---
 
@@ -270,7 +274,79 @@ stage: "02 - Design"
 
 ---
 
-## 14. Verification Commands
+## 14. Unit Tests — SOULLoader (Sprint 225, SOUL Template Integration)
+
+| # | Test Case | Input | Expected | Reference |
+|---|-----------|-------|----------|-----------|
+| SL-01 | Load all 17 SOUL templates | Framework submodule path | 17 SOULTemplate objects with frontmatter | S225-01 |
+| SL-02 | Parse YAML frontmatter | `---\ncategory: SE4A\n---` | Correct category/version/stages | S225-01 |
+| SL-03 | Extract markdown sections | H1 title + H2 sections | SOULSection list with heading/content | S225-01 |
+| SL-04 | get_system_prompt returns priority sections | role="coder" | Identity + Constraints + Communication + Gate Responsibilities | S225-01 |
+| SL-05 | max_chars truncation | max_chars=100 | Truncated output ≤100 chars + WARNING log | S225-01 (CTO B1) |
+| SL-06 | Fallback when SOUL file missing | role="nonexistent" | `None` returned | S225-01 |
+| SL-07 | Cache populated on first access | Two calls to load_all | Second call uses cache (no re-parse) | S225-01 |
+| SL-08 | TIER_ROLES mapping | LITE/STANDARD/PROFESSIONAL/ENTERPRISE | 3/6/10/13 roles respectively | S225-04 |
+| SL-09 | OPTIONAL_ROLES excluded | writer/sales/cs/itadmin | Not in any TIER_ROLES set | S225-04 |
+| SL-10 | get_soul_version returns version | role="coder" | Version string from frontmatter | S225-01 |
+
+---
+
+## 15. Unit Tests — TeamCharterLoader (Sprint 225)
+
+| # | Test Case | Input | Expected | Reference |
+|---|-----------|-------|----------|-----------|
+| TCL-01 | Load all 10 TEAM charters | Framework submodule path | 10 TeamCharter objects | S225-02 |
+| TCL-02 | Parse leader_role | `**@coder** — ...` | leader_role="coder" | S225-02 |
+| TCL-03 | Parse member_roles from table | Markdown table with @role | List of member role strings | S225-02 |
+| TCL-04 | Extract mission | Mission section | Non-empty mission text | S225-02 |
+| TCL-05 | Fallback for missing charter | name="nonexistent" | `None` returned | S225-02 |
+| TCL-06 | Cache behavior | Two calls to load_all | Second call uses cache | S225-02 |
+
+---
+
+## 16. Unit Tests — TierAwareSeeding (Sprint 225, agent_seed_service.py rewrite)
+
+| # | Test Case | Input | Expected | Reference |
+|---|-----------|-------|----------|-----------|
+| TAS-01 | tier=None seeds 12 core roles | tier=None | 12 AgentDefinition records | CTO R4 |
+| TAS-02 | LITE seeds 3 roles | tier="LITE" | assistant, coder, tester | S225-04 |
+| TAS-03 | STANDARD seeds 6 roles | tier="STANDARD" | + pm, architect, reviewer | S225-04 |
+| TAS-04 | PROFESSIONAL seeds 10 roles | tier="PROFESSIONAL" | + devops, fullstack, pjm, researcher | S225-04 |
+| TAS-05 | ENTERPRISE seeds 13 roles | tier="ENTERPRISE" | + ceo, cpo, cto | S225-04 |
+| TAS-06 | Optional roles never auto-seeded | Any tier | writer/sales/cs/itadmin NOT in created | CTO B3 |
+| TAS-07 | SOUL prompt used when available | SOUL template exists | system_prompt contains SOUL content, soul_source="framework" | S225-04 |
+| TAS-08 | Fallback prompt when no SOUL | SOUL template missing | system_prompt = _ROLE_PROMPTS[role], soul_source="fallback" | S225-04 |
+| TAS-09 | soul_version stored in config | SOUL template exists | config["soul_version"] populated | S225-04 |
+| TAS-10 | SE4H roles get restricted permissions | tier="ENTERPRISE" | max_delegation_depth=0, can_spawn=false, denied_tools has write_file | S225-04 |
+| TAS-11 | SE4A roles get full permissions | tier="PROFESSIONAL" | allowed_tools=["*"], denied_tools=[] | S225-04 |
+| TAS-12 | Fullstack low temperature | tier="PROFESSIONAL" | fullstack.temperature=0.3 | S225-04 |
+| TAS-13 | Skip existing roles | 2 existing roles | len(created) = 10 | S225-04 |
+| TAS-14 | skip_existing=False seeds all | 1 existing role, skip_existing=False | len(created) = 12 | S225-04 |
+| TAS-15 | Tier case insensitive | tier="lite" | Same as tier="LITE" (3 roles) | S225-04 |
+| TAS-16 | Unknown tier falls back to core | tier="UNKNOWN" | 12 core roles | CTO R4 |
+| TAS-17 | Binds project and team | project_id + team_id | All definitions have correct IDs | S225-04 |
+| TAS-18 | Flush called when created | Any tier | db.flush() awaited once | S225-04 |
+
+---
+
+## 17. Unit Tests — TeamConfig 17 Roles (Sprint 225, test_agent_team_config.py update)
+
+| # | Test Case | Input | Expected | Reference |
+|---|-----------|-------|----------|-----------|
+| TC-01 | 17 SDLCRole values in ROLE_MODEL_DEFAULTS | All SDLCRole enum values | len(ROLE_MODEL_DEFAULTS) == 17 | S225-03 |
+| TC-02 | SE4A roles count | SE4A_ROLES set | len == 9 (includes fullstack) | S225-03 |
+| TC-03 | Support roles count | SUPPORT_ROLES set | len == 4 (writer/sales/cs/itadmin) | S225-03 |
+| TC-04 | Support roles not in SE4A | SUPPORT_ROLES ∩ SE4A_ROLES | Empty set | CTO B3 |
+| TC-05 | Fullstack in SE4A | SDLCRole.FULLSTACK | In SE4A_ROLES | S225-03 |
+| TC-06 | All roles classified | SE4A ∪ SE4H ∪ Support ∪ Router | == set(SDLCRole) | S225-03 |
+| TC-07 | No classification overlap | Pairwise intersection | All empty | S225-03 |
+| TC-08 | SUPPORT_CONSTRAINTS readonly | SUPPORT_CONSTRAINTS dict | can_spawn=false, delegation=0 | S225-03 |
+| TC-09 | SUPPORT_CONSTRAINTS denied tools | SUPPORT_CONSTRAINTS dict | write_file, execute_command in denied | S225-03 |
+| TC-10 | SE4H uses anthropic provider | SE4H role defaults | provider="anthropic" | S225-03 |
+
+---
+
+## 18. Verification Commands
 
 ```bash
 # Unit tests (all agent_team contracts)
@@ -319,6 +395,15 @@ LANGCHAIN_ENABLED=true \
 python -m pytest backend/tests/unit/test_reflection_graph.py -v
 python -m pytest backend/tests/unit/test_workflow_resumer.py -v
 python -m pytest backend/tests/unit/ -k "idempotency" -v
+
+# Sprint 225 — SOUL Template + Tier-Aware Seeding tests
+python -m pytest backend/tests/unit/test_soul_loader.py -v
+python -m pytest backend/tests/unit/test_team_charter_loader.py -v
+python -m pytest backend/tests/unit/test_agent_seed_service.py -v
+python -m pytest backend/tests/unit/test_agent_team_config.py -v
+
+# Sprint 225 — All new tests
+python -m pytest backend/tests/unit/ -k "soul_loader or team_charter or agent_seed or agent_team_config" -v
 ```
 
 ---

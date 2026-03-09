@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import os
 
-from app.schemas.agent_team import SDLCRole, SE4H_ROLES
+from app.schemas.agent_team import SDLCRole, SE4H_ROLES, SUPPORT_ROLES
 from app.services.agent_team.query_classifier import ClassificationRule
 
 # =========================================================================
@@ -51,6 +51,13 @@ ROLE_MODEL_DEFAULTS: dict[str, dict[str, str]] = {
     "ceo": {"provider": "anthropic", "model": "claude-opus-4-6"},
     "cpo": {"provider": "anthropic", "model": "claude-sonnet-4-5"},
     "cto": {"provider": "anthropic", "model": "claude-opus-4-6"},
+    # SE4A — Sprint 225: Framework 6.1.2 alignment
+    "fullstack": {"provider": "ollama", "model": "qwen3-coder:30b"},
+    # Support — optional roles (Sprint 225: NOT auto-seeded)
+    "writer": {"provider": "ollama", "model": "qwen3:32b"},
+    "sales": {"provider": "ollama", "model": "qwen3:14b"},
+    "cs": {"provider": "ollama", "model": "qwen3:14b"},
+    "itadmin": {"provider": "ollama", "model": "qwen3:14b"},
     # Router — fast local model
     "assistant": {"provider": "ollama", "model": "qwen3:14b"},
 }
@@ -64,6 +71,27 @@ SE4H_CONSTRAINTS: dict[str, object] = {
     "max_delegation_depth": 0,       # Cannot spawn sub-agents
     "can_spawn_subagent": False,     # Explicit: no agent spawning
     "allowed_tools": ["read_file", "search", "analyze"],  # Read-only tools
+    "denied_tools": [
+        "write_file",
+        "execute_command",
+        "spawn_agent",
+        "send_message",
+        "approve_gate",
+    ],
+}
+
+
+# =========================================================================
+# Support Role Behavioral Constraints (Sprint 225 — CTO B3)
+# =========================================================================
+# Support roles (writer, sales, cs, itadmin) get read-only advisory tools,
+# similar to SE4H but with Ollama providers. Prevents accidental full
+# executor permissions via SE4A auto-expansion.
+
+SUPPORT_CONSTRAINTS: dict[str, object] = {
+    "max_delegation_depth": 0,
+    "can_spawn_subagent": False,
+    "allowed_tools": ["read_file", "search", "analyze"],
     "denied_tools": [
         "write_file",
         "execute_command",

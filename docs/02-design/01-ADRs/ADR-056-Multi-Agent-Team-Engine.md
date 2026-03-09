@@ -217,7 +217,7 @@ CREATE TABLE agent_definitions (
     project_id UUID NOT NULL REFERENCES projects(id),
     team_id UUID REFERENCES teams(id),
     agent_name VARCHAR(50) NOT NULL,
-    sdlc_role VARCHAR(20) NOT NULL,              -- 12 roles: researcher/pm/pjm/architect/coder/reviewer/tester/devops/ceo/cpo/cto/assistant (see Section 12.5 SASE Classification)
+    sdlc_role VARCHAR(20) NOT NULL,              -- 17 roles: SE4A(9)+SE4H(3)+Support(4)+Router(1) — see Section 12.5 SASE Classification (Sprint 225: +fullstack/writer/sales/cs/itadmin)
     provider VARCHAR(20) NOT NULL,               -- ollama/anthropic/openai
     model VARCHAR(100) NOT NULL,
     system_prompt TEXT,
@@ -654,22 +654,33 @@ The `sdlc_role` field in `agent_definitions` has evolved across sprints:
 | 176 (initial) | 6 | pm, architect, coder, reviewer, tester, devops | ADR-056 Phase 1 |
 | 176 (P0 fix) | 8 | + researcher, pjm | TinySDLC 6.1.0 compatibility (s176_002 migration) |
 | 177 (planned) | 12 | + ceo, cpo, cto, assistant | SASE Enterprise tier (this section, s177_001 migration) |
+| 225 | 17 | + fullstack, writer, sales, cs, itadmin | Framework 6.1.2 alignment — tier-based seeding + SOUL templates |
 
-### 12.5.2 Three-Type Taxonomy
+### 12.5.2 Four-Type Taxonomy (Sprint 225)
 
-All 12 roles are classified into 3 types. The type is **derivable from the role value** — no extra column needed.
+All 17 roles are classified into 4 types. The type is **derivable from the role value** — no extra column needed.
 
-| Type | Roles | SASE Reference | Environment | Authority |
-|------|-------|---------------|-------------|-----------|
-| **SE4A** | researcher, pm, pjm, architect, coder, reviewer, tester, devops | arXiv:2509.06216v2 | AEE (Agent Execution) | Delegated by SE4H |
-| **SE4H** | ceo, cpo, cto | arXiv:2509.06216v2 | ACE (Agent Command) | VCR authority, final approval |
-| **Router** | assistant | Orchestrator-specific | Both | No authority, guidance only |
+| Type | Count | Roles | SASE Reference | Environment | Authority |
+|------|-------|-------|---------------|-------------|-----------|
+| **SE4A** | 9 | researcher, pm, pjm, architect, coder, reviewer, tester, devops, fullstack | arXiv:2509.06216v2 | AEE (Agent Execution) | Delegated by SE4H |
+| **SE4H** | 3 | ceo, cpo, cto | arXiv:2509.06216v2 | ACE (Agent Command) | VCR authority, final approval |
+| **Support** | 4 | writer, sales, cs, itadmin | Sprint 225 (CTO B3) | Advisory only | Read-only, no executor permissions |
+| **Router** | 1 | assistant | Orchestrator-specific | Both | No authority, guidance only |
+
+**Tier Availability Matrix** (SDLC 6.1.2):
+- LITE: assistant, coder, tester (3)
+- STANDARD: + pm, architect, reviewer (6)
+- PROFESSIONAL: + devops, fullstack, pjm, researcher (10)
+- ENTERPRISE: + ceo, cpo, cto (13)
+- OPTIONAL: writer, sales, cs, itadmin (never auto-seeded)
 
 **Derivation logic** (no DB column, computed in application):
 ```python
 SE4H_ROLES = {"ceo", "cpo", "cto"}
 ROUTER_ROLES = {"assistant"}
+SUPPORT_ROLES = {"writer", "sales", "cs", "itadmin"}
 # All other roles → SE4A (default)
+SE4A_ROLES = set(SDLCRole) - SE4H_ROLES - ROUTER_ROLES - SUPPORT_ROLES
 ```
 
 ### 12.5.3 SE4H Role Definition (CTO Amendment #1)
@@ -685,22 +696,25 @@ The actual human CEO/CPO/CTO retains:
 - Approval of all shipped code
 - Accountability for all agent outputs
 
-### 12.5.4 SE4H Behavioral Constraints (CTO Amendment #5)
+### 12.5.4 SE4H + Support Behavioral Constraints (CTO Amendment #5, Sprint 225 B3)
 
-SE4H agent definitions MUST enforce stricter safety controls than SE4A agents:
+SE4H and Support agent definitions MUST enforce stricter safety controls than SE4A agents:
 
-| Constraint | SE4H Value | SE4A Default | Rationale |
+| Constraint | SE4H / Support Value | SE4A Default | Rationale |
 |-----------|-----------|-------------|-----------|
-| `max_delegation_depth` | `0` | `1` | SE4H agents do not delegate to sub-agents |
+| `max_delegation_depth` | `0` | `1` | Read-only roles do not delegate to sub-agents |
 | `can_spawn_subagent` | `false` | `false` | No autonomous spawning |
-| `allowed_tools` | Read-only subset | `["*"]` | Advisory output only — no write operations |
+| `allowed_tools` | `["read_file", "search", "analyze"]` | `["*"]` | Advisory output only — no write operations |
+| `denied_tools` | `["write_file", "execute_command", "spawn_agent", "send_message", "approve_gate"]` | `[]` | Explicit deny list |
 | `queue_mode` | `queue` | `queue` | No interrupt/steer for advisory agents |
-| Output format | Analysis/summary/draft | Executable code/actions | SE4H output requires human review before action |
+| Output format | Analysis/summary/draft | Executable code/actions | Output requires human review before action |
 
-**Enforcement**: Application-layer validation in `agent_registry.py` (Sprint 177). When `sdlc_role ∈ SE4H_ROLES`:
+**Enforcement**: Application-layer validation in `agent_registry.py` (Sprint 177) + `agent_seed_service.py` (Sprint 225). When `sdlc_role ∈ SE4H_ROLES ∪ SUPPORT_ROLES`:
 - Reject `max_delegation_depth > 0`
 - Reject `can_spawn_subagent = true`
 - Warn if `allowed_tools` contains write operations
+
+**CTO B3 (Sprint 225)**: Support roles (writer, sales, cs, itadmin) are excluded from `SE4A_ROLES` to prevent inheriting full executor permissions (`allowed_tools=["*"]`). `SUPPORT_CONSTRAINTS` in `config.py` mirrors `SE4H_CONSTRAINTS`.
 
 ### 12.5.5 Router Role Definition
 
@@ -761,6 +775,12 @@ Model assignments use **abstract capability tiers** rather than version-pinned s
 
 **Tests & Docs (2)**: `test_agent_team.py`, this ADR
 
-### Modified Files (5)
+**Sprint 225 — SOUL Template Integration (2)**: `backend/app/services/agent_team/soul_loader.py`, `backend/app/services/agent_team/team_charter_loader.py`
+
+**Sprint 225 — Tests (2)**: `backend/tests/unit/test_soul_loader.py`, `backend/tests/unit/test_team_charter_loader.py`
+
+### Modified Files (5 + Sprint 225: 5)
 
 `user.py` (APIKey scopes), `dependencies.py` (require_scopes), `api_keys.py` (service accounts), `main.py` (router registration), `models/__init__.py` (model registration)
+
+**Sprint 225 Modified (5)**: `schemas/agent_team.py` (+5 SDLCRole, +SUPPORT_ROLES), `config.py` (+5 ROLE_MODEL_DEFAULTS, +SUPPORT_CONSTRAINTS), `agent_seed_service.py` (SOUL templates + tier filtering), `team_orchestrator.py` (ContextInjector wiring), `routes/agent_team.py` (+tier param, +reseed endpoint)

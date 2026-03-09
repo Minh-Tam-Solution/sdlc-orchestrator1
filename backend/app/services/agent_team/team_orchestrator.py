@@ -81,6 +81,7 @@ from app.services.agent_team.chat_command_router import (
     route_chat_command,
     ChatCommandResult,
 )
+from app.services.agent_team.context_injector import ContextInjector
 from app.services.agent_team.history_compactor import HistoryCompactor
 from app.services.agent_team.note_service import NoteService
 from app.services.agent_team.escalation_service import EscalationService
@@ -176,6 +177,8 @@ class TeamOrchestrator:
         # Sprint 219 — P6 Agent Liveness
         from app.services.agent_team.heartbeat_service import HeartbeatService
         self.heartbeat = HeartbeatService(db, redis=redis)
+        # Sprint 225 — Wire ContextInjector (7 dynamic sections)
+        self.context_injector = ContextInjector(db)
 
     async def process_next(self, lane: str) -> ProcessingResult | None:
         """
@@ -655,6 +658,23 @@ class TeamOrchestrator:
         except Exception as e:
             logger.warning(
                 "TRACE_ORCHESTRATOR: Failed to load agent notes for %s: %s",
+                definition.id,
+                e,
+            )
+
+        # Sprint 225 — ContextInjector: append 7 dynamic sections
+        # (delegation, team, availability, skills, workspace, feedback, consensus)
+        try:
+            system_prompt = await self.context_injector.inject_context(
+                agent_id=definition.id,
+                team_id=definition.team_id,
+                system_prompt=system_prompt,
+                project_id=conversation.project_id,
+                conversation_id=conversation.id,
+            )
+        except Exception as e:
+            logger.warning(
+                "TRACE_ORCHESTRATOR: ContextInjector failed for agent %s: %s",
                 definition.id,
                 e,
             )
