@@ -50,6 +50,31 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
+# Sprint 226 — ADR-071 D-071-02: Autonomy presets for agent gate actions
+# ============================================================================
+
+# Agent action permissions per autonomy level.
+# Keys are autonomy preset names; values are sets of gate actions agents can execute.
+# G3/G4 approve/reject ALWAYS require human regardless of autonomy (requires_oob_auth).
+AUTONOMY_AGENT_ACTIONS: dict[str, frozenset[str]] = {
+    "assist_only": frozenset(),  # Agent cannot execute any gate action
+    "contribute_only": frozenset({"can_evaluate", "can_upload_evidence"}),
+    "member_guardrails": frozenset({"can_evaluate", "can_submit", "can_upload_evidence"}),
+    "autonomous_gated": frozenset({"can_evaluate", "can_submit", "can_approve", "can_reject", "can_upload_evidence"}),
+}
+
+# Tier → autonomy preset (duplicated from agent_registry for import isolation)
+_TIER_AUTONOMY: dict[str, str] = {
+    "LITE": "assist_only",
+    "FOUNDER": "assist_only",
+    "STARTER": "contribute_only",
+    "STANDARD": "contribute_only",
+    "PROFESSIONAL": "member_guardrails",
+    "ENTERPRISE": "autonomous_gated",
+}
+
+
+# ============================================================================
 # Custom Exceptions
 # ============================================================================
 
@@ -238,6 +263,34 @@ async def compute_gate_actions(
         if gate_name_upper.startswith("G3") or gate_name_upper.startswith("G4"):
             requires_oob_auth = True
 
+    # --- Sprint 226: Autonomy-aware agent action permissions (ADR-071 D-071-02) ---
+    # Resolve project tier → autonomy preset → agent-allowed actions.
+    # If project has no tier set, default to assist_only (safest).
+    project_tier = None
+    if hasattr(gate, "project") and gate.project is not None:
+        project_tier = getattr(gate.project, "policy_pack_tier", None)
+    elif gate.project_id:
+        # Lazy load project tier if relationship not loaded
+        try:
+            proj_result = await db.execute(
+                select(Project.policy_pack_tier).where(Project.id == gate.project_id)
+            )
+            project_tier = proj_result.scalar_one_or_none()
+        except Exception:
+            pass  # Fall through to assist_only default
+
+    autonomy_preset = _TIER_AUTONOMY.get(project_tier or "", "assist_only")
+    allowed_agent_actions = AUTONOMY_AGENT_ACTIONS.get(autonomy_preset, frozenset())
+
+    # Compute which actions an agent can execute (intersection of human actions + autonomy)
+    agent_can_execute = {}
+    for action_key, is_allowed in actions.items():
+        can_agent = is_allowed and action_key in allowed_agent_actions
+        # G3/G4 approve/reject ALWAYS require human (requires_oob_auth overrides autonomy)
+        if requires_oob_auth and action_key in ("can_approve", "can_reject"):
+            can_agent = False
+        agent_can_execute[action_key] = can_agent
+
     return {
         "gate_id": gate.id,
         "status": current_status,
@@ -247,6 +300,8 @@ async def compute_gate_actions(
         "submitted_evidence": submitted_evidence_types,
         "missing_evidence": missing_evidence,
         "requires_oob_auth": requires_oob_auth,
+        "autonomy_level": autonomy_preset,
+        "agent_can_execute": agent_can_execute,
     }
 
 

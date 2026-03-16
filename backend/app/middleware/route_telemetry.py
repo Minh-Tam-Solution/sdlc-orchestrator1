@@ -54,23 +54,33 @@ class RouteTelemetryMiddleware:
         self._enabled = enabled
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] == "http" and self._enabled and self._redis is not None:
-            path = scope.get("path", "")
-            if path.startswith("/api/"):
-                # Normalize: strip trailing slash, collapse path params to {id}
-                normalized = self._normalize_path(path)
-                date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-                key = f"{self._prefix}:{normalized}:{date_str}"
+        if scope["type"] == "http" and self._enabled:
+            # Lazy Redis resolution: prefer constructor arg, fall back to app.state.
+            # This allows wiring Redis after startup (lifespan connects Redis,
+            # but middleware is registered before lifespan runs).
+            redis = self._redis
+            if redis is None:
+                app = scope.get("app")
+                if app is not None:
+                    redis = getattr(getattr(app, "state", None), "telemetry_redis", None)
 
-                # Fire-and-forget: don't block request pipeline
-                asyncio.create_task(self._increment(key))
+            if redis is not None:
+                path = scope.get("path", "")
+                if path.startswith("/api/"):
+                    # Normalize: strip trailing slash, collapse path params to {id}
+                    normalized = self._normalize_path(path)
+                    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                    key = f"{self._prefix}:{normalized}:{date_str}"
+
+                    # Fire-and-forget: don't block request pipeline
+                    asyncio.create_task(self._increment(key, redis))
 
         await self.app(scope, receive, send)
 
-    async def _increment(self, key: str) -> None:
+    async def _increment(self, key: str, redis: Any) -> None:
         """Increment counter with TTL. Swallow errors — telemetry must never crash requests."""
         try:
-            pipe = self._redis.pipeline()
+            pipe = redis.pipeline()
             pipe.incr(key)
             pipe.expire(key, self.KEY_TTL_SECONDS)
             await pipe.execute()

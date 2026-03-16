@@ -58,6 +58,7 @@ from app.middleware.cache_headers import CacheHeadersMiddleware
 from app.middleware.tier_gate import TierGateMiddleware  # Sprint 184 — Tier enforcement (ADR-059 INV-03)
 from app.middleware.usage_limits import UsageLimitsMiddleware  # Sprint 188 — per-resource usage limits (INV-04)
 from app.middleware.conversation_first_guard import ConversationFirstGuard  # Sprint 190 — admin-only write paths
+from app.middleware.route_telemetry import RouteTelemetryMiddleware  # Sprint 226 — Surface Reduction Program (ADR-071)
 
 # Global scheduler instance
 scheduler: AsyncIOScheduler | None = None
@@ -117,8 +118,14 @@ async def lifespan(app: FastAPI):
         redis = await get_redis_client()
         await redis.ping()
         print("✅ Redis connected (rate limiting enabled)")
+
+        # Sprint 226 — Wire Redis into RouteTelemetryMiddleware (ADR-071 D-071-03).
+        # Middleware reads app.state.telemetry_redis lazily from ASGI scope.
+        app.state.telemetry_redis = redis
+
     except Exception as e:
         print(f"⚠️  Redis connection failed (rate limiting disabled): {e}")
+        app.state.telemetry_redis = None
         # Redis is optional - don't add to startup_errors
 
     # Verify OPA availability (Sprint 14 - TD-02)
@@ -366,6 +373,13 @@ app.add_middleware(UsageLimitsMiddleware)  # Sprint 188 — pure ASGI, NOT BaseH
 # Pure ASGI — returns 403 for non-admin write ops on admin-gated paths.
 # IMPORTANT: Added AFTER UsageLimitsMiddleware so it runs BEFORE (LIFO).
 app.add_middleware(ConversationFirstGuard)  # Sprint 190 — admin-only write paths
+
+# Route Telemetry (Sprint 226 — ADR-071 D-071-03 Surface Reduction Program)
+# Pure ASGI — fire-and-forget Redis INCR per route per day.
+# Added LAST so it runs FIRST (outermost middleware in LIFO stack).
+# Captures ALL /api/* requests including those blocked by downstream middleware.
+# Redis client injected at startup via lifespan; gracefully no-ops if Redis unavailable.
+app.add_middleware(RouteTelemetryMiddleware, enabled=True)  # redis_client wired at startup
 
 # ============================================================================
 # API Routes Registration
