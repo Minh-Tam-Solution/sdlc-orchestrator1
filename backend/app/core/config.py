@@ -264,6 +264,16 @@ class Settings(BaseSettings):
     # to find SOUL/TEAM templates in the Framework submodule.
     FRAMEWORK_SUBMODULE_PATH: str = "SDLC-Enterprise-Framework"
 
+    # OTT Channel Feature Flags (Sprint 226 — ADR-071 D-071-04: Telegram-only v1)
+    # Zalo/Teams/Slack deferred unless Week 1 survey >60% blocker.
+    FEATURE_FLAG_ZALO_OTT: bool = False
+    FEATURE_FLAG_TEAMS_OTT: bool = False
+    FEATURE_FLAG_SLACK_OTT: bool = False
+
+    # Route Telemetry (Sprint 226 — ADR-071 D-071-03: Surface Reduction Program)
+    ROUTE_TELEMETRY_ENABLED: bool = True
+    ROUTE_TELEMETRY_REDIS_PREFIX: str = "route_hits"
+
     @property
     def allowed_origins_list(self) -> list[str]:
         """Parse ALLOWED_ORIGINS into list"""

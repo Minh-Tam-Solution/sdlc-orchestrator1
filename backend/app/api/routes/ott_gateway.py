@@ -212,6 +212,20 @@ async def receive_webhook(
             detail=f"unsupported channel: {channel!r}",
         )
 
+    # Sprint 226 — ADR-071 D-071-04: Telegram-only v1.
+    # Non-Telegram channels gated by feature flags (default OFF).
+    from app.core.config import settings as _settings
+    _CHANNEL_FLAGS = {
+        "zalo": _settings.FEATURE_FLAG_ZALO_OTT,
+        "teams": _settings.FEATURE_FLAG_TEAMS_OTT,
+        "slack": _settings.FEATURE_FLAG_SLACK_OTT,
+    }
+    if channel in _CHANNEL_FLAGS and not _CHANNEL_FLAGS[channel]:
+        return JSONResponse(
+            {"error": f"{channel} channel disabled in v1 (ADR-071 D-071-04)"},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     # Read body once — needed for HMAC verification and JSON parsing
     body_bytes: bytes = await request.body()
 

@@ -45,6 +45,18 @@ from app.schemas.agent_team import (
 )
 from app.services.agent_team.config import is_se4h_role, get_se4h_overrides
 
+# Sprint 226 — ADR-071 D-071-02: 4 fixed autonomy presets.
+# v1: Tier maps 1:1 to preset. No custom matrix.
+TIER_AUTONOMY_MAP: dict[str, str] = {
+    "LITE": "assist_only",
+    "FOUNDER": "assist_only",
+    "STARTER": "contribute_only",
+    "STANDARD": "contribute_only",
+    "PROFESSIONAL": "member_guardrails",
+    "ENTERPRISE": "autonomous_gated",
+}
+VALID_AUTONOMY_LEVELS = frozenset(TIER_AUTONOMY_MAP.values())
+
 logger = logging.getLogger(__name__)
 
 
@@ -129,6 +141,15 @@ class AgentRegistry:
             "is_active": True,
             "config": payload.config,
         }
+
+        # Sprint 226 — ADR-071 D-071-02: Autonomy level enforcement
+        autonomy = getattr(payload, "autonomy_level", None) or "assist_only"
+        if autonomy not in VALID_AUTONOMY_LEVELS:
+            raise AgentDuplicateError(
+                f"Invalid autonomy_level '{autonomy}'. "
+                f"v1 allows only: {sorted(VALID_AUTONOMY_LEVELS)}"
+            )
+        create_kwargs["autonomy_level"] = autonomy
 
         # SE4H constraint enforcement (ADR-056 §12.5.4)
         if is_se4h_role(payload.sdlc_role):

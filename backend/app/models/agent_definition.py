@@ -208,6 +208,15 @@ class AgentDefinition(Base):
         doc="Max Evaluator-Optimizer iterations per tool batch (1-3). Sprint 203.",
     )
 
+    # ── Autonomy Level (Sprint 226 — ADR-071 D-071-02) ──────────────────
+    autonomy_level: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="assist_only",
+        server_default="assist_only",
+        doc="Tier-mapped preset: assist_only|contribute_only|member_guardrails|autonomous_gated (ADR-071)",
+    )
+
     # ── Status ───────────────────────────────────────────────────────────
     is_active: Mapped[bool] = mapped_column(
         Boolean,
