@@ -380,6 +380,72 @@ async def get_interface_breakdown(
 
 
 # ============================================================================
+# Route Hit Telemetry (Sprint 226 — ADR-071 D-071-03 Surface Reduction)
+# ============================================================================
+
+
+@router.get("/route-hits")
+async def get_route_hits(
+    date_str: Optional[str] = Query(None, alias="date", description="Date in YYYY-MM-DD (default: today)"),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """
+    Get route hit counts from Surface Reduction telemetry.
+
+    Returns Redis-tracked hit counts per normalized endpoint path for a given day.
+    Admin-only — used to identify LEGACY_UNUSED endpoints for deprecation.
+
+    **Example Response**:
+    ```json
+    {
+        "date": "2026-03-16",
+        "routes": {
+            "/api/v1/gates/{id}/actions": 142,
+            "/api/v1/evidence": 89,
+            "/api/v1/planning/sprints": 3
+        },
+        "total_hits": 234
+    }
+    ```
+    """
+    from app.utils.redis import get_redis_client
+
+    if not date_str:
+        date_str = date.today().isoformat()
+
+    try:
+        redis = await get_redis_client()
+        prefix = f"route_hits:*:{date_str}"
+        keys = []
+        async for key in redis.scan_iter(match=prefix):
+            keys.append(key)
+
+        routes: Dict[str, int] = {}
+        for key in keys:
+            # key format: route_hits:/api/v1/gates/{id}:2026-03-16
+            key_str = key if isinstance(key, str) else key.decode("utf-8")
+            parts = key_str.split(":")
+            # Rejoin path parts (path may contain colons from {id})
+            if len(parts) >= 3:
+                path = ":".join(parts[1:-1])  # everything between prefix and date
+                count = await redis.get(key)
+                routes[path] = int(count) if count else 0
+
+        return {
+            "date": date_str,
+            "routes": dict(sorted(routes.items(), key=lambda x: -x[1])),
+            "total_hits": sum(routes.values()),
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to fetch route hits: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Route telemetry unavailable (Redis connection failed)",
+        )
+
+
+# ============================================================================
 # Health Check
 # ============================================================================
 

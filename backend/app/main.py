@@ -509,6 +509,10 @@ app.include_router(gdpr.router, prefix="/api/v1", tags=["GDPR"])  # Sprint 186 -
 
 # Sprint 191: deprecated_routes.py removed (410 stub grace period expired)
 
+# Sprint 226 — Product Metrics (ADR-071 D-071-05: pilot validation metrics)
+from app.api.routes import product_metrics  # noqa: E402
+app.include_router(product_metrics.router, prefix="/api/v1", tags=["Product Metrics"])  # Sprint 226 - Option 5 Pilot Metrics (ADR-071)
+
 # ============================================================================
 # Health Check Endpoints
 # ============================================================================
