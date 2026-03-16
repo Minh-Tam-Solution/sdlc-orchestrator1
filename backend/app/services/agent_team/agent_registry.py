@@ -145,7 +145,7 @@ class AgentRegistry:
         # Sprint 226 — ADR-071 D-071-02: Autonomy level enforcement
         autonomy = getattr(payload, "autonomy_level", None) or "assist_only"
         if autonomy not in VALID_AUTONOMY_LEVELS:
-            raise AgentDuplicateError(
+            raise ValueError(
                 f"Invalid autonomy_level '{autonomy}'. "
                 f"v1 allows only: {sorted(VALID_AUTONOMY_LEVELS)}"
             )

@@ -148,12 +148,22 @@ class ProductMetricsService:
         Target: ≤30% at STANDARD tier.
         """
         from app.models.gate_approval import GateApproval
+        from app.models.gate import Gate
+        from app.models.project import Project
 
         filters = []
         if date_from:
             filters.append(GateApproval.created_at >= date_from)
         if date_to:
             filters.append(GateApproval.created_at <= date_to)
+        if tier:
+            # Filter by project tier: join GateApproval → Gate → Project
+            filters.append(
+                GateApproval.gate_id.in_(
+                    select(Gate.id).join(Project, Gate.project_id == Project.id)
+                    .where(Project.policy_pack_tier == tier.upper())
+                )
+            )
 
         result = await self.db.execute(
             select(

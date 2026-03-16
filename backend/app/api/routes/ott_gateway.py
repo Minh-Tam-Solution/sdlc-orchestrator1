@@ -57,6 +57,14 @@ _ZALO_APP_ID: str = os.getenv("ZALO_APP_ID", "")
 # Redis dedupe TTL (Sprint 189 — ADR-064 T-04, FR-048)
 _DEDUPE_TTL_SECONDS: int = 3600  # 1 hour covers all reasonable retry windows
 
+# Sprint 226 — ADR-071 D-071-04: Telegram-only v1.
+# Lazy lambdas so settings are read at call time (not import time).
+_CHANNEL_FLAGS: dict[str, callable] = {
+    "zalo": lambda: os.getenv("FEATURE_FLAG_ZALO_OTT", "false").lower() == "true",
+    "teams": lambda: os.getenv("FEATURE_FLAG_TEAMS_OTT", "false").lower() == "true",
+    "slack": lambda: os.getenv("FEATURE_FLAG_SLACK_OTT", "false").lower() == "true",
+}
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HMAC verification
@@ -214,13 +222,7 @@ async def receive_webhook(
 
     # Sprint 226 — ADR-071 D-071-04: Telegram-only v1.
     # Non-Telegram channels gated by feature flags (default OFF).
-    from app.core.config import settings as _settings
-    _CHANNEL_FLAGS = {
-        "zalo": _settings.FEATURE_FLAG_ZALO_OTT,
-        "teams": _settings.FEATURE_FLAG_TEAMS_OTT,
-        "slack": _settings.FEATURE_FLAG_SLACK_OTT,
-    }
-    if channel in _CHANNEL_FLAGS and not _CHANNEL_FLAGS[channel]:
+    if channel in _CHANNEL_FLAGS and not _CHANNEL_FLAGS.get(channel, lambda: False)():
         return JSONResponse(
             {"error": f"{channel} channel disabled in v1 (ADR-071 D-071-04)"},
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

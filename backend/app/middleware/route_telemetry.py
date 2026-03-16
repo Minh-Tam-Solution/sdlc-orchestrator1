@@ -16,9 +16,15 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Callable
 
+import re
+
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
+
+# Pre-compiled regexes for path normalization (P2-1: moved from hot path)
+_UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+_NUMERIC_ID_RE = re.compile(r"/\d+(?=/|$)")
 
 
 class RouteTelemetryMiddleware:
@@ -80,14 +86,6 @@ class RouteTelemetryMiddleware:
         /api/v1/gates/550e8400-e29b-41d4-a716-446655440000/approve → /api/v1/gates/{id}/approve
         /api/v1/projects/123/members → /api/v1/projects/{id}/members
         """
-        import re
-
-        # Replace UUIDs
-        path = re.sub(
-            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            "{id}",
-            path,
-        )
-        # Replace numeric IDs in path segments
-        path = re.sub(r"/\d+(?=/|$)", "/{id}", path)
+        path = _UUID_RE.sub("{id}", path)
+        path = _NUMERIC_ID_RE.sub("/{id}", path)
         return path.rstrip("/")
