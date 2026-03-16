@@ -1,18 +1,19 @@
 # CLAUDE AI PROJECT CONTEXT - SDLC ORCHESTRATOR
 ## AI Assistant Configuration for Software 3.0 Operating System
 
-**Version**: 3.10.0
+**Version**: 3.11.0
 **Status**: Gate G4 APPROVED - Production Ready (GA)
-**Current Sprint**: Sprint 190 - Conversation-First Cleanup
-**Effective Date**: February 21, 2026
+**Current Sprint**: Sprint 226 - Conversation-First Relaunch (Option 5)
+**Effective Date**: March 16, 2026
 **Project**: SDLC Orchestrator - Operating System for Software 3.0
 **Authority**: CTO + CPO + CEO Approved
-**Framework**: SDLC 6.1.1 (7-Pillar + Section 7 QA + Section 8 Spec + 3-Ring + 15 AI Governance docs)
+**Framework**: SDLC 6.1.2 (7-Pillar + Section 7 QA + Section 8 Spec + 3-Ring + 15 AI Governance docs)
 **SE 3.0 Status**: Track 1 APPROVED - SASE Integration Complete
 **EP-06 Status**: IR-Based Codegen Engine - Sprint 45-50 (~$50K investment)
 **EP-07 Status**: Multi-Agent Team Engine - Sprint 176-179 COMPLETE (ADR-056 + ADR-058, 14 non-negotiables)
 **Enterprise-First**: ADR-059 APPROVED — LITE/STANDARD/PROFESSIONAL/ENTERPRISE tiers, OTT channels, Sprint 180-188 roadmap complete
-**Interface Strategy**: Conversation-First (CEO directive Sprint 190) — OTT+CLI primary, Web App admin-only
+**Interface Strategy**: Conversation for action, Web for visualization/admin (Option 5 APPROVED, ADR-071)
+**Collaboration Model**: Hybrid — LITE=assist_only / STANDARD=contribute_only / PRO=member_guardrails / ENTERPRISE=autonomous_gated
 
 ---
 
@@ -38,7 +39,7 @@ SDLC Orchestrator is the **Operating System for Software 3.0** - a control plane
 
 ```yaml
 Current Stage: Stage 04 (BUILD → DEPLOY — GA Launch)
-Current Sprint: Sprint 190 - Conversation-First Cleanup (~47K LOC deleted)
+Current Sprint: Sprint 226 - Conversation-First Relaunch (Option 5 APPROVED)
 Gate G4 Status: APPROVED - Production Ready (98.2% G3 → G4 declared Sprint 187)
 Timeline: 90 days MVP + 6 sprints EP-06 extension
 Budget: $564K (8.5 FTE team) + $50K EP-06 investment
@@ -1903,15 +1904,30 @@ You are successful if:
 
 ---
 
-**Last Updated**: February 21, 2026
+**Last Updated**: March 16, 2026
 **Owner**: CTO + CPO + CEO
 **Status**: ✅ Gate G4 APPROVED - Production Ready (GA)
-**Current Sprint**: Sprint 190 - Conversation-First Cleanup
+**Current Sprint**: Sprint 226 - Conversation-First Relaunch (Option 5)
 **Next Review**: Weekly CEO Review (Every Friday 3pm)
 
 ---
 
 ## 📋 **CHANGELOG**
+
+### v3.11.0 (March 16, 2026)
+- **Option 5 APPROVED** — Conversation-First Relaunch (CEO + CTO + CPO + PM + Architect)
+- **Interface Strategy REFRAMED**: "Conversation for action, web for visualization/admin" (replaces "OTT primary")
+- **Hybrid Collaboration Model**: 4 fixed autonomy presets mapped 1:1 to tiers:
+  - LITE → assist_only, STANDARD → contribute_only, PRO → member_guardrails, ENTERPRISE → autonomous_gated
+- **Surface Reduction Program**: Telemetry-first deprecation (ACTIVE_PRIMARY/ACTIVE_ADMIN/LEGACY_SUPPORTED/LEGACY_UNUSED)
+- **Telegram-only v1**: Zalo deferred unless Week 1 survey shows >60% blocker
+- **Product metrics**: Conversation completion ≥70%, human override ≤30%, time-to-gate ≥40% faster
+- **Kill criteria**: completion <50% OR pilot retention <2/3 after Week 2 → stop
+- **Sprint 225 complete**: SOUL template integration + tier-aware seeding (~1900 LOC)
+- **ADR-071**: Option 5 Conversation-First Relaunch architecture decision
+- **Strategic doc**: `docs/09-govern/07-Strategic-Decisions/Option5-Conversation-First-Relaunch-APPROVED.md`
+- Updated Framework reference: SDLC 6.1.1 → 6.1.2
+- Updated sprint reference: Sprint 190 → Sprint 226
 
 ### v3.10.0 (February 21, 2026)
 - **Sprint 190 — Conversation-First Cleanup** - CEO-directed aggressive cleanup (~47K LOC deleted)

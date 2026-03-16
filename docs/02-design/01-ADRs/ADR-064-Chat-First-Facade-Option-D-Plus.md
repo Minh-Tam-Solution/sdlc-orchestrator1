@@ -120,6 +120,10 @@ LAYER C: Persistence (EXISTS — keep)
 
 **Any feature NOT serving this loop → Freeze/Defer. Do NOT expand scope.**
 
+> **ADR-071 ADDENDUM (March 16, 2026):** Thesis reframed from "OTT+CLI primary, Web App admin-only" to **"Conversation for action, web for visualization/admin."** Chat excels at triggers, approvals, status, @mentions. Web excels at backlog visualization, dependency management, audit browsing, dense comparative views. Neither is "primary" — each serves its strength. See [ADR-071](ADR-071-Option5-Conversation-First-Relaunch.md) for full context.
+>
+> **Hybrid Collaboration Model added:** 4 fixed autonomy presets (assist_only → autonomous_gated) mapped 1:1 to subscription tiers. No custom autonomy matrix in v1.
+
 ---
 
 ## 3. Expert Corrections (13 Conditions)
