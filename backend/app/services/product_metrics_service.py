@@ -117,9 +117,9 @@ class ProductMetricsService:
             ).where(and_(*filters) if filters else True)
         )
 
-        row = result.one()
-        total = row.total or 0
-        completed = row.completed or 0
+        row = result.one_or_none()
+        total = (row.total or 0) if row else 0
+        completed = (row.completed or 0) if row else 0
         rate = round((completed / total * 100), 1) if total > 0 else 0.0
 
         return {
@@ -186,10 +186,10 @@ class ProductMetricsService:
             ).where(and_(*filters) if filters else True)
         )
 
-        row = result.one()
-        total = row.total_actions or 0
-        agent = row.agent_actions or 0
-        human = (row.human_web_actions or 0) + (row.human_magic_link_actions or 0)
+        row = result.one_or_none()
+        total = (row.total_actions or 0) if row else 0
+        agent = (row.agent_actions or 0) if row else 0
+        human = ((row.human_web_actions or 0) + (row.human_magic_link_actions or 0)) if row else 0
         override_rate = round((human / total * 100), 1) if total > 0 else 0.0
 
         return {
@@ -229,8 +229,8 @@ class ProductMetricsService:
             )
         )
 
-        row = result.one()
-        active_users = row.unique_users or 0
+        row = result.one_or_none()
+        active_users = (row.unique_users or 0) if row else 0
 
         return {
             "since": since.isoformat() if since else None,

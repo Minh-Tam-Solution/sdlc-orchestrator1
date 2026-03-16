@@ -254,13 +254,16 @@ async def compute_gate_actions(
     # Full: G3_SHIP_READY, G4_PRODUCTION — from models/gate.py GateType enum
     # Short: G3, G4 — used when gate_type stores abbreviated form
     # Fallback: gate_name prefix match for legacy/custom gate names
+    # Exact set of gate types requiring out-of-band human authentication.
+    # SECURITY: Prefix match (startswith) is unsafe — "G3-PLANNING" would incorrectly
+    # trigger OOB auth. Use exact membership only. (CTO P1-2 Sprint 226)
     oob_gate_types = {"G3_SHIP_READY", "G4_PRODUCTION", "G3", "G4"}
     requires_oob_auth = False
     if hasattr(gate, "gate_type") and gate.gate_type in oob_gate_types:
         requires_oob_auth = True
     elif hasattr(gate, "gate_name"):
         gate_name_upper = (gate.gate_name or "").upper()
-        if gate_name_upper.startswith("G3") or gate_name_upper.startswith("G4"):
+        if gate_name_upper in oob_gate_types:
             requires_oob_auth = True
 
     # --- Sprint 226: Autonomy-aware agent action permissions (ADR-071 D-071-02) ---
@@ -279,7 +282,13 @@ async def compute_gate_actions(
         except Exception:
             pass  # Fall through to assist_only default
 
-    autonomy_preset = _TIER_AUTONOMY.get(project_tier or "", "assist_only")
+    tier_key = project_tier or ""
+    autonomy_preset = _TIER_AUTONOMY.get(tier_key, "assist_only")
+    if tier_key and tier_key not in _TIER_AUTONOMY:
+        logger.warning(
+            "Unknown tier '%s' for gate %s — defaulting to assist_only",
+            tier_key, gate.id,
+        )
     allowed_agent_actions = AUTONOMY_AGENT_ACTIONS.get(autonomy_preset, frozenset())
 
     # Compute which actions an agent can execute (intersection of human actions + autonomy)

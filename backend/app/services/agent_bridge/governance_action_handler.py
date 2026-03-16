@@ -256,7 +256,16 @@ async def _execute_gate_status(
             return await _send_telegram_reply(bot_token, chat_id, reply, channel=channel)
 
         elif project_id:
-            gates = await gate_svc.list_gates_by_project(UUID(int=project_id) if isinstance(project_id, int) and project_id < 1000 else UUID(str(project_id)))
+            try:
+                pid = UUID(str(project_id))
+            except (ValueError, AttributeError):
+                await _send_telegram_reply(
+                    bot_token, chat_id,
+                    _format_error(f"Invalid project ID: {project_id}. Expected a UUID."),
+                    channel=channel,
+                )
+                return False
+            gates = await gate_svc.list_gates_by_project(pid)
             if not gates:
                 await _send_telegram_reply(
                     bot_token, chat_id,

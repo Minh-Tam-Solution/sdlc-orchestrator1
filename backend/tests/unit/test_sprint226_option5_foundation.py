@@ -236,7 +236,7 @@ class TestProductMetricsService:
 
         db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.one.return_value = SimpleNamespace(
+        mock_result.one_or_none.return_value = SimpleNamespace(
             total=100, completed=75, errored=10, max_reached=5,
         )
         db.execute = AsyncMock(return_value=mock_result)
@@ -254,7 +254,7 @@ class TestProductMetricsService:
 
         db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.one.return_value = SimpleNamespace(
+        mock_result.one_or_none.return_value = SimpleNamespace(
             total=20, completed=8, errored=5, max_reached=7,
         )
         db.execute = AsyncMock(return_value=mock_result)
@@ -289,7 +289,7 @@ class TestProductMetricsService:
 
         db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.one.return_value = SimpleNamespace(unique_users=3)
+        mock_result.one_or_none.return_value = SimpleNamespace(unique_users=3)
         db.execute = AsyncMock(return_value=mock_result)
 
         svc = ProductMetricsService(db)
@@ -305,7 +305,7 @@ class TestProductMetricsService:
 
         db = AsyncMock()
         mock_result = MagicMock()
-        mock_result.one.return_value = SimpleNamespace(unique_users=1)
+        mock_result.one_or_none.return_value = SimpleNamespace(unique_users=1)
         db.execute = AsyncMock(return_value=mock_result)
 
         svc = ProductMetricsService(db)
