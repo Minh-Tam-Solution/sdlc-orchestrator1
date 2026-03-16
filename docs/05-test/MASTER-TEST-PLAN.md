@@ -2,21 +2,21 @@
 
 ```yaml
 document_type: "Master Test Plan"
-version: "2.4.0"
-date: "2026-03-09"
+version: "2.5.0"
+date: "2026-03-16"
 framework: "SDLC 6.1.2"
 status: "ACTIVE"
 author: "@tester"
-reviewer: "@cto (APPROVED 9.5/10 — 2026-03-06)"
+reviewer: "@cto (APPROVED 9.0/10 — 2026-03-16)"
 authority: "CTO + QA Lead"
-traceability: "MTP v1.0.0 (Sprint 198 skeleton) → MTP v2.0.0 (Sprint 213 comprehensive) → MTP v2.1.0 (Sprint 221 S218-S221 coverage) → MTP v2.2.0 (Sprint 222 OTT @mention routing) → MTP v2.3.0 (Sprint 223-224 gate content quality + auto-gen quality gates) → MTP v2.4.0 (Sprint 225 SOUL template integration + tier-aware seeding)"
+traceability: "MTP v1.0.0 (Sprint 198 skeleton) → MTP v2.0.0 (Sprint 213 comprehensive) → MTP v2.1.0 (Sprint 221 S218-S221 coverage) → MTP v2.2.0 (Sprint 222 OTT @mention routing) → MTP v2.3.0 (Sprint 223-224 gate content quality + auto-gen quality gates) → MTP v2.4.0 (Sprint 225 SOUL template integration + tier-aware seeding) → MTP v2.5.0 (Sprint 226 Option 5 foundation — autonomy presets + route telemetry + product metrics)"
 ```
 
 ---
 
 ## 1. Executive Summary
 
-This Master Test Plan (MTP) is the **single index** for all testing activities in SDLC Orchestrator. It unifies test coverage across **4 interfaces** (Web, CLI, Extension, OTT), maps 32 features to per-interface test cases, defines 9 cross-interface workflow scenarios, and enforces the Zero Mock Policy across all tiers.
+This Master Test Plan (MTP) is the **single index** for all testing activities in SDLC Orchestrator. It unifies test coverage across **4 interfaces** (Web, CLI, Extension, OTT), maps 35 features to per-interface test cases, defines 9 cross-interface workflow scenarios, and enforces the Zero Mock Policy across all tiers.
 
 ### CEO Directive (Sprint 190)
 
@@ -35,27 +35,29 @@ This means OTT and CLI test coverage is **P0** — not an afterthought.
     /______________________\
 ```
 
-### Current Metrics (Sprint 225)
+### Current Metrics (Sprint 226)
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Backend route modules | 76 | — | Baselined |
-| API endpoints | 579 | — | +1 (reseed endpoint, S225) |
+| Backend route modules | 77 | — | +1 product_metrics route (S226) |
+| API endpoints | 579 | — | Unchanged (S226 admin routes deferred to Week 3+) |
 | CLI command files (sub-commands) | 22 (41+) | — | Baselined |
 | Extension command files (registered IDs) | 17 (13+) | — | Baselined |
 | OTT governance commands | 10 (MAX capacity) | — | Baselined |
 | Frontend pages | 40+ | — | Baselined |
-| Total test files | 273+ | — | +4 sprint test files S225 (test_soul_loader, test_team_charter_loader, test_agent_seed_service rewrite, test_agent_team_config update) |
-| Unit tests (functions) | 3,245+ | 95% coverage | On track |
+| Total test files | 274+ | — | +1 sprint test file S226 (test_sprint226_option5_foundation.py) |
+| Unit tests (functions) | 3,273+ | 95% coverage | On track |
 | Integration tests | 993+ | 90% coverage | On track |
 | E2E scenarios | 85+ | 10 critical paths | Exceeds |
-| Sprint cumulative tests (S216-S225) | 416 | — | 36+38+57+61+30+45+21+22+16+90 |
-| MTP test cases (this document) | ~208 | — | v2.4.0 (no new MTP test cases — Sprint 225 is infrastructure/backend only) |
+| Sprint cumulative tests (S216-S226) | 444 | — | 36+38+57+61+30+45+21+22+16+90+28 |
+| MTP test cases (this document) | ~223 | — | +15 Sprint 226 (autonomy, telemetry, product metrics) |
 | Multi-Agent test cases (TP-056) | 155 | — | +34 Sprint 225 (SL/TCL/TAS/TC) |
 | New DB tables (S218-S221) | +4 | — | skill_agent_grants, shared_workspace_items, consensus_sessions, consensus_votes |
+| New DB columns (S226) | +1 | — | agent_definitions.autonomy_level (ADR-071 D-071-02) |
 | New OPA policies (S223) | +2 | — | tier_artifacts.rego, content_quality.rego |
-| New modules (S225) | +2 | — | soul_loader.py, team_charter_loader.py |
-| Modified modules (S225) | 5 | — | agent_seed_service.py, config.py, agent_team.py (schema), team_orchestrator.py, routes/agent_team.py |
+| New modules (S226) | +2 | — | route_telemetry.py (middleware), product_metrics_service.py |
+| Modified modules (S226) | 4 | — | gate_service.py (autonomy wiring), main.py (middleware+route), agent_registry.py (TIER_AUTONOMY_MAP), ott_gateway.py (channel flags) |
+| Alembic migration (S226) | s226_001 | — | autonomy_level column + CHECK constraint |
 | SDLCRole enum values | 17 | — | +5 Sprint 225 (fullstack, writer, sales, cs, itadmin) |
 | p95 API latency | 14.0ms | <100ms | PASS |
 | OWASP ASVS L2 | 98.4% | Level 2 (264/264) | ACHIEVED |
@@ -64,12 +66,12 @@ This means OTT and CLI test coverage is **P0** — not an afterthought.
 
 | Interface | Features Covered | Test Cases (MTP) | Status |
 |-----------|-----------------|------------------|--------|
-| Web App | 32/32 (admin paths) | ~52 | Updated v2.3.0 |
-| CLI (`sdlcctl`) | 15/32 | ~20 | Updated v2.3.0 (spec_frontmatter extended) |
-| VSCode Extension | 10/32 | ~15 | Active |
-| OTT (Telegram/Zalo/Teams/Slack) | 12/32 | ~42 | Updated v2.3.0 (+2 S223 handlers) |
+| Web App | 35/35 (admin paths) | ~58 | Updated v2.5.0 (+3 S226: autonomy in gate actions, telemetry middleware, product metrics) |
+| CLI (`sdlcctl`) | 15/35 | ~20 | Updated v2.3.0 (spec_frontmatter extended) |
+| VSCode Extension | 10/35 | ~15 | Active |
+| OTT (Telegram/Zalo/Teams/Slack) | 13/35 | ~46 | Updated v2.5.0 (+1 Telegram-only flag, agents respect autonomy) |
 | Cross-Interface | 10 workflows | ~16 | Updated v2.3.0 (+1 WF-10 content quality) |
-| **Total** | | **~208** | |
+| **Total** | | **~223** | |
 
 ---
 
@@ -225,6 +227,37 @@ free text → handle_ai_response (Ollama AI reply)
 - R4: LOC adjusted to realistic estimates (~994 S223, ~580 S224)
 
 **INVARIANT**: Content quality warnings are **advisory** — evidence upload succeeds even with quality issues. Warnings returned in response for user awareness, not blocking.
+
+### Section 3.7: Sprint 226 — Option 5 Foundation (Autonomy + Telemetry + Product Metrics)
+
+| # | Feature | Web | CLI | Extension | OTT | Test IDs |
+|---|---------|-----|-----|-----------|-----|----------|
+| F-33 | Autonomy Presets (4 fixed presets, tier-mapped) | Gate actions show agent_can_execute | N/A | N/A | Agents respect autonomy level | MTP-AUTONOMY-* |
+| F-34 | Route Telemetry (Surface Reduction Program) | All /api/* routes tracked | N/A | N/A | N/A | MTP-TELEMETRY-* |
+| F-35 | Product Metrics (pilot validation — 4 metrics + kill signals) | Admin dashboard metrics | N/A | N/A | N/A | MTP-PRODUCT-* |
+
+**Source**: CTO Review Sprint 226 (APPROVED 9.0/10, 3 P2 + 1 P3 fixed). ADR-071 Option 5 Conversation-First Relaunch.
+
+**Key files**:
+- `backend/app/services/gate_service.py` — `compute_gate_actions()` + `AUTONOMY_AGENT_ACTIONS` + `agent_can_execute`
+- `backend/app/middleware/route_telemetry.py` — Pure ASGI, fire-and-forget Redis INCR, lazy Redis resolution
+- `backend/app/services/product_metrics_service.py` — 4 metrics: time_to_gate, completion_rate, override_rate, retention
+- `backend/alembic/versions/s226_001_add_autonomy_level.py` — autonomy_level column + CHECK constraint
+- `backend/app/services/agent_team/agent_registry.py` — TIER_AUTONOMY_MAP (6 tiers → 4 presets)
+- `backend/app/api/routes/ott_gateway.py` — Channel feature flags (Telegram-only v1)
+- `backend/app/core/config.py` — FEATURE_FLAG_ZALO/TEAMS/SLACK_OTT
+
+**Test files**:
+- `backend/tests/unit/test_sprint226_option5_foundation.py` — 28 tests (autonomy presets, telemetry middleware, feature flags, product metrics, gate actions wiring)
+
+**CTO P2 Fixes Applied**:
+- P2-1: `import re` moved to module-level pre-compiled regexes
+- P2-2: `AgentDuplicateError` → `ValueError` for invalid autonomy_level
+- P2-3: `tier` param in human_override_rate() now filters via Gate → Project join
+
+**INVARIANT**: G3/G4 approve/reject ALWAYS requires human (requires_oob_auth overrides autonomy). Even `autonomous_gated` (ENTERPRISE) cannot agent-approve G3/G4 gates.
+
+**KNOWN ISSUE**: `ProductMetricsService.human_override_rate()` references `GateApproval.source` column which does not yet exist on the model. Requires DB migration to add `source` column to `gate_approvals` table (Sprint 226 Week 3+ scope).
 
 ---
 
@@ -919,7 +952,7 @@ const vscodeApiMock = {
 
 ### 10.2 P0 Regression (Every PR Merge) — Target: <10 min
 
-All P0 feature tests across all interfaces (~97 test cases) plus P1 multi-agent pattern tests (~30 cases) plus P1 gate content quality tests (~18 cases):
+All P0 feature tests across all interfaces (~97 test cases) plus P1 multi-agent pattern tests (~30 cases) plus P1 gate content quality tests (~18 cases) plus P1 Option 5 foundation tests (~15 cases):
 - MTP-AUTH-* (21 cases)
 - MTP-PROJ-* (12 cases)
 - MTP-GATE-* (23 cases)
@@ -937,6 +970,9 @@ All P0 feature tests across all interfaces (~97 test cases) plus P1 multi-agent 
 - MTP-ARTIFACT-* (8 cases) — Sprint 223
 - MTP-CONTENT-* (9 cases) — Sprint 223
 - MTP-AUTOGEN-* (6 cases) — Sprint 224
+- MTP-AUTONOMY-* (6 cases) — Sprint 226 (presets, tier map, model column, registry, gate actions)
+- MTP-TELEMETRY-* (5 cases) — Sprint 226 (path normalization, lazy Redis, TTL, non-API skip)
+- MTP-PRODUCT-* (4 cases) — Sprint 226 (completion rate, kill signal, retention, override signature)
 
 Plus quick-test baseline (114 tests).
 
@@ -944,7 +980,7 @@ Plus quick-test baseline (114 tests).
 
 ### 10.3 Full Regression (Nightly) — Target: <30 min
 
-All ~208 MTP test cases + 121 TP-056 Multi-Agent test cases + 326 sprint cumulative tests (S216-S224) = ~655 total.
+All ~223 MTP test cases + 155 TP-056 Multi-Agent test cases + 444 sprint cumulative tests (S216-S226) = ~822 total.
 
 **Run**:
 ```bash
@@ -1087,6 +1123,9 @@ Planned Documents:
 | 18 | Sprint 223-224 regression | 38 cumulative tests passing (22+16) | **NEW v2.3.0** | Backend |
 | 19 | Content quality advisory invariant | Upload NOT blocked by content warnings | **NEW v2.3.0** | Backend |
 | 20 | OPA policy parity | tier_artifacts.rego + content_quality.rego deployed | **NEW v2.3.0** | Backend |
+| 21 | Sprint 226 regression | 28 cumulative tests passing | **NEW v2.5.0** | Backend |
+| 22 | Autonomy presets enforced | LITE=assist_only, ENTERPRISE=autonomous_gated, G3/G4 human-only | **NEW v2.5.0** | Backend |
+| 23 | Route telemetry collecting | Redis INCR on /api/* paths, 90-day TTL, fire-and-forget | **NEW v2.5.0** | Backend |
 
 ---
 
@@ -1094,6 +1133,7 @@ Planned Documents:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.5.0 | 2026-03-16 | @tester | Sprint 226 Option 5 Foundation: +3 features (F-33 Autonomy Presets, F-34 Route Telemetry, F-35 Product Metrics), 35-feature matrix, +15 MTP test cases (~223 total), 444 cumulative sprint tests (S216-S226), +1 Alembic migration (s226_001 autonomy_level), +2 new modules (route_telemetry.py, product_metrics_service.py), 4 modified modules, RouteTelemetryMiddleware wired into main.py with lazy Redis, autonomy_level wired into compute_gate_actions() with agent_can_execute, G3/G4 human-only INVARIANT, Telegram-only feature flags (Zalo/Teams/Slack=OFF), CTO P2 fixes (import re, ValueError, tier filter), KNOWN ISSUE: GateApproval.source column missing |
 | 2.4.0 | 2026-03-09 | @tester | Sprint 225 SOUL Template Integration: +2 new modules (soul_loader.py, team_charter_loader.py), 5 modified modules, SDLCRole enum 12→17 (+fullstack/writer/sales/cs/itadmin), 4-type taxonomy (SE4A=9/SE4H=3/Support=4/Router=1), tier-aware seeding (LITE=3/STANDARD=6/PRO=10/ENTERPRISE=13), SOUL template loading with max_chars=6000 truncation, ContextInjector wired into TeamOrchestrator, SUPPORT_CONSTRAINTS (CTO B3), 90 Sprint 225 tests (416 cumulative S216-S225), TP-056 updated to 155 test cases (+34 S225) |
 | 2.3.0 | 2026-03-06 | @tester | Sprint 223-224 coverage: +3 features (F-30 Tier-Artifact Matrix, F-31 Content Quality Validation, F-32 Auto-Gen Quality Gates), 32-feature matrix, +18 MTP test cases (~208 total), 326 cumulative sprint tests (S216-S224), +2 OPA policies (tier_artifacts.rego, content_quality.rego), +5 new modules, CTO revisions R1-R4 documented, content quality advisory INVARIANT, cross-project review (EndiorBot S80) traceability |
 | 2.2.0 | 2026-03-05 | @tester | Sprint 222 coverage: F-29 OTT @mention routing, MTP-MENTION-* (12 cases), WF-09 mention workflow, routing precedence documented |

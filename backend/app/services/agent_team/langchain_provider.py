@@ -239,7 +239,7 @@ class LangChainProvider:
         else:
             # Default: ChatOllama (Ollama REST API)
             ollama_base_url = os.environ.get(
-                "OLLAMA_BASE_URL", "http://api.nhatquangholding.com:11434"
+                "OLLAMA_BASE_URL", "http://localhost:11434"
             )
             model = ChatOllama(  # type: ignore[misc]
                 model=model_name,

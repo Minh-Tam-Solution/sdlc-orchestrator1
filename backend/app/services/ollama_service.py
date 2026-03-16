@@ -190,9 +190,8 @@ class OllamaService:
             timeout: Request timeout in seconds (default: 30s)
         """
         # Get Ollama URL from settings or use default
-        self.base_url = base_url or getattr(
-            settings, "OLLAMA_URL", "http://localhost:11434"
-        )
+        configured_url = getattr(settings, "OLLAMA_URL", "") or "http://localhost:11434"
+        self.base_url = base_url or configured_url
         self.model = model
         self.timeout = timeout
         self._is_available: Optional[bool] = None

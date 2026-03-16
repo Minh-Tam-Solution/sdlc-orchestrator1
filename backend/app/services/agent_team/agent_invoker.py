@@ -366,7 +366,9 @@ class AgentInvoker:
         """
         import httpx
 
-        ollama_url = "http://api.nhatquangholding.com:11434/api/chat"
+        import os
+        ollama_base = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+        ollama_url = f"{ollama_base}/api/chat"
 
         ollama_messages = []
         if system_prompt:
