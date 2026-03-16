@@ -35,9 +35,9 @@ class TestUpdateSprintRegistration:
         names = [cmd.name for cmd in GOVERNANCE_COMMANDS]
         assert "update_sprint" in names
 
-    def test_registry_has_10_commands(self):
-        """Registry now has 10 commands (8 prior + run_evals + list_notes — Sprint 202)."""
-        assert len(GOVERNANCE_COMMANDS) == 10
+    def test_registry_has_15_commands(self):
+        """Registry now has 15 commands (10 prior + 5 Sprint 226 conversation-first)."""
+        assert len(GOVERNANCE_COMMANDS) == 15
 
     def test_registry_under_max_limit(self):
         """Registry is still under the 10-command limit."""

@@ -15,12 +15,12 @@ from pydantic import BaseModel
 class TestRegistryRoundtrip:
     """Verify registry returns 8 commands with all required fields."""
 
-    def test_get_commands_returns_eight(self):
-        """get_commands() must return exactly 8 governance commands (Sprint 201: +close_sprint, +invite_member)."""
+    def test_get_commands_returns_fifteen(self):
+        """get_commands() must return exactly 15 governance commands (Sprint 226: +5 conversation-first)."""
         from app.services.agent_team.command_registry import get_commands
 
         commands = get_commands()
-        assert len(commands) == 10, f"Expected 10 commands, got {len(commands)}"
+        assert len(commands) == 15, f"Expected 15 commands, got {len(commands)}"
 
     def test_commands_have_required_fields(self):
         """Each CommandDef must have all required fields populated."""
@@ -57,11 +57,11 @@ class TestOllamaToolsGeneration:
     """Verify to_ollama_tools() produces valid JSON Schema."""
 
     def test_ollama_tools_count(self):
-        """to_ollama_tools() must produce 10 tool definitions (Sprint 202: +run_evals, +list_notes)."""
+        """to_ollama_tools() must produce 15 tool definitions (Sprint 226: +5 conversation-first)."""
         from app.services.agent_team.command_registry import to_ollama_tools
 
         tools = to_ollama_tools()
-        assert len(tools) == 10, f"Expected 10 Ollama tools, got {len(tools)}"
+        assert len(tools) == 15, f"Expected 15 Ollama tools, got {len(tools)}"
 
     def test_ollama_tools_structure(self):
         """Each Ollama tool must have type, function.name, function.description, function.parameters."""
@@ -142,7 +142,7 @@ class TestVietnameseAliases:
         """Each command must have at least one Vietnamese OTT alias."""
         from app.services.agent_team.command_registry import get_commands
 
-        vietnamese_keywords = ["tạo", "trạng", "nộp", "duyệt", "xuất", "cập nhật", "đóng", "mời", "chạy", "xem"]
+        vietnamese_keywords = ["tạo", "trạng", "nộp", "duyệt", "xuất", "cập nhật", "đóng", "mời", "chạy", "xem", "đánh giá", "kế hoạch", "số liệu"]
         for cmd in get_commands():
             has_vn = any(
                 any(kw in alias for kw in vietnamese_keywords)
@@ -158,10 +158,10 @@ class TestMaxCommandsGuard:
     """Verify registry enforces max 10 commands."""
 
     def test_max_commands_constant(self):
-        """MAX_COMMANDS must be 10 (Expert 9 correction)."""
+        """MAX_COMMANDS must be 15 (Sprint 226: raised from 10 for conversation-first)."""
         from app.services.agent_team.command_registry import MAX_COMMANDS
 
-        assert MAX_COMMANDS == 10
+        assert MAX_COMMANDS == 15
 
     def test_current_count_within_limit(self):
         """Current command count must not exceed MAX_COMMANDS."""

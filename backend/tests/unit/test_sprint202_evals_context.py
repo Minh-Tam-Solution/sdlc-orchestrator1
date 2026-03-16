@@ -547,11 +547,11 @@ class TestNotesContextInjection:
 class TestCommandRegistryExpansion:
     """C-01/C-02: Command registry expansion 8→10 — 4 tests."""
 
-    def test_registry_has_10_commands(self):
-        """Registry expanded from 8 to 10 commands."""
+    def test_registry_has_15_commands(self):
+        """Registry expanded from 10 to 15 commands (Sprint 226 conversation-first)."""
         from app.services.agent_team.command_registry import GOVERNANCE_COMMANDS
 
-        assert len(GOVERNANCE_COMMANDS) == 10
+        assert len(GOVERNANCE_COMMANDS) == 15
 
     def test_run_evals_command_registered(self):
         """run_evals command exists in registry."""
@@ -624,11 +624,11 @@ class TestToolContextInternalTools:
 class TestRegressionGuards:
     """Sprint 201→202 regression guards — 6 tests."""
 
-    def test_registry_expanded_from_8_to_10(self):
-        """Sprint 201 had 8 commands, Sprint 202 has 10."""
+    def test_registry_expanded_to_15(self):
+        """Sprint 226 expanded to 15 commands (10 prior + 5 conversation-first)."""
         from app.services.agent_team.command_registry import GOVERNANCE_COMMANDS
 
-        assert len(GOVERNANCE_COMMANDS) == 10
+        assert len(GOVERNANCE_COMMANDS) == 15
 
     def test_all_sprint_201_commands_preserved(self):
         """All 8 Sprint 201 commands still present."""
@@ -642,11 +642,11 @@ class TestRegressionGuards:
         }
         assert sprint_201_commands.issubset(names)
 
-    def test_tool_name_enum_has_10_values(self):
-        """ToolName enum has 10 members."""
+    def test_tool_name_enum_has_15_values(self):
+        """ToolName enum has 15 members (Sprint 226: +5 conversation-first)."""
         from app.services.agent_team.command_registry import ToolName
 
-        assert len(ToolName) == 10
+        assert len(ToolName) == 15
 
     def test_evidence_collector_captures_agent_output(self):
         """EvidenceCollector.capture_message still works for AGENT_OUTPUT."""

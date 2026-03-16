@@ -34,10 +34,10 @@ import pytest
 class TestCommandRegistrySpint201:
     """Verify close_sprint and invite_member commands registered correctly."""
 
-    def test_registry_has_10_commands(self) -> None:
+    def test_registry_has_15_commands(self) -> None:
         from app.services.agent_team.command_registry import GOVERNANCE_COMMANDS
 
-        assert len(GOVERNANCE_COMMANDS) == 10
+        assert len(GOVERNANCE_COMMANDS) == 15
 
     def test_registry_within_max_limit(self) -> None:
         from app.services.agent_team.command_registry import (
@@ -329,7 +329,7 @@ class TestPilotDockerCompose:
 class TestDogfoodingVerificationMatrix:
     """Verify all governance actions are available via OTT (100% dogfooding)."""
 
-    def test_all_10_commands_registered(self) -> None:
+    def test_all_15_commands_registered(self) -> None:
         from app.services.agent_team.command_registry import GOVERNANCE_COMMANDS
 
         names = {cmd.name for cmd in GOVERNANCE_COMMANDS}
@@ -344,6 +344,12 @@ class TestDogfoodingVerificationMatrix:
             "invite_member",
             "run_evals",
             "list_notes",
+            # Sprint 226 — ADR-071 conversation-first commands
+            "list_evidence",
+            "evaluate_gate",
+            "plan_sprint",
+            "run_quality_check",
+            "get_metrics",
         }
         assert names == expected
 

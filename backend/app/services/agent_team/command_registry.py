@@ -104,6 +104,45 @@ class ListNotesParams(BaseModel):
     note_type: Optional[str] = Field(None, max_length=20, description="Filter by note type")
 
 
+# Sprint 226 — ADR-071: 5 new commands for conversation-first SDLC workflows
+
+
+class ListEvidenceParams(BaseModel):
+    """Parameters for list_evidence command (Sprint 226)."""
+
+    gate_id: Optional[UUID] = Field(None, description="Filter evidence by gate UUID")
+    project_id: Optional[int] = Field(None, description="Filter by project ID")
+
+
+class EvaluateGateParams(BaseModel):
+    """Parameters for evaluate_gate command (Sprint 226)."""
+
+    gate_id: UUID = Field(..., description="Gate UUID to evaluate")
+
+
+class PlanSprintParams(BaseModel):
+    """Parameters for plan_sprint command (Sprint 226)."""
+
+    project_id: UUID = Field(..., description="Project UUID")
+    sprint_name: Optional[str] = Field(None, max_length=100, description="Sprint name")
+    goal: Optional[str] = Field(None, max_length=500, description="Sprint goal")
+
+
+class RunQualityCheckParams(BaseModel):
+    """Parameters for run_quality_check command (Sprint 226)."""
+
+    project_id: UUID = Field(..., description="Project UUID")
+    file_path: Optional[str] = Field(None, description="Specific file to check")
+
+
+class GetMetricsParams(BaseModel):
+    """Parameters for get_metrics command (Sprint 226)."""
+
+    metric_type: Literal["completion", "override", "retention", "baseline"] = Field(
+        default="completion", description="Metric type to query",
+    )
+
+
 # ============================================================================
 # Tool Name Enum — Bounded Allowlist (T-01)
 # ============================================================================
@@ -122,14 +161,21 @@ class ToolName(str, Enum):
     INVITE_MEMBER = "invite_member"
     RUN_EVALS = "run_evals"
     LIST_NOTES = "list_notes"
+    # Sprint 226 — ADR-071 conversation-first commands
+    LIST_EVIDENCE = "list_evidence"
+    EVALUATE_GATE = "evaluate_gate"
+    PLAN_SPRINT = "plan_sprint"
+    RUN_QUALITY_CHECK = "run_quality_check"
+    GET_METRICS = "get_metrics"
 
 
 # ============================================================================
 # Command Definition
 # ============================================================================
 
-# Maximum number of commands allowed in the registry (Expert 9 correction).
-MAX_COMMANDS = 10
+# Maximum number of commands allowed in the registry.
+# Sprint 226: raised from 10 → 15 for conversation-first workflows (ADR-071).
+MAX_COMMANDS = 15
 
 
 @dataclasses.dataclass(frozen=True)
@@ -321,6 +367,77 @@ GOVERNANCE_COMMANDS: list[CommandDef] = [
         ott_aliases=(
             "list notes", "xem ghi chú", "show notes", "ghi chú agent",
         ),
+        required_params=(),
+    ),
+    # ── Sprint 226 — ADR-071 Conversation-First Commands ──────────────
+    CommandDef(
+        name="list_evidence",
+        description="List evidence artifacts for a gate or project",
+        params=ListEvidenceParams,
+        permission="governance:read",
+        handler="evidence_service.list_evidence",
+        cli_name="list-evidence",
+        ott_description=(
+            "List evidence for a gate or project. "
+            "Use when user says 'list evidence', 'xem bằng chứng', 'evidence status', etc."
+        ),
+        ott_aliases=("list evidence", "xem bằng chứng", "evidence status"),
+        required_params=(),
+    ),
+    CommandDef(
+        name="evaluate_gate",
+        description="Trigger gate evaluation (OPA policy check)",
+        params=EvaluateGateParams,
+        permission="governance:write",
+        handler="gate_service.evaluate_gate",
+        cli_name="evaluate-gate",
+        ott_description=(
+            "Evaluate a quality gate. "
+            "Use when user says 'evaluate gate', 'đánh giá gate', 'check gate quality', etc."
+        ),
+        ott_aliases=("evaluate gate", "đánh giá gate", "check gate quality"),
+        required_params=("gate_id",),
+    ),
+    CommandDef(
+        name="plan_sprint",
+        description="Create or plan a sprint for a project",
+        params=PlanSprintParams,
+        permission="governance:write",
+        handler="planning_service.plan_sprint",
+        cli_name="plan-sprint",
+        ott_description=(
+            "Plan a new sprint for a project. "
+            "Use when user says 'plan sprint', 'lên kế hoạch sprint', 'tạo sprint', etc."
+        ),
+        ott_aliases=("plan sprint", "lên kế hoạch sprint", "tạo sprint"),
+        required_params=("project_id",),
+    ),
+    CommandDef(
+        name="run_quality_check",
+        description="Run quality pipeline (SAST + tests) on project code",
+        params=RunQualityCheckParams,
+        permission="governance:write",
+        handler="codegen_service.run_quality_check",
+        cli_name="quality-check",
+        ott_description=(
+            "Run quality checks (SAST, tests) on project code. "
+            "Use when user says 'run tests', 'chạy kiểm tra', 'quality check', 'SAST scan', etc."
+        ),
+        ott_aliases=("run tests", "chạy kiểm tra", "quality check", "SAST scan"),
+        required_params=("project_id",),
+    ),
+    CommandDef(
+        name="get_metrics",
+        description="Get product metrics (completion rate, override rate, retention)",
+        params=GetMetricsParams,
+        permission="governance:read",
+        handler="product_metrics_service.get_metrics",
+        cli_name="get-metrics",
+        ott_description=(
+            "Get pilot product metrics. "
+            "Use when user says 'metrics', 'số liệu', 'dashboard metrics', 'KPI', etc."
+        ),
+        ott_aliases=("metrics", "số liệu", "dashboard metrics", "KPI"),
         required_params=(),
     ),
 ]

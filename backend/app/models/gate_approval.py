@@ -117,6 +117,14 @@ class GateApproval(Base):
     # Comments
     comments = Column(Text, nullable=True)
 
+    # Source Interface (Sprint 226 — ADR-071 D-071-05)
+    # Tracks which interface initiated the approval for product metrics.
+    source = Column(
+        String(20),
+        nullable=True,
+        doc="Source interface: web, chat, magic_link, cli, api, agent",
+    )
+
     # Status Timestamps
     approved_at = Column(DateTime, nullable=True)
     rejected_at = Column(DateTime, nullable=True)

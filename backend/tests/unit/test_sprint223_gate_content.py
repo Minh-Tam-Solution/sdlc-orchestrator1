@@ -247,10 +247,10 @@ class TestOTTHandlerDispatch:
 class TestRegistryUnchanged:
     """Verify command registry was NOT modified (CTO R2: dispatch-only)."""
 
-    def test_max_commands_still_10(self):
+    def test_max_commands_raised_to_15(self):
         from app.services.agent_team.command_registry import MAX_COMMANDS
 
-        assert MAX_COMMANDS == 10
+        assert MAX_COMMANDS == 15
 
     def test_command_count_at_capacity(self):
         from app.services.agent_team.command_registry import (
