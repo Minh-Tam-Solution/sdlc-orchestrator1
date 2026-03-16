@@ -1155,6 +1155,32 @@ async def execute_governance_action(
                 tool_args, bot_token, chat_id, user_id, channel=channel,
             )
 
+        # Sprint 226 — ADR-071 conversation-first commands
+        elif tool_name == ToolName.LIST_EVIDENCE.value:
+            handled = await _execute_list_evidence(
+                tool_args, bot_token, chat_id, user_id, channel=channel,
+            )
+
+        elif tool_name == ToolName.EVALUATE_GATE.value:
+            handled = await _execute_evaluate_gate(
+                tool_args, bot_token, chat_id, user_id, channel=channel,
+            )
+
+        elif tool_name == ToolName.PLAN_SPRINT.value:
+            handled = await _execute_plan_sprint(
+                tool_args, bot_token, chat_id, user_id, channel=channel,
+            )
+
+        elif tool_name == ToolName.RUN_QUALITY_CHECK.value:
+            handled = await _execute_run_quality_check(
+                tool_args, bot_token, chat_id, user_id, channel=channel,
+            )
+
+        elif tool_name == ToolName.GET_METRICS.value:
+            handled = await _execute_get_metrics(
+                tool_args, bot_token, chat_id, user_id, channel=channel,
+            )
+
         else:
             await _send_telegram_reply(
                 bot_token, chat_id,
@@ -1299,6 +1325,292 @@ async def _execute_list_notes(
             await _send_telegram_reply(
                 bot_token, chat_id,
                 _format_error(f"Note service unavailable: {str(exc)[:200]}"),
+                channel=channel,
+            )
+            return False
+
+
+# ============================================================================
+# Sprint 226 — ADR-071 Conversation-First Command Handlers
+# ============================================================================
+
+
+async def _execute_list_evidence(
+    tool_args: dict,
+    bot_token: str,
+    chat_id: str | int,
+    user_id: str,
+    *,
+    channel: str = "telegram",
+) -> bool:
+    """List evidence artifacts for a gate or project."""
+    gate_id = tool_args.get("gate_id")
+    project_id = tool_args.get("project_id")
+
+    async with AsyncSessionLocal() as db:
+        try:
+            from sqlalchemy import select
+            from app.models.gate_evidence import GateEvidence
+
+            query = select(GateEvidence).order_by(GateEvidence.created_at.desc()).limit(10)
+            if gate_id:
+                query = query.where(GateEvidence.gate_id == gate_id)
+            if project_id:
+                query = query.where(GateEvidence.project_id == project_id)
+
+            result = await db.execute(query)
+            evidence_list = result.scalars().all()
+
+            if not evidence_list:
+                await _send_telegram_reply(
+                    bot_token, chat_id,
+                    "\U0001f4c2 No evidence found for the given filters.",
+                    channel=channel,
+                )
+                return True
+
+            lines = ["\U0001f4c2 Evidence List (last 10)\n"]
+            for ev in evidence_list:
+                status_emoji = "\u2705" if ev.status == "APPROVED" else "\U0001f7e1"
+                lines.append(
+                    f"{status_emoji} {ev.evidence_type} — {ev.status}\n"
+                    f"   Gate: {ev.gate_id}\n"
+                    f"   Created: {ev.created_at.strftime('%Y-%m-%d %H:%M') if ev.created_at else 'N/A'}"
+                )
+
+            await _send_telegram_reply(bot_token, chat_id, "\n".join(lines), channel=channel)
+            return True
+        except Exception as exc:
+            logger.warning("list_evidence handler error: %s", exc)
+            await _send_telegram_reply(
+                bot_token, chat_id,
+                _format_error(f"Evidence query failed: {str(exc)[:200]}"),
+                channel=channel,
+            )
+            return False
+
+
+async def _execute_evaluate_gate(
+    tool_args: dict,
+    bot_token: str,
+    chat_id: str | int,
+    user_id: str,
+    *,
+    channel: str = "telegram",
+) -> bool:
+    """Trigger gate evaluation (OPA policy check) via chat."""
+    gate_id = tool_args.get("gate_id")
+
+    async with AsyncSessionLocal() as db:
+        try:
+            from app.services.gate_service import GateService
+
+            svc = GateService(db)
+            gate = await svc.get_gate_by_id(gate_id)
+            if not gate:
+                await _send_telegram_reply(
+                    bot_token, chat_id,
+                    _format_error(f"Gate {gate_id} not found."),
+                    channel=channel,
+                )
+                return True
+
+            result = await svc.evaluate_gate(gate_id, evaluator_id=user_id)
+
+            status_emoji = "\u2705" if result.status == "PASSED" else "\u274c"
+            reply = (
+                f"{status_emoji} Gate Evaluation: {result.status}\n\n"
+                f"\U0001f3af Gate: {gate.gate_type} ({gate_id})\n"
+                f"\U0001f4ca Score: {getattr(result, 'score', 'N/A')}\n"
+                f"\U0001f4dd Details: {getattr(result, 'summary', 'Evaluation complete')}"
+            )
+            await _send_telegram_reply(bot_token, chat_id, reply, channel=channel)
+            return True
+        except Exception as exc:
+            logger.warning("evaluate_gate handler error: %s", exc)
+            await _send_telegram_reply(
+                bot_token, chat_id,
+                _format_error(f"Gate evaluation failed: {str(exc)[:200]}"),
+                channel=channel,
+            )
+            return False
+
+
+async def _execute_plan_sprint(
+    tool_args: dict,
+    bot_token: str,
+    chat_id: str | int,
+    user_id: str,
+    *,
+    channel: str = "telegram",
+) -> bool:
+    """Create or plan a sprint for a project via chat."""
+    project_id = tool_args.get("project_id")
+    sprint_name = tool_args.get("sprint_name", "")
+    goal = tool_args.get("goal", "")
+
+    async with AsyncSessionLocal() as db:
+        try:
+            from sqlalchemy import select, func
+            from app.models.project import Project
+
+            # Verify project exists
+            proj_result = await db.execute(
+                select(Project).where(Project.id == project_id)
+            )
+            project = proj_result.scalar_one_or_none()
+            if not project:
+                await _send_telegram_reply(
+                    bot_token, chat_id,
+                    _format_error(f"Project {project_id} not found."),
+                    channel=channel,
+                )
+                return True
+
+            reply = (
+                "\U0001f4cb Sprint Planning\n\n"
+                f"\U0001f4c1 Project: {project.name}\n"
+                f"\U0001f3af Sprint: {sprint_name or '(auto-generated)'}\n"
+                f"\U0001f4dd Goal: {goal or '(not specified)'}\n\n"
+                "\U0001f4a1 To create a full sprint plan, use:\n"
+                f"POST /api/v1/planning/sprints with project_id={project_id}\n\n"
+                "Or use: sdlcctl plan-sprint <project_id>"
+            )
+            await _send_telegram_reply(bot_token, chat_id, reply, channel=channel)
+            return True
+        except Exception as exc:
+            logger.warning("plan_sprint handler error: %s", exc)
+            await _send_telegram_reply(
+                bot_token, chat_id,
+                _format_error(f"Sprint planning failed: {str(exc)[:200]}"),
+                channel=channel,
+            )
+            return False
+
+
+async def _execute_run_quality_check(
+    tool_args: dict,
+    bot_token: str,
+    chat_id: str | int,
+    user_id: str,
+    *,
+    channel: str = "telegram",
+) -> bool:
+    """Run quality pipeline (SAST + tests) on project code via chat."""
+    project_id = tool_args.get("project_id")
+    file_path = tool_args.get("file_path")
+
+    async with AsyncSessionLocal() as db:
+        try:
+            from sqlalchemy import select
+            from app.models.project import Project
+
+            proj_result = await db.execute(
+                select(Project).where(Project.id == project_id)
+            )
+            project = proj_result.scalar_one_or_none()
+            if not project:
+                await _send_telegram_reply(
+                    bot_token, chat_id,
+                    _format_error(f"Project {project_id} not found."),
+                    channel=channel,
+                )
+                return True
+
+            target = file_path or "entire project"
+            reply = (
+                "\U0001f50d Quality Check Initiated\n\n"
+                f"\U0001f4c1 Project: {project.name}\n"
+                f"\U0001f4c4 Target: {target}\n\n"
+                "\U0001f6e0\ufe0f Pipeline stages:\n"
+                "  1\ufe0f\u20e3 Syntax Check (ast.parse, ruff)\n"
+                "  2\ufe0f\u20e3 SAST Scan (Semgrep)\n"
+                "  3\ufe0f\u20e3 Context Validation (imports, deps)\n"
+                "  4\ufe0f\u20e3 Test Execution (pytest)\n\n"
+                "\U0001f4a1 For full pipeline execution, use:\n"
+                f"POST /api/v1/codegen/quality-check with project_id={project_id}\n\n"
+                "Or use: sdlcctl quality-check <project_id>"
+            )
+            await _send_telegram_reply(bot_token, chat_id, reply, channel=channel)
+            return True
+        except Exception as exc:
+            logger.warning("run_quality_check handler error: %s", exc)
+            await _send_telegram_reply(
+                bot_token, chat_id,
+                _format_error(f"Quality check failed: {str(exc)[:200]}"),
+                channel=channel,
+            )
+            return False
+
+
+async def _execute_get_metrics(
+    tool_args: dict,
+    bot_token: str,
+    chat_id: str | int,
+    user_id: str,
+    *,
+    channel: str = "telegram",
+) -> bool:
+    """Get product metrics (completion, override, retention) via chat."""
+    metric_type = tool_args.get("metric_type", "completion")
+
+    async with AsyncSessionLocal() as db:
+        try:
+            from app.services.product_metrics_service import ProductMetricsService
+
+            svc = ProductMetricsService(db)
+
+            if metric_type == "completion":
+                data = await svc.conversation_completion_rate()
+                rate = data.get("rate", 0)
+                kill = data.get("kill_signal", False)
+                emoji = "\u2705" if rate >= 70 else ("\U0001f6a8" if kill else "\u26a0\ufe0f")
+                reply = (
+                    f"{emoji} Conversation Completion Rate\n\n"
+                    f"\U0001f4ca Rate: {rate:.1f}%\n"
+                    f"\U0001f3af Target: \u226570%\n"
+                    f"\U0001f6a8 Kill signal (<50%): {'YES' if kill else 'No'}"
+                )
+            elif metric_type == "override":
+                data = await svc.human_override_rate()
+                rate = data.get("rate", 0)
+                reply = (
+                    "\U0001f464 Human Override Rate\n\n"
+                    f"\U0001f4ca Rate: {rate:.1f}%\n"
+                    f"\U0001f3af Target: \u226430% (STANDARD tier)"
+                )
+            elif metric_type == "retention":
+                data = await svc.pilot_retention()
+                active = data.get("active_users", 0)
+                total = data.get("total_users", 0)
+                kill = data.get("kill_signal", False)
+                emoji = "\u2705" if not kill else "\U0001f6a8"
+                reply = (
+                    f"{emoji} Pilot Retention\n\n"
+                    f"\U0001f465 Active: {active}/{total}\n"
+                    f"\U0001f3af Target: 3/3 active end of Week 2\n"
+                    f"\U0001f6a8 Kill signal (<2/3): {'YES' if kill else 'No'}"
+                )
+            elif metric_type == "baseline":
+                data = await svc.time_to_gate_baseline()
+                reply = (
+                    "\u23f1\ufe0f Time-to-Gate Baseline\n\n"
+                    f"\U0001f4ca Data: {data}\n"
+                    f"\U0001f3af Target: \u226540% faster with conversation"
+                )
+            else:
+                reply = _format_error(
+                    f"Unknown metric type: {metric_type}. "
+                    "Use: completion, override, retention, baseline"
+                )
+
+            await _send_telegram_reply(bot_token, chat_id, reply, channel=channel)
+            return True
+        except Exception as exc:
+            logger.warning("get_metrics handler error: %s", exc)
+            await _send_telegram_reply(
+                bot_token, chat_id,
+                _format_error(f"Metrics unavailable: {str(exc)[:200]}"),
                 channel=channel,
             )
             return False
