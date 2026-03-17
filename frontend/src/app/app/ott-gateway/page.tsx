@@ -345,15 +345,15 @@ export default function OttGatewayPage() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-        <h2 className="text-lg font-semibold text-red-800">
-          OTT Gateway Dashboard Error
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+        <h2 className="text-lg font-semibold text-yellow-800">
+          Truy cập bị hạn chế / Access Restricted
         </h2>
-        <p className="mt-2 text-sm text-red-600">
-          {(error as Error).message}
+        <p className="mt-2 text-sm text-yellow-700">
+          Trang OTT Gateway chỉ dành cho quản trị viên (Admin/Platform Admin).
         </p>
-        <p className="mt-1 text-xs text-red-500">
-          This page requires admin access (is_superuser or is_platform_admin).
+        <p className="mt-1 text-sm text-yellow-600">
+          This page requires admin access. Please contact your administrator.
         </p>
       </div>
     );

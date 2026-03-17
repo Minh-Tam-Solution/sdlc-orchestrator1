@@ -134,7 +134,7 @@ function GateCard({ gate }: { gate: Gate }) {
             <span className="font-medium text-gray-900">{gate.evidence_count}</span>
             <span className="text-gray-500"> evidence</span>
           </div>
-          {gate.policy_violations.length > 0 && (
+          {(gate.policy_violations?.length ?? 0) > 0 && (
             <div className="text-sm text-red-600">
               {gate.policy_violations.length} violations
             </div>
@@ -187,7 +187,7 @@ function EvaluationRow({ gate }: { gate: Gate }) {
         }`}>
           {gate.status.replace("_", " ")}
         </div>
-        {gate.approvals.length > 0 && (
+        {(gate.approvals?.length ?? 0) > 0 && (
           <div className="text-xs text-gray-500">
             {gate.approvals.length} approval{gate.approvals.length > 1 ? "s" : ""}
           </div>
